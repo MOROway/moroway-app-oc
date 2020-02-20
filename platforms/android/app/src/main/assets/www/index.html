@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<base href="./">
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta name="theme-color" content="#000" />
+		<title data-stringid-content="generalTitle"></title>
+		<link rel="manifest" href="manifest.webmanifest">
+		<link rel="icon" type="image/x-icon" sizes="32x32" href="favicon.ico">
+		<!-- Open Source Libraries And Fonts -->
+		<!-- Hubspot: Pace.js -->
+		<script src="src/others/open_source/open_code/hubspot/pace.js/pace.min.js"></script>
+		<link rel="stylesheet" type="text/css" href="src/others/open_source/open_code/hubspot/pace.js/pace-theme-center-simple.tmpl.css">
+		<!-- Google: Material Design Lite -->
+		<script src="src/others/open_source/open_code/google/mdl/material.min.js"></script>
+		<link rel="stylesheet" type="text/css" href="src/others/open_source/open_code/google/mdl/material.min.css">
+		<!-- Fonts -->
+		<link rel="stylesheet" type="text/css" href="src/others/open_source/open_fonts/google/MaterialIcons/font.css">
+		<link rel="stylesheet" type="text/css" href="src/others/open_source/open_fonts/google/Roboto/font.css">
+
+		<!-- General Scripts -->
+		<script src="src/jonathan_herrmann_engel/js/error_handler.js"></script>
+		<script src="src/jonathan_herrmann_engel/js_platform/error_handler.js"></script>
+		<script src="src/jonathan_herrmann_engel/js/appdata.js"></script>
+		<script src="src/jonathan_herrmann_engel/js_platform/appdata.js"></script>
+		<script src="src/jonathan_herrmann_engel/js/general.js"></script>
+		<script src="src/jonathan_herrmann_engel/js_platform/general.js"></script>
+		<!-- Animation Scripts -->
+		<script src="src/jonathan_herrmann_engel/js/scripting.js"></script>
+		<script src="src/jonathan_herrmann_engel/js_platform/scripting.js"></script>
+
+		<!-- General Styles -->
+		<link rel="stylesheet" type="text/css" href="src/jonathan_herrmann_engel/css/general.css">
+		<link rel="stylesheet" type="text/css" href="src/jonathan_herrmann_engel/css_platform/general.css">
+		<!-- Animation Styles -->
+		<link rel="stylesheet" type="text/css" href="src/jonathan_herrmann_engel/css/styling.css">
+		<link rel="stylesheet" type="text/css" href="src/jonathan_herrmann_engel/css_platform/styling.css">
+	</head>
+
+	<body>
+	
+		<main id="content">		
+			<!-- tags for ready app -->
+			<div id="setup">
+				<div id="setup-colorframe"> </div>
+				<div id="setup-inner-content">
+					<div id="setup-init">
+						<span id="setup-init-info" data-stringid-content="appScreenTeamplaySetupInit" data-stringid-content-punctuation=":"></span>
+						<span id="setup-init-detail" data-stringid-content="appScreenTeamplaySetupInitDetail"></span>
+						<input id="setup-init-name" type="text" autocomplete="off">
+						<button id="setup-init-button" data-stringid-content="appScreenTeamplaySetupInitButton" data-stringid-content-punctuation="!" data-stringid-content-case="upper"></button>
+					</div>
+					<div id="setup-create">
+						<button id="setup-create-link" data-stringid-content="appScreenTeamplaySetupCreateLink"></button>
+						<button id="setup-create-escape"  data-stringid-content="appScreenTeamplayUnsetTitle"></button>
+					</div>
+					<div id="setup-start">
+						<span id="setup-start-message" data-stringid-content="appScreenTeamplaySetupStart" data-stringid-content-punctuation=":"></span>
+						<span id="setup-start-gamelink"></span>
+						<button id="setup-start-button" data-stringid-content="appScreenTeamplaySetupStartButton" data-stringid-content-case="upper"></button>
+					</div>
+				</div>
+				<div id="setup-colorbottom"> </div>
+				<div id="setup-ball">
+					<div id="setup-ballin"></div>
+				</div>
+			</div>
+			<div id="game">
+				<div id="game-start">
+					<div id="game-start-text" data-stringid-content="appScreenTeamplayGameStart"></div>
+					<div id="game-start-button" data-stringid-content="appScreenTeamplayGameStartButton"></div>
+				</div>
+				<div id="game-wait">
+					<div id="game-wait-text" data-stringid-content="appScreenTeamplayTeammateWait"></div>
+				</div>
+				<div id="game-gameplay">			
+					<canvas data-stringid-content="appScreenNoCanvas">JavaScript required</canvas>
+					
+					<div id="canvas-options" style="position: fixed;">
+						<button id="canvas-team" style="display: none;" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-button--colored" data-stringid-title="appScreenTeamplayTitle">
+							<i class="material-icons">people</i>
+						</button>
+						<button id="canvas-single" style="display: none;" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-button--colored" data-stringid-title="appScreenTeamplayUnsetTitle">
+							<i class="material-icons">person</i>
+						</button>
+						<button id="canvas-settings" style="display: none;" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-button--colored" data-stringid-title="generalTitleSettingsScreen">
+							<i class="material-icons">settings</i>
+						</button>
+						<button id="canvas-help" style="display: none;" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-button--colored" data-stringid-title="generalTitleHelpScreen">
+							<i class="material-icons">help</i>
+						</button>
+					</div>
+					
+				</div>
+			</div>
+		</main>
+		
+		<!-- loading animation -->
+		<div id="branding"><img src="assets/asset_background_train.png" alt=""></div>
+		
+		<!-- notify -->
+		<div id="canvas-notifier" class="mdl-js-snackbar mdl-snackbar">
+			<div class="mdl-snackbar__text"></div>
+			<button class="mdl-snackbar__action" type="button"></button>
+		</div>		
+				
+		<!-- settings sidebar -->
+		<iframe id="settingsimport" src="settings/index.html"></iframe>
+
+		<!-- load strings -->
+		<script>
+			setHTMLStrings();
+		</script>
+		
+	</body>
+</html>

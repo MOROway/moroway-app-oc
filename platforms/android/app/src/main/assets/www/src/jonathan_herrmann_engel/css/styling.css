@@ -1,0 +1,237 @@
+body { 
+	margin: 0%;
+	overflow: hidden;
+	color: white;
+	background: black;
+}
+
+canvas {
+	opacity: 0;
+	margin: 0%;
+	-webkit-tap-highlight-color: transparent;
+}
+
+#branding {
+	position: fixed;
+	left: 0;
+	top: 0;
+	z-index: 3;
+	width: 100vw;
+	height: 100vh;
+	background: inherit;
+}
+
+#branding img {
+	width: 20%;
+	max-width: 400px;
+	opacity: 1;
+	position: absolute;
+	transform: translate(-50%,-50%);
+	left: 50%;
+	top: 50%;
+}
+
+#canvas-options {
+	opacity: 0;
+	transition: opacity 0.8s;
+}
+
+#settingsimport {
+	display: none;
+	position: fixed;
+	background: white;
+	top: 0;
+	right: 0;
+	height: 100vh;
+	width: 450px;
+}
+
+#content > * {
+	display: none;
+}
+
+#content button {
+	vertical-align: middle;
+}
+
+#content a {
+	text-decoration: none;
+	color: inherit;
+}
+
+
+#setup {
+	overflow: hidden;
+	height: 100vh;
+	width: 100vw;
+}
+
+#setup button {
+	padding: 8px;
+	margin: 5px;
+	font-size: inherit;
+	border: none;
+	background: inherit;
+	color: inherit;
+}
+
+#setup #setup-colorframe {
+    height: calc(100vh - 2vw);
+	width: 98vw;
+	position: fixed;
+	border-style: solid;
+	border-width: 1vw;
+	border-image: linear-gradient(0deg, rgba(139,0,0,0) 0%, rgba(139,0,0,0.1) 5%, rgba(139,0,0,0.7) 50%, rgba(139,0,0,0.4) 95%, rgba(139,0,0,0.5) 100%) 1 1;
+		}  
+
+#setup #setup-colorbottom {
+	z-index: 2;
+	height: 20vh;
+	transition: 2s;
+	width: 200vw;
+	position: fixed;
+	bottom: 0;
+	transform: translate(-25%,50%);
+	background-image: radial-gradient(ellipse at 50% 60%, rgba(139,0,0,0.7) 10%, rgba(139,0,0,0.3) 40%, rgba(139,0,0,0) 70%);
+	cursor: none;
+	}
+
+#setup #setup-colorbottom:hover {
+	height: 40vh;
+}
+
+#setup #setup-ball {
+	position: fixed;
+	width: calc(3vw + 10px);
+	height: calc(3vw + 10px);
+	top: -1vw;
+	left: -1vw;
+	border-radius: calc(1.5vw + 5px);
+	animation-name: setup-ball;
+	animation-duration: 4s;
+	animation-iteration-count: infinite;
+	transform: translate(-50%,-50%);
+}
+
+@keyframes setup-ball {
+	0% {background: rgba(139,0,0,0.3);}
+	40% {background: rgba(139,0,0,0.2);}
+	60% {background: rgba(139,0,0,0.1);}
+	80% {background: rgba(139,0,0,0.2);}
+}
+
+#setup #setup-ballin {
+	 width: calc(1.5vw + 5px);
+	 height: calc(1.5vw + 5px);
+	 border-radius:calc(0.75vw + 2.5px);
+	 animation-name: ballin;
+	 animation-duration: 1s;
+	 animation-iteration-count: infinite;
+	 transform: translate(50%,50%);
+}
+
+@keyframes ballin {
+	0% {background: rgba(139,0,0,0.7);}
+	20% {background: rgba(139,0,0,0.5);}
+	40% {background: rgba(139,0,0,0.2);}
+	60% {background: rgba(139,0,0,0.3);}
+	80% {background: rgba(139,0,0,0.5);}
+}
+
+#setup #setup-inner-content {
+	z-index: 1;
+	position: fixed;
+	width: 96vw;
+	height: calc(100vh - 4vw);
+	top: 1vw;
+	left: 1vw;
+	padding: 1vw;
+	font-size: 150%;
+	overflow: auto;
+ }
+ 
+ #setup #setup-inner-content, #setup #setup-inner-content > * {
+ 	display: flex;
+	flex-direction: column;
+	align-content: center;
+	align-items: center;
+	justify-content: center;
+	justify-items: center;
+}
+
+#setup #setup-inner-content, #setup #setup-inner-content * {
+ 	cursor: none;
+}
+
+#setup #setup-inner-content > * {
+ 	text-align: center;
+	color: floralWhite;
+	line-height: 2em;
+}
+
+#setup #setup-inner-content #setup-init #setup-init-detail {
+	font-size: 70%;
+	font-style: italic;
+}
+
+#setup #setup-inner-content #setup-init #setup-init-name {
+	background: inherit;
+	font-family: monospace;
+	font-size: 105%;
+	color: inherit;
+	padding: 10px;
+	margin: 8px;
+	border-radius: 10px;
+	border: 3px solid floralWhite;
+}
+
+#setup #setup-inner-content #setup-init #setup-init-name:focus {
+	border-color: rgb(139,0,0);
+}
+
+#setup #setup-inner-content #setup-start #setup-start-gamelink::selection {
+	color: floralWhite;
+	background: #444;
+}
+
+#setup #setup-inner-content #setup-start #setup-start-button {
+	padding: 5px;
+	font-size: inherit;
+	border: none;
+	background: inherit;
+	color: inherit;
+}
+
+#setup #setup-inner-content #setup-start #setup-start-button:hover {
+	color: rgb(139,0,0);
+}
+
+#game, #game #game-start {
+ 	display: flex;
+	flex-direction: column;
+	align-content: center;
+	align-items: center;
+	justify-content: center;
+	justify-items: center;
+}
+
+#game #game-start, #game #game-wait {
+	width: 100vw;
+	height: 100vh;
+}
+
+#game #game-start #game-start-text {
+ 	font-style: italic;
+}
+
+#game #game-start #game-start-button {
+ 	padding: 5px;
+	font-size: 120%;
+	border: none;
+	background: inherit;
+	color: inherit;
+}
+
+#game #game-start #game-start-button:hover {
+	color: rgb(139,0,0);
+}

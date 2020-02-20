@@ -1,0 +1,21 @@
+{
+  "prepare_queue": {
+    "installed": [],
+    "uninstalled": []
+  },
+  "config_munge": {
+    "files": {}
+  },
+  "installed_plugins": {
+    "cordova-plugin-insomnia": {
+      "PACKAGE_NAME": "de.moroway.oc"
+    },
+    "cordova-plugin-whitelist": {
+      "PACKAGE_NAME": "de.moroway.oc"
+    },
+    "cordova-webintent": {
+      "PACKAGE_NAME": "de.moroway.oc"
+    }
+  },
+  "dependent_plugins": {}
+}

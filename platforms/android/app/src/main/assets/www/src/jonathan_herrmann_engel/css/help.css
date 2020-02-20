@@ -1,0 +1,37 @@
+.big {
+	width: 50vw !important;
+}
+
+#website {
+	display: none;
+}
+
+#website-pics {
+	display: flex;
+	width: 450px;
+	max-width: 100%;
+	margin-left: 50%;
+	transform: translateX(-50%);
+	justify-content: center;
+	align-content: center;
+	box-shadow: 0px 0px 20px 10px rgba(0,0,0,0.3);
+	background-size: cover;
+	background-repeat: no-repeat;
+	background-position: center;
+}
+#website-pics > div {
+	height: 150px;
+	width: 150px;
+	max-width: calc(100% / 3);
+	box-shadow: inset 0px 0px 20px 5px rgba(0,0,0,0.8);
+	background-size: cover;
+	background-repeat: no-repeat;
+	background-position: center;
+}
+
+
+@media (max-width: 1000px) {
+	.big {
+		width: 90vw !important;
+	}
+}

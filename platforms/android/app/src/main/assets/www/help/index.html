@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<base href="../">
+		<meta charset="UTF-8">
+		<meta name="theme-color" content="#000" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title data-stringid-content="generalTitleHelpScreen"></title>
+		<link rel="manifest" href="manifest.webmanifest">
+		<link rel="icon" type="image/x-icon" sizes="32x32" href="favicon.ico">
+
+		<!-- Open Source Libraries And Fonts -->
+		<!-- Google: Material Design Lite -->
+		<script src="src/others/open_source/open_code/google/mdl/material.min.js"></script>
+		<link rel="stylesheet" type="text/css" href="src/others/open_source/open_code/google/mdl/material.min.css">
+		<!-- Fonts -->
+		<link rel="stylesheet" type="text/css" href="src/others/open_source/open_fonts/google/MaterialIcons/font.css">
+		<link rel="stylesheet" type="text/css" href="src/others/open_source/open_fonts/google/Roboto/font.css">
+
+		<!-- General Scripts -->
+		<script src="src/jonathan_herrmann_engel/js/error_handler.js"></script>
+		<script src="src/jonathan_herrmann_engel/js_platform/error_handler.js"></script>
+		<script src="src/jonathan_herrmann_engel/js/appdata.js"></script>
+		<script src="src/jonathan_herrmann_engel/js_platform/appdata.js"></script>
+		<script src="src/jonathan_herrmann_engel/js/general.js"></script>
+		<script src="src/jonathan_herrmann_engel/js_platform/general.js"></script>
+		<!-- Help Scripts -->
+		<script src="src/jonathan_herrmann_engel/js/help.js"></script>
+		<script src="src/jonathan_herrmann_engel/js_platform/help.js"></script>
+
+		<!-- General Styles -->
+		<link rel="stylesheet" type="text/css" href="src/jonathan_herrmann_engel/css/general.css">
+		<link rel="stylesheet" type="text/css" href="src/jonathan_herrmann_engel/css_platform/general.css">
+		<!-- Help Styles -->
+		<link rel="stylesheet" type="text/css" href="src/jonathan_herrmann_engel/css/help.css">
+		<link rel="stylesheet" type="text/css" href="src/jonathan_herrmann_engel/css_platform/help.css">
+	</head>
+	
+	<body>
+		<div class="mdl-layout mdl-js-layout">
+		
+			<div id="canvas-notifier" class="mdl-js-snackbar mdl-snackbar">
+				<div class="mdl-snackbar__text"></div>
+				<button class="mdl-snackbar__action" type="button"></button>
+			</div>
+			
+			<header class="mdl-layout__header">
+				<div class="mdl-layout__header-row">
+					<span class="mdl-layout__title" data-stringid-content="generalTitleHelpScreen"></span>
+				</div>
+			</header>
+
+			<div class="mdl-layout__content">
+			
+				<main>
+					<article id="general">
+						<h2 data-stringid-content="helpScreenGeneral"></h2>
+						<div class="card_container">
+							<div class="mdl-card mdl-shadow--2dp">
+								<div class="mdl-card__title">
+									<h2 class="mdl-card__title-text" data-stringid-content="helpScreenGeneralWelcome" data-stringid-content-arg1="helpScreenGeneralWelcomeIcon" data-stringid-content-argisstringref1="1"></h2>
+								</div>
+								<div class="mdl-card__supporting-text">
+									<div id="general-version" class="content" data-stringid-content="helpScreenGeneralWelcomePs"></div>	
+									<button class="mdl-button mdl-js-button mdl-js-ripple-effect" id="general-whatsnew" data-stringid-content="helpScreenGeneralWelcomeButtonWhatsNew"></button>
+								</div>
+							</div>
+							<div class="mdl-card mdl-shadow--2dp big">
+								<div class="mdl-card__title">
+									<h2 class="mdl-card__title-text" data-stringid-content="helpScreenGeneralTrains" data-stringid-content-arg1="helpScreenGeneralTrainsIcon" data-stringid-content-argisstringref1="1"></h2>
+								</div>
+								<div class="mdl-card__supporting-text">
+									<div class="content" data-stringid-content="helpScreenGeneralTrainsPs"></div>
+								</div>
+							</div>
+							<div class="mdl-card mdl-shadow--2dp">
+								<div class="mdl-card__title">
+									<h2 class="mdl-card__title-text" data-stringid-content="helpScreenGeneralCars" data-stringid-content-arg1="helpScreenGeneralCarsIcon" data-stringid-content-argisstringref1="1"></h2>
+								</div>
+								<div class="mdl-card__supporting-text">
+									<div class="content" data-stringid-content="helpScreenGeneralCarsPs"></div>	
+								</div>
+							</div>
+							<div class="mdl-card mdl-shadow--2dp">
+								<div class="mdl-card__title">
+									<h2 class="mdl-card__title-text" data-stringid-content="helpScreenGeneralTeamplay" data-stringid-content-arg1="helpScreenGeneralTeamplayIcon" data-stringid-content-argisstringref1="1"></h2>
+								</div>
+								<div class="mdl-card__supporting-text">
+									<div class="content" data-stringid-content="helpScreenGeneralTeamplayPs"></div>	
+								</div>
+							</div>
+						</div>
+					</article>
+
+					<article id="graphical">
+						<h2 data-stringid-content="helpScreenGraphical"></h2>
+						<div class="mdl-card mdl-shadow--2dp big">
+							<div class="mdl-card__title">
+								<h2 class="mdl-card__title-text" data-stringid-content="helpScreenGraphicalDescription" data-stringid-content-arg1="helpScreenGraphicalDescriptionIcon" data-stringid-content-argisstringref1="1"></h2>
+							</div>
+							<p>
+								<img style="width: 100%;" src="assets/helpasset2_desc.jpg" data-stringid-alt="helpScreenGraphicalDescriptionPic"/>
+							</p>
+							<div class="mdl-card__supporting-text">
+								<div class="content" data-stringid-content="helpScreenGraphicalDescriptionPs"></div>
+							</div>
+						</div>	
+					</article>
+		
+					<article id="legal">
+						<h2 data-stringid-content="helpScreenLegal"></h2>
+						<div class="card_container">
+							<div class="mdl-card mdl-shadow--2dp">
+								<div class="mdl-card__title">
+									<h2 class="mdl-card__title-text" data-stringid-content="helpScreenLegalLibraries" data-stringid-content-arg1="helpScreenLegalLibrariesIcon" data-stringid-content-argisstringref1="1"></h2>
+								</div>
+								<div class="mdl-card__supporting-text">
+									<section>
+										<h3 data-stringid-content="helpScreenLegalLibrariesMDL"></h3>
+										<div class="content" data-stringid-content="helpScreenLegalLibrariesMDLPs"></div>
+										<button class="mdl-button mdl-js-button mdl-js-ripple-effect" id="legal-mdl-copyright" data-stringid-content="helpScreenLegalStrCopyright"></button> / 
+										<button class="mdl-button mdl-js-button mdl-js-ripple-effect" id="legal-mdl-license" data-stringid-content="helpScreenLegalStrLicense"></button>
+									</section>
+									<section>
+										<h3 data-stringid-content="helpScreenLegalLibrariesPace"></h3>
+										<div class="content" data-stringid-content="helpScreenLegalLibrariesPacePs"></div>
+										<button class="mdl-button mdl-js-button mdl-js-ripple-effect" id="legal-pace-license"><span data-stringid-content="helpScreenLegalStrCopyright"></span> / <span data-stringid-content="helpScreenLegalStrLicense"></span></button>
+									</section>
+								</div>
+							</div>
+							<div class="mdl-card mdl-shadow--2dp">
+								<div class="mdl-card__title">
+									<h2 class="mdl-card__title-text" data-stringid-content="helpScreenLegalFonts" data-stringid-content-arg1="helpScreenLegalFontsIcon" data-stringid-content-argisstringref1="1"></h2>
+								</div>
+								<div class="mdl-card__supporting-text">
+									<section>
+										<h3 data-stringid-content="helpScreenLegalFontsRoboto"></h3>
+										<div class="content" data-stringid-content="helpScreenLegalFontsRobotoPs"></div>
+										<button class="mdl-button mdl-js-button mdl-js-ripple-effect" id="legal-fonts-roboto-copyright" data-stringid-content="helpScreenLegalStrCopyright"></button> /
+										<button class="mdl-button mdl-js-button mdl-js-ripple-effect" id="legal-fonts-roboto-license" data-stringid-content="helpScreenLegalStrLicense"></button>
+									</section>
+									<section>
+										<h3 data-stringid-content="helpScreenLegalFontsMaterialIcons"></h3>
+										<div class="content" data-stringid-content="helpScreenLegalFontsMaterialIconsPs"></div>
+										<button class="mdl-button mdl-js-button mdl-js-ripple-effect" id="legal-fonts-materialicons-license" data-stringid-content="helpScreenLegalStrLicense"></button>
+									</section>
+								</div>
+							</div>
+							<div class="mdl-card mdl-shadow--2dp">
+								<div class="mdl-card__title">
+									<h2 class="mdl-card__title-text" data-stringid-content="helpScreenLegalOwn" data-stringid-content-arg1="helpScreenLegalOwnIcon" data-stringid-content-argisstringref1="1"></h2>
+								</div>
+								<div class="mdl-card__supporting-text">
+									<section>
+										<h3 data-stringid-content="helpScreenLegalOwnCode"></h3>
+										<div class="content" data-stringid-content="helpScreenLegalOwnCodePs"></div>
+										<button class="mdl-button mdl-js-button mdl-js-ripple-effect" id="legal-self-code-license"><span data-stringid-content="helpScreenLegalStrLicense"></span></button>
+									</section>
+									<section>
+										<h3 data-stringid-content="helpScreenLegalOwnPics"></h3>
+										<div class="content" data-stringid-content="helpScreenLegalOwnPicsPs"></div>
+										<button class="mdl-button mdl-js-button mdl-js-ripple-effect" id="legal-self-assets-license" data-stringid-content="helpScreenLegalStrLicense"></button>
+									</section>
+								</div>
+							</div>
+						</div>
+					</article>
+					
+					<article id="contact">
+						<h2 data-stringid-content="helpScreenContact"></h2>
+							<div class="mdl-card mdl-shadow--2dp">
+								<div class="mdl-card__title">
+									<h2 class="mdl-card__title-text" data-stringid-content="helpScreenContactFeedback" data-stringid-content-arg1="helpScreenContactFeedbackIcon" data-stringid-content-argisstringref1="1"></h2>
+								</div>
+								<div class="mdl-card__supporting-text">
+									<p>
+										<img style="width: 100%;" src="assets/helpasset1_bug_report.png" data-stringid-alt="helpScreenContactFeedbackBugs"/>
+									</p>
+									<div class="content" data-stringid-content="helpScreenContactFeedbackPs"></div>
+									<div id="contact-imprint"><button class="mdl-button mdl-js-button mdl-js-ripple-effect" id="contact-imprintlink" data-stringid-content="helpScreenContactBackupLink"></button></div>
+									<button class="mdl-button mdl-js-button mdl-js-ripple-effect" id="contact-feedbacklink" data-stringid-content="helpScreenContactFeedbackSend"></button>
+								</div>
+							</div>
+					</article>
+			
+					<article id="download">
+						<h2 data-stringid-content="helpScreenDownload"></h2>
+						<div class="card_container">
+							<div class="mdl-card mdl-shadow--2dp" id="download-apps">
+								<div class="mdl-card__title">
+									<h2 class="mdl-card__title-text" data-stringid-content="helpScreenDownloadApps" data-stringid-content-arg1="helpScreenDownloadAppsIcon" data-stringid-content-argisstringref1="1"></h2>
+								</div>
+								<div class="mdl-card__supporting-text">
+									<section>
+										<h3 data-stringid-content="helpScreenDownloadAppsAndroid"></h3>
+										<div class="content" data-stringid-content="helpScreenDownloadAppsAndroidPs"></div>
+										<button class="mdl-button mdl-js-button mdl-js-ripple-effect" id="download-androidlink" data-stringid-content="helpScreenDownloadAppsAndroidButton"></button>
+									</section>
+									<section>
+										<h3 data-stringid-content="helpScreenDownloadAppsWindows"></h3>
+										<div class="content" data-stringid-content="helpScreenDownloadAppsWindowsPs"></div>
+										<button class="mdl-button mdl-js-button mdl-js-ripple-effect" id="download-windowslink" data-stringid-content="helpScreenDownloadAppsWindowsButton"></button>
+									</section>
+								</div>
+								
+							</div>
+							<div class="mdl-card mdl-shadow--2dp">
+								<div class="mdl-card__title">
+									<h2 class="mdl-card__title-text" data-stringid-content="helpScreenDownloadViewSource" data-stringid-content-arg1="helpScreenDownloadViewSourceIcon" data-stringid-content-argisstringref1="1"></h2>
+								</div>
+								<p>
+									<img style="width: 100%;" src="assets/helpasset3_source.jpg" data-stringid-alt="helpScreenDownloadViewSourceCodePic"/>
+								</p>
+								<div class="mdl-card__supporting-text">
+									<div class="content" data-stringid-content="helpScreenDownloadViewSourcePs"></div>
+									<button class="mdl-button mdl-js-button mdl-js-ripple-effect" id="download-sourcelink" data-stringid-content="helpScreenDownloadViewSourceButtonSource"></button>
+								</div>
+							</div>
+						</div>
+					</article>
+					
+					<article id="website">
+						<h2 data-stringid-content="helpScreenMOROmore"></h2>
+						<div class="mdl-card mdl-shadow--2dp">
+							<div class="mdl-card__title">
+								<h2 class="mdl-card__title-text" data-stringid-content="helpScreenMOROmoreWebsite" data-stringid-content-arg1="helpScreenMOROmoreWebsiteIcon" data-stringid-content-argisstringref1="1"></h2>
+							</div>
+							<div><div id="website-pics"> </div></div>
+							<div class="mdl-card__supporting-text">
+								<div class="content" data-stringid-content="helpScreenMOROmoreWebsitePs"></div>
+								<button class="mdl-button mdl-js-button mdl-js-ripple-effect" id="website-link" data-stringid-content="helpScreenMOROmoreWebsiteButtonLink"></button>
+							</div>
+						</div>
+					</article>
+			
+				</main>
+		
+				<button id="backOption" class="internal-link mdl-button mdl-js-button mdl-js-ripple-effect" data-stringid-content="generalBack"></button>
+		
+			</div>
+	
+		</div>
+	
+		<!-- load strings -->
+		<script>
+			init();
+			if(typeof(init_local) == "function") { init_local(); }
+		</script>
+	</body>
+</html>

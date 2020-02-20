@@ -1,0 +1,7 @@
+.mdl-card:target {
+	border: 5px solid #ef5c9c !important;
+	background: #ffeeee !important;
+	display: inline-block;
+	margin: 2%;
+	transform: scale(1.2, 1.2);
+}

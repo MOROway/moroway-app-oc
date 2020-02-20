@@ -1,0 +1,41 @@
+<?xml version='1.0' encoding='utf-8'?>
+<widget id="de.moroway.oc" version="6.1.2" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0" xmlns:android="http://schemas.android.com/apk/res/android">
+    <name>MOROway OC</name>
+    <author>Jonathan Herrmann-Engel</author>
+    <content src="html_platform/start.html" />
+	<plugin name="cordova-plugin-whitelist" spec="1" />
+    <access origin="*" />
+    <allow-intent href="http:*" />
+    <allow-intent href="https:*" />
+    <allow-intent href="tel:*" />
+    <allow-intent href="sms:*" />
+    <allow-intent href="mailto:*" />
+    <allow-intent href="geo:*" />
+    <hook type="before_build" src="scripts/conf.bash" />
+    <hook type="before_run" src="scripts/conf.bash" />
+    <hook type="before_build" src="scripts/html.bash" />
+    <hook type="before_run" src="scripts/html.bash" />
+    <platform name="android">
+        <preference name="Fullscreen" value="true" />
+        <preference name="AndroidLaunchMode" value="standard" />
+        <allow-intent href="market:*" />
+        <resource-file src="www/icons_platform/icon.png" target="app/src/main/res/mipmap/ic_bg.png" />
+        <resource-file src="www/icons_platform/fore.png" target="app/src/main/res/mipmap/ic_fg.png" />
+        <resource-file src="www/icons_platform/icon.png" target="app/src/main/res/mipmap/ic_launcher.png" />
+        <resource-file src="www/icons/favicon-512x512.png" target="app/src/main/res/mipmap/ic_launcher_round.png" />
+		<resource-file src="www/icons_platform/icon.xml" target="app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" />
+        <resource-file src="www/icons_platform/icon.xml" target="app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml" />
+        <edit-config file="app/src/main/AndroidManifest.xml" mode="merge" target="/manifest/application">
+            <application android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher_round" />
+        </edit-config>
+        <config-file target="AndroidManifest.xml" parent="application/activity">
+                <intent-filter android:autoVerify="true" android:label="MOROway OC">
+                    <action android:name="android.intent.action.VIEW" />
+                    <category android:name="android.intent.category.DEFAULT" />
+                    <category android:name="android.intent.category.BROWSABLE" />
+                    <data android:host="app.moroway.de" android:scheme="https" />
+                    <data android:host="app.moroway.de" android:scheme="http" />
+                </intent-filter>
+        </config-file>
+    </platform>
+</widget>

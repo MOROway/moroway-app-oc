@@ -1,0 +1,26 @@
+{
+  "cordova-plugin-whitelist": {
+    "source": {
+      "type": "registry",
+      "id": "cordova-plugin-whitelist@1"
+    },
+    "is_top_level": true,
+    "variables": {}
+  },
+  "cordova-webintent": {
+    "source": {
+      "type": "registry",
+      "id": "github:cordova-misc/cordova-webintent.git"
+    },
+    "is_top_level": true,
+    "variables": {}
+  },
+  "cordova-plugin-insomnia": {
+    "source": {
+      "type": "registry",
+      "id": "https://github.com/EddyVerbruggen/Insomnia-PhoneGap-Plugin.git"
+    },
+    "is_top_level": true,
+    "variables": {}
+  }
+}

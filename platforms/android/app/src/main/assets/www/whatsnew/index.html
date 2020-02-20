@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<base href="../">
+		<meta charset="UTF-8">
+		<meta name="theme-color" content="#000" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title data-stringid-content="generalTitleWhatsNewScreen"></title>
+		<link rel="manifest" href="manifest.webmanifest">
+		<link rel="icon" type="image/x-icon" sizes="32x32" href="favicon.ico">
+
+		<!-- Open Source Libraries And Fonts -->
+		<!-- Google: Material Design Lite -->
+		<script src="src/others/open_source/open_code/google/mdl/material.min.js"></script>
+		<link rel="stylesheet" type="text/css" href="src/others/open_source/open_code/google/mdl/material.min.css">
+		<!-- Fonts -->
+		<link rel="stylesheet" type="text/css" href="src/others/open_source/open_fonts/google/MaterialIcons/font.css">
+		<link rel="stylesheet" type="text/css" href="src/others/open_source/open_fonts/google/Roboto/font.css">
+
+		<!-- General Scripts -->
+		<script src="src/jonathan_herrmann_engel/js/error_handler.js"></script>
+		<script src="src/jonathan_herrmann_engel/js_platform/error_handler.js"></script>
+		<script src="src/jonathan_herrmann_engel/js/appdata.js"></script>
+		<script src="src/jonathan_herrmann_engel/js_platform/appdata.js"></script>
+		<script src="src/jonathan_herrmann_engel/js/general.js"></script>
+		<script src="src/jonathan_herrmann_engel/js_platform/general.js"></script>
+		<!-- WhatsNew Scripts -->
+		<script src="src/jonathan_herrmann_engel/js/whatsnew.js"></script>
+		<script src="src/jonathan_herrmann_engel/js_platform/whatsnew.js"></script>
+
+		<!-- General Styles -->
+		<link rel="stylesheet" type="text/css" href="src/jonathan_herrmann_engel/css/general.css">
+		<link rel="stylesheet" type="text/css" href="src/jonathan_herrmann_engel/css_platform/general.css">
+		<!-- Help Styles -->
+		<link rel="stylesheet" type="text/css" href="src/jonathan_herrmann_engel/css/whatsnew.css">
+		<link rel="stylesheet" type="text/css" href="src/jonathan_herrmann_engel/css_platform/whatsnew.css">
+	</head>
+	
+	<body>
+	
+		<div class="mdl-layout mdl-js-layout">
+	
+			<div style="left: 0%;" id="canvas-notifier" class="mdl-js-snackbar mdl-snackbar">
+				<div class="mdl-snackbar__text"></div>
+				<button class="mdl-snackbar__action" type="button"></button>
+			</div>
+		
+			<header class="mdl-layout__header">
+				<div class="mdl-layout__header-row">
+					<span class="mdl-layout__title" data-stringid-content="generalTitleWhatsNewScreen"></span>
+				</div>
+			</header>
+
+			<div class="mdl-layout__content">
+				<main></main>
+				<button id="backOption" class="internal-link mdl-button mdl-js-button mdl-js-ripple-effect" data-stringid-content="generalBack"></button>
+			</div>
+		
+		</div>
+
+		<!-- initialize -->
+		<script>
+			init();
+			if(typeof(init_local) == "function") { init_local(); }
+		</script>
+	
+	</body>
+</html>

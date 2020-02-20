@@ -1,0 +1,51 @@
+body {
+	text-align: left;
+	background: floralWhite;	
+}
+
+.mdl-list__item {
+	height: auto !important;
+	overflow: visible !important;
+}
+
+.mdl-list__item-primary-content {
+	height: auto !important;
+}
+
+.mdl-list__item-text-body {
+	height: auto !important;	
+}
+
+.textButton {
+	line-height: 40px !important;
+}
+
+#langoption {
+	margin-top: 1%;
+	margin-bottom: 1%;
+}
+
+#langoption #langoptioninfo {
+	margin-left: 16px;
+	margin-bottom: 10px;
+}
+
+#langoption #clang {
+	color: grey;
+	border: 1px grey solid;
+}
+
+#langoption .langvalue {
+	color: black;
+	margin: 3px;
+	margin-left: 16px;
+	padding: 0.3%;
+	background: none;
+	border: 1px black solid;
+	border-radius: 2px;
+	
+}
+
+#backOption {
+	color: inherit !important;
+}

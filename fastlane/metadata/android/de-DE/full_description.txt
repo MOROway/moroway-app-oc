@@ -1,0 +1,3 @@
+Die MOROway App ermöglicht es Ihnen einige Züge der MORO Modellbahn zu steuern. Sie können somit auch unterwegs Lokführer spielen und die Modellbahnfahrten aus der Vogelperspektive genießen.
+
+Bedienung: Steuern Sie die Züge von MOROway mittels Klick auf den Trafo rechts im Bild. Wechseln Sie zwischen den Zügen, indem Sie den Umschalter links betätigen.

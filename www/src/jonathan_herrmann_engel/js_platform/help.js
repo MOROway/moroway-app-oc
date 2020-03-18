@@ -3,6 +3,7 @@
 ////Optional code (app works without it)
 function init_local(){
 	var pics = document.querySelector("#website-pics");
+	pics.style.display = "none";
 	handleServerJSONValues("webpics", function(res){
 		if(typeof(res.pics) == "object") {
 			res.pics.forEach(function(pic){
@@ -10,9 +11,7 @@ function init_local(){
 				img.style.backgroundImage = "url('" + pic.urls.thumb.url + "')";
 				pics.appendChild(img);
 			});
-			
-		} else {
-			pics.style.display = "none";
+			pics.style.display = "";
 		}
 	});
 	var elem = document.getElementById('backOption'),

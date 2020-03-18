@@ -2,17 +2,16 @@
 
 ////Optional code (app works without it)
 function init_local(){
+	var pics = document.querySelector("#website-pics");
+	pics.style.display = "none";
 	handleServerJSONValues("webpics", function(res){
 		if(typeof(res.pics) == "object") {
-			var pics = document.querySelector("#website-pics");
 			res.pics.forEach(function(pic){
 				var img = document.createElement("div");
 				img.style.backgroundImage = "url('" + pic.urls.thumb.url + "')";
 				pics.appendChild(img);
 			});
-			
-		} else {
-			console.log("ERROR handling Website-Pics");
+			pics.style.display = "";
 		}
 	});
 	var elem = document.getElementById('backOption'),

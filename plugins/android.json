@@ -15,6 +15,9 @@
     },
     "cordova-webintent": {
       "PACKAGE_NAME": "de.moroway.oc"
+    },
+    "cordova-plugin-dialogs": {
+      "PACKAGE_NAME": "de.moroway.oc"
     }
   },
   "dependent_plugins": {}

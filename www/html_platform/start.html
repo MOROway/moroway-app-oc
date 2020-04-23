@@ -13,15 +13,6 @@
 		<script src="cordova.js"></script>
 		<script>
 		document.addEventListener('deviceready', function() {
-			window.plugins.webintent.getUri(function(url) {
-				var redirect = "html_platform";
-				var server = "https://app.moroway.de/";
-				if(url !==null &&url.indexOf(server) === 0) {
-				   url = url.replace(server,"");
-				   redirect += "?mode=multiplay&id=" + url.replace(/[/].*$/,"") + "&key=" + url.replace(/.*[/]([^/]+)$/,"$1");
-				   followLink(redirect, "_blank", LINK_STATE_INTERNAL_HTML);
-				}
-			}, false);
 			window.plugins.insomnia.keepAwake();
 			document.addEventListener("backbutton", function(){
 				navigator.app.exitApp();

@@ -8,6 +8,7 @@ function init_local(){
 		if(typeof(res.pics) == "object") {
 			res.pics.forEach(function(pic){
 				var img = document.createElement("div");
+				img.onclick = function(){followLink(pic.links.normal,"_blank", LINK_STATE_NORMAL);};
 				img.style.backgroundImage = "url('" + pic.urls.thumb.url + "')";
 				pics.appendChild(img);
 			});
@@ -23,6 +24,7 @@ function init_local(){
 	document.querySelector("#legal-appoc-insomnia-license").addEventListener("click", function(){followLink("licenses_platform/insomnia","_self", LINK_STATE_INTERNAL_LICENSE_FILE);}, false);
 	document.querySelector("#legal-appoc-webintent-license").addEventListener("click", function(){followLink("licenses_platform/webintent","_self", LINK_STATE_INTERNAL_LICENSE_FILE);}, false);
 	document.querySelector("#legal-appoc-whitelist-license").addEventListener("click", function(){followLink("licenses_platform/whitelist","_self", LINK_STATE_INTERNAL_LICENSE_FILE);}, false);
+	document.querySelector("#legal-appoc-dialogs-license").addEventListener("click", function(){followLink("licenses_platform/dialogs","_self", LINK_STATE_INTERNAL_LICENSE_FILE);}, false);
 	document.querySelector("#download-sourcelink").addEventListener("click", function(){followLink(getServerRedirectLink("source_code_appoc"),"_blank", LINK_STATE_NORMAL);}, false);
 
 

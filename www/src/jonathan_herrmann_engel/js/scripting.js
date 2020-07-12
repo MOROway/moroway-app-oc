@@ -306,8 +306,8 @@ function drawObjects() {
                         collision = true;
                         if(trains[input1].move){
                             var note = (input2) ? [{getString:["appScreenObjectHasCrashed", "."]}, {getString:[["appScreenTrainNames",input1]]}, {getString:[["appScreenTrainNames",i]]}] : null;
-                            actionSync("trains",input1, [{move:false},{accelerationSpeed:0},{accelerationSpeedCustom:1}]);
-                            actionSync("train-crash",input1,[{move:false},{accelerationSpeed:0},{accelerationSpeedCustom:1}],note);
+                            actionSync("trains",input1, [{move:false},{accelerationSpeed:0},{accelerationSpeedCustom:1}],note);
+                            actionSync("train-crash",input1,[{move:false},{accelerationSpeed:0},{accelerationSpeedCustom:1}]);
                             trains[input1].move = false;
                             trains[input1].accelerationSpeed = 0;
                             trains[input1].accelerationSpeedCustom = 1;
@@ -1115,9 +1115,6 @@ function actionSync (objname, index, params, notification) {
     if(onlineGame.enabled) {
         if(objname == "train-crash") {
             animateWorker.postMessage({k: "train", i: index, params: params});
-            if(!onlineGame.locomotive) {
-                notification = null;
-            }
         }
         teamplaySync ("action", objname, index, params, notification);
     } else {
@@ -1929,11 +1926,15 @@ window.onload = function() {
                                 obj.circleFamily = key;
                             }
                         });
-                        Object.keys(rotationPoints[obj.circleFamily]).forEach(function(key){
-                            if(trains[i].circle == rotationPoints[obj.circleFamily][key]) {
-                                obj.circle = key;
-                            }
-                        });
+                        if(typeof obj.circleFamily == "string") {
+                            Object.keys(rotationPoints[obj.circleFamily]).forEach(function(key){
+                                if(trains[i].circle == rotationPoints[obj.circleFamily][key]) {
+                                    obj.circle = key;
+                                }
+                            });
+                        } else {
+                            delete obj.circle;
+                        }
                     } else {
                         delete obj.circle;
                     }

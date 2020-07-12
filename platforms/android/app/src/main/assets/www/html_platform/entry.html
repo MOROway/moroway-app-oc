@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+	<base href="../">
+	<meta charset="UTF-8">
+
+	<!-- Cordova Scripts -->		
+	<script src="cordova.js"></script>
+	<script>
+	document.addEventListener('deviceready', function() {
+		window.plugins.webintent.getUri(function(url) {
+			var redirect = "html_platform";
+			var server = "https://app.moroway.de/";
+			if(url !==null &&url.indexOf(server) === 0) {
+			   url = url.replace(server,"");
+			   redirect += "?mode=multiplay&id=" + url.replace(/[/].*$/,"") + "&key=" + url.replace(/.*[/]([^/]+)$/,"$1");
+			   followLink(redirect, "_blank", LINK_STATE_INTERNAL_HTML);
+			} else {
+			   followLink(redirect + "/start.html","_self", LINK_STATE_INTERNAL_LICENSE_FILE);		
+			}
+		}, false);
+	});
+	</script>
+
+	<!-- General Scripts -->
+	<script src="src/jonathan_herrmann_engel/js/error_handler.js"></script>
+	<script src="src/jonathan_herrmann_engel/js_platform/error_handler.js"></script>
+	<script src="src/jonathan_herrmann_engel/js/appdata.js"></script>
+	<script src="src/jonathan_herrmann_engel/js_platform/appdata.js"></script>
+	<script src="src/jonathan_herrmann_engel/js/general.js"></script>
+	<script src="src/jonathan_herrmann_engel/js_platform/general.js"></script>
+</html>

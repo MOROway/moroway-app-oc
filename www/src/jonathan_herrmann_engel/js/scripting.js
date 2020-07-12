@@ -306,7 +306,8 @@ function drawObjects() {
                         collision = true;
                         if(trains[input1].move){
                             var note = (input2) ? [{getString:["appScreenObjectHasCrashed", "."]}, {getString:[["appScreenTrainNames",input1]]}, {getString:[["appScreenTrainNames",i]]}] : null;
-                            actionSync("trains",input1, [{move:false},{accelerationSpeed:0},{accelerationSpeedCustom:1}], note);
+                            actionSync("trains",input1, [{move:false},{accelerationSpeed:0},{accelerationSpeedCustom:1}]);
+                            actionSync("train-crash",input1,[{move:false},{accelerationSpeed:0},{accelerationSpeedCustom:1}],note);
                             trains[input1].move = false;
                             trains[input1].accelerationSpeed = 0;
                             trains[input1].accelerationSpeedCustom = 1;
@@ -1112,6 +1113,12 @@ function drawObjects() {
 
 function actionSync (objname, index, params, notification) {
     if(onlineGame.enabled) {
+        if(objname == "train-crash") {
+            animateWorker.postMessage({k: "train", i: index, params: params});
+            if(!onlineGame.locomotive) {
+                notification = null;
+            }
+        }
         teamplaySync ("action", objname, index, params, notification);
     } else {
         switch (objname) {
@@ -1749,7 +1756,7 @@ window.onload = function() {
         );
     }
     
-    function stopPace() {
+    function stopPace(showNote) {
         var timeWait = 0.5;
         var timeLoad = 0.5;
         var toDestroy = document.querySelectorAll(".pace");
@@ -1764,14 +1771,16 @@ window.onload = function() {
                     toHide[i].style.opacity = "0";
                 }
                 setTimeout(function(){
-                    var localAppData = getLocalAppDataCopy();
-                    if(settings.classicUI && !settings.alwaysShowSelectedTrain){ 
-                        notify(formatJSString(getString("appScreenTrainSelected", "."), getString(["appScreenTrainNames",trainParams.selected]), getString("appScreenTrainSelectedAuto", " ")), true,3000,null,null, client.y);
-                    } else if(localAppData !== null && (localAppData.version.major < APP_DATA.version.major || localAppData.version.minor < APP_DATA.version.minor) && typeof appUpdateNotification == "function") { 
-                        appUpdateNotification();
-                    } else if (typeof appReadyNotification == "function") {
-                        appReadyNotification();
-                    }
+					if(showNote){
+						var localAppData = getLocalAppDataCopy();
+						if(settings.classicUI && !settings.alwaysShowSelectedTrain){ 
+							notify(formatJSString(getString("appScreenTrainSelected", "."), getString(["appScreenTrainNames",trainParams.selected]), getString("appScreenTrainSelectedAuto", " ")), true,3000,null,null, client.y);
+						} else if(localAppData !== null && (localAppData.version.major < APP_DATA.version.major || localAppData.version.minor < APP_DATA.version.minor) && typeof appUpdateNotification == "function") { 
+							appUpdateNotification();
+						} else if (typeof appReadyNotification == "function") {
+							appReadyNotification();
+						}
+					}
                     setLocalAppDataCopy(); 
                     for (var i = 0; i < toHide.length; i++) {
                         toHide[i].style.display = "none";
@@ -2106,7 +2115,15 @@ window.onload = function() {
                         var obj;
                         switch (input.objname){
                             case "trains":
-                                 animateWorker.postMessage({k: "train", i: input.index, params: input.params});
+                                animateWorker.postMessage({k: "train", i: input.index, params: input.params});
+                            break;
+                            case "train-crash":
+							   if(onlineGame.syncRequest !== undefined && onlineGame.syncRequest !== null) {
+									clearTimeout(onlineGame.syncRequest);
+								}
+								if(onlineGame.locomotive){
+									onlineGame.syncRequest = window.setTimeout(sendSyncRequest, 200);
+								}
                             break;
                             case "switches":
                                 obj = switches[input.index[0]][input.index[1]]
@@ -2236,7 +2253,7 @@ window.onload = function() {
         document.querySelectorAll("#content > #game, #game > #game-gameplay").forEach(function(elem) {
             elem.style.display = "block";
         });
-        Pace.on("hide", stopPace);
+        Pace.on("hide", function(){stopPace(true);});
     }
     hardware.lastInputMouse = hardware.lastInputTouch = 0;
     canvas.addEventListener("touchstart",chooseInputMethod);
@@ -2255,7 +2272,7 @@ window.onload = function() {
             loadNo++;
             if (loadNo == finalPicNo) {
                 Pace.stop();
-                stopPace();
+                stopPace(false);
                 initialDisplay();            
             } else {
                 context.clearRect(0, 0, canvas.width, canvas.height);

@@ -7,6 +7,9 @@
     "files": {}
   },
   "installed_plugins": {
+    "cordova-plugin-dialogs": {
+      "PACKAGE_NAME": "de.moroway.oc"
+    },
     "cordova-plugin-insomnia": {
       "PACKAGE_NAME": "de.moroway.oc"
     },
@@ -14,9 +17,6 @@
       "PACKAGE_NAME": "de.moroway.oc"
     },
     "cordova-webintent": {
-      "PACKAGE_NAME": "de.moroway.oc"
-    },
-    "cordova-plugin-dialogs": {
       "PACKAGE_NAME": "de.moroway.oc"
     }
   },

@@ -132,10 +132,6 @@
 				followLink("settings", "_self", LINK_STATE_INTERNAL_HTML);
 			});
 			
-			document.addEventListener('deviceready', function() {
-				window.plugins.insomnia.keepAwake();
-			});
-			
 			var localAppData = getLocalAppDataCopy();
 			if(localAppData !== null && (localAppData.version.major < APP_DATA.version.major || localAppData.version.minor < APP_DATA.version.minor) && typeof appUpdateNotification == "function") { 
 				notify(getString("appScreenHasUpdated", "!", "upper"), false, 7000, function(){followLink("whatsnew/#newest", "_blank", LINK_STATE_INTERNAL_HTML);}, "Mehr Informationen", client.y);

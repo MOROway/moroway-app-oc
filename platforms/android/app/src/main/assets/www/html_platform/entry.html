@@ -7,6 +7,10 @@
 	<script src="cordova.js"></script>
 	<script>
 	document.addEventListener('deviceready', function() {
+		var ocSettings = getSettingsOC();
+		if(!ocSettings.landscapeApp) {
+			screen.orientation.lock('landscape');
+		}
 		window.plugins.webintent.getUri(function(url) {
 			var redirect = "html_platform";
 			var server = "https://app.moroway.de/";

@@ -18,7 +18,14 @@
     },
     "cordova-webintent": {
       "PACKAGE_NAME": "de.moroway.oc"
+    },
+    "cordova-plugin-screen-orientation": {
+      "PACKAGE_NAME": "de.moroway.oc"
     }
   },
-  "dependent_plugins": {}
+  "dependent_plugins": {
+    "es6-promise-plugin": {
+      "PACKAGE_NAME": "de.moroway.oc"
+    }
+  }
 }

@@ -28,5 +28,59 @@ function followLink(input1, input2, input3){
         window.open(input1, input2);
 }
 
+
+//SETTINGS  
+function getSettingsOC (asObject){
+	
+	asObject = asObject == undefined ? false : asObject;
+	
+	var values = {};
+	var dependencies = {"landscapeGame": ["landscapeApp"]};
+	var hardware = {};
+	
+	if(typeof(window.localStorage) != "undefined") {
+    
+		try{
+			values = JSON.parse(window.localStorage.getItem("morowayAppOC") || "{}");
+		} catch(e) {
+			settings = {};
+		}
+      
+	}
+	
+	
+  	if (typeof values.landscapeApp != "boolean") {
+                values.landscapeApp = true;
+        }
+  	if (typeof values.landscapeGame != "boolean") {
+                values.landscapeGame = true;
+        }
+  
+	Object.keys(values).forEach(function(value){
+		
+		if(dependencies[value] == undefined){
+			dependencies[value] = null;
+		}
+		if(hardware[value] == undefined){
+			hardware[value] = null;
+		}
+		
+	});
+  
+  
+  
+	return asObject ? {"values": values, "dependencies": dependencies, "hardware": hardware} : values;
+	
+}
+
+function setSettingsOC(settings, asObject){
+ 	
+	asObject = asObject == undefined ? false : asObject;
+
+	window.localStorage.setItem("morowayAppOC", JSON.stringify(asObject ? settings.values : settings));
+
+}
+
+
 ////Optional code (app works without it)
 //Enable offline functionality

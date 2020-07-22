@@ -20,7 +20,10 @@ function drawImage(pic,x,y,width,height){
     context.drawImage(pic,Math.floor(x)+0.5,Math.floor(y)+0.5,Math.floor(width)+0.5,Math.floor(height)+0.5);
 }
 
-function measureFontSize(t,f,a,b,c, d, r){
+function measureFontSize(t,f,a,b,c, d, r,resultAsFont){
+    if(resultAsFont == undefined) {
+        resultAsFont = true;
+    }
     context.save();
     var font = (a) + "px " + f;
     context.font = font;
@@ -28,9 +31,11 @@ function measureFontSize(t,f,a,b,c, d, r){
     context.restore();
     if(twidth != b && (Math.abs(twidth-b) > d && r < 100)){
         a *= (twidth > b) ? (1-c/100) : (1+c/100);
-        return measureFontSize(t,f,a,b,c,d, ++r);
-    } else {
+        return measureFontSize(t,f,a,b,c,d, ++r,resultAsFont);
+    } else if (resultAsFont) {
         return font;
+    } else {
+       return a;
     }
 }
 
@@ -42,72 +47,296 @@ function getFontSize(f, a){
 *        mouse touch key functions        *
 ******************************************/
 
-function onMouseMove(event) {
-    hardware.mouse.moveX = event.pageX*client.devicePixelRatio;
-    hardware.mouse.moveY = event.pageY*client.devicePixelRatio;
-    hardware.mouse.cursor = "default";   
-    hardware.mouse.isMoving = true;
-    if(typeof movingTimeOut !== "undefined"){
-        clearTimeout(movingTimeOut);
+function adjustTouchScaleX(x) {
+	if(typeof(client.realScale) == "undefined" || client.realScale == 1) {
+		return x;	
+	}
+	return (canvas.offsetWidth*client.realScale/2-canvas.offsetWidth/2)*client.devicePixelRatio/client.realScale+x/client.realScale-client.touchScaleX*client.devicePixelRatio/client.realScale;
+}
+function adjustTouchScaleY(y) {
+	if(typeof(client.realScale) == "undefined" || client.realScale == 1) {
+		return y;	
+	}
+    return (canvas.offsetHeight*client.realScale/2-canvas.offsetHeight/2)*client.devicePixelRatio/client.realScale+y/client.realScale-client.touchScaleY*client.devicePixelRatio/client.realScale;
+}
+function getGesture(gesture){
+    switch(gesture.type) {
+        case 'doubletap':
+            if(client.lastTouchScale != 1 || client.touchScale != 1) {
+                client.lastTouchScale = 1;
+                client.touchScale = 1;
+            } else {
+                client.touchScale = client.realScale = client.realScaleMax/2;
+                client.touchScaleX = (canvas.offsetWidth/2-gesture.deltaX)*client.realScale;
+                client.touchScaleY = (canvas.offsetHeight/2-gesture.deltaY)*client.realScale;
+            }
+            delete gesture.deltaX;
+            delete gesture.deltaY;
+            break;
+        case 'pinch':
+			client.touchScale = gesture.scale;
+            client.touchScaleX = (canvas.offsetWidth/2-gesture.deltaX)*client.realScale;
+            client.touchScaleY = (canvas.offsetHeight/2-gesture.deltaY)*client.realScale;
+            delete gesture.deltaX;
+            delete gesture.deltaY;
+            break;
+        case 'pinchend':	
+            client.lastTouchScale = client.realScale;
+            client.touchScale = 1;
+            client.hasPinched = true;
+            delete client.PinchOHypot;
+            break;
     }
-    movingTimeOut = setTimeout(function(){hardware.mouse.isMoving = false;}, 5000);
+    var newScale = Math.max(Math.min(client.lastTouchScale * client.touchScale,client.realScaleMax),1);
+    client.touchScaleX *= newScale/client.realScale;
+    client.touchScaleY *= newScale/client.realScale;
+    client.realScale = newScale;
+    if(gesture.deltaX != undefined && gesture.deltaY != undefined && client.PinchOHypot == undefined && client.hasPinched == undefined) {
+        client.touchScaleX += gesture.deltaX/4*client.realScale;
+        client.touchScaleY += gesture.deltaY/4*client.realScale;
+    }
+    client.PinchX = canvas.offsetWidth/2-client.touchScaleX/client.realScale;
+    client.PinchY = canvas.offsetHeight/2-client.touchScaleY/client.realScale;
+    
+    if(client.realScale < client.realScaleMin) {
+        hardware.mouse.isMoving = false;
+        client.realScale = 1;
+        client.touchScale = 1;
+        client.lastTouchScale = 1;
+        client.touchScaleX=0;
+        client.touchScaleY=0;
+    } else {
+        hardware.mouse.isMoving = true;
+    }
+
+    var xMax = (client.realScale - 1) * (canvas.offsetWidth / 2-background.x/client.devicePixelRatio);
+    var yMax = (client.realScale - 1) * (canvas.offsetHeight / 2-background.y/client.devicePixelRatio);
+    if (client.touchScaleX > xMax) {
+        client.touchScaleX = xMax;
+    }
+    if (client.touchScaleX < -xMax) {
+        client.touchScaleX = -xMax;
+    }
+    if (client.touchScaleY > yMax) {
+        client.touchScaleY = yMax;
+    }
+    if (client.touchScaleY < -yMax) {
+        client.touchScaleY = -yMax;
+    }
+}
+
+function onMouseMove(event) {
+    hardware.mouse.cursor = "default"; 
+    if(client.realScale == 1) {  
+        hardware.mouse.moveXPage = hardware.mouse.moveX = event.pageX*client.devicePixelRatio;
+        hardware.mouse.moveYPage = hardware.mouse.moveY = event.pageY*client.devicePixelRatio;
+        hardware.mouse.isMoving = true;
+        if(typeof movingTimeOut !== "undefined"){
+            clearTimeout(movingTimeOut);
+        }
+        movingTimeOut = setTimeout(function(){hardware.mouse.isMoving = false;}, 5000);
+    } else {
+        if(!settings.cursorascircle) {
+            hardware.mouse.moveX = event.pageX*client.devicePixelRatio;
+            hardware.mouse.moveY = event.pageY*client.devicePixelRatio;
+        } else {
+            hardware.mouse.moveX+=event.pageX*client.devicePixelRatio-hardware.mouse.moveXPage;
+            hardware.mouse.moveY+=event.pageY*client.devicePixelRatio-hardware.mouse.moveYPage;
+            hardware.mouse.moveXPage = event.pageX*client.devicePixelRatio;
+            hardware.mouse.moveYPage = event.pageY*client.devicePixelRatio;
+        }
+        hardware.mouse.isHold = false;
+        client.PinchX = hardware.mouse.moveX/client.devicePixelRatio;
+        client.PinchY = hardware.mouse.moveY/client.devicePixelRatio;
+        client.PinchOHypot = 1;
+        getGesture({type: 'pinch', scale:1, deltaX:client.PinchX,deltaY:client.PinchY});
+        getGesture({type: "pinchend"}); 
+        delete client.hasPinched;
+        if(!settings.cursorascircle) {
+            hardware.mouse.moveX = adjustTouchScaleX(event.pageX*client.devicePixelRatio);
+            hardware.mouse.moveY = adjustTouchScaleY(event.pageY*client.devicePixelRatio);
+        }
+	}
 }
 function onMouseDown(event) {
-    hardware.lastInputMouse = hardware.mouse.downTime = Date.now(); 
-    hardware.mouse.moveX =  hardware.mouse.downX = event.pageX*client.devicePixelRatio;
-    hardware.mouse.moveY = hardware.mouse.downY = event.pageY*client.devicePixelRatio; 
-    hardware.mouse.isHold = true;    
+    event.preventDefault();
+    hardware.lastInputMouse = hardware.mouse.downTime = Date.now();
+    hardware.mouse.isHold = (event.which == undefined || event.which == 1) && !hardware.mouse.rightClick;
+    hardware.mouse.rightClickHold = (event.which == undefined || event.which == 1) && hardware.mouse.rightClick;
+    if(client.realScale == 1) { 
+        hardware.mouse.moveX = hardware.mouse.downX = event.pageX*client.devicePixelRatio;
+        hardware.mouse.moveY = hardware.mouse.downY = event.pageY*client.devicePixelRatio;
+    } else if (settings.cursorascircle) {
+        hardware.mouse.downX = hardware.mouse.moveX;
+        hardware.mouse.downY = hardware.mouse.moveY;
+    } else {
+        hardware.mouse.moveX = hardware.mouse.downX = adjustTouchScaleX(event.pageX*client.devicePixelRatio);
+        hardware.mouse.moveY = hardware.mouse.downY = adjustTouchScaleY(event.pageY*client.devicePixelRatio);
+    }
 }
 function onMouseUp(event) {
-    hardware.mouse.upX = event.pageX*client.devicePixelRatio;
-    hardware.mouse.upY = event.pageY*client.devicePixelRatio;
+    event.preventDefault();
+    if(client.realScale == 1) {
+        hardware.mouse.upX = event.pageX*client.devicePixelRatio;
+        hardware.mouse.upY = event.pageY*client.devicePixelRatio;
+    } else if (settings.cursorascircle) {
+        hardware.mouse.upX = hardware.mouse.moveX;
+        hardware.mouse.upY = hardware.mouse.moveY;
+    } else {
+        hardware.mouse.upX = adjustTouchScaleX(event.pageX*client.devicePixelRatio);
+        hardware.mouse.upY = adjustTouchScaleY(event.pageY*client.devicePixelRatio);
+    }
     hardware.mouse.upTime = Date.now(); 
-    hardware.mouse.isHold = false;    
+    hardware.mouse.isHold = hardware.mouse.rightClickHold = false;  
+    hardware.mouse.rightClickEvent = event.which == 1 && hardware.mouse.rightClick;    
 }
 function onMouseOut(event) {
-    hardware.mouse.isHold = false; 
+    event.preventDefault();
+    hardware.mouse.isHold = hardware.mouse.rightClickHold = false;  
     hardware.mouse.cursor = "none";
 }
 function onMouseWheel(event) {
-    hardware.mouse.wheelScrolls = true; 
-    hardware.mouse.isHold = false; 
-    hardware.mouse.wheelX = event.pageX*client.devicePixelRatio;
-    hardware.mouse.wheelY = event.pageY*client.devicePixelRatio;
-    hardware.mouse.wheelScrollX = event.deltaX;
-    hardware.mouse.wheelScrollY = event.deltaY;
-    hardware.mouse.wheelScrollZ = event.deltaZ;
+    event.preventDefault();
+    if(event.ctrlKey && event.deltaY != 0) {
+        client.PinchX = hardware.mouse.moveX/client.devicePixelRatio;
+        client.PinchY = hardware.mouse.moveY/client.devicePixelRatio;
+        if(event.deltaY < 0) {
+            client.PinchOHypot = client.realScaleMin;
+            getGesture({type: 'pinch', scale:client.realScaleMin, deltaX:client.PinchX,deltaY:client.PinchY});
+        } else {
+            client.PinchOHypot = 1/client.realScaleMin;
+            getGesture({type: 'pinch', scale:1/client.realScaleMin, deltaX:client.PinchX,deltaY:client.PinchY});
+        }
+        getGesture({type: "pinchend"}); 
+        delete client.hasPinched;   
+    } else {
+        hardware.mouse.wheelScrolls = !hardware.mouse.rightClick; 
+        hardware.mouse.rightClickWheelScrolls = hardware.mouse.rightClick; 
+        hardware.mouse.isHold = hardware.mouse.rightClickHold = false; 
+        hardware.mouse.wheelX = event.pageX*client.devicePixelRatio;
+        hardware.mouse.wheelY = event.pageY*client.devicePixelRatio;
+        hardware.mouse.wheelScrollX = event.deltaX;
+        hardware.mouse.wheelScrollY = event.deltaY;
+        hardware.mouse.wheelScrollZ = event.deltaZ;
+    }
+}
+function onMouseRight(event) {
+    event.preventDefault();
+    hardware.mouse.rightClick = !hardware.mouse.rightClick; 
+    hardware.mouse.rightClickEvent = false; 
+    hardware.mouse.rightClickWheelScrolls = false; 
 }
 
 function getTouchMove(event) {
-    hardware.mouse.moveX = event.changedTouches[0].clientX*client.devicePixelRatio;
-    hardware.mouse.moveY = event.changedTouches[0].clientY*client.devicePixelRatio;
-    hardware.mouse.isMoving = true;
-    if(typeof movingTimeOut !== "undefined"){
-        clearTimeout(movingTimeOut);
+	event.preventDefault();
+    if( event.changedTouches.length == 1) {
+        var deltaX=-2*(hardware.mouse.moveX - adjustTouchScaleX(event.changedTouches[0].clientX*client.devicePixelRatio));
+        var deltaY=-2*(hardware.mouse.moveY - adjustTouchScaleY(event.changedTouches[0].clientY*client.devicePixelRatio));
+        if(client.realScale > 1 && Math.max(Math.abs(deltaX), Math.abs(deltaY)) > Math.min(canvas.offsetWidth, canvas.offsetHeight)/client.realScale/10) {
+            getGesture({type: "swipe", deltaX:deltaX,deltaY:deltaY});
+            hardware.mouse.isHold = false;
+        } else {
+            hardware.mouse.moveX = adjustTouchScaleX(event.changedTouches[0].clientX*client.devicePixelRatio);
+            hardware.mouse.moveY = adjustTouchScaleY(event.changedTouches[0].clientY*client.devicePixelRatio);
+            hardware.mouse.isMoving = true;
+            if(typeof movingTimeOut !== "undefined"){
+                clearTimeout(movingTimeOut);
+            }
+            movingTimeOut = setTimeout(function(){hardware.mouse.isMoving = false;}, 5000);
+        }
+    } else if( event.changedTouches.length == 2) {
+        hardware.mouse.isHold = false; 
+        var hypot = Math.hypot( event.changedTouches[0].clientX - event.changedTouches[1].clientX, event.changedTouches[0].clientY - event.touches[1].clientY);
+        if(typeof(client.PinchOHypot) == "undefined") {
+			client.PinchOHypot = hypot;
+            if(client.realScale == 1) {
+                client.PinchX = (event.changedTouches[0].clientX+(event.changedTouches[0].clientX, event.changedTouches[1].clientX)/2);
+                client.PinchY = (event.changedTouches[0].clientY+(event.changedTouches[0].clientY, event.changedTouches[1].clientY)/2);
+           }
+        } 
+        getGesture({type: 'pinch', scale:hypot/client.PinchOHypot, deltaX:client.PinchX,deltaY:client.PinchY});
     }
-    movingTimeOut = setTimeout(function(){hardware.mouse.isMoving = false;}, 5000);
 }
+
 function getTouchStart(event) {
-    hardware.lastInputTouch = hardware.mouse.downTime = Date.now(); 
-    hardware.mouse.moveX = hardware.mouse.downX = event.changedTouches[0].clientX*client.devicePixelRatio;
-    hardware.mouse.moveY = hardware.mouse.downY = event.changedTouches[0].clientY*client.devicePixelRatio;
-    if(hardware.mouse.isHoldTimeout !== undefined && hardware.mouse.isHoldTimeout !== null) {
-        window.clearTimeout(hardware.mouse.isHoldTimeout);
+	event.preventDefault();
+    delete client.hasPinched;
+	var xTS = adjustTouchScaleX(event.changedTouches[0].clientX*client.devicePixelRatio);
+	var yTS = adjustTouchScaleY(event.changedTouches[0].clientY*client.devicePixelRatio);
+    if(Math.max(hardware.mouse.moveX,xTS) < 1.1*Math.min(hardware.mouse.moveX,xTS) && Math.max(hardware.mouse.moveY,yTS) < 1.1*Math.min(hardware.mouse.moveY,yTS) && Date.now() - hardware.mouse.downTime < 2*doubleClickTime && Date.now() - hardware.mouse.upTime < 2*doubleClickTime) {
+        client.PinchX = event.changedTouches[0].clientX;
+        client.PinchY = event.changedTouches[0].clientY;
+        getGesture({type: "doubletap", deltaX:client.PinchX,deltaY:client.PinchY});
+        hardware.mouse.isHold = false; 
+    } else if(event.touches.length == 3) {  
+        hardware.mouse.rightClickPrepare = true;
+    } else {
+        hardware.lastInputTouch = hardware.mouse.downTime = Date.now(); 
+        hardware.mouse.moveX = hardware.mouse.downX =  xTS;
+        hardware.mouse.moveY = hardware.mouse.downY =  yTS;
+        if(hardware.mouse.isHoldTimeout !== undefined && hardware.mouse.isHoldTimeout !== null) {
+            window.clearTimeout(hardware.mouse.isHoldTimeout);
+        }
+        hardware.mouse.isHold = !hardware.mouse.rightClick;
+        hardware.mouse.rightClickHold = hardware.mouse.rightClick;
     }
-    hardware.mouse.isHold = true;
 }
-function getTouchEnd(event) {   
-    hardware.mouse.upX = event.changedTouches[0].clientX*client.devicePixelRatio;
-    hardware.mouse.upY = event.changedTouches[0].clientY*client.devicePixelRatio;
+function getTouchEnd(event) {
+	event.preventDefault();
+    getGesture({type: "pinchend"});
+    hardware.mouse.upX = adjustTouchScaleX(event.changedTouches[0].clientX*client.devicePixelRatio);
+    hardware.mouse.upY = adjustTouchScaleY(event.changedTouches[0].clientY*client.devicePixelRatio);
     hardware.mouse.upTime = Date.now(); 
-    hardware.mouse.isHold = false;
+    hardware.mouse.isHold = hardware.mouse.rightClickHold = false;  
+    hardware.mouse.rightClickEvent = hardware.mouse.rightClick; 
+    if(hardware.mouse.rightClickPrepare != undefined && hardware.mouse.rightClickPrepare) {    
+        hardware.mouse.rightClick = !hardware.mouse.rightClick; 
+        hardware.mouse.rightClickEvent = hardware.mouse.rightClickHold = hardware.mouse.rightClickPrepare = false;
+    }   
+
 }
 function getTouchLeave(event) {
-    hardware.mouse.isHold = false; 
+    hardware.mouse.isHold = hardware.mouse.rightClickHold = false;  
 }
 
 function onKeyDown(event) {
-    if ((event.key == "ArrowUp" && (konamistate === 0 || konamistate == 1)) || (event.key == "ArrowDown" && (konamistate == 2 || konamistate == 3)) || (event.key == "ArrowLeft" && (konamistate == 4 || konamistate == 6)) || (event.key == "ArrowRight" && (konamistate == 5 || konamistate == 7)) || (event.key == "b" && konamistate == 8)){ 
+    if(event.ctrlKey && (event.key == "+" || event.key == "-" || (event.key == "0" && client.realScale > 1))) {
+        event.preventDefault();
+        if(client.realScale == 1) {
+            client.PinchX = hardware.mouse.moveX/client.devicePixelRatio;
+            client.PinchY = hardware.mouse.moveY/client.devicePixelRatio;
+        }
+        if(event.key == "+") {
+            client.PinchOHypot = 2;
+            getGesture({type: 'pinch', scale:2, deltaX:client.PinchX,deltaY:client.PinchY});
+        } else if(event.key == "-") {
+            client.PinchOHypot = 0.5;
+            getGesture({type: 'pinch', scale:0.5, deltaX:client.PinchX,deltaY:client.PinchY});
+        } else {
+            getGesture({type: "doubletap", deltaX:client.PinchX,deltaY:client.PinchY});
+        }
+        getGesture({type: "pinchend"}); 
+        delete client.hasPinched;       
+    } else if(client.realScale > 1 && settings.cursorascircle && (event.key == "ArrowRight" || event.key == "ArrowLeft" || event.key == "ArrowDown" || event.key == "ArrowUp")) {
+        event.preventDefault();
+        var deltaDiv = 30;
+        if(event.key == "ArrowRight") {
+            var deltaX=-canvas.offsetWidth/deltaDiv;
+            var deltaY=0;
+        } else if(event.key == "ArrowLeft") {
+            var deltaX=canvas.offsetWidth/deltaDiv;
+            var deltaY=0;
+        } else if(event.key == "ArrowUp") {
+            var deltaX=0;
+            var deltaY=canvas.offsetHeight/deltaDiv;
+        } else if(event.key == "ArrowDown") {
+            var deltaX=0;
+            var deltaY=-canvas.offsetHeight/deltaDiv;
+        }
+        getGesture({type: "swipe", deltaX:deltaX,deltaY:deltaY});     
+        hardware.mouse.upX = hardware.mouse.downX = hardware.mouse.moveX = (canvas.offsetWidth/2-client.touchScaleX/client.realScale)*client.devicePixelRatio;
+        hardware.mouse.upY = hardware.mouse.downY = hardware.mouse.moveY = (canvas.offsetHeight/2-client.touchScaleY/client.realScale)*client.devicePixelRatio;
+    } else if ((event.key == "ArrowUp" && (konamistate === 0 || konamistate == 1)) || (event.key == "ArrowDown" && (konamistate == 2 || konamistate == 3)) || (event.key == "ArrowLeft" && (konamistate == 4 || konamistate == 6)) || (event.key == "ArrowRight" && (konamistate == 5 || konamistate == 7)) || (event.key == "b" && konamistate == 8)){ 
         if(typeof konamiTimeOut !== "undefined"){
             clearTimeout(konamiTimeOut);
         }
@@ -883,7 +1112,7 @@ function drawObjects() {
             var x=classicUI.transformer.x+classicUI.transformer.width/2+ classicUI.transformer.input.diffY*Math.sin(classicUI.transformer.angle);
             var y=classicUI.transformer.y+classicUI.transformer.height/2- classicUI.transformer.input.diffY*Math.cos(classicUI.transformer.angle);
             if(!collisionCourse(trainParams.selected, false)){
-                if(client.isTiny){  
+                if(client.isTiny && (typeof(client.realScale) == "undefined" || client.realScale <= Math.max(1,client.realScaleMax/3))){  
                     if(hardware.mouse.isHold){
                         hardware.mouse.isHold = false;
                         if(trains[trainParams.selected].move && trains[trainParams.selected].accelerationSpeed > 0){
@@ -1087,6 +1316,125 @@ function drawObjects() {
         context.fillRect(0,canvas.height-background.y,canvas.width,background.y);
         context.restore();
     }
+    /////CONTROL CENTER/////
+    if(client.realScale == 1 && hardware.mouse.rightClick && konamistate >= 0)  {
+        var colorLight =  "floralwhite";
+        var colorDark =  "rgb(120,120,120)";
+        var contextClick = (hardware.mouse.rightClickEvent && Math.abs(hardware.mouse.downX-hardware.mouse.upX) < canvas.width/100 && Math.abs(hardware.mouse.downY-hardware.mouse.upY) < canvas.width/100);
+        hardware.mouse.rightClickEvent = false;
+        context.save();
+        var translateOffset = background.width/100;
+        context.translate(background.x+translateOffset,background.y+translateOffset);
+        context.fillStyle = "rgba(0,0,0,0.5)";
+        context.fillRect(0,0,background.width-2*translateOffset,background.height-2*translateOffset);
+        var fontFamily = "sans-serif";
+        var maxTextWidth = (background.width-2*translateOffset)/2;
+        var maxTextHeight = (background.height-2*translateOffset)/trains.length;
+        var speedTextHeight = Math.min(0.5*maxTextHeight,measureFontSize(getString("appScreenControlCenterSpeedOff"),fontFamily,0.5*(maxTextWidth*0.5)/getString("appScreenControlCenterSpeedOff").length,0.5*(maxTextWidth*0.5), 5, 1.2,0, false));
+        for(var cTrain = 0; cTrain < trains.length; cTrain++) {
+            var cText = getString(["appScreenTrainNames",cTrain]);
+            var cTextHeight = Math.min(0.75*maxTextHeight,measureFontSize(cText,fontFamily,0.75*maxTextWidth/cText.length,0.75*maxTextWidth, 5, 1.2,0, false));
+            context.font = cTextHeight +"px "+fontFamily;
+            context.fillStyle = colorLight;
+            context.fillText(cText,maxTextWidth/2-context.measureText(cText).width/2,maxTextHeight*cTrain+maxTextHeight/2);
+            var cTrainPercent = trains[cTrain].speedInPercent == undefined || !trains[cTrain].move || trains[cTrain].accelerationSpeed < 0 ? 0 : Math.round(trains[cTrain].speedInPercent);
+            context.fillStyle = context.strokeStyle = "rgba(255,255,255,0.7)";
+            context.strokeRect(0,maxTextHeight*cTrain,maxTextWidth,maxTextHeight);
+            if(cTrainPercent == 0) {
+                context.font = speedTextHeight +"px "+fontFamily;
+                context.fillText(getString("appScreenControlCenterSpeedOff"),maxTextWidth+(maxTextWidth*0.5)/2-context.measureText(getString("appScreenControlCenterSpeedOff")).width/2,maxTextHeight*cTrain+maxTextHeight/2);
+            }
+            context.fillRect(maxTextWidth,maxTextHeight*cTrain,maxTextWidth*0.5*cTrainPercent/100,maxTextHeight);
+            if(cTrainPercent > 0) {
+                context.fillStyle = colorDark;
+                context.font = speedTextHeight +"px "+fontFamily;
+                context.fillText((cTrainPercent+"%"),maxTextWidth+(maxTextWidth*0.5)/2-context.measureText((cTrainPercent+"%")).width/2,maxTextHeight*cTrain+maxTextHeight/2);
+            }
+            var isClick = (contextClick && hardware.mouse.upX-background.x-translateOffset > maxTextWidth && hardware.mouse.upX-background.x-translateOffset < maxTextWidth*1.5 && hardware.mouse.upY-background.y-translateOffset > maxTextHeight*cTrain && hardware.mouse.upY-background.y-translateOffset < maxTextHeight*cTrain+maxTextHeight);
+            var isHold = (hardware.mouse.rightClickHold && hardware.mouse.downX-background.x-translateOffset > maxTextWidth && hardware.mouse.downX-background.x-translateOffset < maxTextWidth*1.5 && hardware.mouse.downY-background.y-translateOffset > maxTextHeight*cTrain && hardware.mouse.downY-background.y-translateOffset < maxTextHeight*cTrain+maxTextHeight && hardware.mouse.moveX-background.x-translateOffset > maxTextWidth && hardware.mouse.moveX-background.x-translateOffset < maxTextWidth*1.5 && hardware.mouse.moveY-background.y-translateOffset > maxTextHeight*cTrain && hardware.mouse.moveY-background.y-translateOffset < maxTextHeight*cTrain+maxTextHeight);
+            if(!collisionCourse(cTrain, false) && (isClick || isHold || (hardware.mouse.rightClickWheelScrolls && hardware.mouse.wheelScrollY != 0 && hardware.mouse.wheelX-background.x-translateOffset > maxTextWidth && hardware.mouse.wheelX-background.x-translateOffset < maxTextWidth*1.5 && hardware.mouse.wheelY-background.y-translateOffset > maxTextHeight*cTrain && hardware.mouse.wheelY-background.y-translateOffset < maxTextHeight*cTrain+maxTextHeight))) {
+            var newSpeed;
+            if(isClick || isHold) {
+                newSpeed = Math.round(((isClick ? hardware.mouse.upX : hardware.mouse.moveX)-background.x-translateOffset-maxTextWidth)/maxTextWidth/0.5*100);
+            } else {
+                if(trains[cTrain].speedInPercent ==undefined || trains[cTrain].speedInPercent == 0) {
+                    trains[cTrain].speedInPercent = minTrainSpeed;
+                }
+                newSpeed = Math.round(trains[cTrain].speedInPercent*(hardware.mouse.wheelScrollY < 0 ? 1.1 : 0.9));
+            }
+            if(newSpeed < minTrainSpeed) {
+                newSpeed = 0;
+            } else if(newSpeed > 100) {
+                newSpeed = 100;
+            }
+            if(trains[cTrain].accelerationSpeed > 0 && newSpeed == 0) { 
+                actionSync("trains", cTrain, [{"accelerationSpeed":trains[cTrain].accelerationSpeed *= -1}], null);
+            } else if(trains[cTrain].accelerationSpeed > 0 ) {                              actionSync("trains", cTrain, [{"speedInPercent": newSpeed}],null);
+            } else if(!trains[cTrain].move && newSpeed > 0) {
+                actionSync("trains", cTrain, [{"move":true},{"speedInPercent":newSpeed}], null);
+            } else if (trains[cTrain].accelerationSpeed < 0 && newSpeed > 0) {
+                actionSync("trains", cTrain, [{"accelerationSpeed":trains[cTrain].accelerationSpeed *= -1},{"speedInPercent":newSpeed}], null);
+            }
+        }
+        context.strokeRect(maxTextWidth,maxTextHeight*cTrain,maxTextWidth*0.5,maxTextHeight);
+        if(!collisionCourse(cTrain, false) && (contextClick && hardware.mouse.upX-background.x-translateOffset > maxTextWidth*1.5 && hardware.mouse.upX-background.x-translateOffset < maxTextWidth*1.75 && hardware.mouse.upY-background.y-translateOffset > maxTextHeight*cTrain && hardware.mouse.upY-background.y-translateOffset < maxTextHeight*cTrain+maxTextHeight)) {
+            if(trains[cTrain].accelerationSpeed > 0){ 
+                actionSync("trains", cTrain, [{"accelerationSpeed":trains[cTrain].accelerationSpeed *= -1},{"speedInPercent":50}], null);
+            } else if(!trains[cTrain].move) {
+                actionSync("trains", cTrain, [{"move":true},{"speedInPercent":50}], null);
+            } else if (trains[cTrain].accelerationSpeed < 0) {
+                actionSync("trains", cTrain, [{"accelerationSpeed":trains[cTrain].accelerationSpeed *= -1}], null);
+            }
+        }
+        context.save();
+            context.translate(maxTextWidth*1.625,maxTextHeight/2+maxTextHeight*cTrain);
+        context.strokeStyle = trains[cTrain].move && trains[cTrain].accelerationSpeed > 0 ? "rgb(255,180,180)" : "rgb(180,255,180)";
+        context.fillStyle = context.strokeStyle;
+        context.lineWidth = Math.ceil(maxTextHeight/20);
+        context.beginPath();
+        context.moveTo(0, -maxTextHeight/18);
+        context.lineTo(0, -maxTextHeight/3);
+        context.stroke();
+        context.strokeStyle = colorLight;
+        context.beginPath();
+        context.rotate(-Math.PI/2);
+        context.arc(0,0,maxTextHeight/3.5,0.15*Math.PI,1.85*Math.PI);
+        context.stroke();   
+        context.restore();
+            context.strokeRect(maxTextWidth*1.5,maxTextHeight*cTrain,maxTextWidth*0.25,maxTextHeight);
+           if(contextClick && !trains[cTrain].move && hardware.mouse.upX-background.x-translateOffset > maxTextWidth*1.7 && hardware.mouse.upX-background.x-translateOffset < maxTextWidth*2 && hardware.mouse.upY-background.y-translateOffset > maxTextHeight*cTrain && hardware.mouse.upY-background.y-translateOffset < maxTextHeight*cTrain+maxTextHeight) {
+                actionSync("trains", cTrain, [{"standardDirection":!trains[cTrain].standardDirection}],null); 
+        }
+        context.save();
+            context.translate(maxTextWidth*1.875,maxTextHeight/2+maxTextHeight*cTrain);
+        if(!trains[cTrain].standardDirection) {
+            context.rotate(Math.PI);
+        }
+        if(trains[cTrain].move) {
+            context.strokeStyle = colorDark;    
+        } else {
+            context.strokeStyle = colorLight;
+        }
+        context.fillStyle = context.strokeStyle;
+        context.lineWidth = Math.ceil(maxTextHeight/5);
+        context.beginPath();
+        context.moveTo(-maxTextWidth*0.075, 0);
+        context.lineTo(maxTextWidth*0.051, 0);
+        context.stroke();
+        context.beginPath();
+        context.moveTo(maxTextWidth*0.05, -0.25*maxTextHeight);
+        context.lineTo(maxTextWidth*0.05, 0.25*maxTextHeight);
+        context.lineTo(maxTextWidth*0.1, 0);
+        context.lineTo(maxTextWidth*0.05, -0.25*maxTextHeight);
+        context.fill();
+        context.restore();
+            context.strokeRect(maxTextWidth*1.75,maxTextHeight*cTrain,maxTextWidth*0.25,maxTextHeight);
+        }
+        context.restore();
+        hardware.mouse.rightClickWheelScrolls = false;
+    } else {
+        hardware.mouse.rightClick = false;
+    }
 
     /////CURSOR/2/////
     if(settings.cursorascircle && client.chosenInputMethod == "mouse" && (hardware.mouse.isMoving || hardware.mouse.isHold) && hardware.mouse.cursor != "none") {
@@ -1105,6 +1453,14 @@ function drawObjects() {
     }
     hardware.mouse.wheelScrolls = false;
     
+    /////TRANSFORM/////
+    canvas.style.transform =  "translate3d(" + client.touchScaleX + "px," + client.touchScaleY + "px, 0) scale3d(" + client.realScale + ", " + client.realScale + ", 1)";
+    if(client.realScale > 1 && typeof placeOptions == "function") {
+        placeOptions("hide");
+    } else if(typeof placeOptions == "function") {
+        placeOptions("show");
+    }
+			
     /////REPAINT/////
     window.requestAnimationFrame(getObjects);
 
@@ -1177,6 +1533,7 @@ var oldbackground;
 
 var rotationPoints;
 var trains;
+var minTrainSpeed = 10;
 var trainParams;
 var switches = {inner2outer: {left: {turned: false, angles: {normal: 1.01*Math.PI, turned: 0.941*Math.PI}}, right: {turned: false, angles: {normal: 1.5*Math.PI, turned: 1.56*Math.PI}}}, outer2inner: {left: {turned: false, angles: {normal: 0.25*Math.PI, turned: 2.2*Math.PI}}, right: {turned: false, angles: {normal: 0.27*Math.PI, turned: 0.35*Math.PI}}}, innerWide: {left: {turned: true, angles: {normal: 1.44*Math.PI, turned: 1.37*Math.PI}}, right: {turned: false, angles: {normal: 1.02*Math.PI, turned: 1.1*Math.PI}}}, outerAltState3: {left: {turned: false, angles: {normal: 1.75*Math.PI, turned: 1.85*Math.PI}}, right: {turned: false, angles: {normal: 0.75*Math.PI, turned: 0.65*Math.PI}}}};
 
@@ -1188,10 +1545,10 @@ var carParams = {init: true, wayNo: 7};
 
 var taxOffice = {params: {number: 45, frameNo: 6, frameProbability: 0.6, fire: {x: 0.07, y: 0.06, size: 0.000833, color:{red: {red: 200, green: 0, blue: 0, alpha: 0.4}, yellow: {red: 255, green: 160, blue: 0, alpha: 1}, probability: 0.8}}, smoke: {x: 0.07, y: 0.06, size: 0.02, color: {red: 130, green: 120, blue: 130, alpha: 0.3}}, bluelights: {frameNo: 16, cars: [{frameNo: 0, x: [-0.0105, -0.0026], y: [0.177, 0.0047], size: 0.001},{frameNo: 3, x: [0.0275, -0.00275], y: [0.1472, 0.0092], size: 0.001},{frameNo: 5, x: [0.056, 0.0008], y: [0.18, 0.015], size: 0.001}]}}};
 
-var classicUI = {trainSwitch: {src: 11, selectedTrainDisplay: {}}, transformer: {src:13, asrc: 12, angle:(Math.PI/5),input:{src:14,angle:0,minAngle: 10,maxAngle:1.5*Math.PI},directionInput:{src:15,}}, switches: {}};
+var classicUI = {trainSwitch: {src: 11, selectedTrainDisplay: {}}, transformer: {src:13, asrc: 12, angle:(Math.PI/5),input:{src:14,angle:0,minAngle:minTrainSpeed,maxAngle:1.5*Math.PI},directionInput:{src:15,}}, switches: {}};
 
-var hardware = {mouse: {moveX:0, moveY:0,downX:0, downY:0, downTime: 0,upX:0, upY:0, upTime: 0, isMoving: false, isHold: false, cursor: "default"}};
-var client = {devicePixelRatio: 1};
+var hardware = {mouse: {moveX:0, moveY:0,downX:0, downY:0, downTime: 0,upX:0, upY:0, upTime: 0, isMoving: false, isHold: false, rightClick: false, cursor: "default"}};
+var client = {devicePixelRatio: 1,realScaleMax:6,realScaleMin:1.2};
 
 var onlineGame = {animateInterval: 40, syncInterval: 20000, excludeFromSync: {"t": ["src", "fac", "speedFac", "accelerationSpeedStartFac", "accelerationSpeedFac", "bogieDistance", "width", "height", "speed", "cars"], "tc": ["src", "fac", "bogieDistance", "width", "height"]}};
 var onlineConnection = {serverURI: getServerLink("wss:") + "/multiplay"};
@@ -1206,6 +1563,8 @@ var debug = false;
 ******************************************/
 function resize() {
     resized = true;
+    client.realScale = client.touchScale = client.lastTouchScale = 1;
+    client.touchScaleX = client.touchScaleY = 0;
     oldbackground = copyJSObject(background);
     extendedMeasureViewspace();
     placeBackground();
@@ -1265,6 +1624,11 @@ window.onload = function() {
     }
 
     function chooseInputMethod(event){
+        client.realScale = 1;
+        client.lastTouchScale=1;
+        client.touchScale=1;
+        client.touchScaleX=0;
+        client.touchScaleY=0;
         var type = event.type;           
         canvas.removeEventListener("touchstart",chooseInputMethod);
         canvas.removeEventListener("mousemove",chooseInputMethod);
@@ -1277,6 +1641,7 @@ window.onload = function() {
         canvas.addEventListener("mouseup", onMouseUp, false); 
         canvas.addEventListener("mouseout", onMouseOut, false);
         canvas.addEventListener("wheel", onMouseWheel, false); 
+        canvas.addEventListener("contextmenu", onMouseRight, false); 
         if(type == "touchstart"){
             client.chosenInputMethod = "touch";
             getTouchStart(event);

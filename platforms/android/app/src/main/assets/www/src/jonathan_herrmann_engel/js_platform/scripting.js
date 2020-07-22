@@ -19,4 +19,8 @@ document.addEventListener('deviceready', function() {
 			}
 		}, getString("platformOcGameLeaveTitel"), [getString("platformOcGameLeaveYes"),getString("platformOcGameLeaveNo")]);
 	}, false);
+	var ocSettings = getSettingsOC();
+	if(!ocSettings.landscapeGame || !ocSettings.landscapeApp) {
+		screen.orientation.lock('landscape');
+	}
 });

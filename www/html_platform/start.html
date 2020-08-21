@@ -8,11 +8,10 @@
 		<title data-stringid-content="generalTitle"></title>
 		<link rel="manifest" href="manifest.webmanifest">
 		<link rel="icon" type="image/x-icon" sizes="32x32" href="favicon.ico">
-		
-		<!-- Cordova Scripts -->		
-		<script src="cordova.js"></script>
 		<script>
-		document.addEventListener('deviceready', function() {
+		function localDR(){
+
+			
 			window.plugins.insomnia.keepAwake();
 			document.addEventListener("backbutton", function(){
 				navigator.app.exitApp();
@@ -34,7 +33,7 @@
 			} else {
 				screen.orientation.lock('landscape');
 			}
-		});
+		}
 		</script>
 		
 		<!-- Open Source Libraries And Fonts -->
@@ -298,13 +297,13 @@
 			}
 			
 			window.addEventListener("load", styleContent);
-			window.addEventListener("resize", styleContent);
+			window.addEventListener("resize", function(){styleContent(); window.setTimeout(styleContent,50);});
 			
 			document.getElementById("link_game").addEventListener("click", function(){
-				followLink("html_platform", "_self", LINK_STATE_INTERNAL_HTML);
+				followLink("./", "_self", LINK_STATE_INTERNAL_HTML);
 			});
 			document.getElementById("link_multiplayer").addEventListener("click", function(){
-				followLink("html_platform/?mode=multiplay", "_self", LINK_STATE_INTERNAL_HTML);
+				followLink("./?mode=multiplay", "_self", LINK_STATE_INTERNAL_HTML);
 			});
 			document.getElementById("link_help").addEventListener("click", function(){
 				followLink("help", "_self", LINK_STATE_INTERNAL_HTML);
@@ -323,6 +322,8 @@
 			}
 			
 			setHTMLStrings();
+			
+			styleContent();
 		</script>
 	</body>
 </html>

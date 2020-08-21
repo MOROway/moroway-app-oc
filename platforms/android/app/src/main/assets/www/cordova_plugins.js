@@ -25,14 +25,6 @@ cordova.define('cordova/plugin_list', function(require, exports, module) {
       ]
     },
     {
-      "id": "cordova-webintent.WebIntent",
-      "file": "plugins/cordova-webintent/www/webintent.js",
-      "pluginId": "cordova-webintent",
-      "clobbers": [
-        "WebIntent"
-      ]
-    },
-    {
       "id": "es6-promise-plugin.Promise",
       "file": "plugins/es6-promise-plugin/www/promise.js",
       "pluginId": "es6-promise-plugin",
@@ -45,14 +37,22 @@ cordova.define('cordova/plugin_list', function(require, exports, module) {
       "clobbers": [
         "cordova.plugins.screenorientation"
       ]
+    },
+    {
+      "id": "cordova-webintent.WebIntent",
+      "file": "plugins/cordova-webintent/www/webintent.js",
+      "pluginId": "cordova-webintent",
+      "clobbers": [
+        "WebIntent"
+      ]
     }
   ];
   module.exports.metadata = {
     "cordova-plugin-dialogs": "2.0.2",
     "cordova-plugin-insomnia": "4.3.0",
-    "cordova-plugin-whitelist": "1.3.4",
-    "cordova-webintent": "2.0.0",
     "es6-promise-plugin": "4.2.2",
-    "cordova-plugin-screen-orientation": "3.0.2"
+    "cordova-plugin-screen-orientation": "3.0.2",
+    "cordova-plugin-whitelist": "1.3.4",
+    "cordova-webintent": "2.0.0"
   };
 });

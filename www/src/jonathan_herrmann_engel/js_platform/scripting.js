@@ -9,8 +9,12 @@ function placeOptions(state){
 		}
 	}
 }
-document.addEventListener('deviceready', function() {
+function localDR(){
 	window.plugins.insomnia.keepAwake();
+	var ocSettings = getSettingsOC();
+	if(!ocSettings.landscapeGame || !ocSettings.landscapeApp) {
+		screen.orientation.lock("landscape");
+	}
 	document.addEventListener("backbutton", function(e) {
 		e.preventDefault();
 		navigator.notification.confirm(getString("platformOcGameLeave"), function(button) {
@@ -19,8 +23,4 @@ document.addEventListener('deviceready', function() {
 			}
 		}, getString("platformOcGameLeaveTitel"), [getString("platformOcGameLeaveYes"),getString("platformOcGameLeaveNo")]);
 	}, false);
-	var ocSettings = getSettingsOC();
-	if(!ocSettings.landscapeGame || !ocSettings.landscapeApp) {
-		screen.orientation.lock('landscape');
-	}
-});
+}

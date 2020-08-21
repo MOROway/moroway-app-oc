@@ -13,13 +13,13 @@
     "cordova-plugin-insomnia": {
       "PACKAGE_NAME": "de.moroway.oc"
     },
+    "cordova-plugin-screen-orientation": {
+      "PACKAGE_NAME": "de.moroway.oc"
+    },
     "cordova-plugin-whitelist": {
       "PACKAGE_NAME": "de.moroway.oc"
     },
     "cordova-webintent": {
-      "PACKAGE_NAME": "de.moroway.oc"
-    },
-    "cordova-plugin-screen-orientation": {
       "PACKAGE_NAME": "de.moroway.oc"
     }
   },

@@ -2,6 +2,11 @@
 <html>
 	<head>
 		<base href="./">
+
+<!-- Cordova Scripts 1 -->
+<script src="cordova.js"></script>
+
+
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
 		<meta name="theme-color" content="#000" />
@@ -106,12 +111,17 @@
 		</div>		
 				
 		<!-- settings sidebar -->
-		<iframe id="settingsimport" src="settings/index.html"></iframe>
+		
 
 		<!-- load strings -->
 		<script>
 			setHTMLStrings();
 		</script>
 		
-	</body>
+	
+
+<!-- Cordova Scripts 2 -->
+<script>document.addEventListener("deviceready", function() {if(typeof localDR == "function"){localDR();}if(typeof globalDR == "function"){globalDR();}});</script>
+
+</body>
 </html>

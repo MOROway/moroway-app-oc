@@ -2,6 +2,11 @@
 <html>
 	<head>
 		<base href="../">
+
+<!-- Cordova Scripts 1 -->
+<script src="cordova.js"></script>
+
+
 		<meta charset="UTF-8">
 		<meta name="theme-color" content="#000" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -99,5 +104,10 @@
 			setHTMLStrings();
 		</script>
 		
-	</body>
+	
+
+<!-- Cordova Scripts 2 -->
+<script>document.addEventListener("deviceready", function() {if(typeof localDR == "function"){localDR();}if(typeof globalDR == "function"){globalDR();}});</script>
+
+</body>
 </html>

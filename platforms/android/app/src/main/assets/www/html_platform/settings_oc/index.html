@@ -2,6 +2,11 @@
 <html>
 	<head>
 		<base href="../../">
+
+<!-- Cordova Scripts 1 -->
+<script src="cordova.js"></script>
+
+
 		<meta charset="UTF-8">
 		<meta name="theme-color" content="#000" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,7 +21,7 @@
 		<!-- Fonts -->
 		<link rel="stylesheet" type="text/css" href="src/others/open_source/open_fonts/google/MaterialIcons/font.css">
 		<link rel="stylesheet" type="text/css" href="src/others/open_source/open_fonts/google/Roboto/font.css">
-
+		
 		<!-- General Scripts -->
 		<script src="src/jonathan_herrmann_engel/js/error_handler.js"></script>
 		<script src="src/jonathan_herrmann_engel/js_platform/error_handler.js"></script>
@@ -220,5 +225,10 @@ window.addEventListener("load", function(){
 			setHTMLStrings();
 		</script>
 		
-	</body>
+	
+
+<!-- Cordova Scripts 2 -->
+<script>document.addEventListener("deviceready", function() {if(typeof localDR == "function"){localDR();}if(typeof globalDR == "function"){globalDR();}});</script>
+
+</body>
 </html>

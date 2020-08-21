@@ -31,8 +31,6 @@ function init(){
 	});
 	document.querySelector("#contact-feedbacklink").addEventListener("click", function(){notify(getString("helpScreenContactFeedbackSendNotification", "."), false, 900, null, null, window.innerHeight); followLink( getServerHTMLLink("feedback") ,"_blank", LINK_STATE_NORMAL);}, false);
 	
-	document.querySelector("#download-androidlink").addEventListener("click", function(){followLink(getServerRedirectLink("download_android"),"_blank", LINK_STATE_NORMAL);}, false);	
-	document.querySelector("#download-windowslink").addEventListener("click", function(){followLink(getServerRedirectLink("download_windows"),"_blank", LINK_STATE_NORMAL);}, false);	
 	document.querySelector("#download-sourcelink").addEventListener("click", function(){followLink(getServerRedirectLink("source_code"),"_blank", LINK_STATE_NORMAL);}, false);
 	
 	document.querySelector("#website-link").addEventListener("click", function(){followLink(getServerRedirectLink("moroweb"),"_blank", LINK_STATE_NORMAL);}, false);

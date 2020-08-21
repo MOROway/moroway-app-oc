@@ -376,7 +376,7 @@ function onKeyDown(event) {
 }
 
 function placeClassicUIElements(){
-    var fac = 0.04;
+    var fac = 0.042;
     classicUI.trainSwitch.width = fac * (background.width);
     classicUI.trainSwitch.height = fac * (pics[classicUI.trainSwitch.src].height * (background.width / pics[classicUI.trainSwitch.src].width));
     fac = 0.07;
@@ -388,8 +388,8 @@ function placeClassicUIElements(){
     classicUI.transformer.directionInput.width = fac * classicUI.transformer.width;
     classicUI.transformer.directionInput.height = fac * (pics[classicUI.transformer.directionInput.src].height * ( classicUI.transformer.width/ pics[classicUI.transformer.directionInput.src].width));
     
-    classicUI.trainSwitch.x = background.x + background.width / 30;
-    classicUI.trainSwitch.y = background.y + background.height/1.2;
+    classicUI.trainSwitch.x = background.x + background.width /99;
+    classicUI.trainSwitch.y = background.y + background.height / 1.175;
     classicUI.transformer.x = background.x + background.width / 1.1;
     classicUI.transformer.y = background.y + background.height/1.4;
     classicUI.transformer.input.diffY = classicUI.transformer.height/6;
@@ -1036,8 +1036,17 @@ function drawObjects() {
         context.save();
         drawImage(pics[classicUI.trainSwitch.src], classicUI.trainSwitch.x, classicUI.trainSwitch.y, classicUI.trainSwitch.width, classicUI.trainSwitch.height);
         context.beginPath();
+		var wasInSwitchPath = false;
         context.rect(classicUI.trainSwitch.x, classicUI.trainSwitch.y, classicUI.trainSwitch.width, classicUI.trainSwitch.height);
         if ((context.isPointInPath(hardware.mouse.wheelX, hardware.mouse.wheelY) && hardware.mouse.wheelScrollY !== 0 && hardware.mouse.wheelScrolls) || context.isPointInPath(hardware.mouse.moveX, hardware.mouse.moveY)) {
+			wasInSwitchPath = true;
+		}
+        context.restore();
+        context.save();
+        context.beginPath();
+        var sTDposY = classicUI.trainSwitch.selectedTrainDisplay.height*1.3;
+        context.rect(classicUI.trainSwitch.x+classicUI.trainSwitch.width,classicUI.trainSwitch.y+classicUI.trainSwitch.height-sTDposY, classicUI.trainSwitch.selectedTrainDisplay.width, classicUI.trainSwitch.selectedTrainDisplay.height);
+        if (wasInSwitchPath || (context.isPointInPath(hardware.mouse.wheelX, hardware.mouse.wheelY) && hardware.mouse.wheelScrollY !== 0 && hardware.mouse.wheelScrolls) || context.isPointInPath(hardware.mouse.moveX, hardware.mouse.moveY)) {
             hardware.mouse.cursor = "pointer";
             if(typeof movingTimeOut !== "undefined"){
                 clearTimeout(movingTimeOut);
@@ -1063,11 +1072,12 @@ function drawObjects() {
             context.font = classicUI.trainSwitch.selectedTrainDisplay.font;
             context.fillStyle="#000";        
             context.strokeStyle="#eee";        
-            context.fillRect(classicUI.trainSwitch.x+classicUI.trainSwitch.width,classicUI.trainSwitch.y+classicUI.trainSwitch.height/2, classicUI.trainSwitch.selectedTrainDisplay.width, classicUI.trainSwitch.selectedTrainDisplay.height);
-            context.strokeRect(classicUI.trainSwitch.x+classicUI.trainSwitch.width,classicUI.trainSwitch.y+classicUI.trainSwitch.height/2, classicUI.trainSwitch.selectedTrainDisplay.width, classicUI.trainSwitch.selectedTrainDisplay.height);
+            context.fillRect(classicUI.trainSwitch.x+classicUI.trainSwitch.width,classicUI.trainSwitch.y+classicUI.trainSwitch.height-sTDposY, classicUI.trainSwitch.selectedTrainDisplay.width, classicUI.trainSwitch.selectedTrainDisplay.height);
+            context.strokeRect(classicUI.trainSwitch.x+classicUI.trainSwitch.width,classicUI.trainSwitch.y+classicUI.trainSwitch.height-sTDposY, classicUI.trainSwitch.selectedTrainDisplay.width, classicUI.trainSwitch.selectedTrainDisplay.height);
             context.fillStyle="#eee";    
-            context.translate(classicUI.trainSwitch.x+classicUI.trainSwitch.width+classicUI.trainSwitch.selectedTrainDisplay.width/2,0);    
-            context.fillText(getString(["appScreenTrainNames",trainParams.selected]), -context.measureText(getString(["appScreenTrainNames",trainParams.selected])).width/2,classicUI.trainSwitch.y+1.3*classicUI.trainSwitch.height/2);
+            context.translate(classicUI.trainSwitch.x+classicUI.trainSwitch.width+classicUI.trainSwitch.selectedTrainDisplay.width/2,0);
+            context.textBaseline = "middle"; 
+			context.fillText(getString(["appScreenTrainNames",trainParams.selected]), -context.measureText(getString(["appScreenTrainNames",trainParams.selected])).width/2,classicUI.trainSwitch.y+classicUI.trainSwitch.height-sTDposY+classicUI.trainSwitch.selectedTrainDisplay.height/2);
         }
         context.restore();
         context.save();
@@ -1320,10 +1330,12 @@ function drawObjects() {
     if(client.realScale == 1 && hardware.mouse.rightClick && konamistate >= 0)  {
         var colorLight =  "floralwhite";
         var colorDark =  "rgb(120,120,120)";
+        var colorBorder =  "rgba(255,255,255,0.7)";;
         var contextClick = (hardware.mouse.rightClickEvent && Math.abs(hardware.mouse.downX-hardware.mouse.upX) < canvas.width/100 && Math.abs(hardware.mouse.downY-hardware.mouse.upY) < canvas.width/100);
         hardware.mouse.rightClickEvent = false;
         context.save();
         var translateOffset = background.width/100;
+        context.textBaseline = "middle"; 
         context.translate(background.x+translateOffset,background.y+translateOffset);
         context.fillStyle = "rgba(0,0,0,0.5)";
         context.fillRect(0,0,background.width-2*translateOffset,background.height-2*translateOffset);
@@ -1331,15 +1343,31 @@ function drawObjects() {
         var maxTextWidth = (background.width-2*translateOffset)/2;
         var maxTextHeight = (background.height-2*translateOffset)/trains.length;
         var speedTextHeight = Math.min(0.5*maxTextHeight,measureFontSize(getString("appScreenControlCenterSpeedOff"),fontFamily,0.5*(maxTextWidth*0.5)/getString("appScreenControlCenterSpeedOff").length,0.5*(maxTextWidth*0.5), 5, 1.2,0, false));
+        context.fillStyle = "rgb(255,120,120)";
+        context.strokeStyle = colorBorder;
+        context.strokeRect(0,0,maxTextWidth/8,maxTextHeight*trains.length);
+        context.save();
+        context.translate(maxTextWidth/16,maxTextHeight*trains.length/2);
+        context.rotate(-Math.PI/2);
+        var cTextHeight = Math.min(maxTextWidth/12,measureFontSize(getString("appScreenControlCenterClose",null,"upper"),fontFamily,maxTextWidth/12,maxTextHeight*trains.length, 5, 1.2,0, false));
+        context.font = cTextHeight +"px "+fontFamily;
+        context.fillText(getString("appScreenControlCenterClose",null,"upper"),-maxTextHeight*trains.length/2+(maxTextHeight*trains.length/2-context.measureText(getString("appScreenControlCenterClose",null,"upper")).width/2),cTextHeight/6);
+        context.restore();
+        context.fillStyle = colorLight;
+        if(contextClick && hardware.mouse.upX-background.x-translateOffset > 0 && hardware.mouse.upX-background.x-translateOffset < maxTextWidth/8 && hardware.mouse.upY-background.y-translateOffset > 0 && hardware.mouse.upY-background.y-translateOffset < maxTextHeight*trains.length) {
+            hardware.mouse.rightClick = !hardware.mouse.rightClick; 
+            hardware.mouse.rightClickEvent = false; 
+            hardware.mouse.rightClickWheelScrolls = false; 
+        }
         for(var cTrain = 0; cTrain < trains.length; cTrain++) {
             var cText = getString(["appScreenTrainNames",cTrain]);
-            var cTextHeight = Math.min(0.75*maxTextHeight,measureFontSize(cText,fontFamily,0.75*maxTextWidth/cText.length,0.75*maxTextWidth, 5, 1.2,0, false));
+            var cTextHeight = Math.min(0.625*maxTextHeight,measureFontSize(cText,fontFamily,0.625*maxTextWidth/cText.length,0.625*maxTextWidth, 5, 1.2,0, false));
             context.font = cTextHeight +"px "+fontFamily;
             context.fillStyle = colorLight;
-            context.fillText(cText,maxTextWidth/2-context.measureText(cText).width/2,maxTextHeight*cTrain+maxTextHeight/2);
+            context.fillText(cText,maxTextWidth/8+0.875*maxTextWidth/2-context.measureText(cText).width/2,maxTextHeight*cTrain+maxTextHeight/2);
             var cTrainPercent = trains[cTrain].speedInPercent == undefined || !trains[cTrain].move || trains[cTrain].accelerationSpeed < 0 ? 0 : Math.round(trains[cTrain].speedInPercent);
-            context.fillStyle = context.strokeStyle = "rgba(255,255,255,0.7)";
-            context.strokeRect(0,maxTextHeight*cTrain,maxTextWidth,maxTextHeight);
+            context.fillStyle = context.strokeStyle = colorBorder;
+            context.strokeRect(maxTextWidth/8,maxTextHeight*cTrain,0.875*maxTextWidth,maxTextHeight);
             if(cTrainPercent == 0) {
                 context.font = speedTextHeight +"px "+fontFamily;
                 context.fillText(getString("appScreenControlCenterSpeedOff"),maxTextWidth+(maxTextWidth*0.5)/2-context.measureText(getString("appScreenControlCenterSpeedOff")).width/2,maxTextHeight*cTrain+maxTextHeight/2);
@@ -1387,7 +1415,7 @@ function drawObjects() {
             }
         }
         context.save();
-            context.translate(maxTextWidth*1.625,maxTextHeight/2+maxTextHeight*cTrain);
+        context.translate(maxTextWidth*1.625,maxTextHeight/2+maxTextHeight*cTrain);
         context.strokeStyle = trains[cTrain].move && trains[cTrain].accelerationSpeed > 0 ? "rgb(255,180,180)" : "rgb(180,255,180)";
         context.fillStyle = context.strokeStyle;
         context.lineWidth = Math.ceil(maxTextHeight/20);
@@ -2121,17 +2149,14 @@ window.onload = function() {
     function stopPace(showNote) {
         var timeWait = 0.5;
         var timeLoad = 0.5;
-        var toDestroy = document.querySelectorAll(".pace");
-        for (var i = 0; i < toDestroy.length; i++) {
-                toDestroy[i].style.transition = "opacity "+ timeWait + "s";
-                toDestroy[i].style.opacity = "0";
-        }
+        var toDestroy = document.querySelector("body > .pace");
+		if(toDestroy != null) {
+			toDestroy.parentNode.removeChild(toDestroy);
+		}
         setTimeout(function(){
-                var toHide = document.querySelectorAll("#branding");
-                for (var i = 0; i < toHide.length; i++) {
-                    toHide[i].style.transition = "opacity "+ timeLoad + "s";
-                    toHide[i].style.opacity = "0";
-                }
+                var toHide = document.querySelector("#branding");
+                toHide.style.transition = "opacity "+ timeLoad + "s";
+                toHide.style.opacity = "0";
                 setTimeout(function(){
 					if(showNote){
 						var localAppData = getLocalAppDataCopy();
@@ -2144,9 +2169,7 @@ window.onload = function() {
 						}
 					}
                     setLocalAppDataCopy(); 
-                    for (var i = 0; i < toHide.length; i++) {
-                        toHide[i].style.display = "none";
-                    }
+                    toHide.style.display = "none";
                     canvas.style.transition = "opacity " + timeLoad + "s";
                     canvas.style.opacity = "1";
                 }, timeLoad*1000);

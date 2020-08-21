@@ -29,7 +29,7 @@
           "application/activity": [
             {
               "xml": "<intent-filter android:autoVerify=\"true\" android:label=\"MOROway OC\"><action android:name=\"android.intent.action.VIEW\" /><category android:name=\"android.intent.category.DEFAULT\" /><category android:name=\"android.intent.category.BROWSABLE\" /><data android:host=\"app.moroway.de\" android:scheme=\"https\" /><data android:host=\"app.moroway.de\" android:scheme=\"http\" /></intent-filter>",
-              "count": 105
+              "count": 11
             }
           ],
           "/manifest/application": [
@@ -52,15 +52,15 @@
               "count": 1
             },
             {
+              "xml": "<feature name=\"CDVOrientation\"><param name=\"android-package\" value=\"cordova.plugins.screenorientation.CDVOrientation\" /></feature>",
+              "count": 1
+            },
+            {
               "xml": "<feature name=\"Whitelist\"><param name=\"android-package\" value=\"org.apache.cordova.whitelist.WhitelistPlugin\" /><param name=\"onload\" value=\"true\" /></feature>",
               "count": 1
             },
             {
               "xml": "<feature name=\"WebIntent\"><param name=\"android-package\" value=\"com.borismus.webintent.WebIntent\" /></feature>",
-              "count": 1
-            },
-            {
-              "xml": "<feature name=\"CDVOrientation\"><param name=\"android-package\" value=\"cordova.plugins.screenorientation.CDVOrientation\" /></feature>",
               "count": 1
             }
           ]
@@ -75,16 +75,16 @@
     "cordova-plugin-insomnia": {
       "PACKAGE_NAME": "de.moroway.oc"
     },
-    "cordova-plugin-whitelist": {
-      "PACKAGE_NAME": "de.moroway.oc"
-    },
-    "cordova-webintent": {
-      "PACKAGE_NAME": "de.moroway.oc"
-    },
     "es6-promise-plugin": {
       "PACKAGE_NAME": "de.moroway.oc"
     },
     "cordova-plugin-screen-orientation": {
+      "PACKAGE_NAME": "de.moroway.oc"
+    },
+    "cordova-plugin-whitelist": {
+      "PACKAGE_NAME": "de.moroway.oc"
+    },
+    "cordova-webintent": {
       "PACKAGE_NAME": "de.moroway.oc"
     }
   },
@@ -115,14 +115,6 @@
       ]
     },
     {
-      "id": "cordova-webintent.WebIntent",
-      "file": "plugins/cordova-webintent/www/webintent.js",
-      "pluginId": "cordova-webintent",
-      "clobbers": [
-        "WebIntent"
-      ]
-    },
-    {
       "id": "es6-promise-plugin.Promise",
       "file": "plugins/es6-promise-plugin/www/promise.js",
       "pluginId": "es6-promise-plugin",
@@ -135,14 +127,22 @@
       "clobbers": [
         "cordova.plugins.screenorientation"
       ]
+    },
+    {
+      "id": "cordova-webintent.WebIntent",
+      "file": "plugins/cordova-webintent/www/webintent.js",
+      "pluginId": "cordova-webintent",
+      "clobbers": [
+        "WebIntent"
+      ]
     }
   ],
   "plugin_metadata": {
     "cordova-plugin-dialogs": "2.0.2",
     "cordova-plugin-insomnia": "4.3.0",
-    "cordova-plugin-whitelist": "1.3.4",
-    "cordova-webintent": "2.0.0",
     "es6-promise-plugin": "4.2.2",
-    "cordova-plugin-screen-orientation": "3.0.2"
+    "cordova-plugin-screen-orientation": "3.0.2",
+    "cordova-plugin-whitelist": "1.3.4",
+    "cordova-webintent": "2.0.0"
   }
 }

@@ -28,6 +28,17 @@ function followLink(input1, input2, input3){
         window.open(input1, input2);
 }
 
+function followIntent(url) {
+        var redirect = "./";
+	var server = "https://app.moroway.de/";
+	if(url !==null &&url.indexOf(server) === 0) {
+	   url = url.replace(server,"");
+	   redirect += "?mode=multiplay&id=" + url.replace(/[/].*$/,"") + "&key=" + url.replace(/.*[/]([^/]+)$/,"$1");
+	   followLink(redirect, "_blank", LINK_STATE_INTERNAL_HTML);
+	} else {
+	   followLink(redirect + "html_platform/start.html","_self", LINK_STATE_INTERNAL_LICENSE_FILE);		
+	}
+}
 
 //SETTINGS  
 function getSettingsOC (asObject){
@@ -80,7 +91,9 @@ function setSettingsOC(settings, asObject){
 	window.localStorage.setItem("morowayAppOC", JSON.stringify(asObject ? settings.values : settings));
 
 }
-
-
-////Optional code (app works without it)
-//Enable offline functionality
+////Optional code (app works without it))
+function globalDR() {
+	window.plugins.webintent.onNewIntent(function (url) {
+		followIntent(url);
+	});
+}

@@ -45,6 +45,14 @@ cordova.define('cordova/plugin_list', function(require, exports, module) {
       "clobbers": [
         "WebIntent"
       ]
+    },
+    {
+      "id": "cordova-plugin-splashscreen.SplashScreen",
+      "file": "plugins/cordova-plugin-splashscreen/www/splashscreen.js",
+      "pluginId": "cordova-plugin-splashscreen",
+      "clobbers": [
+        "navigator.splashscreen"
+      ]
     }
   ];
   module.exports.metadata = {
@@ -53,6 +61,7 @@ cordova.define('cordova/plugin_list', function(require, exports, module) {
     "es6-promise-plugin": "4.2.2",
     "cordova-plugin-screen-orientation": "3.0.2",
     "cordova-plugin-whitelist": "1.3.4",
-    "cordova-webintent": "2.0.0"
+    "cordova-webintent": "2.0.0",
+    "cordova-plugin-splashscreen": "6.0.0"
   };
 });

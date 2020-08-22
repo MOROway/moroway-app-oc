@@ -21,6 +21,9 @@
     },
     "cordova-webintent": {
       "PACKAGE_NAME": "de.moroway.oc"
+    },
+    "cordova-plugin-splashscreen": {
+      "PACKAGE_NAME": "de.moroway.oc"
     }
   },
   "dependent_plugins": {

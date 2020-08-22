@@ -7,6 +7,7 @@
     "cordova-plugin-insomnia": "git+https://github.com/EddyVerbruggen/Insomnia-PhoneGap-Plugin.git",
     "cordova-plugin-intent": "git+https://github.com/napolitano/cordova-plugin-intent.git",
     "cordova-plugin-screen-orientation": "^3.0.2",
+    "cordova-plugin-splashscreen": "^6.0.0",
     "cordova-webintent": "github:cordova-misc/cordova-webintent",
     "es6-promise-plugin": "^4.2.2"
   },
@@ -19,7 +20,8 @@
       "cordova-webintent": {},
       "cordova-plugin-insomnia": {},
       "cordova-plugin-dialogs": {},
-      "cordova-plugin-screen-orientation": {}
+      "cordova-plugin-screen-orientation": {},
+      "cordova-plugin-splashscreen": {}
     },
     "platforms": [
       "android"

@@ -1,0 +1,2 @@
+* Bugfixes
+* Splash Screen

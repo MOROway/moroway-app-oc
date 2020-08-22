@@ -15,8 +15,6 @@
 		<link rel="icon" type="image/x-icon" sizes="32x32" href="favicon.ico">
 		<script>
 		function localDR(){
-
-			
 			window.plugins.insomnia.keepAwake();
 			document.addEventListener("backbutton", function(){
 				navigator.app.exitApp();
@@ -37,7 +35,8 @@
 				screen.orientation.unlock();
 			} else {
 				screen.orientation.lock('landscape');
-			}
+			}			
+			navigator.splashscreen.hide();
 		}
 		</script>
 		

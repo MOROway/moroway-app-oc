@@ -1,6 +1,6 @@
-#  MOROway App Open Cordova
+#  MOROway App OC
 
-[MOROway App](https://github.com/MOROway/moroway-app) Open Cordova for Android.
+The MOROway App OC ("Open Cordova") variant brings the [MOROway App](https://github.com/MOROway/moroway-app) to Android.
 
 ## Download
 
@@ -10,13 +10,18 @@ Available at [F-Droid](https://f-droid.org/de/packages/de.moroway.oc/).
 
 ### MOROway App
 
-MOROway App: [Apache License 2.0](https://github.com/MOROway/moroway-app-oc/blob/master/LICENSE)
+* MOROway App OC: [Apache License 2.0](https://github.com/MOROway/moroway-app-oc/blob/master/LICENSE)
+* MOROway App: [Apache License 2.0](https://github.com/MOROway/moroway-app/blob/master/LICENSE)
 
-### Cordova Android development framework
+### MOROway App: Included Open Source Projects
+
+See: [MOROway App - Included Open Source Projects](https://github.com/MOROway/moroway-app-included-open-source)
+
+### MOROway App OC: Cordova Android development framework
 
 Apache Cordova: [Apache License 2.0](https://github.com/apache/cordova-android/blob/master/LICENSE)
 
-### Cordova Plugins
+### MOROway App OC: Cordova Plugins
 
 * cordova-plugin-dialogs: [Apache License 2.0](https://github.com/apache/cordova-plugin-dialogs/blob/master/LICENSE)
 * cordova-plugin-insomnia: [MIT License](https://github.com/EddyVerbruggen/Insomnia-PhoneGap-Plugin/blob/master/README.md)

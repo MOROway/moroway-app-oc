@@ -1126,7 +1126,7 @@ function drawObjects() {
                     if(hardware.mouse.isHold){
                         hardware.mouse.isHold = false;
                         if(trains[trainParams.selected].move && trains[trainParams.selected].accelerationSpeed > 0){
-                            actionSync("trains", trainParams.selected, [{"speedInPercent":50},{"accelerationSpeed": trains[trainParams.selected].accelerationSpeed *= -1}], [{getString: ["appScreenObjectStops", "."]}, {getString:[["appScreenTrainNames",trainParams.selected]]}]);
+                            actionSync("trains", trainParams.selected, [{"accelerationSpeed": trains[trainParams.selected].accelerationSpeed *= -1}], [{getString: ["appScreenObjectStops", "."]}, {getString:[["appScreenTrainNames",trainParams.selected]]}]);
                         } else {
                             if(trains[trainParams.selected].move){
                                 actionSync("trains", trainParams.selected, [{"speedInPercent":50},{"accelerationSpeed": trains[trainParams.selected].accelerationSpeed *= -1}], [{getString:["appScreenObjectStarts", "."]}, {getString:[["appScreenTrainNames",trainParams.selected]]}]);
@@ -1397,7 +1397,8 @@ function drawObjects() {
             }
             if(trains[cTrain].accelerationSpeed > 0 && newSpeed == 0) { 
                 actionSync("trains", cTrain, [{"accelerationSpeed":trains[cTrain].accelerationSpeed *= -1}], null);
-            } else if(trains[cTrain].accelerationSpeed > 0 ) {                              actionSync("trains", cTrain, [{"speedInPercent": newSpeed}],null);
+            } else if(trains[cTrain].accelerationSpeed > 0 ) {
+                actionSync("trains", cTrain, [{"speedInPercent": newSpeed}],null);
             } else if(!trains[cTrain].move && newSpeed > 0) {
                 actionSync("trains", cTrain, [{"move":true},{"speedInPercent":newSpeed}], null);
             } else if (trains[cTrain].accelerationSpeed < 0 && newSpeed > 0) {
@@ -1407,11 +1408,11 @@ function drawObjects() {
         context.strokeRect(maxTextWidth,maxTextHeight*cTrain,maxTextWidth*0.5,maxTextHeight);
         if(!collisionCourse(cTrain, false) && (contextClick && hardware.mouse.upX-background.x-translateOffset > maxTextWidth*1.5 && hardware.mouse.upX-background.x-translateOffset < maxTextWidth*1.75 && hardware.mouse.upY-background.y-translateOffset > maxTextHeight*cTrain && hardware.mouse.upY-background.y-translateOffset < maxTextHeight*cTrain+maxTextHeight)) {
             if(trains[cTrain].accelerationSpeed > 0){ 
-                actionSync("trains", cTrain, [{"accelerationSpeed":trains[cTrain].accelerationSpeed *= -1},{"speedInPercent":50}], null);
+                actionSync("trains", cTrain, [{"accelerationSpeed":trains[cTrain].accelerationSpeed *= -1}], null);
             } else if(!trains[cTrain].move) {
                 actionSync("trains", cTrain, [{"move":true},{"speedInPercent":50}], null);
             } else if (trains[cTrain].accelerationSpeed < 0) {
-                actionSync("trains", cTrain, [{"accelerationSpeed":trains[cTrain].accelerationSpeed *= -1}], null);
+                actionSync("trains", cTrain, [{"accelerationSpeed":trains[cTrain].accelerationSpeed *= -1},{"speedInPercent":50}], null);
             }
         }
         context.save();

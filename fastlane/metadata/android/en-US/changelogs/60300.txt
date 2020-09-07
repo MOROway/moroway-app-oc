@@ -1,0 +1,2 @@
+* High precision handling of switches
+* Reduce app size

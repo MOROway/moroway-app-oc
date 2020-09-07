@@ -165,12 +165,16 @@ function defineTrainParams(){
     rotationPoints.outer.narrow.x[2] = 0.795 * background.width;
     rotationPoints.outer.narrow.x[4] = 0.98 * background.width;
     rotationPoints.outer.narrow.x[5] = 0.985 * background.width;
-    rotationPoints.outer.narrow.y[0] = 0.013 * background.height;
+    rotationPoints.outer.narrow.x[6] = -0.05 * background.width;
+    rotationPoints.outer.narrow.x[7] = -0.04 * background.width;
+    rotationPoints.outer.narrow.y[0] =  0.013 * background.height;
     rotationPoints.outer.narrow.y[1] = 0.017 * background.height;
     rotationPoints.outer.narrow.y[2] = 0.893 * background.height;
     rotationPoints.outer.narrow.y[3] = 0.882 * background.height;
     rotationPoints.outer.narrow.y[4] = 0.001 * background.height;
     rotationPoints.outer.narrow.y[5] = 0.908 * background.height;
+    rotationPoints.outer.narrow.y[6] = 0.9 * background.height;
+    rotationPoints.outer.narrow.y[7] = 0.03 * background.height;
     circles[2] = rotationPoints.outer.narrow;
     
     var repNo = 1000;
@@ -189,11 +193,11 @@ function defineTrainParams(){
   /*------------------------------------------------------------------------------------------------------------------*
    *  0---------------------------------------------------------1                                                     *
    *  -      ___       ___                                      -                                                     *
-   *  -     |   \      |   \   ________  _____   _______        -        0-3: required                                *
-   *  7    |    \     |    \   | __   |  ||__|  | __   |        4        4-7: optional                                *
+   *  -     |   \      |   \   ________  _____   _______        -        0-7: required                                *
+   *  7    |    \     |    \   | __   |  ||__|  | __   |        4                                                     *
    *  -   |  / \ \   |  / \ \  | |__| |  ||\    | |__| |        -                                                     *
-   *  6  |  /   \ \ |  /   \ \ |______|  ||\\   |______|        5        Ohne optionale Punkte gilt:                  *
-   *  -  ______________________________________________         -                   x0 = x3 bzw. x1 = x2              *
+   *  6  |  /   \ \ |  /   \ \ |______|  ||\\   |______|        5                                                     *
+   *  -  ______________________________________________         -                                                     *
    *  -  _______________________________________________        -                                                     *
    *  3---------------------------------------------------------2                                                     *
    *------------------------------------------------------------------------------------------------------------------*/ 
@@ -313,165 +317,113 @@ function animateObjects() {
                     if (cO.state == 1 && Math.round(cO.x - background.x) >= Math.round(trains[input1].circle.x[1])) {
                         if(isFront && i == -1 && trains[input1].circleFamily == rotationPoints.outer && switches.outer2inner.right.turned){
                             trains[input1].switchCircles = true;
-                        }  
+							trains[input1].circleFamily = null;
+                        }
+                        cO.angle = 0;
+						cO.currentCurveFac = 0;
                         if(trains[input1].switchCircles){
-                            cO.x = background.x + Math.round(rotationPoints.outer.narrow.x[1]);
-                            cO.y = background.y + Math.round(rotationPoints.outer.narrow.y[1]);
-                            cO.state = -2; 
-                            cO.angle = 0;
-                            cO.currentCurveFac = 0;
-                            if(isFront && i == -1) {
-                                trains[input1].circle = JSON.parse(JSON.stringify(trains[input1].circle));
-                                trains[input1].circle.x[2] = rotationPoints.inner.narrow.x[2];
-                                trains[input1].circle.y[2] = rotationPoints.inner.narrow.y[2];
-                                trains[input1].circle.x[3] = rotationPoints.inner.narrow.x[3];
-                                trains[input1].circle.y[3] = rotationPoints.inner.narrow.y[3];
-                                trains[input1].circle.x[4] = rotationPoints.inner2outer.right.x[1];
-                                trains[input1].circle.y[4] = rotationPoints.inner2outer.right.y[1];
-                                trains[input1].circle.x[5] = rotationPoints.inner2outer.right.x[2];
-                                trains[input1].circle.y[5] = rotationPoints.inner2outer.right.y[2];
-                                trains[input1].circleFamily = null;
-                            }
-                          } else {
-                                cO.x = background.x + Math.round(trains[input1].circle.x[1]);
-                                cO.y = background.y + Math.round(trains[input1].circle.y[1]);
-                                cO.state++;
-                                cO.angle = 0; 
-                                cO.currentCurveFac = 0;
-                          }
-                    } else if (Math.abs(cO.state) == 2 && Math.round(cO.x - background.x) <= Math.round(trains[input1].circle.x[2]) && cO.y - background.y > trains[input1].circle.y[1]+(trains[input1].circle.y[2]-trains[input1].circle.y[1])/2) {
+							cO.x = background.x + Math.round(rotationPoints.outer.narrow.x[1]);
+							cO.y = background.y + Math.round(rotationPoints.outer.narrow.y[1]);
+							cO.state = -2;
+					  	} else {
+							cO.x = background.x + Math.round(trains[input1].circle.x[1]);
+							cO.y = background.y + Math.round(trains[input1].circle.y[1]);
+							cO.state++;
+					  	}
+                    } else if (Math.abs(cO.state) == 2 && Math.round(cO.x - background.x) <= Math.round(trains[input1].switchCircles ? rotationPoints.inner.narrow.x[2] : trains[input1].circle.x[2]) && cO.y - background.y > trains[input1].circle.y[1]+(trains[input1].circle.y[2]-trains[input1].circle.y[1])/2) {
+                        cO.x = background.x + Math.round(trains[input1].switchCircles ? rotationPoints.inner.narrow.x[2] : trains[input1].circle.x[2]);
+                        cO.y = background.y + Math.round(trains[input1].switchCircles ? rotationPoints.inner.narrow.y[2] : trains[input1].circle.y[2]);
                         if(cO.state == -2 && !isFront && i == trains[input1].cars.length-1) {
                             trains[input1].circle = rotationPoints.inner.narrow;
                             trains[input1].circleFamily = rotationPoints.inner;
                             trains[input1].switchCircles = false;
                         }
-                        cO.x = background.x + Math.round(trains[input1].circle.x[2]);
-                        cO.y = background.y + Math.round(trains[input1].circle.y[2]);
                         cO.currentCurveFac=0;
                         cO.state = ((trains[input1].circleFamily == rotationPoints.outer && switches.outerAltState3.right.turned && isFront && i == -1) || trains[input1].front.state == -3) ? -3 : 3;
                     } else if (Math.abs(cO.state) == 3 && Math.round(cO.x - background.x) <= Math.round(trains[input1].circle.x[3])) {
                         if(isFront && i == -1 && trains[input1].circleFamily == rotationPoints.inner && switches.inner2outer.left.turned){
                             trains[input1].switchCircles = true;
+							trains[input1].circleFamily = null;
                         } else if (isFront && i == -1 && trains[input1].circleFamily == rotationPoints.inner && switches.innerWide.left.turned) {
                           trains[input1].circle = rotationPoints.inner.wide;
                         } else if (isFront && i == -1 && trains[input1].circleFamily == rotationPoints.inner) {
                           trains[input1].circle = rotationPoints.inner.narrow;  
                         }
+						cO.angle = Math.PI;
+						cO.currentCurveFac = 0;
                         if(trains[input1].switchCircles){
                             cO.x = background.x + Math.round(rotationPoints.inner.narrow.x[3]);
                             cO.y = background.y + Math.round(rotationPoints.inner.narrow.y[3]);
                             cO.state = -4; 
-                            cO.angle = Math.PI;
-                            cO.currentCurveFac = 0;
-                            if(isFront && i == -1) {
-                                trains[input1].circle = JSON.parse(JSON.stringify(trains[input1].circle));
-                                trains[input1].circle.x[0] = rotationPoints.outer.narrow.x[0];
-                                trains[input1].circle.y[0] = rotationPoints.outer.narrow.y[0];
-                                trains[input1].circle.x[1] = rotationPoints.outer.narrow.x[1];
-                                trains[input1].circle.y[1] = rotationPoints.outer.narrow.y[1];
-                                trains[input1].circle.x[6] = rotationPoints.inner2outer.left.x[1];
-                                trains[input1].circle.y[6] = rotationPoints.inner2outer.left.y[1];
-                                trains[input1].circle.x[7] = rotationPoints.inner2outer.left.x[2];
-                                trains[input1].circle.y[7] = rotationPoints.inner2outer.left.y[2];
-                                trains[input1].circleFamily = null;
-                            }
                         } else {
                             cO.x = background.x + Math.round(trains[input1].circle.x[3]);
                             cO.y = background.y + Math.round(trains[input1].circle.y[3]);
                             cO.state=4;
-                            cO.angle = Math.PI;
-                            cO.currentCurveFac = 0;
                         }
-                    } else if (Math.abs(cO.state) == 4 && Math.round(cO.x - background.x) >= Math.round(trains[input1].circle.x[0]) && cO.y - background.y < trains[input1].circle.y[0]+(trains[input1].circle.y[3]-trains[input1].circle.y[0])/2) {
+                    } else if (Math.abs(cO.state) == 4 && Math.round(cO.x - background.x) >= Math.round(trains[input1].switchCircles ? rotationPoints.outer.narrow.x[0] : trains[input1].circle.x[0]) && cO.y - background.y < trains[input1].circle.y[0]+(trains[input1].circle.y[3]-trains[input1].circle.y[0])/2) {
                         if(cO.state == -4 && !isFront && i == trains[input1].cars.length-1) {
                             trains[input1].circle = rotationPoints.outer.narrow;
                             trains[input1].circleFamily = rotationPoints.outer;
                             trains[input1].switchCircles = false;
                         }
-                        cO.x = background.x + Math.round(trains[input1].circle.x[0]);
-                        cO.y = background.y + Math.round(trains[input1].circle.y[0]);
+                        cO.x = background.x + Math.round(trains[input1].switchCircles ? rotationPoints.outer.narrow.x[0] : trains[input1].circle.x[0]);
+                        cO.y = background.y + Math.round(trains[input1].switchCircles ? rotationPoints.outer.narrow.y[0] : trains[input1].circle.y[0]);
                         cO.state = 1;            
                     }
                 } else {
                     if (cO.state == 1 && Math.round(cO.x - background.x) <= Math.round(trains[input1].circle.x[0])) {
                         if(!isFront && i == trains[input1].cars.length-1 && trains[input1].circleFamily == rotationPoints.outer && switches.outer2inner.left.turned){
                             trains[input1].switchCircles = true;
+							trains[input1].circleFamily = null;
                         }
+						cO.angle = 2*Math.PI;
+						cO.currentCurveFac = 1;
                         if(trains[input1].switchCircles){
                             cO.x = background.x + Math.round(rotationPoints.outer.narrow.x[0]);
                             cO.y = background.y + Math.round(rotationPoints.outer.narrow.y[0]);
-                            cO.state = -4; 
-                            cO.angle = 2*Math.PI;
-                            cO.currentCurveFac = 1;
-                            if(!isFront && i == trains[input1].cars.length-1) {
-                                trains[input1].circle = JSON.parse(JSON.stringify(trains[input1].circle));
-                                trains[input1].circle.x[3] = rotationPoints.inner.narrow.x[3];
-                                trains[input1].circle.y[3] = rotationPoints.inner.narrow.y[3];
-                                trains[input1].circle.x[2] = rotationPoints.inner.narrow.x[2];
-                                trains[input1].circle.y[2] = rotationPoints.inner.narrow.y[2];
-                                trains[input1].circle.x[6] = rotationPoints.inner2outer.left.x[1];
-                                trains[input1].circle.y[6] = rotationPoints.inner2outer.left.y[1];
-                                trains[input1].circle.x[7] = rotationPoints.inner2outer.left.x[2];
-                                trains[input1].circle.y[7] = rotationPoints.inner2outer.left.y[2];
-                                trains[input1].circleFamily = null;
-                            }
+                            cO.state = -4;
                         } else {
-                                cO.x = background.x + Math.round(trains[input1].circle.x[0]);
-                                cO.y = background.y + Math.round(trains[input1].circle.y[0]);
-                                cO.state = 4;
-                                cO.angle = 2*Math.PI; 
-                                cO.currentCurveFac = 1;
+							cO.x = background.x + Math.round(trains[input1].circle.x[0]);
+							cO.y = background.y + Math.round(trains[input1].circle.y[0]);
+							cO.state = 4;
                         }
-                    } else if (Math.abs(cO.state) == 2 && Math.round(cO.x - background.x) <= Math.round(trains[input1].circle.x[1]) && cO.y - background.y < trains[input1].circle.y[1]+(trains[input1].circle.y[2]-trains[input1].circle.y[1])/2) {
+                    } else if (Math.abs(cO.state) == 2 && Math.round(cO.x - background.x) <= Math.round(trains[input1].switchCircles ? rotationPoints.outer.narrow.x[1] : trains[input1].circle.x[1]) && cO.y - background.y < trains[input1].circle.y[1]+(trains[input1].circle.y[2]-trains[input1].circle.y[1])/2) {
                         if(cO.state == -2 && isFront && i == -1) {
                             trains[input1].circle = rotationPoints.outer.narrow;
                             trains[input1].circleFamily = rotationPoints.outer;
                             trains[input1].switchCircles = false;
                         }
-                        cO.x = background.x + Math.round(trains[input1].circle.x[1]);
-                        cO.y = background.y + Math.round(trains[input1].circle.y[1]);
+                        cO.x = background.x + Math.round(trains[input1].switchCircles ? rotationPoints.outer.narrow.x[1] : trains[input1].circle.x[1]);
+                        cO.y = background.y + Math.round(trains[input1].switchCircles ? rotationPoints.outer.narrow.y[1] : trains[input1].circle.y[1]);
                         cO.state=1;
                     } else if (Math.abs(cO.state) == 3 && Math.round(cO.x - background.x) >= Math.round(trains[input1].circle.x[2]) && Math.round(cO.y - background.y) >= background.height/2) {
                         if(!isFront && i == trains[input1].cars.length-1 && trains[input1].circleFamily == rotationPoints.inner && switches.inner2outer.right.turned){
                             trains[input1].switchCircles = true;
+							trains[input1].circleFamily = null;
                         } else if(!isFront && i == trains[input1].cars.length-1 && trains[input1].circleFamily == rotationPoints.inner && switches.innerWide.right.turned){
                             trains[input1].circle = rotationPoints.inner.wide;
                         } else if(!isFront && i == trains[input1].cars.length-1 && trains[input1].circleFamily == rotationPoints.inner){
                             trains[input1].circle = rotationPoints.inner.narrow;
                         }
+						cO.angle = Math.PI;
+						cO.currentCurveFac = 1;
                         if(trains[input1].switchCircles){
                             cO.x = background.x + Math.round(rotationPoints.inner.narrow.x[2]);
                             cO.y = background.y + Math.round(rotationPoints.inner.narrow.y[2]);
-                            cO.state = -2; 
-                            cO.angle = Math.PI;
-                            cO.currentCurveFac = 1;
-                            if(!isFront && i == trains[input1].cars.length-1) {
-                                trains[input1].circle = JSON.parse(JSON.stringify(trains[input1].circle));
-                                trains[input1].circle.x[1] = rotationPoints.outer.narrow.x[1];
-                                trains[input1].circle.y[1] = rotationPoints.outer.narrow.y[1];
-                                trains[input1].circle.x[0] = rotationPoints.outer.narrow.x[0];
-                                trains[input1].circle.y[0] = rotationPoints.outer.narrow.y[0];
-                                trains[input1].circle.x[4] = rotationPoints.inner2outer.right.x[1];
-                                trains[input1].circle.y[4] = rotationPoints.inner2outer.right.y[1];
-                                trains[input1].circle.x[5] = rotationPoints.inner2outer.right.x[2];
-                                trains[input1].circle.y[5] = rotationPoints.inner2outer.right.y[2];
-                                trains[input1].circleFamily = null;
-                            }
+                            cO.state = -2;
                         } else {
                             cO.x = background.x + Math.round(trains[input1].circle.x[2]);
                             cO.y = background.y + Math.round(trains[input1].circle.y[2]);
                             cO.state = 2;
-                            cO.angle = Math.PI;
-                            cO.currentCurveFac = 1;
                         }
-                    } else if (Math.abs(cO.state) == 4 && Math.round(cO.x - background.x) >= Math.round(trains[input1].circle.x[3]) && cO.y - background.y > trains[input1].circle.y[0]+(trains[input1].circle.y[3]-trains[input1].circle.y[0])/2) {
+                    } else if (Math.abs(cO.state) == 4 && Math.round(cO.x - background.x) >= Math.round(trains[input1].switchCircles ? rotationPoints.inner.narrow.x[3] : trains[input1].circle.x[3]) && cO.y - background.y > trains[input1].circle.y[0]+(trains[input1].circle.y[3]-trains[input1].circle.y[0])/2) {
                         if(cO.state == -4 && isFront && i == -1) {
                             trains[input1].circle = rotationPoints.inner.narrow;
                             trains[input1].circleFamily = rotationPoints.inner;
                             trains[input1].switchCircles = false;
                         }
-                        cO.x = background.x + Math.round(trains[input1].circle.x[3]);
-                        cO.y = background.y + Math.round(trains[input1].circle.y[3]);
+                        cO.x = background.x + Math.round(trains[input1].switchCircles ? rotationPoints.inner.narrow.x[3] : trains[input1].circle.x[3]);
+                        cO.y = background.y + Math.round(trains[input1].switchCircles ? rotationPoints.inner.narrow.y[3] : trains[input1].circle.y[3]);
                         cO.currentCurveFac=0;
                         cO.state = ((trains[input1].circleFamily == rotationPoints.outer && switches.outerAltState3.left.turned && ((trains[input1].cars.length === 0 && trains[input1].back.state == -3) || (trains[input1].cars.length === 0 && !isFront) || (trains[input1].cars.length > 0 && !isFront && i == trains[input1].cars.length-1))) || (trains[input1].cars.length > 0 && trains[input1].cars[trains[input1].cars.length-1].back.state == -3)) ? -3 : 3;
 
@@ -499,41 +451,27 @@ function animateObjects() {
                     cO.y = y;
                     cO.angle = angle;
                 }
-                
-                function setCOPosCircle(circlePoints, isBackwards){ 
-                    var backwardsCorr = isBackwards ? -1:1;
-                    var radius = Math.abs(circlePoints.y[0]-circlePoints.y[1])/2;    
-                    var arc = Math.abs(cO.angle)*radius;
-                    arc += backwardsCorr*speed*customSpeed; 
-                    cO.angle = (arc / radius);
-                    var chord = 2* radius * Math.sin((cO.angle)/2);
-                    var gamma = Math.PI/2-(Math.PI-(cO.angle))/2;
-                    var x = Math.cos(gamma)*chord;
-                    var y = Math.sin(gamma)*chord;
-                    cO.x = x + circlePoints.x[0];
-                    cO.y = y + circlePoints.y[0];
-                }
-      
-                function setCOPosBezier(bezierPoints, isBackwards, length){    
-                    function getBezierFac(fac, approxNO, maxDuration) {
-                        var x = getBezierPoints((fac),bezierPoints.x[0],bezierPoints.x[1],bezierPoints.x[2],bezierPoints.x[3]);
-                        var y = getBezierPoints((fac),bezierPoints.y[0],bezierPoints.y[1],bezierPoints.y[2],bezierPoints.y[3]);
-                        var distance = (Math.sqrt(Math.pow((cO.x-x),2)+Math.pow((cO.y-y),2)));
-                        var fac1 = fac * (1+1/approxNO);
-                        var fac2 = fac * (1-1/approxNO);
-                        var x1 = getBezierPoints((fac1),bezierPoints.x[0],bezierPoints.x[1],bezierPoints.x[2],bezierPoints.x[3]);
-                        var x2 = getBezierPoints((fac2),bezierPoints.x[0],bezierPoints.x[1],bezierPoints.x[2],bezierPoints.x[3]);
-                        var y1 = getBezierPoints((fac1),bezierPoints.y[0],bezierPoints.y[1],bezierPoints.y[2],bezierPoints.y[3]);
-                        var y2 = getBezierPoints((fac2),bezierPoints.y[0],bezierPoints.y[1],bezierPoints.y[2],bezierPoints.y[3]);
-                        var distance1 = (Math.sqrt(Math.pow((cO.x-x1),2)+Math.pow((cO.y-y1),2)));
-                        var distance2 = (Math.sqrt(Math.pow((cO.x-x2),2)+Math.pow((cO.y-y2),2)));
-                        var newFac = Math.abs(distance1) < Math.abs(distance2) ? fac1 : fac2;
-                        var newDistance = Math.abs(distance1) < Math.abs(distance2) ? distance1 : distance2;
-                        return Math.abs(distance) < Math.abs(newDistance) ? fac : (Math.abs(newDistance) < 0.1*Math.abs(bezierPoints.x[0]-bezierPoints.x[3]) || --maxDuration < 1) ? (newFac < 0 ? 0 : newFac > 1 ? 1 : newFac) : getBezierFac(newFac, approxNO, maxDuration);
-                    }
-                    function getBezierPoints(fac, a,b,c,d) {
-                        return Math.pow((1-fac),3)*a+3*fac*Math.pow((1-fac),2)*b+3*Math.pow((fac),2)*(1-fac)*c+Math.pow(fac,3)*d;
-                    }
+				
+				function getBezierPoints(fac, a,b,c,d) {
+					return Math.pow((1-fac),3)*a+3*fac*Math.pow((1-fac),2)*b+3*Math.pow((fac),2)*(1-fac)*c+Math.pow(fac,3)*d;
+				}
+				function getBezierFac(fac, approxNO, maxDuration, cCO,bezierPoints) {
+					var x = getBezierPoints((fac),bezierPoints.x[0],bezierPoints.x[1],bezierPoints.x[2],bezierPoints.x[3]);
+					var y = getBezierPoints((fac),bezierPoints.y[0],bezierPoints.y[1],bezierPoints.y[2],bezierPoints.y[3]);
+					var distance = (Math.sqrt(Math.pow((cCO.x-x),2)+Math.pow((cCO.y-y),2)));
+					var fac1 = fac * (1+1/approxNO);
+					var fac2 = fac * (1-1/approxNO);
+					var x1 = getBezierPoints((fac1),bezierPoints.x[0],bezierPoints.x[1],bezierPoints.x[2],bezierPoints.x[3]);
+					var x2 = getBezierPoints((fac2),bezierPoints.x[0],bezierPoints.x[1],bezierPoints.x[2],bezierPoints.x[3]);
+					var y1 = getBezierPoints((fac1),bezierPoints.y[0],bezierPoints.y[1],bezierPoints.y[2],bezierPoints.y[3]);
+					var y2 = getBezierPoints((fac2),bezierPoints.y[0],bezierPoints.y[1],bezierPoints.y[2],bezierPoints.y[3]);
+					var distance1 = (Math.sqrt(Math.pow((cCO.x-x1),2)+Math.pow((cCO.y-y1),2)));
+					var distance2 = (Math.sqrt(Math.pow((cCO.x-x2),2)+Math.pow((cCO.y-y2),2)));
+					var newFac = Math.abs(distance1) < Math.abs(distance2) ? fac1 : fac2;
+					var newDistance = Math.abs(distance1) < Math.abs(distance2) ? distance1 : distance2;
+					return Math.abs(distance) < Math.abs(newDistance) ? fac : (Math.abs(newDistance) < 0.1*Math.abs(bezierPoints.x[0]-bezierPoints.x[3]) || --maxDuration < 1) ? (newFac < 0 ? 0 : newFac > 1 ? 1 : newFac) : getBezierFac(newFac, approxNO, maxDuration, cCO,bezierPoints);
+				}
+                function setCOPosBezier(bezierPoints, isBackwards, length){  
                     function getBezierPointsDifferential(fac, a,b,c,d) {
                         return 3*Math.pow((1-fac),2)*(b-a)+6*fac*(1-fac)*(c-b)+3*Math.pow(fac,2)*(d-c);
                     }
@@ -543,29 +481,43 @@ function animateObjects() {
                         return Math.atan2(dydt ,dxdt);
                     }
                     var backwardsCorr = isBackwards? -1 :1;
-                    var fac = i < 0 && isFront ? cO.currentCurveFac : getBezierFac(cO.currentCurveFac, 100, 100); 
+                    var fac = i < 0 && isFront ? cO.currentCurveFac : getBezierFac(cO.currentCurveFac, 100, 100, cO,bezierPoints); 
                     cO.currentCurveFac = fac + backwardsCorr*((speed*customSpeed)/length);                    
                     cO.x = getBezierPoints((cO.currentCurveFac),bezierPoints.x[0],bezierPoints.x[1],bezierPoints.x[2],bezierPoints.x[3]);
                     cO.y = getBezierPoints((cO.currentCurveFac),bezierPoints.y[0],bezierPoints.y[1],bezierPoints.y[2],bezierPoints.y[3]);        
                     cO.angle = getBezierAngle((cO.currentCurveFac),bezierPoints.x,bezierPoints.y);
                 }
-                var points;    
+                var points;
                 if(cO.state == 1){ // Calc bogie position
                     points = {x:[trains[input1].circle.x[0] + background.x,trains[input1].circle.x[1] + background.x],y:[trains[input1].circle.y[0] + background.y,trains[input1].circle.y[1] + background.y]};
+					var pointsSwitch = {x:[rotationPoints.outer.narrow.x[0]+ background.x,rotationPoints.outer.narrow.x[1] + background.x],y:[rotationPoints.outer.narrow.y[0] + background.y,rotationPoints.outer.narrow.y[1] + background.y]};
                     if(!trains[input1].standardDirection){points.x.reverse();points.y.reverse();}
-                    setCOPosLinear(points, !trains[input1].standardDirection, false) ;
+                    if(!trains[input1].standardDirection){pointsSwitch.x.reverse();pointsSwitch.y.reverse();}
+                    setCOPosLinear(trains[input1].switchCircles ? pointsSwitch : points,!trains[input1].standardDirection, false);
                 } else if(Math.abs(cO.state) == 2)  { 
-                    if(typeof trains[input1].circle.x[4] == "undefined" || typeof trains[input1].circle.x[5] == "undefined" || typeof trains[input1].circle.y[4] == "undefined" || typeof trains[input1].circle.y[5] == "undefined"){
-                        points ={x:[trains[input1].circle.x[1]+background.x],y:[trains[input1].circle.y[1]+background.y,trains[input1].circle.y[2]+background.y]};
-                        setCOPosCircle(points, !trains[input1].standardDirection);
-                    } else { 
-                        points ={x:[trains[input1].circle.x[1] + background.x,trains[input1].circle.x[4] + background.x,trains[input1].circle.x[5] + background.x,trains[input1].circle.x[2] + background.x],y:[trains[input1].circle.y[1] + background.y,trains[input1].circle.y[4] + background.y,trains[input1].circle.y[5] + background.y,trains[input1].circle.y[2] + background.y]};
-                        setCOPosBezier(points, !trains[input1].standardDirection, cO.state == -2 ? rotationPoints.inner2outer.right.bezierLength : trains[input1].circle.bezierLength.right);
-                    }
+					cO.state = trains[input1].switchCircles ? -2 : 2;
+					var pointsSwitch = {x:[rotationPoints.outer.narrow.x[1] + background.x,rotationPoints.inner2outer.right.x[1] + background.x,rotationPoints.inner2outer.right.x[2] + background.x,rotationPoints.inner.narrow.x[2] + background.x],y:[rotationPoints.outer.narrow.y[1] + background.y,rotationPoints.inner2outer.right.y[1] + background.y,rotationPoints.inner2outer.right.y[2]+ background.y,rotationPoints.inner.narrow.y[2] + background.y]};
+                   points ={x:[trains[input1].circle.x[1] + background.x,trains[input1].circle.x[4] + background.x,trains[input1].circle.x[5] + background.x,trains[input1].circle.x[2] + background.x],y:[trains[input1].circle.y[1] + background.y,trains[input1].circle.y[4] + background.y,trains[input1].circle.y[5] + background.y,trains[input1].circle.y[2] + background.y]};
+                  	setCOPosBezier( trains[input1].switchCircles ? pointsSwitch : points, !trains[input1].standardDirection, trains[input1].switchCircles ? rotationPoints.inner2outer.right.bezierLength : trains[input1].circle.bezierLength.right);
+					if ((trains[input1].circleFamily == null || trains[input1].circleFamily == rotationPoints.outer) && trains[input1].standardDirection && isFront && i == -1) {
+						if((cO.y - background.y) * switchesBeforeFac < switches.outer2inner.right.y && trains[input1].switchCircles != switches.outer2inner.right.turned) {
+							trains[input1].switchCircles = !trains[input1].switchCircles;
+							cO.state *= -1;
+							cO.currentCurveFac = getBezierFac(cO.currentCurveFac, 5000, 1000, cO,!trains[input1].switchCircles ? pointsSwitch : points)
+						}
+						trains[input1].circleFamily = trains[input1].switchCircles ? null : rotationPoints.outer;
+						trains[input1].circle = rotationPoints.outer.narrow;
+					} else if (!trains[input1].standardDirection && trains[input1].circleFamily == rotationPoints.inner && !isFront && i == trains[input1].cars.length-1 && (cO.y - background.y) > switches.innerWide.right.y * switchesBeforeFac && ((trains[input1].circle == rotationPoints.inner.wide && !switches.innerWide.right.turned) || (trains[input1].circle == rotationPoints.inner.narrow && switches.innerWide.right.turned))) {
+						var pointsAlt = (trains[input1].circle == rotationPoints.inner.wide) ? {x:[rotationPoints.inner.narrow.x[1] + background.x,rotationPoints.inner.narrow.x[4] + background.x,rotationPoints.inner.narrow.x[5] + background.x,rotationPoints.inner.narrow.x[2] + background.x],y:[rotationPoints.inner.narrow.y[1] + background.y,rotationPoints.inner.narrow.y[4] + background.y,rotationPoints.inner.narrow.y[5] + background.y,rotationPoints.inner.narrow.y[2] + background.y]} : {x:[rotationPoints.inner.wide.x[1] + background.x,rotationPoints.inner.wide.x[4] + background.x,rotationPoints.inner.wide.x[5] + background.x,rotationPoints.inner.wide.x[2] + background.x],y:[rotationPoints.inner.wide.y[1] + background.y,rotationPoints.inner.wide.y[4] + background.y,rotationPoints.inner.wide.y[5] + background.y,rotationPoints.inner.wide.y[2] + background.y]};
+						trains[input1].circle = (trains[input1].circle == rotationPoints.inner.wide) ? rotationPoints.inner.narrow : rotationPoints.inner.wide;
+						trains[input1].front.currentCurveFac = getBezierFac(trains[input1].front.currentCurveFac, 5000, 1000, trains[input1].front,pointsAlt);
+					}
                 } else if (cO.state == 3) {
                     points =  {x:[trains[input1].circle.x[2] + background.x,trains[input1].circle.x[3] + background.x],y:[trains[input1].circle.y[2] + background.y,trains[input1].circle.y[3] + background.y]};
+					var pointsSwitch = {x:[rotationPoints.inner.narrow.x[2]+ background.x,rotationPoints.inner.narrow.x[3] + background.x],y:[rotationPoints.inner.narrow.y[2] + background.y,rotationPoints.inner.narrow.y[3] + background.y]};
                     if(!trains[input1].standardDirection){points.x.reverse();points.y.reverse();}
-                    setCOPosLinear(points,!trains[input1].standardDirection, true, false);
+                    if(!trains[input1].standardDirection){pointsSwitch.x.reverse();pointsSwitch.y.reverse();}
+                    setCOPosLinear(trains[input1].switchCircles ? pointsSwitch : points,!trains[input1].standardDirection, true, false);
                 } else if (cO.state == -3) {
                     if(trains[input1].circleFamily == rotationPoints.outer) {
                         if(cO.x > rotationPoints.outer.altState3.right.x[1]+background.x) {
@@ -610,14 +562,24 @@ function animateObjects() {
                         }
                     }
                 } else if(Math.abs(cO.state) == 4 ){
-                    if(typeof trains[input1].circle.x[6] == "undefined" || typeof trains[input1].circle.x[7] == "undefined" || typeof trains[input1].circle.y[6] == "undefined" || typeof trains[input1].circle.y[7] == "undefined"){
-                        points = {x:[trains[input1].circle.x[0]+background.x],y:[trains[input1].circle.y[0]+background.y,trains[input1].circle.y[3]+background.y]};
-                        setCOPosCircle(points, !trains[input1].standardDirection);
-                    } else {
-                        points ={x:[trains[input1].circle.x[3] + background.x,trains[input1].circle.x[6] + background.x,trains[input1].circle.x[7] + background.x,trains[input1].circle.x[0] + background.x],y:[trains[input1].circle.y[3] + background.y,trains[input1].circle.y[6] + background.y,trains[input1].circle.y[7] + background.y,trains[input1].circle.y[0] + background.y]};
-                        setCOPosBezier(points, !trains[input1].standardDirection, cO.state == -4 ? rotationPoints.inner2outer.left.bezierLength : trains[input1].circle.bezierLength.left);       
-                    }
-                }
+					cO.state = trains[input1].switchCircles ? -4 : 4;
+					var pointsSwitch = {x:[rotationPoints.inner.narrow.x[3] + background.x,rotationPoints.inner2outer.left.x[1] + background.x,rotationPoints.inner2outer.left.x[2] + background.x,rotationPoints.outer.narrow.x[0] + background.x],y:[rotationPoints.inner.narrow.y[3] + background.y,rotationPoints.inner2outer.left.y[1] + background.y, rotationPoints.inner2outer.left.y[2] + background.y,rotationPoints.outer.narrow.y[0] + background.y]};
+                    points ={x:[trains[input1].circle.x[3] + background.x,trains[input1].circle.x[6] + background.x,trains[input1].circle.x[7] + background.x,trains[input1].circle.x[0] + background.x],y:[trains[input1].circle.y[3] + background.y,trains[input1].circle.y[6] + background.y,trains[input1].circle.y[7] + background.y,trains[input1].circle.y[0] + background.y]};
+                    setCOPosBezier(trains[input1].switchCircles ? pointsSwitch : points, !trains[input1].standardDirection, trains[input1].switchCircles ? rotationPoints.inner2outer.left.bezierLength : trains[input1].circle.bezierLength.left);
+					if ((trains[input1].circleFamily == null || trains[input1].circleFamily == rotationPoints.outer) && !trains[input1].standardDirection && !isFront && i == trains[input1].cars.length-1) {
+						if((cO.y - background.y) * switchesBeforeFac < switches.outer2inner.left.y && trains[input1].switchCircles != switches.outer2inner.left.turned) {
+							trains[input1].switchCircles = !trains[input1].switchCircles;
+							cO.state *= -1;
+							trains[input1].front.currentCurveFac = getBezierFac(trains[input1].front.currentCurveFac, 5000, 1000, trains[input1].front,!trains[input1].switchCircles ? pointsSwitch : points)
+						}
+						trains[input1].circleFamily = trains[input1].switchCircles ? null : rotationPoints.outer;
+						trains[input1].circle = rotationPoints.outer.narrow;
+					} else if (trains[input1].standardDirection && trains[input1].circleFamily == rotationPoints.inner && isFront && i == -1 && (cO.y - background.y) > switches.innerWide.left.y * switchesBeforeFac && ((trains[input1].circle == rotationPoints.inner.wide && !switches.innerWide.left.turned) || (trains[input1].circle == rotationPoints.inner.narrow && switches.innerWide.left.turned))) {
+						var pointsAlt = (trains[input1].circle == rotationPoints.inner.wide) ? {x:[rotationPoints.inner.narrow.x[3] + background.x,rotationPoints.inner.narrow.x[6] + background.x,rotationPoints.inner.narrow.x[7] + background.x,rotationPoints.inner.narrow.x[0] + background.x],y:[rotationPoints.inner.narrow.y[3] + background.y,rotationPoints.inner.narrow.y[6] + background.y,rotationPoints.inner.narrow.y[7] + background.y,rotationPoints.inner.narrow.y[0] + background.y]} : {x:[rotationPoints.inner.wide.x[3] + background.x,rotationPoints.inner.wide.x[6] + background.x,rotationPoints.inner.wide.x[7] + background.x,rotationPoints.inner.wide.x[0] + background.x],y:[rotationPoints.inner.wide.y[3] + background.y,rotationPoints.inner.wide.y[6] + background.y,rotationPoints.inner.wide.y[7] + background.y,rotationPoints.inner.wide.y[0] + background.y]};
+						trains[input1].circle = (trains[input1].circle == rotationPoints.inner.wide) ? rotationPoints.inner.narrow : rotationPoints.inner.wide;
+						cO.currentCurveFac = getBezierFac(cO.currentCurveFac, 5000, 1000, cO,pointsAlt);
+					}
+				}
             }
       
             function setCOPosCorr(cO,isFront) { // Fix car position and angle relative to locomotive
@@ -789,6 +751,7 @@ var trainParams = {selected: Math.floor(Math.random()*trains.length), margin: 25
 var trainPics;
               
 var switches;
+var switchesBeforeFac = 1.3;
 var background;
 
 var online;
@@ -897,6 +860,6 @@ onmessage = function(message) {
 		pause = false;
 		animateObjects();
 	} else if(message.data.k == "debug") {
-		postMessage({k: "debug", animateInterval: animateInterval});	
+		postMessage({k: "debug", animateInterval: animateInterval, rotationPoints: rotationPoints, switchesBeforeFac: switchesBeforeFac});	
 	}
 }

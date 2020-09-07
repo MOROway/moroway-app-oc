@@ -1,0 +1,2 @@
+﻿* Hohe Präzision beim Weichenstellen
+* App-Größe reduziert

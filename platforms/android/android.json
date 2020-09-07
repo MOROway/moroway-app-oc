@@ -29,7 +29,7 @@
           "application/activity": [
             {
               "xml": "<intent-filter android:autoVerify=\"true\" android:label=\"MOROway OC\"><action android:name=\"android.intent.action.VIEW\" /><category android:name=\"android.intent.category.DEFAULT\" /><category android:name=\"android.intent.category.BROWSABLE\" /><data android:host=\"app.moroway.de\" android:scheme=\"https\" /><data android:host=\"app.moroway.de\" android:scheme=\"http\" /></intent-filter>",
-              "count": 43
+              "count": 62
             }
           ],
           "/manifest/application": [

@@ -501,6 +501,7 @@ function drawObjects() {
 
     function collisionCourse(input1, input2){
         context.save();
+        context.fillStyle = "black"; 
         context.setTransform(1, 0, 0, 1, 0, 0);
         var collision = false;
         var currentObject;
@@ -522,6 +523,11 @@ function drawObjects() {
         var y1 = currentObject.y+fac*Math.cos(Math.PI/2-currentObject.displayAngle)*currentObject.width/2-Math.sin(-Math.PI/2-currentObject.displayAngle)*currentObject.height/2;
         var y2 = currentObject.y+fac*Math.cos(Math.PI/2-currentObject.displayAngle)*currentObject.width/2+Math.sin(-Math.PI/2-currentObject.displayAngle)*currentObject.height/2;
         var y3 = currentObject.y+fac*Math.cos(Math.PI/2-currentObject.displayAngle)*currentObject.width/2;
+        if(debug) {
+            context.fillRect(x1-3,y1-3,6,6);
+            context.fillRect(x2-3,y2-3,6,6);
+            context.fillRect(x3-3,y3-3,6,6);
+        }
         for(var i = 0; i < trains.length; i++){
             if(input1 != i && (trains[input1].circleFamily === null || trains[i].circleFamily === null || trains[input1].circleFamily == trains[i].circleFamily)){
                 for(var j = -1; j < trains[i].cars.length; j++){
@@ -750,7 +756,7 @@ function drawObjects() {
             m = n = j = points.angle[i].length-1;
             jmax = true;
         }
-        n = cCars[k].collStop ? 0: n;
+        n = cCars[k].collStop ? 0 : n;
         var sizeNo = 1.06;
         var x1 = points.x[i][m]+Math.sin(Math.PI/2-points.angle[i][m])*cCars[i].width/2+Math.cos(-Math.PI/2-points.angle[i][m])*cCars[i].height/2;
         var x2 = points.x[i][m]+Math.sin(Math.PI/2-points.angle[i][m])*cCars[i].width/2-Math.cos(-Math.PI/2-points.angle[i][m])*cCars[i].height/2;
@@ -939,7 +945,6 @@ function drawObjects() {
         });
     }
 
-
     /////BACKGROUND/Layer-2/////
     drawImage(pics[background.secondLayer], background.x, background.y, background.width, background.height);
 
@@ -1110,6 +1115,10 @@ function drawObjects() {
         context.translate(0, -classicUI.transformer.input.diffY);
         context.rotate(classicUI.transformer.input.angle);
         drawImage(pics[classicUI.transformer.input.src], -classicUI.transformer.input.width/2, -classicUI.transformer.input.height/2, classicUI.transformer.input.width, classicUI.transformer.input.height);
+        if(debug){
+            context.fillRect(-classicUI.transformer.input.width/2, classicUI.transformer.input.height/2,6,6);
+            context.fillRect(-3,-3,6,6);
+        }
         context.beginPath();
         context.rect(-classicUI.transformer.input.width/2, -classicUI.transformer.input.height/2, classicUI.transformer.input.width, classicUI.transformer.input.height);
         if ((context.isPointInPath(hardware.mouse.moveX, hardware.mouse.moveY) && hardware.mouse.isHold) || (context.isPointInPath(hardware.mouse.wheelX, hardware.mouse.wheelY) && hardware.mouse.wheelScrollY !== 0 && hardware.mouse.wheelScrolls)) {
@@ -1196,6 +1205,31 @@ function drawObjects() {
             context.restore();
             context.restore();
         }
+        if(debug){
+            context.save();
+            var x = classicUI.transformer.x+classicUI.transformer.width/2+ classicUI.transformer.input.diffY*Math.sin(classicUI.transformer.angle);
+            var y = classicUI.transformer.y+classicUI.transformer.height/2- classicUI.transformer.input.diffY*Math.cos( classicUI.transformer.angle);
+            context.fillStyle = "red";
+            context.fillRect(x-2,y-2,4,4);
+            var a = -(classicUI.transformer.input.diffY-classicUI.transformer.input.height/2); var b = classicUI.transformer.width/2-(classicUI.transformer.width/2-classicUI.transformer.input.width/2);
+            var c = classicUI.transformer.input.diffY+classicUI.transformer.input.height/2; var d = b;
+            var x1 = classicUI.transformer.x+classicUI.transformer.width/2; var y1 =classicUI.transformer.y+classicUI.transformer.height/2;
+            var x =[x1+c*Math.sin(classicUI.transformer.angle)-d*Math.cos(classicUI.transformer.angle),x1+c*Math.sin(classicUI.transformer.angle), x1+c*Math.sin(classicUI.transformer.angle)+d*Math.cos(classicUI.transformer.angle), x1 -(a+b)*Math.cos(classicUI.transformer.angle),x1-a*Math.cos(classicUI.transformer.angle),x1 -(a-b)*Math.cos(classicUI.transformer.angle)];
+            var y =[y1-c*Math.cos(classicUI.transformer.angle)-d*Math.sin(classicUI.transformer.angle),y1-c*Math.cos(classicUI.transformer.angle),y1-c*Math.cos(classicUI.transformer.angle)+d*Math.sin(classicUI.transformer.angle), y1+(a-b)*Math.sin(classicUI.transformer.angle),y1+a*Math.sin(classicUI.transformer.angle),y1+(a+b)*Math.sin(classicUI.transformer.angle)];
+            context.fillRect(x[0],y[0],4,4);
+            context.fillRect(x[1],y[1],4,4);
+            context.fillRect(x[2],y[2],4,4);
+            context.fillRect(x[3],y[3],4,4);
+            context.fillRect(x[4],y[4],4,4);
+            context.fillRect(x[5],y[5],4,4);
+            context.fillStyle = "black";
+            var x=x1+ classicUI.transformer.input.diffY*Math.sin(classicUI.transformer.angle);
+            var y=y1- classicUI.transformer.input.diffY*Math.cos(classicUI.transformer.angle);
+            context.beginPath();
+            context.arc(x,y,classicUI.transformer.input.width/2,Math.PI,Math.PI+classicUI.transformer.input.maxAngle,false);
+            context.stroke();
+            context.restore();
+        }  
     }
 
     /////SWITCHES/////
@@ -1269,8 +1303,168 @@ function drawObjects() {
                 context.fill();
                 context.restore();
                 context.restore();
+                if(debug) {
+                    context.save();
+                    context.beginPath();
+                    context.lineWidth = 1;
+                    context.arc(background.x+switches[key][side].x, background.y+switches[key][side].y, classicUI.switches.radius, 0, 2*Math.PI);
+                    context.closePath();
+                    context.strokeStyle = switches[key][side].turned ? "rgba(144, 238, 144,1)" : "rgba(255,0,0,1)";
+                    context.stroke();
+                    context.restore();
+                }                
             });
         });
+    }
+
+    /////DEBUG/////
+    if(debug) {
+        context.save();
+        context.lineWidth = 5;
+        context.strokeStyle= "red"; 
+        context.fillStyle = "blue"; 
+        var debugPoints = [ rotationPoints.inner.narrow, rotationPoints.inner.wide, rotationPoints.outer.narrow ];
+        for (var debugPoint in debugPoints) {
+            context.save();     
+            for (var debugPointI in debugPoints[debugPoint].x) {
+                context.beginPath();
+                context.arc(debugPoints[debugPoint].x[debugPointI]+background.x,debugPoints[debugPoint].y[debugPointI]+background.y, background.width/100,0,2*Math.PI);
+                context.fill();
+            }
+            context.restore();
+            context.save();        
+            context.beginPath();
+            context.moveTo(debugPoints[debugPoint].x[0]+background.x, debugPoints[debugPoint].y[0]+background.y);
+            context.lineTo(debugPoints[debugPoint].x[1]+background.x, debugPoints[debugPoint].y[1]+background.y);
+            context.stroke(); 
+            context.restore();
+            context.save();        
+            context.beginPath();
+            context.moveTo(debugPoints[debugPoint].x[2]+background.x, debugPoints[debugPoint].y[2]+background.y);
+            context.lineTo(debugPoints[debugPoint].x[3]+background.x, debugPoints[debugPoint].y[3]+background.y);
+            context.stroke(); 
+            context.restore();
+            context.save();        
+            context.beginPath();
+            context.moveTo(debugPoints[debugPoint].x[1]+background.x, debugPoints[debugPoint].y[1]+background.y);
+            context.bezierCurveTo(debugPoints[debugPoint].x[4]+background.x, debugPoints[debugPoint].y[4]+background.y,debugPoints[debugPoint].x[5]+background.x, debugPoints[debugPoint].y[5]+background.y,debugPoints[debugPoint].x[2]+background.x, debugPoints[debugPoint].y[2]+background.y);
+            context.stroke(); 
+            context.restore();        
+            context.save();        
+            context.beginPath();
+            context.moveTo(debugPoints[debugPoint].x[3]+background.x, debugPoints[debugPoint].y[3]+background.y);
+            context.bezierCurveTo(debugPoints[debugPoint].x[6]+background.x, debugPoints[debugPoint].y[6]+background.y,debugPoints[debugPoint].x[7]+background.x, debugPoints[debugPoint].y[7]+background.y,debugPoints[debugPoint].x[0]+background.x, debugPoints[debugPoint].y[0]+background.y);
+            context.stroke(); 
+            context.restore();
+        }
+        context.save();
+        context.beginPath();
+        context.moveTo(rotationPoints.outer.narrow.x[1]+background.x, rotationPoints.outer.narrow.y[1]+background.y);
+        context.bezierCurveTo(rotationPoints.inner2outer.right.x[1]+background.x, rotationPoints.inner2outer.right.y[1]+background.y,rotationPoints.inner2outer.right.x[2]+background.x, rotationPoints.inner2outer.right.y[2]+background.y,rotationPoints.inner.narrow.x[2]+background.x, rotationPoints.inner.narrow.y[2]+background.y);
+        context.stroke(); 
+        context.beginPath();
+        context.moveTo(rotationPoints.inner.narrow.x[3]+background.x, rotationPoints.inner.narrow.y[3]+background.y);
+        context.bezierCurveTo(rotationPoints.inner2outer.left.x[1]+background.x, rotationPoints.inner2outer.left.y[1]+background.y,rotationPoints.inner2outer.left.x[2]+background.x, rotationPoints.inner2outer.left.y[2]+background.y,rotationPoints.outer.narrow.x[0]+background.x, rotationPoints.outer.narrow.y[0]+background.y);
+        context.stroke(); 
+        context.beginPath();
+        context.moveTo(rotationPoints.outer.altState3.left.x[1]+background.x, rotationPoints.outer.altState3.left.y[1]+background.y);
+        context.lineTo(rotationPoints.outer.altState3.right.x[1]+background.x, rotationPoints.outer.altState3.right.y[1]+background.y);
+        context.stroke();
+        context.beginPath();
+        context.moveTo(rotationPoints.outer.altState3.left.x[0]+background.x, rotationPoints.outer.altState3.left.y[0]+background.y);
+        context.bezierCurveTo(rotationPoints.outer.altState3.left.x[3]+background.x, rotationPoints.outer.altState3.left.y[3]+background.y,rotationPoints.outer.altState3.left.x[3]+background.x, rotationPoints.outer.altState3.left.y[3]+background.y,rotationPoints.outer.altState3.left.x[2]+background.x, rotationPoints.outer.altState3.left.y[2]+background.y);
+        context.stroke(); 
+        context.beginPath();
+        context.moveTo(rotationPoints.outer.altState3.left.x[2]+background.x, rotationPoints.outer.altState3.left.y[2]+background.y);
+        context.bezierCurveTo(rotationPoints.outer.altState3.left.x[4]+background.x, rotationPoints.outer.altState3.left.y[4]+background.y,rotationPoints.outer.altState3.left.x[4]+background.x, rotationPoints.outer.altState3.left.y[4]+background.y,rotationPoints.outer.altState3.left.x[1]+background.x, rotationPoints.outer.altState3.left.y[1]+background.y);
+        context.stroke();
+        context.beginPath();
+        context.moveTo(rotationPoints.outer.altState3.right.x[0]+background.x, rotationPoints.outer.altState3.right.y[0]+background.y);
+        context.bezierCurveTo(rotationPoints.outer.altState3.right.x[3]+background.x, rotationPoints.outer.altState3.right.y[3]+background.y,rotationPoints.outer.altState3.right.x[3]+background.x, rotationPoints.outer.altState3.right.y[3]+background.y,rotationPoints.outer.altState3.right.x[2]+background.x, rotationPoints.outer.altState3.right.y[2]+background.y);
+        context.stroke(); 
+        context.beginPath();
+        context.moveTo(rotationPoints.outer.altState3.right.x[2]+background.x, rotationPoints.outer.altState3.right.y[2]+background.y);
+        context.bezierCurveTo(rotationPoints.outer.altState3.right.x[4]+background.x, rotationPoints.outer.altState3.right.y[4]+background.y,rotationPoints.outer.altState3.right.x[4]+background.x, rotationPoints.outer.altState3.right.y[4]+background.y,rotationPoints.outer.altState3.right.x[1]+background.x, rotationPoints.outer.altState3.right.y[1]+background.y);
+        context.stroke(); 
+        for (var debugPointI in rotationPoints.outer.altState3.left.x) {
+            context.beginPath();
+            context.arc(rotationPoints.outer.altState3.left.x[debugPointI]+background.x,rotationPoints.outer.altState3.left.y[debugPointI]+background.y, background.width/100,0,2*Math.PI);
+            context.arc(rotationPoints.outer.altState3.right.x[debugPointI]+background.x,rotationPoints.outer.altState3.right.y[debugPointI]+background.y, background.width/100,0,2*Math.PI);
+            context.fill();
+        }
+        context.beginPath();
+        context.arc(debugPoints[debugPoint].x[debugPointI]+background.x,debugPoints[debugPoint].y[debugPointI]+background.y, background.width/100,0,2*Math.PI);
+        context.fill();
+        context.restore();
+        context.save();
+        context.fillStyle = "yellow"; 
+        context.beginPath();
+        context.arc(switches.outer2inner.right.x+background.x,(switches.outer2inner.right.y)/switchesBeforeFac+background.y, background.width/100,0,2*Math.PI);
+        context.fill();
+        context.beginPath();
+        context.arc(switches.outer2inner.left.x+background.x,(switches.outer2inner.left.y)/switchesBeforeFac+background.y, background.width/100,0,2*Math.PI);
+        context.fill();
+        context.beginPath();
+        context.arc(switches.innerWide.right.x+background.x,(switches.innerWide.right.y)*switchesBeforeFac+background.y, background.width/100,0,2*Math.PI);
+        context.fill();
+        context.beginPath();
+        context.arc(switches.innerWide.left.x+background.x,(switches.innerWide.left.y)*switchesBeforeFac+background.y, background.width/100,0,2*Math.PI);
+        context.fill();
+        context.restore();
+        context.lineWidth = 2;
+        context.fillStyle = "black"; 
+        context.strokeStyle= "black"; 
+        for(var debugTrain in trains){
+            context.save();        
+            context.translate(trains[debugTrain].x, trains[debugTrain].y);
+            context.rotate(trains[debugTrain].displayAngle);
+            context.strokeRect(-trains[debugTrain].width/2,-trains[debugTrain].height/2, trains[debugTrain].width, trains[debugTrain].height);
+            context.restore();
+            context.save();        
+            context.translate(trains[debugTrain].front.x, trains[debugTrain].front.y);
+            context.rotate(trains[debugTrain].front.angle);
+            context.beginPath();
+            context.arc(0,-trains[debugTrain].height/2,background.width/200,0,2*Math.PI);
+            context.arc(0,0,background.width/200,0,2*Math.PI);
+            context.arc(0,trains[debugTrain].height/2,background.width/200,0,2*Math.PI);
+            context.fill();
+            context.restore();
+            context.save();        
+            context.translate(trains[debugTrain].back.x, trains[debugTrain].back.y);
+            context.rotate(trains[debugTrain].back.angle);
+            context.beginPath();
+            context.arc(0,-trains[debugTrain].height/2,background.width/200,0,2*Math.PI);
+            context.arc(0,0,background.width/200,0,2*Math.PI);
+            context.arc(0,trains[debugTrain].height/2,background.width/200,0,2*Math.PI);
+            context.fill();
+            context.restore();
+            for(var debugTrainCar in trains[debugTrain].cars){
+                context.save();        
+                context.translate(trains[debugTrain].cars[debugTrainCar].x, trains[debugTrain].cars[debugTrainCar].y);
+                context.rotate(trains[debugTrain].cars[debugTrainCar].displayAngle);
+                context.strokeRect(-trains[debugTrain].cars[debugTrainCar].width/2,-trains[debugTrain].cars[debugTrainCar].height/2, trains[debugTrain].cars[debugTrainCar].width, trains[debugTrain].cars[debugTrainCar].height);
+                context.restore();
+                context.save();        
+                context.translate(trains[debugTrain].cars[debugTrainCar].front.x, trains[debugTrain].cars[debugTrainCar].front.y);
+                context.rotate(trains[debugTrain].cars[debugTrainCar].front.angle);
+                context.beginPath();
+                context.arc(0,-trains[debugTrain].cars[debugTrainCar].height/2,background.width/200,0,2*Math.PI);
+                context.arc(0,0,background.width/200,0,2*Math.PI);
+                context.arc(0,trains[debugTrain].cars[debugTrainCar].height/2,background.width/200,0,2*Math.PI);
+                context.fill();
+                context.restore();
+                context.save();        
+                context.translate(trains[debugTrain].cars[debugTrainCar].back.x, trains[debugTrain].cars[debugTrainCar].back.y);
+                context.rotate(trains[debugTrain].cars[debugTrainCar].back.angle);
+                context.beginPath();
+                context.arc(0,-trains[debugTrain].cars[debugTrainCar].height/2,background.width/200,0,2*Math.PI);
+                context.arc(0,0,background.width/200,0,2*Math.PI);
+                context.arc(0,trains[debugTrain].cars[debugTrainCar].height/2,background.width/200,0,2*Math.PI);
+                context.fill();
+                context.restore();
+            }
+        }
+        context.restore();
     }
 
     /////BACKGROUND/Margins-2/////    
@@ -1565,6 +1759,7 @@ var trains;
 var minTrainSpeed = 10;
 var trainParams;
 var switches = {inner2outer: {left: {turned: false, angles: {normal: 1.01*Math.PI, turned: 0.941*Math.PI}}, right: {turned: false, angles: {normal: 1.5*Math.PI, turned: 1.56*Math.PI}}}, outer2inner: {left: {turned: false, angles: {normal: 0.25*Math.PI, turned: 2.2*Math.PI}}, right: {turned: false, angles: {normal: 0.27*Math.PI, turned: 0.35*Math.PI}}}, innerWide: {left: {turned: true, angles: {normal: 1.44*Math.PI, turned: 1.37*Math.PI}}, right: {turned: false, angles: {normal: 1.02*Math.PI, turned: 1.1*Math.PI}}}, outerAltState3: {left: {turned: false, angles: {normal: 1.75*Math.PI, turned: 1.85*Math.PI}}, right: {turned: false, angles: {normal: 0.75*Math.PI, turned: 0.65*Math.PI}}}};
+var switchesBeforeFac;
 
 
 var cars = [{src: 16, fac: 0.02, speed: 0.0008, startFrameFac: 0.65, angles: {start: Math.PI,normal: 0}},{src: 17, fac: 0.02, speed: 0.001, startFrameFac: 0.335, angles: {start: 0, normal: Math.PI}},{src: 0, fac: 0.0202, speed: 0.00082, startFrameFac: 0.65, angles: {start: Math.PI, normal: 0}}];
@@ -2100,6 +2295,14 @@ window.onload = function() {
                 message.data.trains.forEach(function(train,i){
                     trains[i].x = train.x;
                     trains[i].y = train.y;
+					if(debug) {
+                        trains[i].front.x = train.front.x;
+                        trains[i].front.y = train.front.y;
+                        trains[i].front.angle = train.front.angle;
+                        trains[i].back.x = train.back.x;
+                        trains[i].back.y = train.back.y;
+                        trains[i].back.angle = train.back.angle;		
+					}
                     trains[i].width = train.width;
                     trains[i].height = train.height;
                     trains[i].displayAngle = train.displayAngle;
@@ -2117,11 +2320,22 @@ window.onload = function() {
                         trains[i].cars[j].width = car.width;
                         trains[i].cars[j].height = car.height;
                         trains[i].cars[j].displayAngle = car.displayAngle;
+                        if(debug) {
+                            trains[i].cars[j].front.x = car.front.x;
+                            trains[i].cars[j].front.y = car.front.y;
+                            trains[i].cars[j].front.angle = car.front.angle;
+                            trains[i].cars[j].back.x = car.back.x;
+                            trains[i].cars[j].back.y = car.back.y;
+                            trains[i].cars[j].back.angle = car.back.angle;		
+                        }
                     });
                 });
                 drawObjects();
             } else if(message.data.k == "resized") {
                 resized = false; 
+				if(debug){
+					animateWorker.postMessage({k:"debug"});
+				}
             } else if(message.data.k == "switches") {
                 switches = message.data.switches;
             } else if(message.data.k == "sync-ready") {
@@ -2129,7 +2343,12 @@ window.onload = function() {
                 rotationPoints = message.data.rotationPoints;
                 teamplaySync("sync-ready");
             } else if(message.data.k == "debug") {
-                console.log(message.data);
+                rotationPoints = message.data.rotationPoints;
+				switchesBeforeFac =message.data.switchesBeforeFac;
+                if(!debug) {
+                    console.log(message.data.animateInterval);
+                }
+                debug=true;
             }
         }
         animateWorker.postMessage({k: "start", background: background, switches: switches, online: onlineGame.enabled, onlineInterval: onlineGame.animateInterval});

@@ -10,34 +10,7 @@ function chooseInputMethod (event){
 		type = "mouse";
     }
 	setCurrentHardwareConfig("input",type);
-}
-
-function isSettingActive(a){
-	var isSettingActive = true;
-		if(settingsComplete.dependencies[a] !== null){
-			settingsComplete.dependencies[a].forEach(function(key){
-				isSettingActive = settings[key];
-			});
-		}
-	return isSettingActive;
-}
-
-function isHardwareAvailable(a){
-	var isHardwareAvailable = true;
-		if(settingsComplete.hardware[a] !== null){
-			settingsComplete.hardware[a].forEach(function(current){
-				Object.keys(current).forEach(function(key){
-					switch (key) {
-						case "input":
-							isHardwareAvailable = hardware[key] == undefined || current[key] == hardware[key];
-						break;
-						default: 
-							isHardwareAvailable = true;
-					}
-				});
-			});
-		}
-	return isHardwareAvailable;
+    hardware = getLastHardwareConfig();
 }
 
 function displaySettingsOpts(isInitial){
@@ -57,7 +30,6 @@ function displaySettingsOpts(isInitial){
 					leftButton.style.backgroundColor = "";
 					leftButton.style.transform = "rotate(0deg)";		
 				}
-				
 				if(isSettingActive(b) && isHardwareAvailable(b)) {
 					elem.style.setProperty("display", "block");
 				} else {

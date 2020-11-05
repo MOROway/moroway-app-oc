@@ -1,4 +1,4 @@
-var updatedSW = 71; //TO BE INCREASED ON EACH NEW VERSION
+var updatedSW = 74; //TO BE INCREASED ON EACH NEW VERSION
 
 //generate cache-name from app-version, branch and sw-version
 var locationstr = location.pathname;
@@ -38,7 +38,7 @@ var urlsToCache = [
   'assets/asset17.png',
   'assets/helpasset1_bug_report.png',
   'assets/helpasset2_desc.jpg',
-  'assets/helpasset3_source.jpg',
+  'assets/helpasset3_source.png',
   'src/jonathan_herrmann_engel/js/error_handler.js',
   'src/jonathan_herrmann_engel/js/appdata.js',
   'src/jonathan_herrmann_engel/js/general.js',

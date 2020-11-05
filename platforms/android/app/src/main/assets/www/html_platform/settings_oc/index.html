@@ -124,34 +124,6 @@ function chooseInputMethod (event){
 	setCurrentHardwareConfig("input",type);
 }
 
-function isSettingActive(a){
-	var isSettingActive = true;
-		if(settingsComplete.dependencies[a] !== null){
-			settingsComplete.dependencies[a].forEach(function(key){
-				isSettingActive = settings[key];
-			});
-		}
-	return isSettingActive;
-}
-
-function isHardwareAvailable(a){
-	var isHardwareAvailable = true;
-		if(settingsComplete.hardware[a] !== null){
-			settingsComplete.hardware[a].forEach(function(current){
-				Object.keys(current).forEach(function(key){
-					switch (key) {
-						case "input":
-							isHardwareAvailable = hardware[key] == undefined || current[key] == hardware[key];
-						break;
-						default: 
-							isHardwareAvailable = true;
-					}
-				});
-			});
-		}
-	return isHardwareAvailable;
-}
-
 function displaySettingsOpts(isInitial){
 	for(var i = 0; i < Object.keys(settings).length; i++) {
 			var a = Object.values(settings)[i];
@@ -170,7 +142,7 @@ function displaySettingsOpts(isInitial){
 					leftButton.style.transform = "rotate(0deg)";		
 				}
 				
-				if(isSettingActive(b) && isHardwareAvailable(b)) {
+				if(isSettingActiveOC(b) && isHardwareAvailableOC(b)) {
 					elem.style.setProperty("display", "block");
 				} else {
 					elem.style.setProperty("display", "none");
@@ -189,19 +161,16 @@ function displaySettingsOpts(isInitial){
 
 function settingsChange(event, suffix) {
 	var id = event.target.id.substr(0,event.target.id.length-suffix.length); 
-	if( id !== undefined){
-		if(isSettingActive(id)) {
-			settings[id] = !settings[id];
-			setSettingsOC(settings);
-			displaySettingsOpts(false);
-			notify(getString("settingsScreenApply", "."), false, 900, null, null, window.innerHeight);
-		}
+	if( id !== undefined && isSettingActiveOC(id)) {
+		settings[id] = !settings[id];
+		setSettingsOC(settings);
+		displaySettingsOpts(false);
+		notify(getString("settingsScreenApply", "."), false, 900, null, null, window.innerHeight);
 	}
 }
 
 var settings = {};
 var settingsComplete = {};
-var hardware = getLastHardwareConfig();
 
 window.addEventListener("load", function(){
 	 

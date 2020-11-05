@@ -2,12 +2,12 @@
 const APP_DATA = {
 	"version": {
 		"major": 6,
-		"minor": 3,
-		"patch": 3,
+		"minor": 4,
+		"patch": 0,
 		"date": {
 			"year": 2020,
-			"month": 10,
-			"day": 23
+			"month": 11,
+			"day": 5
 		}
 	}
 }

@@ -91,6 +91,40 @@ function setSettingsOC(settings, asObject){
 	window.localStorage.setItem("morowayAppOC", JSON.stringify(asObject ? settings.values : settings));
 
 }
+
+function isSettingActiveOC(a){
+	var settingsComplete = getSettingsOC(true);
+	var isSettingActive = true;
+		if(settingsComplete.dependencies[a] !== null){
+			settingsComplete.dependencies[a].forEach(function(key){
+				if(!(getSettingsOC())[key]) {
+					isSettingActive = false;
+				}
+			});
+		}
+	return isSettingActive;
+}
+
+function isHardwareAvailableOC(a){
+		var settingsComplete = getSettingsOC(true);
+        var isHardwareAvailable = true;
+		var hardware = getLastHardwareConfig();
+		if(settingsComplete.hardware[a] !== null){
+			settingsComplete.hardware[a].forEach(function(current){
+				Object.keys(current).forEach(function(key){
+					switch (key) {
+						case "input":
+							if(!(hardware[key] == undefined || current[key] == hardware[key])) {
+                                isHardwareAvailable = false;
+                            }
+						break;
+					}
+				});
+			});
+		}
+	return isHardwareAvailable;
+}
+
 ////Optional code (app works without it))
 function globalDR() {
 	window.plugins.webintent.onNewIntent(function (url) {

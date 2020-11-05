@@ -23,10 +23,7 @@ function drawImage(pic,x,y,width,height, cxt){
     cxt.drawImage(pic,Math.floor(x),Math.floor(y),Math.floor(width),Math.floor(height));
 }
 
-function measureFontSize(t,f,a,b,c, d, r,resultAsFont){
-    if(resultAsFont == undefined) {
-        resultAsFont = true;
-    }
+function measureFontSize(t,f,a,b,c, d, r){
     context.save();
     var font = (a) + "px " + f;
     context.font = font;
@@ -34,11 +31,9 @@ function measureFontSize(t,f,a,b,c, d, r,resultAsFont){
     context.restore();
     if(twidth != b && (Math.abs(twidth-b) > d && r < 100)){
         a *= (twidth > b) ? (1-c/100) : (1+c/100);
-        return measureFontSize(t,f,a,b,c,d, ++r,resultAsFont);
-    } else if (resultAsFont) {
-        return font;
+        return measureFontSize(t,f,a,b,c,d, ++r);
     } else {
-       return a;
+       return font;
     }
 }
 
@@ -225,9 +220,17 @@ function onMouseWheel(event) {
 }
 function onMouseRight(event) {
     event.preventDefault();
-    hardware.mouse.rightClick = !hardware.mouse.rightClick; 
-    hardware.mouse.rightClickEvent = false; 
-    hardware.mouse.rightClickWheelScrolls = false; 
+    if(showCarCenter === null && hardware.mouse.rightClick) {
+        showCarCenter = true;
+        notify(getString("appScreenCarControlCenterTitle"), false, 1250,null,null, client.y);
+    } else {
+        hardware.mouse.rightClick = !hardware.mouse.rightClick; 
+        if(hardware.mouse.rightClick) {
+           notify(getString("appScreenControlCenterTitle"), false, 1250,null,null, client.y);
+        }
+        hardware.mouse.rightClickEvent = false; 
+        hardware.mouse.rightClickWheelScrolls = false;
+    }
 }
 
 function getTouchMove(event) {
@@ -292,10 +295,19 @@ function getTouchEnd(event) {
     hardware.mouse.upTime = Date.now(); 
     hardware.mouse.isHold = hardware.mouse.rightClickHold = false;  
     hardware.mouse.rightClickEvent = hardware.mouse.rightClick; 
-    if(hardware.mouse.rightClickPrepare != undefined && hardware.mouse.rightClickPrepare) {    
-        hardware.mouse.rightClick = !hardware.mouse.rightClick; 
-        hardware.mouse.rightClickEvent = hardware.mouse.rightClickHold = hardware.mouse.rightClickPrepare = false;
-    }   
+    if(hardware.mouse.rightClickPrepare != undefined && hardware.mouse.rightClickPrepare) {
+        if(showCarCenter === null && hardware.mouse.rightClick) {
+            showCarCenter = true;
+            notify(getString("appScreenCarControlCenterTitle"), false, 1250,null,null, client.y);
+            hardware.mouse.rightClickPrepare = false;
+        } else {
+            hardware.mouse.rightClick = !hardware.mouse.rightClick; 
+            if(hardware.mouse.rightClick) {
+               notify(getString("appScreenControlCenterTitle"), false, 1250,null,null, client.y);
+            }
+            hardware.mouse.rightClickEvent = hardware.mouse.rightClickHold = hardware.mouse.rightClickPrepare = false;
+        }  
+    }
 
 }
 function getTouchLeave(event) {
@@ -507,8 +519,10 @@ function drawObjects() {
             collisionCourse(input1, true);
             context.beginPath();
             context.rect(-currentObject.width/2, -currentObject.height/2, currentObject.width, currentObject.height);
+            if(context.isPointInPath(hardware.mouse.moveX, hardware.mouse.moveY)) {
+                hardware.mouse.cursor = "pointer";
+            }
             if ((hardware.lastInputTouch < hardware.lastInputMouse && context.isPointInPath(hardware.mouse.moveX, hardware.mouse.moveY) && hardware.mouse.isHold) || (hardware.lastInputTouch > hardware.lastInputMouse && context.isPointInPath(hardware.mouse.moveX, hardware.mouse.moveY) && hardware.mouse.isHold)) {
-                inPath = true;
                 if(hardware.lastInputTouch < hardware.lastInputMouse) {
                     hardware.mouse.isHold = false;
                 }
@@ -640,8 +654,10 @@ function drawObjects() {
         if(!onlineGame.stop) {
             context.beginPath();
             context.rect(-currentObject.width/2, -currentObject.height/2, currentObject.width, currentObject.height);
-            if ((hardware.lastInputTouch < hardware.lastInputMouse && context.isPointInPath(hardware.mouse.moveX, hardware.mouse.moveY) && hardware.mouse.isHold) || (hardware.lastInputTouch > hardware.lastInputMouse && context.isPointInPath(hardware.mouse.moveX, hardware.mouse.moveY) && hardware.mouse.isHold)) {
-                inPath = true;
+            if(context.isPointInPath(hardware.mouse.moveX, hardware.mouse.moveY)) {
+                hardware.mouse.cursor = "pointer";
+            }
+            if (context.isPointInPath(hardware.mouse.moveX, hardware.mouse.moveY) && hardware.mouse.isHold) {
                 if(hardware.lastInputTouch < hardware.lastInputMouse) {
                     hardware.mouse.isHold = false;
                 }
@@ -655,12 +671,14 @@ function drawObjects() {
                     }
                     if(carParams.init) {
                         carParams.init = false;
+                        carParams.autoModeOff = false;
                         carParams.autoModeRuns = true;
                         carParams.autoModeInit = true;
                         notify(formatJSString(getString("appScreenCarAutoModeChange", "."), getString("appScreenCarAutoModeInit")),  false, 500,null, null, client.y);
                     } else if(carParams.autoModeOff && !currentObject.move && currentObject.backwardsState === 0) {
                         currentObject.lastDirectionChange = frameNo;
                         currentObject.backwardsState = 1;
+                        currentObject.backToInit = false;
                         currentObject.move = !carCollisionCourse(input1,false);
                         notify(formatJSString(getString("appScreenCarStepsBack","."), getString(["appScreenCarNames",input1])), false, 750,null,null, client.y);
                     }
@@ -679,6 +697,7 @@ function drawObjects() {
                                 notify(formatJSString(getString("appScreenCarAutoModeChange", "."), getString("appScreenCarAutoModePause")),  false, 500,null, null, client.y);
                                 carParams.autoModeRuns = false;
                             } else if(carParams.init || carParams.autoModeOff) {
+                                currentObject.parking = false;
                                 if (currentObject.move){ 
                                     currentObject.move = false;
                                     notify(formatJSString(getString("appScreenObjectStops", "."), getString(["appScreenCarNames",input1])),  false, 500 ,null,  null, client.y);
@@ -687,6 +706,7 @@ function drawObjects() {
                                     notify(formatJSString(getString("appScreenObjectStarts", "."), getString(["appScreenCarNames",input1])),  false, 500,null, null, client.y);
                                 }
                                 currentObject.backwardsState = 0;
+                                currentObject.backToInit = false;
                                 carParams.init = false;
                                 carParams.autoModeOff = true;
                             } else {
@@ -697,6 +717,30 @@ function drawObjects() {
                         }                           
                     }, (hardware.lastInputTouch > hardware.lastInputMouse) ? longTouchWaitTime : doubleClickWaitTime);
 
+                }
+            }
+            context.closePath();
+            context.restore();
+            if(!currentObject.parking && !currentObject.move && !carParams.autoModeRuns && ! carParams.isBackToRoot && !carCollisionCourse(input1,false,-1)) {
+                context.save();
+                context.translate(background.x+carWays[input1].start[currentObject.startFrame].x, background.y+carWays[input1].start[currentObject.startFrame].y);
+                context.rotate(carWays[input1].start[currentObject.startFrame].angle);
+                context.beginPath();
+                context.rect(-currentObject.width/2, -currentObject.height/2, currentObject.width, currentObject.height);
+                if (context.isPointInPath(hardware.mouse.moveX, hardware.mouse.moveY)) {
+                    hardware.mouse.cursor = "pointer";
+                    if(hardware.mouse.isHold) {
+                        hardware.mouse.isHold = false;
+                        if(carParams.autoModeOff) {
+                            currentObject.move = true;
+                            currentObject.backToInit = true;
+                            notify(formatJSString(getString("appScreenCarParking", "."), getString(["appScreenCarNames",input1])),  false, 500 ,null,  null, client.y);
+                        } else {
+                            carParams.autoModeRuns = true;
+                            carParams.isBackToRoot = true;
+                            notify(getString("appScreenCarAutoModeParking", "."),  false, 750 ,null,  null, client.y);
+                        }
+                    }
                 }
             }
             context.closePath();
@@ -724,25 +768,54 @@ function drawObjects() {
                 context.restore();
             }
             if(carParams.autoModeRuns) {
-                var counter = currentObject.counter+1 > carWays[input1][currentObject.cType].length-1 ? 0 : currentObject.counter+1;
-                if(counter === 0 && currentObject.cType == "start") {
+                var counter = carParams.isBackToRoot ? (currentObject.counter-1 < 0 ? carWays[input1][currentObject.cType].length-1 : currentObject.counter-1) : (currentObject.counter+1 > carWays[input1][currentObject.cType].length-1 ? 0 : currentObject.counter+1);
+                if(!carParams.isBackToRoot && counter === 0 && currentObject.cType == "start") {
                     currentObject.cType = "normal";
+                } else if (carParams.isBackToRoot && counter === 0 && currentObject.cType == "normal") {
+                    currentObject.counter = counter = carWays[input1].start.length-1;
+                    currentObject.cType = "start";
+                } else if (carParams.isBackToRoot && counter <= currentObject.startFrame && currentObject.cType == "start") {
+                    currentObject.parking = true;
+                    currentObject.counter = counter = currentObject.startFrame;
+                    var allParking = true;
+                    Object.keys(cars).forEach(function(cCar) {
+                        if(!cars[cCar].parking || cars[cCar].counter != cars[cCar].startFrame) {
+                            allParking = false;
+                        }
+                    });
+                    carParams.init = allParking;
+                    carParams.autoModeRuns = carParams.isBackToRoot = !allParking;
                 }
-                currentObject.counter = currentObject.collStop ? currentObject.counter : counter;
+                currentObject.counter = currentObject.collStop || currentObject.parking ? currentObject.counter : counter;
                 currentObject.x = carWays[input1][currentObject.cType][currentObject.counter].x;
                 currentObject.y = carWays[input1][currentObject.cType][currentObject.counter].y;
                 currentObject.displayAngle = carWays[input1][currentObject.cType][currentObject.counter].angle;
             } else if (currentObject.move) {
                 if(currentObject.cType == "start") {
-                    currentObject.counter = currentObject.backwardsState > 0 ? --currentObject.counter < cars[input1].startFrame ? cars[input1].startFrame : currentObject.counter : ++currentObject.counter > carWays[input1].start.length-1 ? 0 : currentObject.counter;
+                    currentObject.counter = currentObject.backToInit || currentObject.backwardsState > 0 ? (--currentObject.counter < cars[input1].startFrame ? cars[input1].startFrame : currentObject.counter) : (++currentObject.counter > carWays[input1].start.length-1 ? 0 : currentObject.counter);
                     if(currentObject.counter === 0) {
                         currentObject.cType = "normal";
-                    } else if (currentObject.counter == currentObject.startFrame) {
+                   } else if (currentObject.counter == currentObject.startFrame) {
+                        currentObject.parking = true;
+                        currentObject.backToInit = false;
                         currentObject.backwardsState = 0;                
                         currentObject.move = false;
+                        if(!carParams.autoModeInit) {
+                            var allParking = true;
+                            Object.keys(cars).forEach(function(cCar) {
+                                if(!cars[cCar].parking || cars[cCar].counter != cars[cCar].startFrame) {
+                                    allParking = false;
+                                }
+                            });
+                            carParams.init = allParking;
+                        }
                     }
                 } else if (currentObject.cType == "normal") {
-                    currentObject.counter = currentObject.backwardsState > 0 ? --currentObject.counter < 0 ? carWays[input1].normal.length-1 : currentObject.counter : ++currentObject.counter > carWays[input1].normal.length-1 ? 0 : currentObject.counter;
+                    currentObject.counter = currentObject.backToInit || currentObject.backwardsState > 0 ? (--currentObject.counter < 0 ? carWays[input1].normal.length-1 : currentObject.counter) : (++currentObject.counter > carWays[input1].normal.length-1 ? 0 : currentObject.counter);
+                    if(currentObject.backToInit && currentObject.counter === 0) {
+                        currentObject.counter = carWays[input1].start.length-1;
+                        currentObject.cType = "start";
+                    }
                 }
                 currentObject.backwardsState *= (1-currentObject.speed/background.width*100);
                 if (currentObject.backwardsState <=  0.1 && currentObject.backwardsState > 0) {
@@ -758,17 +831,20 @@ function drawObjects() {
         }
     }
     
-    function carCollisionCourse(input1, input2){
+    function carCollisionCourse(input1, input2, fixFac){
         context.save();
         context.setTransform(1, 0, 0, 1, 0, 0);
         var collision = false;
         var currentObject;
         var fac;
-        if(cars[input1].backwardsState > 0){
+        if((!carParams.autoModeOff && carParams.isBackToRoot) || (carParams.autoModeOff && (cars[input1].backToInit || cars[input1].backwardsState > 0))){
             fac = -1;
         } else {
             fac = 1;
-        }                                    
+        }
+        if(Math.abs(fixFac) == 1) {
+            fac = fixFac;
+        }
         currentObject = cars[input1];
         var x1 = currentObject.x+fac*Math.sin(Math.PI/2-currentObject.displayAngle)*currentObject.width/2+Math.cos(-Math.PI/2-currentObject.displayAngle)*currentObject.height/2;
         var x2 = currentObject.x+fac*Math.sin(Math.PI/2-currentObject.displayAngle)*currentObject.width/2-Math.cos(-Math.PI/2-currentObject.displayAngle)*currentObject.height/2;
@@ -794,7 +870,7 @@ function drawObjects() {
                         notify(formatJSString(getString("appScreenObjectHasCrashed", "."), getString(["appScreenCarNames",input1]), getString(["appScreenCarNames",i])), true, 2000,null,null, client.y);
                     }
                     collision = true;
-                    cars[input1].move = false;
+                    cars[input1].move = cars[input1].backToInit = false;
                     cars[input1].backwardsState = 0;
                 }
                 context.restore();
@@ -804,7 +880,10 @@ function drawObjects() {
         return(collision);
     }
     
-    function carAutoModeIsFutureCollision(i,k,j) {
+    function carAutoModeIsFutureCollision(i,k,stop,j) {
+        if(typeof stop == "undefined"){
+            stop = -1;
+        }
         if(typeof j == "undefined"){
             j = 0;
         }
@@ -818,14 +897,19 @@ function drawObjects() {
             m = n = j = points.angle[i].length-1;
             jmax = true;
         }
-        n = cCars[k].collStop ? 0 : n;
+        if(stop > -1) {
+            m = stop == i ? 0 : m;
+            n = stop == k ? 0 : n;
+        } else {
+            n = cCars[k].collStop ? 0 : n;
+        }
         var sizeNo = 1.06;
-        var x1 = points.x[i][m]+Math.sin(Math.PI/2-points.angle[i][m])*cCars[i].width/2+Math.cos(-Math.PI/2-points.angle[i][m])*cCars[i].height/2;
-        var x2 = points.x[i][m]+Math.sin(Math.PI/2-points.angle[i][m])*cCars[i].width/2-Math.cos(-Math.PI/2-points.angle[i][m])*cCars[i].height/2;
-        var x3 = points.x[i][m]+Math.sin(Math.PI/2-points.angle[i][m])*cCars[i].width/2;
-        var y1 = points.y[i][m]+Math.cos(Math.PI/2-points.angle[i][m])*cCars[i].width/2-Math.sin(-Math.PI/2-points.angle[i][m])*cCars[i].height/2;
-        var y2 = points.y[i][m]+Math.cos(Math.PI/2-points.angle[i][m])*cCars[i].width/2+Math.sin(-Math.PI/2-points.angle[i][m])*cCars[i].height/2;
-        var y3 = points.y[i][m]+Math.cos(Math.PI/2-points.angle[i][m])*cCars[i].width/2;
+        var x1 = points.x[i][m]+(carParams.isBackToRoot ? -1 : 1)*Math.sin(Math.PI/2-points.angle[i][m])*cCars[i].width/2+Math.cos(-Math.PI/2-points.angle[i][m])*cCars[i].height/2;
+        var x2 = points.x[i][m]+(carParams.isBackToRoot ? -1 : 1)*Math.sin(Math.PI/2-points.angle[i][m])*cCars[i].width/2-Math.cos(-Math.PI/2-points.angle[i][m])*cCars[i].height/2;
+        var x3 = points.x[i][m]+(carParams.isBackToRoot ? -1 : 1)*Math.sin(Math.PI/2-points.angle[i][m])*cCars[i].width/2;
+        var y1 = points.y[i][m]+(carParams.isBackToRoot ? -1 : 1)*Math.cos(Math.PI/2-points.angle[i][m])*cCars[i].width/2-Math.sin(-Math.PI/2-points.angle[i][m])*cCars[i].height/2;
+        var y2 = points.y[i][m]+(carParams.isBackToRoot ? -1 : 1)*Math.cos(Math.PI/2-points.angle[i][m])*cCars[i].width/2+Math.sin(-Math.PI/2-points.angle[i][m])*cCars[i].height/2;
+        var y3 = points.y[i][m]+(carParams.isBackToRoot ? -1 : 1)*Math.cos(Math.PI/2-points.angle[i][m])*cCars[i].width/2;
         context.translate(points.x[k][n], points.y[k][n]); 
         context.rotate(points.angle[k][n]);
         context.beginPath();
@@ -834,7 +918,7 @@ function drawObjects() {
             coll = true;
         }
         context.restore();
-        return (coll) ? j : (jmax) ? -1 : carAutoModeIsFutureCollision(i,k,++j);
+        return (coll) ? j : ((jmax) ? -1 : carAutoModeIsFutureCollision(i,k,stop,++j));
     }
     
     function classicUISwicthesLocate(angle, radius, style){
@@ -857,12 +941,8 @@ function drawObjects() {
     if(frameNo % 1000000 === 0){
         notify(formatJSString(getString("appScreenAMillionFrames","."),frameNo/1000000), false, 500, null, null, client.y);
     }    
-    var inPath = false;
-    /////CURSOR/1/////
-    if(!settings.cursorascircle || !isHardwareAvailable("cursorascircle")) {
-        canvasForeground.style.cursor = "default";
-    } else {
-        canvasForeground.style.cursor = "none";
+    if(hardware.mouse.cursor != "none") {
+        hardware.mouse.cursor = "default";
     }
     
     /////TRAINS/////
@@ -875,7 +955,12 @@ function drawObjects() {
     /////CARS/////
     //Auto Mode
     if((carParams.autoModeRuns && frameNo % carParams.wayNo === 0) || carParams.autoModeInit) {
-        carParams.autoModeInit = false;
+        if(carParams.autoModeInit) {
+            for(var i = 0; i < cars.length; i++) {
+                cars[i].parking = false;
+            }
+            carParams.autoModeInit = false;
+        }
         var points = {x:[], y:[], angle:[]};
         var arrLen =  carParams.wayNo*20;
         var abstrNo = Math.ceil(arrLen*0.05);
@@ -897,19 +982,37 @@ function drawObjects() {
                 context.lineWidth = 1;
                 context.moveTo(background.x+carWays[i][cCars[i].cType][counter].x,background.y+carWays[i][cCars[i].cType][counter].y);
             }
-            for(var j = 0; j < arrLen; j+=cAbstrNo) {
-                points.x[i][countJ] = carWays[i][cCars[i].cType][counter].x;
-                points.y[i][countJ] = carWays[i][cCars[i].cType][counter].y;
-                points.angle[i][countJ] = carWays[i][cCars[i].cType][counter].angle;
-                if(debug) {
-                    context.lineTo(background.x+points.x[i][countJ],background.y+points.y[i][countJ]);
+            if(carParams.isBackToRoot) {
+                for(var j = arrLen-1; j >= 0; j-=cAbstrNo) {
+                    points.x[i][countJ] = carWays[i][cCars[i].cType][counter].x;
+                    points.y[i][countJ] = carWays[i][cCars[i].cType][counter].y;
+                    points.angle[i][countJ] = carWays[i][cCars[i].cType][counter].angle;
+                    if(debug) {
+                        context.lineTo(background.x+points.x[i][countJ],background.y+points.y[i][countJ]);
+                    }
+                    countJ++;
+                    if(cCars[i].cType == "normal" && counter-cAbstrNo < 0) {
+                        cCars[i].cType = "start";
+                    } else if(cCars[i].cType == "start" && counter-cAbstrNo < cCars[i].startFrame) {
+                       counter = cCars[i].startFrame;
+                    }
+                    counter = counter-cAbstrNo < 0 ? (carWays[i][cCars[i].cType].length-1)+(counter-cAbstrNo) : counter-cAbstrNo;
                 }
-                countJ++;
-                if(cCars[i].cType == "start" && counter+cAbstrNo > carWays[i][cCars[i].cType].length-1) {
-                    cCars[i].cType = "normal";
-                    counter = 0;
+            } else {
+                for(var j = 0; j < arrLen; j+=cAbstrNo) {
+                    points.x[i][countJ] = carWays[i][cCars[i].cType][counter].x;
+                    points.y[i][countJ] = carWays[i][cCars[i].cType][counter].y;
+                    points.angle[i][countJ] = carWays[i][cCars[i].cType][counter].angle;
+                    if(debug) {
+                        context.lineTo(background.x+points.x[i][countJ],background.y+points.y[i][countJ]);
+                    }
+                    countJ++;
+                    if(cCars[i].cType == "start" && counter+cAbstrNo > carWays[i][cCars[i].cType].length-1) {
+                        cCars[i].cType = "normal";
+                        counter = 0;
+                    }
+                    counter = counter+cAbstrNo > carWays[i][cCars[i].cType].length-1 ? counter+cAbstrNo-(carWays[i][cCars[i].cType].length-1) : counter+cAbstrNo;
                 }
-                counter = counter+cAbstrNo > carWays[i][cCars[i].cType].length-1 ? counter+cAbstrNo-(carWays[i][cCars[i].cType].length-1) : counter+cAbstrNo;
             }
             if(debug) {
                 context.stroke();
@@ -919,11 +1022,13 @@ function drawObjects() {
         }
         var state = 0;
         var change;
+        var changeNum = 0;
         do {
             change = false;
+            changeNum++;
             for(var i = 0; i < cCars.length; i++) {
                 for(var k = 0; k < cCars.length; k++) {
-                    if(i!=k && !cCars[i].collStop) {
+                    if(i!=k && !cCars[i].collStop && !cCars[i].parking) {
                         cCars[i].collStopNo[k] = carAutoModeIsFutureCollision(i,k);
                     }
                 }
@@ -941,19 +1046,28 @@ function drawObjects() {
                         } else {
                             isA = a < b;
                         }
+                        if(isA) {
+                            if(carAutoModeIsFutureCollision(i,k,i) > -1) {
+                                isA = false;
+                            }
+                        } else {
+                            if(carAutoModeIsFutureCollision(k,i,k) > -1) {
+                                isA = true;
+                            }
+                        }
                         if(isA && cCars[k].collStopNo[i] > -2 && cCars[i].collStopNo[k] > -1){
-                            cCars[i].collStop = true;
+                            cCars[i].collStop = !cCars[k].parking;
                             cCars[i].collStopNo[k] = -2;
                             change = true;
                         } else if(!isA && cCars[i].collStopNo[k] > -2 && cCars[k].collStopNo[i] > -1) {
-                            cCars[k].collStop = true;
+                            cCars[k].collStop = !cCars[i].parking;
                             cCars[k].collStopNo[i] = -2;
                             change = true;
                         }
                     }
                 }
             }
-        } while (change);
+        } while (change && changeNum < Math.pow(cCars.length,cCars.length));
         cars = cCars;
         for(var i = 0; i < cCars.length; i++) {
             for(var k = 0; k < cCars.length; k++) {
@@ -1174,13 +1288,15 @@ function drawObjects() {
         }
         context.beginPath();
         context.rect(-classicUI.transformer.input.width/2, -classicUI.transformer.input.height/2, classicUI.transformer.input.width, classicUI.transformer.input.height);
+        if (context.isPointInPath(hardware.mouse.moveX, hardware.mouse.moveY)) {
+            hardware.mouse.cursor = "pointer";
+        }
         if ((context.isPointInPath(hardware.mouse.moveX, hardware.mouse.moveY) && hardware.mouse.isHold) || (context.isPointInPath(hardware.mouse.wheelX, hardware.mouse.wheelY) && hardware.mouse.wheelScrollY !== 0 && hardware.mouse.wheelScrolls)) {
             context.restore();
             context.restore();
             if(typeof movingTimeOut !== "undefined"){
                 clearTimeout(movingTimeOut);
             }
-            hardware.mouse.cursor = "pointer";
             var x=classicUI.transformer.x+classicUI.transformer.width/2+ classicUI.transformer.input.diffY*Math.sin(classicUI.transformer.angle);
             var y=classicUI.transformer.y+classicUI.transformer.height/2- classicUI.transformer.input.diffY*Math.cos(classicUI.transformer.angle);
             if(!collisionCourse(trainParams.selected, false)){
@@ -1253,7 +1369,9 @@ function drawObjects() {
                 trains[trainParams.selected].move =  false;
                 hardware.mouse.isHold = false;
             }
-
+            if(classicUI.transformer.input.angle > 0 && classicUI.transformer.input.angle < classicUI.transformer.input.maxAngle) {
+                        hardware.mouse.cursor = "grabbing";
+            }
         } else {
             context.restore();
             context.restore();
@@ -1286,57 +1404,57 @@ function drawObjects() {
     }
 
     /////SWITCHES/////
-    var showDuration = 11;
-    if(((hardware.mouse.isHold && !inPath && (clickTimeOut === null || clickTimeOut === undefined)) || frameNo-classicUI.switches.lastStateChange < 3*showDuration)){
-        Object.keys(switches).forEach(function(key) {
-            Object.keys(switches[key]).forEach(function(side) {
+    var wasPointer = hardware.mouse.cursor != "default" || hardware.mouse.rightClick;
+    Object.keys(switches).forEach(function(key) {
+        Object.keys(switches[key]).forEach(function(side) {
+            contextForeground.save();
+            contextForeground.beginPath();
+            contextForeground.arc(background.x+switches[key][side].x, background.y+switches[key][side].y, classicUI.switches.radius, 0, 2*Math.PI);
+            if (!wasPointer && contextForeground.isPointInPath(hardware.mouse.moveX, hardware.mouse.moveY)) {
+                hardware.mouse.cursor = "pointer";
+            }
+            contextForeground.closePath();
+            contextForeground.restore();
+        });
+    });
+    Object.keys(switches).forEach(function(key) {
+        Object.keys(switches[key]).forEach(function(side) {
+            contextForeground.save();
+            contextForeground.beginPath();
+            contextForeground.arc(background.x+switches[key][side].x, background.y+switches[key][side].y, classicUI.switches.radius, 0, 2*Math.PI);
+            if (hardware.mouse.isHold && contextForeground.isPointInPath(hardware.mouse.moveX, hardware.mouse.moveY)){
+                hardware.mouse.isHold = false;
+                if(onlineGame.enabled){
+                    teamplaySync("action","switches", [key,side], [{"turned":!switches[key][side].turned}], [{getString:["appScreenSwitchTurns", "."]}]);
+                } else {
+                    switches[key][side].turned = !switches[key][side].turned;
+                    switches[key][side].lastStateChange = frameNo;
+                    animateWorker.postMessage({k: "switches", switches: switches});
+                    notify (getString("appScreenSwitchTurns", "."),false, 500,null, null, client.y);
+                }
+                contextForeground.fillStyle = switches[key][side].turned ? "rgba(144, 255, 144,1)" : "rgba(255,0,0,1)";
+                contextForeground.closePath();
+                contextForeground.fill();
+                contextForeground.restore();
+            } else if (!hardware.mouse.isHold && switches[key][side].lastStateChange != undefined && frameNo-switches[key][side].lastStateChange < classicUI.switches.showDuration) {
+                contextForeground.fillStyle = switches[key][side].turned ? "rgba(144, 255, 144,1)" : "rgba(255,0,0,1)";
+                contextForeground.closePath();
+                contextForeground.fill();
+                contextForeground.restore();
+            } else if (!hardware.mouse.isHold && switches[key][side].lastStateChange != undefined && frameNo-switches[key][side].lastStateChange < classicUI.switches.showDurationFade) {
+                contextForeground.closePath();
+                contextForeground.restore();
                 contextForeground.save();
                 contextForeground.beginPath();
-                contextForeground.arc(background.x+switches[key][side].x, background.y+switches[key][side].y, classicUI.switches.radius, 0, 2*Math.PI);
-                if ((contextForeground.isPointInPath(hardware.mouse.moveX, hardware.mouse.moveY) && hardware.mouse.isHold) || (frameNo-classicUI.switches.lastStateChange < 3*showDuration && key == classicUI.switches.lastStateChangeKey && side == classicUI.switches.lastStateChangeSide)) {
-                    if(contextForeground.isPointInPath(hardware.mouse.moveX, hardware.mouse.moveY) && hardware.mouse.isHold) {
-                        hardware.mouse.isHold = false;
-                        if(onlineGame.enabled){
-                            teamplaySync("action","switches", [key,side], [{"turned":!switches[key][side].turned}], [{getString:["appScreenSwitchTurns", "."]}]);
-                        } else {
-                            switches[key][side].turned = !switches[key][side].turned;
-                            classicUI.switches.lastStateChangeKey = key;
-                            classicUI.switches.lastStateChangeSide = side;
-                            classicUI.switches.lastStateChange = frameNo;
-                            animateWorker.postMessage({k: "switches", switches: switches});
-                            notify (getString("appScreenSwitchTurns", "."),false, 500,null, null, client.y);
-                        }
-                        contextForeground.fillStyle = switches[key][side].turned ? "rgba(144, 255, 144,1)" : "rgba(255,0,0,1)";
-                        contextForeground.closePath();
-                        contextForeground.fill();
-                        contextForeground.restore();
-                    } else if (!hardware.mouse.isHold && frameNo-classicUI.switches.lastStateChange < showDuration) {
-                        contextForeground.fillStyle = switches[key][side].turned ? "rgba(144, 255, 144,1)" : "rgba(255,0,0,1)";
-                        contextForeground.closePath();
-                        contextForeground.fill();
-                        contextForeground.restore();
-                    } else if (!hardware.mouse.isHold) {
-                        contextForeground.closePath();
-                        contextForeground.restore();
-                        contextForeground.save();
-                        contextForeground.beginPath();
-                        var fac = (1-((frameNo-showDuration-classicUI.switches.lastStateChange))/(2*showDuration));
-                        contextForeground.fillStyle = switches[key][side].turned ? "rgba(144, 255, 144," + fac + ")" : "rgba(255,0,0," + fac + ")";
-                        contextForeground.arc(background.x+switches[key][side].x, background.y+switches[key][side].y, fac*classicUI.switches.radius, 0, 2*Math.PI);
-                        contextForeground.closePath();
-                        contextForeground.fill();
-                        contextForeground.restore();
-                    }
-                } else {
-                    contextForeground.closePath();
-                    contextForeground.restore(); 
-                }
-            });
-        });
-    }
-    if(hardware.mouse.isHold && !inPath && (clickTimeOut === null || clickTimeOut === undefined)){
-        Object.keys(switches).forEach(function(key) {
-            Object.keys(switches[key]).forEach(function(side) {
+                var fac = (1-((frameNo-classicUI.switches.showDuration-switches[key][side].lastStateChange))/(classicUI.switches.showDurationFade-classicUI.switches.showDuration));
+                contextForeground.fillStyle = switches[key][side].turned ? "rgba(144, 255, 144," + fac + ")" : "rgba(255,0,0," + fac + ")";
+                contextForeground.arc(background.x+switches[key][side].x, background.y+switches[key][side].y, fac*classicUI.switches.radius, 0, 2*Math.PI);
+                contextForeground.closePath();
+                contextForeground.fill();
+                contextForeground.restore();
+            } else if((client.chosenInputMethod == "mouse" && !wasPointer && !hardware.mouse.isHold && (switches[key][side].lastStateChange == undefined || frameNo-switches[key][side].lastStateChange > classicUI.switches.showDurationEnd) && contextForeground.isPointInPath(hardware.mouse.moveX, hardware.mouse.moveY)) || (hardware.mouse.isHold && hardware.mouse.cursor == "default" && (clickTimeOut === null || clickTimeOut === undefined))){
+                contextForeground.closePath();
+                contextForeground.restore(); 
                 contextForeground.save();
                 contextForeground.lineWidth = 5;
                 contextForeground.translate(background.x+switches[key][side].x, background.y+switches[key][side].y);
@@ -1365,10 +1483,13 @@ function drawObjects() {
                     contextForeground.strokeStyle = switches[key][side].turned ? "rgba(144, 238, 144,1)" : "rgba(255,0,0,1)";
                     contextForeground.stroke();
                     contextForeground.restore();
-                }                
-            });
+                }
+            } else {
+                contextForeground.closePath();
+                contextForeground.restore(); 
+            }
         });
-    }
+    });
 
     /////DEBUG/////
     if(debug) {
@@ -1521,144 +1642,337 @@ function drawObjects() {
     }
     
     /////CONTROL CENTER/////
-    if(client.realScale == 1 && hardware.mouse.rightClick) {
+    if(client.realScale == 1 && hardware.mouse.rightClick){
         var colorLight =  "floralwhite";
         var colorDark =  "rgb(120,120,120)";
-        var colorBorder =  "rgba(255,255,255,0.7)";;
+        var colorBorder =  "rgba(255,255,255,0.7)";
+        var translateOffset = background.width/100;
         var contextClick = (hardware.mouse.rightClickEvent && Math.abs(hardware.mouse.downX-hardware.mouse.upX) < canvas.width/100 && Math.abs(hardware.mouse.downY-hardware.mouse.upY) < canvas.width/100);
         hardware.mouse.rightClickEvent = false;
+        if(hardware.mouse.cursor != "none") {
+           hardware.mouse.cursor = "default";
+        }
         contextForeground.save();
-        var translateOffset = background.width/100;
         contextForeground.textBaseline = "middle"; 
         contextForeground.translate(background.x+translateOffset,background.y+translateOffset);
         contextForeground.fillStyle = "rgba(0,0,0,0.5)";
         contextForeground.fillRect(0,0,background.width-2*translateOffset,background.height-2*translateOffset);
         var fontFamily = "sans-serif";
         var maxTextWidth = (background.width-2*translateOffset)/2;
-        var maxTextHeight = (background.height-2*translateOffset)/trains.length;
-        var speedTextHeight = Math.min(0.5*maxTextHeight,measureFontSize(getString("appScreenControlCenterSpeedOff"),fontFamily,0.5*(maxTextWidth*0.5)/getString("appScreenControlCenterSpeedOff").length,0.5*(maxTextWidth*0.5), 5, 1.2,0, false));
+        var maxTextHeight = (background.height-2*translateOffset);
+        if(hardware.mouse.moveX > background.x+translateOffset && hardware.mouse.moveY > background.y+translateOffset && hardware.mouse.moveX < background.x+translateOffset+maxTextWidth/8 && hardware.mouse.moveY < background.y+translateOffset+maxTextHeight) {
+            hardware.mouse.cursor = "pointer";
+        }
         contextForeground.fillStyle = "rgb(255,120,120)";
         contextForeground.strokeStyle = colorBorder;
-        contextForeground.strokeRect(0,0,maxTextWidth/8,maxTextHeight*trains.length);
+        contextForeground.strokeRect(0,0,maxTextWidth/8,maxTextHeight);
         contextForeground.save();
-        contextForeground.translate(maxTextWidth/16,maxTextHeight*trains.length/2);
+        contextForeground.translate(maxTextWidth/16,maxTextHeight/2);
         contextForeground.rotate(-Math.PI/2);
-        var cTextHeight = Math.min(maxTextWidth/12,measureFontSize(getString("appScreenControlCenterClose",null,"upper"),fontFamily,maxTextWidth/12,maxTextHeight*trains.length, 5, 1.2,0, false));
+        var cTextHeight = Math.min(maxTextWidth/12,getFontSize(measureFontSize(getString("appScreenControlCenterClose",null,"upper"),fontFamily,maxTextWidth/12,maxTextHeight, 5, 1.2,0), "px"));
         contextForeground.font = cTextHeight +"px "+fontFamily;
-        contextForeground.fillText(getString("appScreenControlCenterClose",null,"upper"),-maxTextHeight*trains.length/2+(maxTextHeight*trains.length/2-contextForeground.measureText(getString("appScreenControlCenterClose",null,"upper")).width/2),cTextHeight/6);
+        contextForeground.fillText(getString("appScreenControlCenterClose",null,"upper"),-maxTextHeight/2+(maxTextHeight/2-contextForeground.measureText(getString("appScreenControlCenterClose",null,"upper")).width/2),cTextHeight/6);
         contextForeground.restore();
-        contextForeground.fillStyle = colorLight;
         if(contextClick && hardware.mouse.upX-background.x-translateOffset > 0 && hardware.mouse.upX-background.x-translateOffset < maxTextWidth/8 && hardware.mouse.upY-background.y-translateOffset > 0 && hardware.mouse.upY-background.y-translateOffset < maxTextHeight*trains.length) {
-            hardware.mouse.rightClick = !hardware.mouse.rightClick; 
-            hardware.mouse.rightClickEvent = false; 
+            hardware.mouse.rightClick = false; 
             hardware.mouse.rightClickWheelScrolls = false; 
         }
-        for(var cTrain = 0; cTrain < trains.length; cTrain++) {
-            var cText = getString(["appScreenTrainNames",cTrain]);
-            var cTextHeight = Math.min(0.625*maxTextHeight,measureFontSize(cText,fontFamily,0.625*maxTextWidth/cText.length,0.625*maxTextWidth, 5, 1.2,0, false));
-            contextForeground.font = cTextHeight +"px "+fontFamily;
-            contextForeground.fillStyle = colorLight;
-            contextForeground.fillText(cText,maxTextWidth/8+0.875*maxTextWidth/2-contextForeground.measureText(cText).width/2,maxTextHeight*cTrain+maxTextHeight/2);
-            var cTrainPercent = trains[cTrain].speedInPercent == undefined || !trains[cTrain].move || trains[cTrain].accelerationSpeed < 0 ? 0 : Math.round(trains[cTrain].speedInPercent);
-            contextForeground.fillStyle = contextForeground.strokeStyle = colorBorder;
-            contextForeground.strokeRect(maxTextWidth/8,maxTextHeight*cTrain,0.875*maxTextWidth,maxTextHeight);
-            if(cTrainPercent == 0) {
-                contextForeground.font = speedTextHeight +"px "+fontFamily;
-                contextForeground.fillText(getString("appScreenControlCenterSpeedOff"),maxTextWidth+(maxTextWidth*0.5)/2-contextForeground.measureText(getString("appScreenControlCenterSpeedOff")).width/2,maxTextHeight*cTrain+maxTextHeight/2);
-            }
-            contextForeground.fillRect(maxTextWidth,maxTextHeight*cTrain,maxTextWidth*0.5*cTrainPercent/100,maxTextHeight);
-            if(cTrainPercent > 0) {
-                contextForeground.fillStyle = colorDark;
-                contextForeground.font = speedTextHeight +"px "+fontFamily;
-                contextForeground.fillText((cTrainPercent+"%"),maxTextWidth+(maxTextWidth*0.5)/2-contextForeground.measureText((cTrainPercent+"%")).width/2,maxTextHeight*cTrain+maxTextHeight/2);
-            }
-            var isClick = (contextClick && hardware.mouse.upX-background.x-translateOffset > maxTextWidth && hardware.mouse.upX-background.x-translateOffset < maxTextWidth*1.5 && hardware.mouse.upY-background.y-translateOffset > maxTextHeight*cTrain && hardware.mouse.upY-background.y-translateOffset < maxTextHeight*cTrain+maxTextHeight);
-            var isHold = (hardware.mouse.rightClickHold && hardware.mouse.downX-background.x-translateOffset > maxTextWidth && hardware.mouse.downX-background.x-translateOffset < maxTextWidth*1.5 && hardware.mouse.downY-background.y-translateOffset > maxTextHeight*cTrain && hardware.mouse.downY-background.y-translateOffset < maxTextHeight*cTrain+maxTextHeight && hardware.mouse.moveX-background.x-translateOffset > maxTextWidth && hardware.mouse.moveX-background.x-translateOffset < maxTextWidth*1.5 && hardware.mouse.moveY-background.y-translateOffset > maxTextHeight*cTrain && hardware.mouse.moveY-background.y-translateOffset < maxTextHeight*cTrain+maxTextHeight);
-            if(!collisionCourse(cTrain, false) && (isClick || isHold || (hardware.mouse.rightClickWheelScrolls && hardware.mouse.wheelScrollY != 0 && hardware.mouse.wheelX-background.x-translateOffset > maxTextWidth && hardware.mouse.wheelX-background.x-translateOffset < maxTextWidth*1.5 && hardware.mouse.wheelY-background.y-translateOffset > maxTextHeight*cTrain && hardware.mouse.wheelY-background.y-translateOffset < maxTextHeight*cTrain+maxTextHeight))) {
-            var newSpeed;
-            if(isClick || isHold) {
-                newSpeed = Math.round(((isClick ? hardware.mouse.upX : hardware.mouse.moveX)-background.x-translateOffset-maxTextWidth)/maxTextWidth/0.5*100);
-            } else {
-                if(trains[cTrain].speedInPercent ==undefined || trains[cTrain].speedInPercent == 0) {
-                    trains[cTrain].speedInPercent = minTrainSpeed;
+        /////CONTROL CENTER/Cars/////
+        if(showCarCenter) {
+            if(carParams.init) {
+                maxTextHeight/=(cars.length+1);
+                for(var cCar = -1; cCar < cars.length; cCar++) {
+                    var cText;
+                    if(cCar == -1) {
+                       cText = getString("appScreenCarControlCenterAutoModeActivate");
+                    } else {
+                       cText = formatJSString(getString("appScreenCarControlCenterStartCar"), getString(["appScreenCarNames",cCar]));
+                    }
+                    var cTextHeight = Math.min(0.5*maxTextHeight,getFontSize(measureFontSize(cText,fontFamily,1.5*maxTextWidth/cText.length,1.5*maxTextWidth, 5, 1.2,0), "px"));
+                    contextForeground.font = cTextHeight +"px "+fontFamily;
+                    contextForeground.fillStyle = colorLight;
+                    contextForeground.fillText(cText,maxTextWidth/8+0.9375*maxTextWidth-contextForeground.measureText(cText).width/2,maxTextHeight*(cCar+1)+maxTextHeight/2);
+                    contextForeground.strokeStyle = colorLight;
+                    contextForeground.strokeRect(maxTextWidth/8,maxTextHeight*(cCar+1), 1.875*maxTextWidth,maxTextHeight);
+                    if(hardware.mouse.moveX > background.x+translateOffset+maxTextWidth/8 && hardware.mouse.moveY > background.y+translateOffset+maxTextHeight*(cCar+1) && hardware.mouse.moveX < background.x+translateOffset+2*maxTextWidth && hardware.mouse.moveY < background.y+translateOffset+maxTextHeight*(cCar+2)) {
+                        hardware.mouse.cursor = "pointer";
+                        if(contextClick && cCar == -1) {
+                            carParams.init = false;
+                            carParams.autoModeOff = false;
+                            carParams.autoModeRuns = true;
+                            carParams.autoModeInit = true;
+                            notify(formatJSString(getString("appScreenCarAutoModeChange", "."), getString("appScreenCarAutoModeInit")),  false, 500,null, null, client.y);
+
+                        } else if(contextClick) {
+                            cars[cCar].move = !carCollisionCourse(cCar,false);
+                            cars[cCar].parking = false;
+                            cars[cCar].backwardsState = 0;
+                            cars[cCar].backToInit = false;
+                            carParams.init = false;
+                            carParams.autoModeOff = true;
+                            notify(formatJSString(getString("appScreenObjectStarts", "."), getString(["appScreenCarNames",cCar])),  false, 500,null, null, client.y);
+                        }
+                    }
                 }
-                newSpeed = Math.round(trains[cTrain].speedInPercent*(hardware.mouse.wheelScrollY < 0 ? 1.1 : 0.9));
+            } else if(carParams.autoModeOff) {
+                maxTextHeight/=cars.length;
+                for(var cCar = 0; cCar < cars.length; cCar++) {
+                    var noCollisionCCar = !carCollisionCourse(cCar,false);
+                    var noCollisionCCar2 = !carCollisionCourse(cCar,false,-1);
+                    var cText = formatJSString(getString(["appScreenCarNames",cCar]));
+                    var cTextHeight = Math.min(0.625*maxTextHeight,getFontSize(measureFontSize(cText,fontFamily,0.625*maxTextWidth/cText.length,0.625*maxTextWidth, 5, 1.2,0), "px"));
+                    contextForeground.font = cTextHeight +"px "+fontFamily;
+                    contextForeground.fillStyle = colorLight;
+                    contextForeground.fillText(cText,maxTextWidth/8+0.5625*maxTextWidth-contextForeground.measureText(cText).width/2,maxTextHeight*(cCar)+maxTextHeight/2);
+                    contextForeground.strokeStyle = colorLight;
+                    contextForeground.strokeRect(maxTextWidth/8,maxTextHeight*(cCar), 1.125*maxTextWidth,maxTextHeight);       
+                    contextForeground.save();
+                    contextForeground.translate(1.375*maxTextWidth,maxTextHeight*(cCar)+maxTextHeight/2);
+                    contextForeground.strokeStyle = noCollisionCCar  && (cars[cCar].backwardsState === undefined || cars[cCar].backwardsState === 0) ? (cars[cCar].move ? "rgb(255,180,180)" : "rgb(180,255,180)") : colorDark;
+                    contextForeground.fillStyle = contextForeground.strokeStyle;
+                    contextForeground.lineWidth = Math.ceil(maxTextHeight/20);
+                    contextForeground.beginPath();
+                    contextForeground.moveTo(0, -maxTextHeight/18);
+                    contextForeground.lineTo(0, -maxTextHeight/3);
+                    contextForeground.stroke();
+                    contextForeground.strokeStyle = noCollisionCCar && (cars[cCar].backwardsState === undefined || cars[cCar].backwardsState === 0) ? colorLight : colorDark;
+                    contextForeground.beginPath();
+                    contextForeground.rotate(-Math.PI/2);
+                    contextForeground.arc(0,0,maxTextHeight/3.5,0.15*Math.PI,1.85*Math.PI);
+                    contextForeground.stroke();   
+                    contextForeground.restore();
+                    contextForeground.strokeRect(1.25*maxTextWidth,maxTextHeight*(cCar), 0.25*maxTextWidth,maxTextHeight);
+                    if(noCollisionCCar && (cars[cCar].backwardsState === undefined || cars[cCar].backwardsState === 0)) {
+                        if(hardware.mouse.moveX > background.x+translateOffset+maxTextWidth*1.25 && hardware.mouse.moveY > background.y+translateOffset+maxTextHeight*(cCar) && hardware.mouse.moveX < background.x+translateOffset+1.5*maxTextWidth && hardware.mouse.moveY < background.y+translateOffset+maxTextHeight*(cCar+1)) {
+                            hardware.mouse.cursor = "pointer";
+                            if(contextClick) {
+                                cars[cCar].parking = false;
+                                cars[cCar].backwardsState = 0;
+                                cars[cCar].backToInit = false;
+                                if (cars[cCar].move){ 
+                                    cars[cCar].move = false;
+                                    notify(formatJSString(getString("appScreenObjectStops", "."), getString(["appScreenCarNames",cCar])),  false, 500 ,null,  null, client.y);
+                                } else {
+                                    cars[cCar].move = noCollisionCCar;
+                                    notify(formatJSString(getString("appScreenObjectStarts", "."), getString(["appScreenCarNames",cCar])),  false, 500,null, null, client.y);
+                                }
+                            }
+                        }
+                    }
+                    contextForeground.save();
+                    contextForeground.translate(1.625*maxTextWidth,maxTextHeight*(cCar)+maxTextHeight/2);
+                    contextForeground.rotate(Math.PI);
+                    contextForeground.strokeStyle = cars[cCar].move || cars[cCar].backwardsState != 0 || (cars[cCar].cType == "start" && cars[cCar].counter == cars[cCar].startFrame) || !noCollisionCCar2 ? colorDark : colorLight;
+                    contextForeground.fillStyle = contextForeground.strokeStyle;
+                    contextForeground.lineWidth = Math.ceil(maxTextHeight/5);
+                    contextForeground.beginPath();
+                    contextForeground.moveTo(-maxTextWidth*0.075, 0);
+                    contextForeground.lineTo(maxTextWidth*0.051, 0);
+                    contextForeground.stroke();
+                    contextForeground.beginPath();
+                    contextForeground.moveTo(maxTextWidth*0.05, -0.25*maxTextHeight);
+                    contextForeground.lineTo(maxTextWidth*0.05, 0.25*maxTextHeight);
+                    contextForeground.lineTo(maxTextWidth*0.1, 0);
+                    contextForeground.lineTo(maxTextWidth*0.05, -0.25*maxTextHeight);
+                    contextForeground.fill();
+                    contextForeground.restore();
+                    contextForeground.strokeRect(1.5*maxTextWidth,maxTextHeight*(cCar), 0.25*maxTextWidth,maxTextHeight);
+                    if(!cars[cCar].move && cars[cCar].backwardsState === 0 && !(cars[cCar].cType == "start" && cars[cCar].counter == cars[cCar].startFrame) && noCollisionCCar2) {
+                        if(hardware.mouse.moveX > background.x+translateOffset+maxTextWidth*1.5 && hardware.mouse.moveY > background.y+translateOffset+maxTextHeight*(cCar) && hardware.mouse.moveX < background.x+translateOffset+1.75*maxTextWidth && hardware.mouse.moveY < background.y+translateOffset+maxTextHeight*(cCar+1)) {
+                        hardware.mouse.cursor = "pointer";
+                        if(contextClick) {
+                                cars[cCar].lastDirectionChange = frameNo;
+                                cars[cCar].backwardsState = 1;
+                                cars[cCar].backToInit = false;
+                                cars[cCar].move = !carCollisionCourse(cCar,false);
+                                notify(formatJSString(getString("appScreenCarStepsBack","."), getString(["appScreenCarNames",cCar])), false, 750,null,null, client.y);
+                            }
+                        }
+                    }
+                    contextForeground.save();
+                    contextForeground.translate(1.75*maxTextWidth,maxTextHeight*(cCar));
+                    contextForeground.strokeStyle = cars[cCar].move || cars[cCar].backwardsState != 0 || (cars[cCar].cType == "start" && cars[cCar].counter == cars[cCar].startFrame) || !noCollisionCCar2 ? colorDark : colorLight;
+                    contextForeground.fillStyle = contextForeground.strokeStyle;
+                    contextForeground.fillRect(5*maxTextWidth/64,maxTextWidth/8.1,3*maxTextWidth/32,maxTextWidth/15.8);
+                    contextForeground.beginPath();
+                    contextForeground.moveTo(4.5*maxTextWidth/64, maxTextWidth/8);
+                    contextForeground.lineTo(11.5*maxTextWidth/64, maxTextWidth/8);
+                    contextForeground.lineTo(maxTextWidth/8, maxTextWidth/16);
+                    contextForeground.lineTo(4.5*maxTextWidth/64, maxTextWidth/8);
+                    contextForeground.fill();
+                    contextForeground.restore();
+                    contextForeground.strokeRect(1.75*maxTextWidth,maxTextHeight*(cCar), 0.25*maxTextWidth,maxTextHeight);
+                    if(!cars[cCar].move && cars[cCar].backwardsState === 0 && !(cars[cCar].cType == "start" && cars[cCar].counter == cars[cCar].startFrame) && noCollisionCCar2) {
+                        if(hardware.mouse.moveX > background.x+translateOffset+maxTextWidth*1.75 && hardware.mouse.moveY > background.y+translateOffset+maxTextHeight*(cCar) && hardware.mouse.moveX < background.x+translateOffset+2*maxTextWidth && hardware.mouse.moveY < background.y+translateOffset+maxTextHeight*(cCar+1)) {
+                        hardware.mouse.cursor = "pointer";
+                            if(contextClick) {
+                                cars[cCar].move = true;
+                                cars[cCar].backToInit = true;
+                                notify(formatJSString(getString("appScreenCarParking", "."), getString(["appScreenCarNames",cCar])),  false, 500 ,null,  null, client.y);
+                            }
+                        }
+                    }
+                }
+            } else {
+                maxTextHeight/=2;
+                for(var cCar = 0; cCar < 2; cCar++) {
+                    var cText = cCar == 0 ? (carParams.autoModeRuns ? getString("appScreenCarControlCenterAutoModePause") : getString("appScreenCarControlCenterAutoModeResume")) : getString("appScreenCarControlCenterAutoModeBackToRoot");
+                    var cTextHeight = Math.min(0.625*maxTextHeight,getFontSize(measureFontSize(cText,fontFamily,0.625*maxTextWidth/cText.length,0.625*maxTextWidth, 5, 1.2,0), "px"));
+                    contextForeground.font = cTextHeight +"px "+fontFamily;
+                    contextForeground.fillStyle = colorLight;
+                    if(hardware.mouse.moveX > background.x+translateOffset+maxTextWidth/8 && hardware.mouse.moveY > background.y+translateOffset+maxTextHeight*(cCar) && hardware.mouse.moveX < background.x+translateOffset+2*maxTextWidth && hardware.mouse.moveY < background.y+translateOffset+maxTextHeight*(cCar+1)) {
+                        if(cCar == 0) {
+                            hardware.mouse.cursor = "pointer";
+                            if(contextClick && carParams.autoModeRuns) {
+                                notify(formatJSString(getString("appScreenCarAutoModeChange", "."), getString("appScreenCarAutoModePause")),  false, 500,null, null, client.y);
+                                carParams.autoModeRuns = false;
+                            } else if(contextClick) {
+                                notify(formatJSString(getString("appScreenCarAutoModeChange", "."), getString("appScreenCarAutoModeInit")),  false, 500,null, null, client.y);
+                                carParams.autoModeRuns = true;
+                                carParams.autoModeInit = true;
+                            }
+                        } else if(cCar == 1) {
+                            if(!carParams.autoModeRuns && !carParams.isBackToRoot) {
+                                hardware.mouse.cursor = "pointer";
+                                if(contextClick) {
+                                    carParams.autoModeRuns = true;
+                                    carParams.isBackToRoot = true;
+                                    notify(getString("appScreenCarAutoModeParking", "."),  false, 750 ,null,  null, client.y);
+                                }
+                            }
+                        }
+                    }
+                    if(cCar == 1 && (carParams.autoModeRuns || carParams.isBackToRoot)) {
+                        contextForeground.fillStyle = colorDark;
+                    }
+                    contextForeground.fillText(cText,maxTextWidth/8+0.9375*maxTextWidth-contextForeground.measureText(cText).width/2,maxTextHeight*(cCar)+maxTextHeight/2);
+                    contextForeground.strokeStyle = colorLight;
+                    contextForeground.strokeRect(maxTextWidth/8,maxTextHeight*(cCar), 1.875*maxTextWidth,maxTextHeight);
+                }
             }
-            if(newSpeed < minTrainSpeed) {
-                newSpeed = 0;
-            } else if(newSpeed > 100) {
-                newSpeed = 100;
-            }
-            if(trains[cTrain].accelerationSpeed > 0 && newSpeed == 0) { 
-                actionSync("trains", cTrain, [{"accelerationSpeed":trains[cTrain].accelerationSpeed *= -1}], null);
-            } else if(trains[cTrain].accelerationSpeed > 0 ) {
-                actionSync("trains", cTrain, [{"speedInPercent": newSpeed}],null);
-            } else if(!trains[cTrain].move && newSpeed > 0) {
-                actionSync("trains", cTrain, [{"move":true},{"speedInPercent":newSpeed}], null);
-            } else if (trains[cTrain].accelerationSpeed < 0 && newSpeed > 0) {
-                actionSync("trains", cTrain, [{"accelerationSpeed":trains[cTrain].accelerationSpeed *= -1},{"speedInPercent":newSpeed}], null);
-            }
-        }
-        contextForeground.strokeRect(maxTextWidth,maxTextHeight*cTrain,maxTextWidth*0.5,maxTextHeight);
-        if(!collisionCourse(cTrain, false) && (contextClick && hardware.mouse.upX-background.x-translateOffset > maxTextWidth*1.5 && hardware.mouse.upX-background.x-translateOffset < maxTextWidth*1.75 && hardware.mouse.upY-background.y-translateOffset > maxTextHeight*cTrain && hardware.mouse.upY-background.y-translateOffset < maxTextHeight*cTrain+maxTextHeight)) {
-            if(trains[cTrain].accelerationSpeed > 0){ 
-                actionSync("trains", cTrain, [{"accelerationSpeed":trains[cTrain].accelerationSpeed *= -1}], null);
-            } else if(!trains[cTrain].move) {
-                actionSync("trains", cTrain, [{"move":true},{"speedInPercent":50}], null);
-            } else if (trains[cTrain].accelerationSpeed < 0) {
-                actionSync("trains", cTrain, [{"accelerationSpeed":trains[cTrain].accelerationSpeed *= -1},{"speedInPercent":50}], null);
-            }
-        }
-        contextForeground.save();
-        contextForeground.translate(maxTextWidth*1.625,maxTextHeight/2+maxTextHeight*cTrain);
-        contextForeground.strokeStyle = trains[cTrain].move && trains[cTrain].accelerationSpeed > 0 ? "rgb(255,180,180)" : "rgb(180,255,180)";
-        contextForeground.fillStyle = contextForeground.strokeStyle;
-        contextForeground.lineWidth = Math.ceil(maxTextHeight/20);
-        contextForeground.beginPath();
-        contextForeground.moveTo(0, -maxTextHeight/18);
-        contextForeground.lineTo(0, -maxTextHeight/3);
-        contextForeground.stroke();
-        contextForeground.strokeStyle = colorLight;
-        contextForeground.beginPath();
-        contextForeground.rotate(-Math.PI/2);
-        contextForeground.arc(0,0,maxTextHeight/3.5,0.15*Math.PI,1.85*Math.PI);
-        contextForeground.stroke();   
-        contextForeground.restore();
-            contextForeground.strokeRect(maxTextWidth*1.5,maxTextHeight*cTrain,maxTextWidth*0.25,maxTextHeight);
-           if(contextClick && !trains[cTrain].move && hardware.mouse.upX-background.x-translateOffset > maxTextWidth*1.7 && hardware.mouse.upX-background.x-translateOffset < maxTextWidth*2 && hardware.mouse.upY-background.y-translateOffset > maxTextHeight*cTrain && hardware.mouse.upY-background.y-translateOffset < maxTextHeight*cTrain+maxTextHeight) {
-                actionSync("trains", cTrain, [{"standardDirection":!trains[cTrain].standardDirection}],null); 
-        }
-        contextForeground.save();
-            contextForeground.translate(maxTextWidth*1.875,maxTextHeight/2+maxTextHeight*cTrain);
-        if(!trains[cTrain].standardDirection) {
-            contextForeground.rotate(Math.PI);
-        }
-        if(trains[cTrain].move) {
-            contextForeground.strokeStyle = colorDark;    
+        /////CONTROL CENTER/Trains/////
         } else {
-            contextForeground.strokeStyle = colorLight;
-        }
-        contextForeground.fillStyle = contextForeground.strokeStyle;
-        contextForeground.lineWidth = Math.ceil(maxTextHeight/5);
-        contextForeground.beginPath();
-        contextForeground.moveTo(-maxTextWidth*0.075, 0);
-        contextForeground.lineTo(maxTextWidth*0.051, 0);
-        contextForeground.stroke();
-        contextForeground.beginPath();
-        contextForeground.moveTo(maxTextWidth*0.05, -0.25*maxTextHeight);
-        contextForeground.lineTo(maxTextWidth*0.05, 0.25*maxTextHeight);
-        contextForeground.lineTo(maxTextWidth*0.1, 0);
-        contextForeground.lineTo(maxTextWidth*0.05, -0.25*maxTextHeight);
-        contextForeground.fill();
-        contextForeground.restore();
+            maxTextHeight/=trains.length;
+            var speedTextHeight = Math.min(0.5*maxTextHeight,getFontSize(measureFontSize(getString("appScreenControlCenterSpeedOff"),fontFamily,0.5*(maxTextWidth*0.5)/getString("appScreenControlCenterSpeedOff").length,0.5*(maxTextWidth*0.5), 5, 1.2,0), "px"));
+            for(var cTrain = 0; cTrain < trains.length; cTrain++) {
+                var noCollisionCTrain = !collisionCourse(cTrain, false);
+                if(noCollisionCTrain && hardware.mouse.moveX > background.x+translateOffset+maxTextWidth && hardware.mouse.moveY > background.y+translateOffset+maxTextHeight*cTrain && hardware.mouse.moveX < background.x+translateOffset+1.75*maxTextWidth && hardware.mouse.moveY < background.y+translateOffset+maxTextHeight*(cTrain+1)) {
+                    hardware.mouse.cursor = "pointer";
+                }
+                var cText = getString(["appScreenTrainNames",cTrain]);
+                var cTextHeight = Math.min(0.625*maxTextHeight,getFontSize(measureFontSize(cText,fontFamily,0.625*maxTextWidth/cText.length,0.625*maxTextWidth, 5, 1.2,0), "px"));
+                contextForeground.font = cTextHeight +"px "+fontFamily;
+                contextForeground.fillStyle = colorLight;
+                contextForeground.fillText(cText,maxTextWidth/8+0.875*maxTextWidth/2-contextForeground.measureText(cText).width/2,maxTextHeight*cTrain+maxTextHeight/2);
+                var cTrainPercent = trains[cTrain].speedInPercent == undefined || !trains[cTrain].move || trains[cTrain].accelerationSpeed < 0 ? 0 : Math.round(trains[cTrain].speedInPercent);
+                contextForeground.fillStyle = contextForeground.strokeStyle = colorBorder;
+                contextForeground.strokeRect(maxTextWidth/8,maxTextHeight*cTrain,0.875*maxTextWidth,maxTextHeight);
+                if(cTrainPercent == 0) {
+                    contextForeground.fillStyle = noCollisionCTrain ? colorLight : colorDark;
+                    contextForeground.font = speedTextHeight +"px "+fontFamily;
+                    contextForeground.fillText(getString("appScreenControlCenterSpeedOff"),maxTextWidth+(maxTextWidth*0.5)/2-contextForeground.measureText(getString("appScreenControlCenterSpeedOff")).width/2,maxTextHeight*cTrain+maxTextHeight/2);
+                }
+                contextForeground.fillRect(maxTextWidth,maxTextHeight*cTrain,maxTextWidth*0.5*cTrainPercent/100,maxTextHeight);
+                if(cTrainPercent > 0) {
+                    contextForeground.fillStyle = colorDark;
+                    contextForeground.font = speedTextHeight +"px "+fontFamily;
+                    contextForeground.fillText((cTrainPercent+"%"),maxTextWidth+(maxTextWidth*0.5)/2-contextForeground.measureText((cTrainPercent+"%")).width/2,maxTextHeight*cTrain+maxTextHeight/2);
+                }
+                var isClick = (contextClick && hardware.mouse.upX-background.x-translateOffset > maxTextWidth && hardware.mouse.upX-background.x-translateOffset < maxTextWidth*1.5 && hardware.mouse.upY-background.y-translateOffset > maxTextHeight*cTrain && hardware.mouse.upY-background.y-translateOffset < maxTextHeight*cTrain+maxTextHeight);
+                var isHold = (hardware.mouse.rightClickHold && hardware.mouse.downX-background.x-translateOffset > maxTextWidth && hardware.mouse.downX-background.x-translateOffset < maxTextWidth*1.5 && hardware.mouse.downY-background.y-translateOffset > maxTextHeight*cTrain && hardware.mouse.downY-background.y-translateOffset < maxTextHeight*cTrain+maxTextHeight && hardware.mouse.moveX-background.x-translateOffset > maxTextWidth && hardware.mouse.moveX-background.x-translateOffset < maxTextWidth*1.5 && hardware.mouse.moveY-background.y-translateOffset > maxTextHeight*cTrain && hardware.mouse.moveY-background.y-translateOffset < maxTextHeight*cTrain+maxTextHeight);
+                if(noCollisionCTrain && (isClick || isHold || (hardware.mouse.rightClickWheelScrolls && hardware.mouse.wheelScrollY != 0 && hardware.mouse.wheelX-background.x-translateOffset > maxTextWidth && hardware.mouse.wheelX-background.x-translateOffset < maxTextWidth*1.5 && hardware.mouse.wheelY-background.y-translateOffset > maxTextHeight*cTrain && hardware.mouse.wheelY-background.y-translateOffset < maxTextHeight*cTrain+maxTextHeight))) {
+                var newSpeed;
+                if(isClick || isHold) {
+                    newSpeed = Math.round(((isClick ? hardware.mouse.upX : hardware.mouse.moveX)-background.x-translateOffset-maxTextWidth)/maxTextWidth/0.5*100);
+                } else {
+                    if(trains[cTrain].speedInPercent ==undefined || trains[cTrain].speedInPercent == 0) {
+                        trains[cTrain].speedInPercent = minTrainSpeed;
+                    }
+                    newSpeed = Math.round(trains[cTrain].speedInPercent*(hardware.mouse.wheelScrollY < 0 ? 1.1 : 0.9));
+                }
+                if(newSpeed < minTrainSpeed) {
+                    newSpeed = 0;
+                } else if(newSpeed > 100) {
+                    newSpeed = 100;
+                }
+                if(trains[cTrain].accelerationSpeed > 0 && newSpeed == 0) { 
+                    actionSync("trains", cTrain, [{"accelerationSpeed":trains[cTrain].accelerationSpeed *= -1}], null);
+                } else if(trains[cTrain].accelerationSpeed > 0 ) {
+                    actionSync("trains", cTrain, [{"speedInPercent": newSpeed}],null);
+                } else if(!trains[cTrain].move && newSpeed > 0) {
+                    actionSync("trains", cTrain, [{"move":true},{"speedInPercent":newSpeed}], null);
+                } else if (trains[cTrain].accelerationSpeed < 0 && newSpeed > 0) {
+                    actionSync("trains", cTrain, [{"accelerationSpeed":trains[cTrain].accelerationSpeed *= -1},{"speedInPercent":newSpeed}], null);
+                }
+                if(newSpeed > 0 && newSpeed < 100) {
+                   hardware.mouse.cursor = "grabbing";
+                }
+            }
+            contextForeground.strokeRect(maxTextWidth,maxTextHeight*cTrain,maxTextWidth*0.5,maxTextHeight);
+            if(noCollisionCTrain && (contextClick && hardware.mouse.upX-background.x-translateOffset > maxTextWidth*1.5 && hardware.mouse.upX-background.x-translateOffset < maxTextWidth*1.75 && hardware.mouse.upY-background.y-translateOffset > maxTextHeight*cTrain && hardware.mouse.upY-background.y-translateOffset < maxTextHeight*cTrain+maxTextHeight)) {
+                if(trains[cTrain].accelerationSpeed > 0){ 
+                    actionSync("trains", cTrain, [{"accelerationSpeed":trains[cTrain].accelerationSpeed *= -1}], null);
+                } else if(!trains[cTrain].move) {
+                    actionSync("trains", cTrain, [{"move":true},{"speedInPercent":50}], null);
+                } else if (trains[cTrain].accelerationSpeed < 0) {
+                    actionSync("trains", cTrain, [{"accelerationSpeed":trains[cTrain].accelerationSpeed *= -1},{"speedInPercent":50}], null);
+                }
+            }
+            contextForeground.save();
+            contextForeground.translate(maxTextWidth*1.625,maxTextHeight/2+maxTextHeight*cTrain);
+            contextForeground.strokeStyle = noCollisionCTrain ? (trains[cTrain].move && trains[cTrain].accelerationSpeed > 0 ? "rgb(255,180,180)" : "rgb(180,255,180)") : colorDark;
+            contextForeground.fillStyle = contextForeground.strokeStyle;
+            contextForeground.lineWidth = Math.ceil(maxTextHeight/20);
+            contextForeground.beginPath();
+            contextForeground.moveTo(0, -maxTextHeight/18);
+            contextForeground.lineTo(0, -maxTextHeight/3);
+            contextForeground.stroke();
+            contextForeground.strokeStyle = noCollisionCTrain ? colorLight : colorDark;
+            contextForeground.beginPath();
+            contextForeground.rotate(-Math.PI/2);
+            contextForeground.arc(0,0,maxTextHeight/3.5,0.15*Math.PI,1.85*Math.PI);
+            contextForeground.stroke();   
+            contextForeground.restore();
+                contextForeground.strokeRect(maxTextWidth*1.5,maxTextHeight*cTrain,maxTextWidth*0.25,maxTextHeight);
+               if(contextClick && !trains[cTrain].move && hardware.mouse.upX-background.x-translateOffset > maxTextWidth*1.7 && hardware.mouse.upX-background.x-translateOffset < maxTextWidth*2 && hardware.mouse.upY-background.y-translateOffset > maxTextHeight*cTrain && hardware.mouse.upY-background.y-translateOffset < maxTextHeight*cTrain+maxTextHeight) {
+                    actionSync("trains", cTrain, [{"standardDirection":!trains[cTrain].standardDirection}],null); 
+            }
+            contextForeground.save();
+                contextForeground.translate(maxTextWidth*1.875,maxTextHeight/2+maxTextHeight*cTrain);
+            if(!trains[cTrain].standardDirection) {
+                contextForeground.rotate(Math.PI);
+            }
+            if(trains[cTrain].move) {
+                contextForeground.strokeStyle = colorDark;    
+            } else {
+                contextForeground.strokeStyle = colorLight;
+                if(hardware.mouse.moveX > background.x+translateOffset+1.75*maxTextWidth && hardware.mouse.moveY > background.y+translateOffset+maxTextHeight*cTrain && hardware.mouse.moveX < background.x+translateOffset+2*maxTextWidth && hardware.mouse.moveY < background.y+translateOffset+maxTextHeight*cTrain+maxTextHeight) {
+                    hardware.mouse.cursor = "pointer";
+                }
+            }
+            contextForeground.fillStyle = contextForeground.strokeStyle;
+            contextForeground.lineWidth = Math.ceil(maxTextHeight/5);
+            contextForeground.beginPath();
+            contextForeground.moveTo(-maxTextWidth*0.075, 0);
+            contextForeground.lineTo(maxTextWidth*0.051, 0);
+            contextForeground.stroke();
+            contextForeground.beginPath();
+            contextForeground.moveTo(maxTextWidth*0.05, -0.25*maxTextHeight);
+            contextForeground.lineTo(maxTextWidth*0.05, 0.25*maxTextHeight);
+            contextForeground.lineTo(maxTextWidth*0.1, 0);
+            contextForeground.lineTo(maxTextWidth*0.05, -0.25*maxTextHeight);
+            contextForeground.fill();
+            contextForeground.restore();
             contextForeground.strokeRect(maxTextWidth*1.75,maxTextHeight*cTrain,maxTextWidth*0.25,maxTextHeight);
+            }
         }
         contextForeground.restore();
         hardware.mouse.rightClickWheelScrolls = false;
     } else {
+        showCarCenter = null;
         hardware.mouse.rightClick = false;
     }
-    
+
     /////KONAMI/Colors/////    
     if(konamistate < -1) {
         var imgData = context.getImageData(background.x, background.y, background.width, background.height);
@@ -1710,21 +2024,22 @@ function drawObjects() {
     	context.restore();
     }
     
-    /////CURSOR/2/////
+    /////CURSOR/////
     if(settings.cursorascircle && isHardwareAvailable("cursorascircle") && (hardware.mouse.isMoving || hardware.mouse.isHold) && hardware.mouse.cursor != "none") {
         contextForeground.save();
         contextForeground.translate(hardware.mouse.moveX, hardware.mouse.moveY);
-        contextForeground.fillStyle = hardware.mouse.isHold && hardware.mouse.cursor == "pointer" ? "rgba(65,56,65," + (Math.random() * (0.3) + 0.6) + ")" : hardware.mouse.isHold ? "rgba(144,64,64," + (Math.random() * (0.3) + 0.6) + ")" : hardware.mouse.cursor == "pointer" ? "rgba(127,111,127," + (Math.random() * (0.3) + 0.6) + ")" : "rgba(255,250,240,0.5)";
+        contextForeground.fillStyle = hardware.mouse.cursor == "grabbing" ? "rgba(65,56,65," + (Math.random() * (0.3) + 0.6) + ")" : (hardware.mouse.cursor == "pointer" ? "rgba(99,118,140," + (Math.random() * (0.3) + 0.6) + ")" : (hardware.mouse.isHold ? "rgba(144,64,64," + (Math.random() * (0.3) + 0.6) + ")" : "rgba(255,250,240,0.5)"));
         var rectsize = canvas.width / 75;
         contextForeground.beginPath();
         contextForeground.arc(0,0,rectsize/2,0,2*Math.PI);
         contextForeground.fill();
-        contextForeground.fillStyle = hardware.mouse.isHold && hardware.mouse.cursor == "pointer" ? "rgba(50,45,50,1)" : hardware.mouse.isHold ? "rgba(200,64,64,1)" : hardware.mouse.cursor == "pointer" ? "rgba(100,90,100,1)" : "rgba((255,250,240,0.5)";
+        contextForeground.fillStyle = hardware.mouse.cursor == "grabbing" ? "rgba(50,45,50,1)" : (hardware.mouse.cursor == "pointer" ? "rgba(50,63,95,1)" : (hardware.mouse.isHold ? "rgba(200,64,64,1)" : "rgba((255,250,240,0.5)"));
         contextForeground.beginPath();
         contextForeground.arc(0,0,rectsize/4,0,2*Math.PI);
         contextForeground.fill();
         contextForeground.restore();
     }
+    canvasForeground.style.cursor = (!settings.cursorascircle || !isHardwareAvailable("cursorascircle")) ? hardware.mouse.cursor : "none";
     hardware.mouse.wheelScrolls = false;
     
     /////TRANSFORM/////
@@ -1831,14 +2146,14 @@ var cars = [{src: 16, fac: 0.02, speed: 0.0008, startFrameFac: 0.65, angles: {st
 var carPaths = [{start: [{type: "curve_right", x:[0.29,0.29],y:[0.38,0.227]}], normal: [{type: "curve_hright", x:[0.29,0.29],y:[0.227,0.347]},{type: "linear_vertical", x:[0,0], y: [0,0]},{type: "curve_hright2", x:[0,0], y: [0.282,0.402]},{type: "curve_l2r", x:[0,0.25], y: [0.402,0.412]},{type: "linear", x: [0.25,0.225], y: [0.412,0.412]},{type: "curve_right", x: [0.225,0.225], y: [0.412,0.227]},{type: "linear", x:[0.225,0.29], y:[0.227,0.227]}]},{start: [{type: "curve_left", x:[0.26,0.26], y: [0.3,0.198]},{type: "curve_r2l", x:[0.26,0.216], y: [0.198,0.197]}], normal: [{type: "curve_left", x:[0.216,0.216], y: [0.197,0.419]},{type: "linear", x:[0.216,0.246], y:[0.419,419]},{type: "curve_r2l", x:[0.246,0.286], y:[0.419,0.43]},{type: "linear", x:[0.286,0.31], y:[0.43,0.43]},{type: "curve_hleft", x:[0.31,0.31], y: [0.43,0.33]},{type: "linear_vertical", x:[0,0], y: [0,0]},{type: "curve_hleft2", x:[0,0], y: [0.347,0.197]},{type: "linear", x:[0,0.216], y:[0.197,0.197]},{type: "curve_left", x:[0.216,0.216], y: [0.197,0.419]},{type: "linear", x:[0.216,0.246], y:[0.419,419]},{type: "curve_r2l", x:[0.246,0.276], y:[0.419,0.434]},{type: "linear", x:[0.276,0.38], y:[0.434,434]},{type: "curve_l2r", x:[0.38,0.46], y:[0.434,0.419]},{type: "linear", x:[0.46,0.631], y:[0.419,0.419]},{type: "curve_r2l", x:[0.631,0.665], y:[0.419,0.43]},{type: "curve_left", x:[0.665,0.665], y: [0.43,0.322]},{type: "curve_l2r", x:[0.665,0.59], y: [0.322,0.39]},{type: "linear", x:[0.59,0.339], y:[0.39,0.39]},{type: "curve_hright", x:[0.339,0.339], y: [0.39,0.32]},{type: "linear_vertical", x:[0,0], y: [0,0]},{type: "curve_hleft2", x:[0,0], y: [0.347,0.197]},{type: "linear", x:[0,0.216], y:[0.197,0.197]}]},{start: [{type: "curve_right", x:[0.2773,0.2773],y:[0.38,0.227]},{type: "linear", x:[0.2773,0.29],y:[0.227,0.227]}], normal: [{type: "curve_hright", x:[0.29,0.29],y:[0.227,0.347]},{type: "linear_vertical", x:[0,0], y: [0,0]},{type: "curve_hleft2", x:[0,0], y: [0.299,0.419]},{type: "linear", x:[0,0.631], y:[0.419,0.419]},{type: "curve_r2l", x:[0.631,0.665], y:[0.419,0.43]},{type: "curve_left", x:[0.665,0.665], y: [0.43,0.322]},{type: "curve_l2r", x:[0.665,0.59], y: [0.322,0.39]},{type: "linear", x:[0.59,0.339], y:[0.39,0.39]},{type: "curve_l2r", x:[0.339,0.25], y: [0.39,0.412]},{type: "linear", x: [0.25,0.225], y: [0.412,0.412]},{type: "curve_right", x: [0.225,0.225], y: [0.412,0.227]},{type: "linear", x:[0.225,0.29], y:[0.227,0.227]}]}]; 
 var carWays = [];
 var carParams = {init: true, wayNo: 7};
+var showCarCenter = null;
 
 var taxOffice = {params: {number: 45, frameNo: 6, frameProbability: 0.6, fire: {x: 0.07, y: 0.06, size: 0.000833, color:{red: {red: 200, green: 0, blue: 0, alpha: 0.4}, yellow: {red: 255, green: 160, blue: 0, alpha: 1}, probability: 0.8}}, smoke: {x: 0.07, y: 0.06, size: 0.02, color: {red: 130, green: 120, blue: 130, alpha: 0.3}}, bluelights: {frameNo: 16, cars: [{frameNo: 0, x: [-0.0105, -0.0026], y: [0.177, 0.0047], size: 0.001},{frameNo: 3, x: [0.0275, -0.00275], y: [0.1472, 0.0092], size: 0.001},{frameNo: 5, x: [0.056, 0.0008], y: [0.18, 0.015], size: 0.001}]}}};
 
-var classicUI = {trainSwitch: {src: 11, selectedTrainDisplay: {}}, transformer: {src:13, asrc: 12, angle:(Math.PI/5),input:{src:14,angle:0,minAngle:minTrainSpeed,maxAngle:1.5*Math.PI},directionInput:{src:15,}}, switches: {}};
+var classicUI = {trainSwitch: {src: 11, selectedTrainDisplay: {}}, transformer: {src:13, asrc: 12, angle:(Math.PI/5),input:{src:14,angle:0,minAngle:minTrainSpeed,maxAngle:1.5*Math.PI},directionInput:{src:15,}}, switches: {showDuration: 11, showDurationFade: 33, showDurationEnd: 44}};
 
 var hardware = {mouse: {moveX:0, moveY:0,downX:0, downY:0, downTime: 0,upX:0, upY:0, upTime: 0, isMoving: false, isHold: false, rightClick: false, cursor: "default"}};
 var client = {devicePixelRatio: 1,realScaleMax:6,realScaleMin:1.2};
-
 var onlineGame = {animateInterval: 40, syncInterval: 20000, excludeFromSync: {"t": ["src", "fac", "speedFac", "accelerationSpeedStartFac", "accelerationSpeedFac", "bogieDistance", "width", "height", "speed", "cars"], "tc": ["src", "fac", "bogieDistance", "width", "height"]}};
 var onlineConnection = {serverURI: getServerLink("wss:") + "/multiplay"};
 
@@ -2004,6 +2319,8 @@ window.onload = function() {
                 cars[i].displayAngle = carWays[i][cars[i].cType][cars[i].counter].angle;
                 cars[i].x = carWays[i][cars[i].cType][cars[i].counter].x;
                 cars[i].y = carWays[i][cars[i].cType][cars[i].counter].y; 
+                cars[i].backToInit = false; 
+                cars[i].parking = true; 
             }  
         }
     
@@ -2806,12 +3123,10 @@ window.onload = function() {
                             break;
                             case "switches":
                                 obj = switches[input.index[0]][input.index[1]]
-                                classicUI.switches.lastStateChangeKey = input.index[0];
-                                classicUI.switches.lastStateChangeSide = input.index[1];
-                                classicUI.switches.lastStateChange = frameNo;
                                 input.params.forEach(function(param){
                                     obj[Object.keys(param)[0]] = Object.values(param)[0];
                                 });
+                                obj.lastStateChange = frameNo;
                                 animateWorker.postMessage({k: "switches", switches: switches});
                             break;
                         }

@@ -82,3 +82,74 @@ h2 {
 #backOption {
 	color: rgb(207, 207, 207);
 }
+
+#server-note {
+	font-family: Roboto;
+	position: fixed;
+	background: darkslategray;
+	color: salmon;
+	width: 80vw;
+	height: 80vh;
+	height: calc(80vh - calc( 100vh - 100% ));
+	z-index: 2000;
+	display: none;
+	border: 10vw solid rgba(50, 50, 50,0.5);
+	border-top-width: 10vh;
+	border-bottom-width: 10vh;
+	background-clip: padding-box;
+	flex-direction: column;
+	justify-content: center;
+	overflow: hidden;
+}
+#server-note-title {
+	font-size: 600%;
+	padding: 20px;
+	line-height: 150%;
+	border-bottom: 3px double lightyellow;
+	background: lightsalmon;
+	color: darkslategray;
+}
+#server-note-text {
+	font-size: 300%;
+	margin: auto;
+	padding: 30px;
+	line-height: 150%;
+	overflow: auto;
+}
+#server-note-buttons {
+	font-size: 150%;
+	color: lightblue;
+	display: flex;
+	justify-content: center;
+}
+#server-note-buttons div {
+	padding: 10px;
+	margin: 10px;
+	cursor: pointer;
+	border-radius: 3px;
+	border: 1px solid lightslategray;
+	display: flex;
+	align-items: center;
+}
+#server-note-buttons div#server-note-button-go  {
+	display: none;
+}
+@media (max-height: 500px), (max-width: 750px) {
+	#server-note {
+		width: 90vw;
+		height: 90vh;
+		height: calc(90vh - calc( 100vh - 100% ));
+		border: 5vw solid rgba(50, 50, 50,0.5);
+		border-top-width: 5vh;
+		border-bottom-width: 5vh;
+	}
+	#server-note-title {
+		font-size: 300%;
+	}
+	#server-note-text {
+		font-size: 150%;
+	}
+	#server-note-buttons {
+		font-size: 100%;
+	}
+}

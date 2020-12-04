@@ -211,7 +211,18 @@
 	</head>
 
 	<body>
-	
+		
+		<!-- Server side notifications -->
+		<div id="server-note">
+			<div id="server-note-title"></div>
+			<div id="server-note-text"></div>
+			<div id="server-note-buttons">
+				<div id="server-note-button-go" data-stringid-content="generalServerNoteButtonGo" data-stringid-content-case="upper"></div>
+				<div id="server-note-button-no" data-stringid-content="generalServerNoteButtonNo" data-stringid-content-case="upper"></div>
+			</div>
+		</div>
+		
+		<!-- Content -->
 		<main id="content">		
 			<div id="link_game">
 				<div class="text-icons">
@@ -328,6 +339,8 @@
 			setHTMLStrings();
 			
 			styleContent();
+			
+			showServerNote();
 		</script>
 	
 

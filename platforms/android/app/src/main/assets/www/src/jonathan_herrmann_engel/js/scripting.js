@@ -220,8 +220,8 @@ function onMouseWheel(event) {
 }
 function onMouseRight(event) {
     event.preventDefault();
-    if(showCarCenter === null && hardware.mouse.rightClick) {
-        showCarCenter = true;
+    if(controlCenter.showCarCenter === null && hardware.mouse.rightClick) {
+        controlCenter.showCarCenter = true;
         notify(getString("appScreenCarControlCenterTitle"), false, 1250,null,null, client.y);
     } else {
         hardware.mouse.rightClick = !hardware.mouse.rightClick; 
@@ -296,8 +296,8 @@ function getTouchEnd(event) {
     hardware.mouse.isHold = hardware.mouse.rightClickHold = false;  
     hardware.mouse.rightClickEvent = hardware.mouse.rightClick; 
     if(hardware.mouse.rightClickPrepare != undefined && hardware.mouse.rightClickPrepare) {
-        if(showCarCenter === null && hardware.mouse.rightClick) {
-            showCarCenter = true;
+        if(controlCenter.showCarCenter === null && hardware.mouse.rightClick) {
+            controlCenter.showCarCenter = true;
             notify(getString("appScreenCarControlCenterTitle"), false, 1250,null,null, client.y);
             hardware.mouse.rightClickPrepare = false;
         } else {
@@ -487,6 +487,84 @@ function placeClassicUIElements(){
     classicUI.trainSwitch.selectedTrainDisplay.width = 1.2*context.measureText(getString(["appScreenTrainNames",longestName])).width;
     classicUI.trainSwitch.selectedTrainDisplay.height = 1.6*getFontSize(classicUI.trainSwitch.selectedTrainDisplay.font, "px");
     classicUI.switches.radius = 0.02*background.width;
+}
+
+function calcControlCenter() {
+    controlCenter.translateOffset = background.width/100;
+    controlCenter.maxTextWidth = (background.width-2*controlCenter.translateOffset)/2;
+    controlCenter.maxTextHeight = (background.height-2*controlCenter.translateOffset);
+    if(controlCenter.fontSizes == undefined) {
+        controlCenter.fontSizes = {};
+    }
+    if(controlCenter.fontSizes.trainSizes == undefined) {
+        controlCenter.fontSizes.trainSizes = {};
+    }
+    if(controlCenter.fontSizes.trainSizes.trainNames == undefined) {
+        controlCenter.fontSizes.trainSizes.trainNames = [];
+    }
+    if(controlCenter.fontSizes.trainSizes.trainNamesLength == undefined) {
+        controlCenter.fontSizes.trainSizes.trainNamesLength = [];
+    }
+    contextForeground.save();
+    controlCenter.fontSizes.closeTextHeight = Math.min(controlCenter.maxTextWidth/12,getFontSize(measureFontSize(getString("appScreenControlCenterClose",null,"upper"),controlCenter.fontFamily,controlCenter.maxTextWidth/12,controlCenter.maxTextHeight, 5, 1.2,0), "px"));
+    controlCenter.fontSizes.trainSizes.speedTextHeight = Math.min(0.5*controlCenter.maxTextHeight/trains.length,getFontSize(measureFontSize(getString("appScreenControlCenterSpeedOff"),controlCenter.fontFamily,0.5*(controlCenter.maxTextWidth*0.5)/getString("appScreenControlCenterSpeedOff").length,0.5*(controlCenter.maxTextWidth*0.5), 5, 1.2,0), "px"));
+    for(var cTrain = 0; cTrain < trains.length; cTrain++) {
+        var cText = getString(["appScreenTrainNames",cTrain]);
+        controlCenter.fontSizes.trainSizes.trainNames[cTrain] = Math.min(0.625*controlCenter.maxTextHeight/trains.length,getFontSize(measureFontSize(cText,controlCenter.fontFamily,0.625*controlCenter.maxTextWidth/cText.length,0.625*controlCenter.maxTextWidth, 5, 1.2,0), "px"));
+        contextForeground.font = controlCenter.fontSizes.trainSizes.trainNames[cTrain] +"px "+controlCenter.fontFamily;
+        controlCenter.fontSizes.trainSizes.trainNamesLength[cTrain] = contextForeground.measureText(cText).width;
+    }
+    if(controlCenter.fontSizes.carSizes == undefined) {
+        controlCenter.fontSizes.carSizes = {};
+    }
+    if(controlCenter.fontSizes.carSizes.init == undefined) {
+        controlCenter.fontSizes.carSizes.init = {};
+    }
+    if(controlCenter.fontSizes.carSizes.init.carNames == undefined) {
+        controlCenter.fontSizes.carSizes.init.carNames = [];
+    }
+    if(controlCenter.fontSizes.carSizes.init.carNamesLength == undefined) {
+        controlCenter.fontSizes.carSizes.init.carNamesLength = [];
+    }
+    if(controlCenter.fontSizes.carSizes.manual == undefined) {
+        controlCenter.fontSizes.carSizes.manual = {};
+    }
+    if(controlCenter.fontSizes.carSizes.manual.carNames == undefined) {
+        controlCenter.fontSizes.carSizes.manual.carNames = [];
+    }
+    if(controlCenter.fontSizes.carSizes.manual.carNamesLength == undefined) {
+        controlCenter.fontSizes.carSizes.manual.carNamesLength = [];
+    }
+    if(controlCenter.fontSizes.carSizes.auto == undefined) {
+        controlCenter.fontSizes.carSizes.auto = {};
+    }
+    var cText = getString("appScreenCarControlCenterAutoModeActivate");
+    controlCenter.fontSizes.carSizes.init.autoModeActivate = Math.min(0.5*controlCenter.maxTextHeight/cars.length,getFontSize(measureFontSize(cText,controlCenter.fontFamily,1.5*controlCenter.maxTextWidth/cText.length,1.5*controlCenter.maxTextWidth, 5, 1.2,0), "px")); 
+    contextForeground.font = controlCenter.fontSizes.carSizes.init.autoModeActivate +"px "+controlCenter.fontFamily;
+    controlCenter.fontSizes.carSizes.init.autoModeActivateLength = contextForeground.measureText(cText).width; 
+    for(var cCar = 0; cCar < cars.length; cCar++) {
+        cText = formatJSString(getString("appScreenCarControlCenterStartCar"), getString(["appScreenCarNames",cCar]));
+        controlCenter.fontSizes.carSizes.init.carNames[cCar] = Math.min(0.5*controlCenter.maxTextHeight/cars.length,getFontSize(measureFontSize(cText,controlCenter.fontFamily,1.5*controlCenter.maxTextWidth/cText.length,1.5*controlCenter.maxTextWidth, 5, 1.2,0), "px"));
+        contextForeground.font = controlCenter.fontSizes.carSizes.init.carNames[cCar] +"px "+controlCenter.fontFamily;
+        controlCenter.fontSizes.carSizes.init.carNamesLength[cCar] = contextForeground.measureText(cText).width;
+        cText = formatJSString(getString(["appScreenCarNames",cCar]));
+        controlCenter.fontSizes.carSizes.manual.carNames[cCar] = Math.min(0.625*controlCenter.maxTextHeight/cars.length,getFontSize(measureFontSize(cText,controlCenter.fontFamily,0.625*controlCenter.maxTextWidth/cText.length,0.625*controlCenter.maxTextWidth, 5, 1.2,0), "px"));
+        contextForeground.font = controlCenter.fontSizes.carSizes.manual.carNames[cCar] +"px "+controlCenter.fontFamily;
+        controlCenter.fontSizes.carSizes.manual.carNamesLength[cCar] = contextForeground.measureText(cText).width;
+   }      
+   cText = getString("appScreenCarControlCenterAutoModePause");
+   controlCenter.fontSizes.carSizes.auto.pause = Math.min(0.625*controlCenter.maxTextHeight/2,getFontSize(measureFontSize(cText,controlCenter.fontFamily,0.625*controlCenter.maxTextWidth/cText.length,0.625*controlCenter.maxTextWidth, 5, 1.2,0), "px"));
+   contextForeground.font = controlCenter.fontSizes.carSizes.auto.pause +"px "+controlCenter.fontFamily;
+   controlCenter.fontSizes.carSizes.auto.pauseLength = contextForeground.measureText(cText).width;
+   cText = getString("appScreenCarControlCenterAutoModeResume");
+   controlCenter.fontSizes.carSizes.auto.resume = Math.min(0.625*controlCenter.maxTextHeight/2,getFontSize(measureFontSize(cText,controlCenter.fontFamily,0.625*controlCenter.maxTextWidth/cText.length,0.625*controlCenter.maxTextWidth, 5, 1.2,0), "px"));
+   contextForeground.font = controlCenter.fontSizes.carSizes.auto.resume +"px "+controlCenter.fontFamily;
+   controlCenter.fontSizes.carSizes.auto.resumeLength = contextForeground.measureText(cText).width;
+   cText = getString("appScreenCarControlCenterAutoModeBackToRoot");
+   controlCenter.fontSizes.carSizes.auto.backToRoot = Math.min(0.625*controlCenter.maxTextHeight/2,getFontSize(measureFontSize(cText,controlCenter.fontFamily,0.625*controlCenter.maxTextWidth/cText.length,0.625*controlCenter.maxTextWidth, 5, 1.2,0), "px"));
+   contextForeground.font = controlCenter.fontSizes.carSizes.auto.backToRoot +"px "+controlCenter.fontFamily;
+   controlCenter.fontSizes.carSizes.auto.backToRootLength = contextForeground.measureText(cText).width;
+   contextForeground.restore();
 }
 
 /******************************************
@@ -1646,7 +1724,6 @@ function drawObjects() {
         var colorLight =  "floralwhite";
         var colorDark =  "rgb(120,120,120)";
         var colorBorder =  "rgba(255,255,255,0.7)";
-        var translateOffset = background.width/100;
         var contextClick = (hardware.mouse.rightClickEvent && Math.abs(hardware.mouse.downX-hardware.mouse.upX) < canvas.width/100 && Math.abs(hardware.mouse.downY-hardware.mouse.upY) < canvas.width/100);
         hardware.mouse.rightClickEvent = false;
         if(hardware.mouse.cursor != "none") {
@@ -1654,47 +1731,46 @@ function drawObjects() {
         }
         contextForeground.save();
         contextForeground.textBaseline = "middle"; 
-        contextForeground.translate(background.x+translateOffset,background.y+translateOffset);
+        contextForeground.translate(background.x+controlCenter.translateOffset,background.y+controlCenter.translateOffset);
         contextForeground.fillStyle = "rgba(0,0,0,0.5)";
-        contextForeground.fillRect(0,0,background.width-2*translateOffset,background.height-2*translateOffset);
-        var fontFamily = "sans-serif";
-        var maxTextWidth = (background.width-2*translateOffset)/2;
-        var maxTextHeight = (background.height-2*translateOffset);
-        if(hardware.mouse.moveX > background.x+translateOffset && hardware.mouse.moveY > background.y+translateOffset && hardware.mouse.moveX < background.x+translateOffset+maxTextWidth/8 && hardware.mouse.moveY < background.y+translateOffset+maxTextHeight) {
+        contextForeground.fillRect(0,0,background.width-2*controlCenter.translateOffset,background.height-2*controlCenter.translateOffset);
+        if(hardware.mouse.moveX > background.x+controlCenter.translateOffset && hardware.mouse.moveY > background.y+controlCenter.translateOffset && hardware.mouse.moveX < background.x+controlCenter.translateOffset+controlCenter.maxTextWidth/8 && hardware.mouse.moveY < background.y+controlCenter.translateOffset+controlCenter.maxTextHeight) {
             hardware.mouse.cursor = "pointer";
         }
         contextForeground.fillStyle = "rgb(255,120,120)";
         contextForeground.strokeStyle = colorBorder;
-        contextForeground.strokeRect(0,0,maxTextWidth/8,maxTextHeight);
+        contextForeground.strokeRect(0,0,controlCenter.maxTextWidth/8,controlCenter.maxTextHeight);
         contextForeground.save();
-        contextForeground.translate(maxTextWidth/16,maxTextHeight/2);
+        contextForeground.translate(controlCenter.maxTextWidth/16,controlCenter.maxTextHeight/2);
         contextForeground.rotate(-Math.PI/2);
-        var cTextHeight = Math.min(maxTextWidth/12,getFontSize(measureFontSize(getString("appScreenControlCenterClose",null,"upper"),fontFamily,maxTextWidth/12,maxTextHeight, 5, 1.2,0), "px"));
-        contextForeground.font = cTextHeight +"px "+fontFamily;
-        contextForeground.fillText(getString("appScreenControlCenterClose",null,"upper"),-maxTextHeight/2+(maxTextHeight/2-contextForeground.measureText(getString("appScreenControlCenterClose",null,"upper")).width/2),cTextHeight/6);
+        contextForeground.font = controlCenter.fontSizes.closeTextHeight +"px "+controlCenter.fontFamily;
+        contextForeground.fillText(getString("appScreenControlCenterClose",null,"upper"),-controlCenter.maxTextHeight/2+(controlCenter.maxTextHeight/2-contextForeground.measureText(getString("appScreenControlCenterClose",null,"upper")).width/2),controlCenter.fontSizes.closeTextHeight/6);
         contextForeground.restore();
-        if(contextClick && hardware.mouse.upX-background.x-translateOffset > 0 && hardware.mouse.upX-background.x-translateOffset < maxTextWidth/8 && hardware.mouse.upY-background.y-translateOffset > 0 && hardware.mouse.upY-background.y-translateOffset < maxTextHeight*trains.length) {
+        if(contextClick && hardware.mouse.upX-background.x-controlCenter.translateOffset > 0 && hardware.mouse.upX-background.x-controlCenter.translateOffset < controlCenter.maxTextWidth/8 && hardware.mouse.upY-background.y-controlCenter.translateOffset > 0 && hardware.mouse.upY-background.y-controlCenter.translateOffset < controlCenter.maxTextHeight*trains.length) {
             hardware.mouse.rightClick = false; 
             hardware.mouse.rightClickWheelScrolls = false; 
         }
         /////CONTROL CENTER/Cars/////
-        if(showCarCenter) {
+        if(controlCenter.showCarCenter) {
             if(carParams.init) {
-                maxTextHeight/=(cars.length+1);
+                var maxTextHeight = controlCenter.maxTextHeight/(cars.length+1);
                 for(var cCar = -1; cCar < cars.length; cCar++) {
-                    var cText;
+                    var cText, cTextHeight, cTextWidth;
                     if(cCar == -1) {
-                       cText = getString("appScreenCarControlCenterAutoModeActivate");
+                        cText = getString("appScreenCarControlCenterAutoModeActivate");
+                        cTextHeight = controlCenter.fontSizes.carSizes.init.autoModeActivate;
+                        cTextWidth = controlCenter.fontSizes.carSizes.init.autoModeActivateLength;
                     } else {
-                       cText = formatJSString(getString("appScreenCarControlCenterStartCar"), getString(["appScreenCarNames",cCar]));
+                        cText = formatJSString(getString("appScreenCarControlCenterStartCar"), getString(["appScreenCarNames",cCar]));
+                        cTextHeight = controlCenter.fontSizes.carSizes.init.carNames[cCar]
+                        cTextWidth = controlCenter.fontSizes.carSizes.init.carNamesLength[cCar];
                     }
-                    var cTextHeight = Math.min(0.5*maxTextHeight,getFontSize(measureFontSize(cText,fontFamily,1.5*maxTextWidth/cText.length,1.5*maxTextWidth, 5, 1.2,0), "px"));
-                    contextForeground.font = cTextHeight +"px "+fontFamily;
+                    contextForeground.font = cTextHeight +"px "+controlCenter.fontFamily;
                     contextForeground.fillStyle = colorLight;
-                    contextForeground.fillText(cText,maxTextWidth/8+0.9375*maxTextWidth-contextForeground.measureText(cText).width/2,maxTextHeight*(cCar+1)+maxTextHeight/2);
+                    contextForeground.fillText(cText,controlCenter.maxTextWidth/8+0.9375*controlCenter.maxTextWidth-cTextWidth/2,maxTextHeight*(cCar+1)+maxTextHeight/2);
                     contextForeground.strokeStyle = colorLight;
-                    contextForeground.strokeRect(maxTextWidth/8,maxTextHeight*(cCar+1), 1.875*maxTextWidth,maxTextHeight);
-                    if(hardware.mouse.moveX > background.x+translateOffset+maxTextWidth/8 && hardware.mouse.moveY > background.y+translateOffset+maxTextHeight*(cCar+1) && hardware.mouse.moveX < background.x+translateOffset+2*maxTextWidth && hardware.mouse.moveY < background.y+translateOffset+maxTextHeight*(cCar+2)) {
+                    contextForeground.strokeRect(controlCenter.maxTextWidth/8,maxTextHeight*(cCar+1), 1.875*controlCenter.maxTextWidth,maxTextHeight);
+                    if(hardware.mouse.moveX > background.x+controlCenter.translateOffset+controlCenter.maxTextWidth/8 && hardware.mouse.moveY > background.y+controlCenter.translateOffset+maxTextHeight*(cCar+1) && hardware.mouse.moveX < background.x+controlCenter.translateOffset+2*controlCenter.maxTextWidth && hardware.mouse.moveY < background.y+controlCenter.translateOffset+maxTextHeight*(cCar+2)) {
                         hardware.mouse.cursor = "pointer";
                         if(contextClick && cCar == -1) {
                             carParams.init = false;
@@ -1715,35 +1791,35 @@ function drawObjects() {
                     }
                 }
             } else if(carParams.autoModeOff) {
-                maxTextHeight/=cars.length;
+                var maxTextHeight = controlCenter.maxTextHeight/cars.length;
                 for(var cCar = 0; cCar < cars.length; cCar++) {
                     var noCollisionCCar = !carCollisionCourse(cCar,false);
                     var noCollisionCCar2 = !carCollisionCourse(cCar,false,-1);
                     var cText = formatJSString(getString(["appScreenCarNames",cCar]));
-                    var cTextHeight = Math.min(0.625*maxTextHeight,getFontSize(measureFontSize(cText,fontFamily,0.625*maxTextWidth/cText.length,0.625*maxTextWidth, 5, 1.2,0), "px"));
-                    contextForeground.font = cTextHeight +"px "+fontFamily;
+                    contextForeground.font = controlCenter.fontSizes.carSizes.manual.carNames[cCar] +"px "+controlCenter.fontFamily;
                     contextForeground.fillStyle = colorLight;
-                    contextForeground.fillText(cText,maxTextWidth/8+0.5625*maxTextWidth-contextForeground.measureText(cText).width/2,maxTextHeight*(cCar)+maxTextHeight/2);
+                    contextForeground.fillText(cText,controlCenter.maxTextWidth/8+0.5625*controlCenter.maxTextWidth-controlCenter.fontSizes.carSizes.manual.carNamesLength[cCar]/2,maxTextHeight*(cCar)+maxTextHeight/2);
                     contextForeground.strokeStyle = colorLight;
-                    contextForeground.strokeRect(maxTextWidth/8,maxTextHeight*(cCar), 1.125*maxTextWidth,maxTextHeight);       
+                    contextForeground.strokeRect(controlCenter.maxTextWidth/8,maxTextHeight*(cCar), 1.125*controlCenter.maxTextWidth,maxTextHeight);     
+                    var canMove = noCollisionCCar  && (cars[cCar].backwardsState === undefined || cars[cCar].backwardsState === 0);
                     contextForeground.save();
-                    contextForeground.translate(1.375*maxTextWidth,maxTextHeight*(cCar)+maxTextHeight/2);
-                    contextForeground.strokeStyle = noCollisionCCar  && (cars[cCar].backwardsState === undefined || cars[cCar].backwardsState === 0) ? (cars[cCar].move ? "rgb(255,180,180)" : "rgb(180,255,180)") : colorDark;
+                    contextForeground.translate(1.375*controlCenter.maxTextWidth,maxTextHeight*(cCar)+maxTextHeight/2);
+                    contextForeground.strokeStyle = canMove ? (cars[cCar].move ? "rgb(255,180,180)" : "rgb(180,255,180)") : colorDark;
                     contextForeground.fillStyle = contextForeground.strokeStyle;
                     contextForeground.lineWidth = Math.ceil(maxTextHeight/20);
                     contextForeground.beginPath();
                     contextForeground.moveTo(0, -maxTextHeight/18);
                     contextForeground.lineTo(0, -maxTextHeight/3);
                     contextForeground.stroke();
-                    contextForeground.strokeStyle = noCollisionCCar && (cars[cCar].backwardsState === undefined || cars[cCar].backwardsState === 0) ? colorLight : colorDark;
+                    contextForeground.strokeStyle = canMove ? colorLight : colorDark;
                     contextForeground.beginPath();
                     contextForeground.rotate(-Math.PI/2);
                     contextForeground.arc(0,0,maxTextHeight/3.5,0.15*Math.PI,1.85*Math.PI);
                     contextForeground.stroke();   
                     contextForeground.restore();
-                    contextForeground.strokeRect(1.25*maxTextWidth,maxTextHeight*(cCar), 0.25*maxTextWidth,maxTextHeight);
-                    if(noCollisionCCar && (cars[cCar].backwardsState === undefined || cars[cCar].backwardsState === 0)) {
-                        if(hardware.mouse.moveX > background.x+translateOffset+maxTextWidth*1.25 && hardware.mouse.moveY > background.y+translateOffset+maxTextHeight*(cCar) && hardware.mouse.moveX < background.x+translateOffset+1.5*maxTextWidth && hardware.mouse.moveY < background.y+translateOffset+maxTextHeight*(cCar+1)) {
+                    contextForeground.strokeRect(1.25*controlCenter.maxTextWidth,maxTextHeight*(cCar), 0.25*controlCenter.maxTextWidth,maxTextHeight);
+                    if(canMove) {
+                        if(hardware.mouse.moveX > background.x+controlCenter.translateOffset+controlCenter.maxTextWidth*1.25 && hardware.mouse.moveY > background.y+controlCenter.translateOffset+maxTextHeight*(cCar) && hardware.mouse.moveX < background.x+controlCenter.translateOffset+1.5*controlCenter.maxTextWidth && hardware.mouse.moveY < background.y+controlCenter.translateOffset+maxTextHeight*(cCar+1)) {
                             hardware.mouse.cursor = "pointer";
                             if(contextClick) {
                                 cars[cCar].parking = false;
@@ -1759,26 +1835,27 @@ function drawObjects() {
                             }
                         }
                     }
+                    var canStepBack = !cars[cCar].move && cars[cCar].backwardsState === 0 && !(cars[cCar].cType == "start" && cars[cCar].counter == cars[cCar].startFrame) && noCollisionCCar2;
                     contextForeground.save();
-                    contextForeground.translate(1.625*maxTextWidth,maxTextHeight*(cCar)+maxTextHeight/2);
+                    contextForeground.translate(1.625*controlCenter.maxTextWidth,maxTextHeight*(cCar)+maxTextHeight/2);
                     contextForeground.rotate(Math.PI);
-                    contextForeground.strokeStyle = cars[cCar].move || cars[cCar].backwardsState != 0 || (cars[cCar].cType == "start" && cars[cCar].counter == cars[cCar].startFrame) || !noCollisionCCar2 ? colorDark : colorLight;
+                    contextForeground.strokeStyle = canStepBack ? colorLight : colorDark;
                     contextForeground.fillStyle = contextForeground.strokeStyle;
                     contextForeground.lineWidth = Math.ceil(maxTextHeight/5);
                     contextForeground.beginPath();
-                    contextForeground.moveTo(-maxTextWidth*0.075, 0);
-                    contextForeground.lineTo(maxTextWidth*0.051, 0);
+                    contextForeground.moveTo(-controlCenter.maxTextWidth*0.075, 0);
+                    contextForeground.lineTo(controlCenter.maxTextWidth*0.051, 0);
                     contextForeground.stroke();
                     contextForeground.beginPath();
-                    contextForeground.moveTo(maxTextWidth*0.05, -0.25*maxTextHeight);
-                    contextForeground.lineTo(maxTextWidth*0.05, 0.25*maxTextHeight);
-                    contextForeground.lineTo(maxTextWidth*0.1, 0);
-                    contextForeground.lineTo(maxTextWidth*0.05, -0.25*maxTextHeight);
+                    contextForeground.moveTo(controlCenter.maxTextWidth*0.05, -0.25*maxTextHeight);
+                    contextForeground.lineTo(controlCenter.maxTextWidth*0.05, 0.25*maxTextHeight);
+                    contextForeground.lineTo(controlCenter.maxTextWidth*0.1, 0);
+                    contextForeground.lineTo(controlCenter.maxTextWidth*0.05, -0.25*maxTextHeight);
                     contextForeground.fill();
                     contextForeground.restore();
-                    contextForeground.strokeRect(1.5*maxTextWidth,maxTextHeight*(cCar), 0.25*maxTextWidth,maxTextHeight);
-                    if(!cars[cCar].move && cars[cCar].backwardsState === 0 && !(cars[cCar].cType == "start" && cars[cCar].counter == cars[cCar].startFrame) && noCollisionCCar2) {
-                        if(hardware.mouse.moveX > background.x+translateOffset+maxTextWidth*1.5 && hardware.mouse.moveY > background.y+translateOffset+maxTextHeight*(cCar) && hardware.mouse.moveX < background.x+translateOffset+1.75*maxTextWidth && hardware.mouse.moveY < background.y+translateOffset+maxTextHeight*(cCar+1)) {
+                    contextForeground.strokeRect(1.5*controlCenter.maxTextWidth,maxTextHeight*(cCar), 0.25*controlCenter.maxTextWidth,maxTextHeight);
+                    if(canStepBack) {
+                        if(hardware.mouse.moveX > background.x+controlCenter.translateOffset+controlCenter.maxTextWidth*1.5 && hardware.mouse.moveY > background.y+controlCenter.translateOffset+maxTextHeight*(cCar) && hardware.mouse.moveX < background.x+controlCenter.translateOffset+1.75*controlCenter.maxTextWidth && hardware.mouse.moveY < background.y+controlCenter.translateOffset+maxTextHeight*(cCar+1)) {
                         hardware.mouse.cursor = "pointer";
                         if(contextClick) {
                                 cars[cCar].lastDirectionChange = frameNo;
@@ -1789,21 +1866,33 @@ function drawObjects() {
                             }
                         }
                     }
+                    var canBackToRoot = !cars[cCar].move && cars[cCar].backwardsState === 0 && !(cars[cCar].cType == "start" && cars[cCar].counter == cars[cCar].startFrame) && noCollisionCCar2;
                     contextForeground.save();
-                    contextForeground.translate(1.75*maxTextWidth,maxTextHeight*(cCar));
-                    contextForeground.strokeStyle = cars[cCar].move || cars[cCar].backwardsState != 0 || (cars[cCar].cType == "start" && cars[cCar].counter == cars[cCar].startFrame) || !noCollisionCCar2 ? colorDark : colorLight;
+                    contextForeground.translate(1.75*controlCenter.maxTextWidth,maxTextHeight*(cCar));
+                    contextForeground.strokeStyle = canBackToRoot ? "rgb(225,220,210)" : colorDark;
                     contextForeground.fillStyle = contextForeground.strokeStyle;
-                    contextForeground.fillRect(5*maxTextWidth/64,maxTextWidth/8.1,3*maxTextWidth/32,maxTextWidth/15.8);
+                    contextForeground.fillRect(5*controlCenter.maxTextWidth/64,controlCenter.maxTextWidth/8.1,3*controlCenter.maxTextWidth/32,controlCenter.maxTextWidth/15.8);
+                    contextForeground.fillStyle = canBackToRoot ? "rgb(255,180,180)" : colorDark;
+                    contextForeground.fillRect(0.085*controlCenter.maxTextWidth,controlCenter.maxTextWidth/12,controlCenter.maxTextWidth/32,controlCenter.maxTextWidth/30);
                     contextForeground.beginPath();
-                    contextForeground.moveTo(4.5*maxTextWidth/64, maxTextWidth/8);
-                    contextForeground.lineTo(11.5*maxTextWidth/64, maxTextWidth/8);
-                    contextForeground.lineTo(maxTextWidth/8, maxTextWidth/16);
-                    contextForeground.lineTo(4.5*maxTextWidth/64, maxTextWidth/8);
+                    contextForeground.moveTo(4.5*controlCenter.maxTextWidth/64, controlCenter.maxTextWidth/8);
+                    contextForeground.lineTo(11.5*controlCenter.maxTextWidth/64, controlCenter.maxTextWidth/8);
+                    contextForeground.lineTo(controlCenter.maxTextWidth/8, controlCenter.maxTextWidth/16);
+                    contextForeground.lineTo(4.5*controlCenter.maxTextWidth/64, controlCenter.maxTextWidth/8);
                     contextForeground.fill();
+                    contextForeground.closePath();
+                    if(canBackToRoot) {
+                        contextForeground.fillStyle = "rgb(70,121,70)";
+                        contextForeground.fillRect(6*controlCenter.maxTextWidth/64,controlCenter.maxTextWidth/8.1+controlCenter.maxTextWidth/31.6,controlCenter.maxTextWidth/32,controlCenter.maxTextWidth/31.6);
+                        contextForeground.beginPath();
+                        contextForeground.moveTo(6*controlCenter.maxTextWidth/64,controlCenter.maxTextWidth/8+controlCenter.maxTextWidth/31.6);
+                        contextForeground.arc(6*controlCenter.maxTextWidth/64+controlCenter.maxTextWidth/63.2,controlCenter.maxTextWidth/8+controlCenter.maxTextWidth/31.6,controlCenter.maxTextWidth/63.2,0,Math.PI, true);
+                        contextForeground.fill();
+                    }
                     contextForeground.restore();
-                    contextForeground.strokeRect(1.75*maxTextWidth,maxTextHeight*(cCar), 0.25*maxTextWidth,maxTextHeight);
-                    if(!cars[cCar].move && cars[cCar].backwardsState === 0 && !(cars[cCar].cType == "start" && cars[cCar].counter == cars[cCar].startFrame) && noCollisionCCar2) {
-                        if(hardware.mouse.moveX > background.x+translateOffset+maxTextWidth*1.75 && hardware.mouse.moveY > background.y+translateOffset+maxTextHeight*(cCar) && hardware.mouse.moveX < background.x+translateOffset+2*maxTextWidth && hardware.mouse.moveY < background.y+translateOffset+maxTextHeight*(cCar+1)) {
+                    contextForeground.strokeRect(1.75*controlCenter.maxTextWidth,maxTextHeight*(cCar), 0.25*controlCenter.maxTextWidth,maxTextHeight);
+                    if(canBackToRoot) {
+                        if(hardware.mouse.moveX > background.x+controlCenter.translateOffset+controlCenter.maxTextWidth*1.75 && hardware.mouse.moveY > background.y+controlCenter.translateOffset+maxTextHeight*(cCar) && hardware.mouse.moveX < background.x+controlCenter.translateOffset+2*controlCenter.maxTextWidth && hardware.mouse.moveY < background.y+controlCenter.translateOffset+maxTextHeight*(cCar+1)) {
                         hardware.mouse.cursor = "pointer";
                             if(contextClick) {
                                 cars[cCar].move = true;
@@ -1814,13 +1903,25 @@ function drawObjects() {
                     }
                 }
             } else {
-                maxTextHeight/=2;
+                var maxTextHeight = controlCenter.maxTextHeight/2;
                 for(var cCar = 0; cCar < 2; cCar++) {
-                    var cText = cCar == 0 ? (carParams.autoModeRuns ? getString("appScreenCarControlCenterAutoModePause") : getString("appScreenCarControlCenterAutoModeResume")) : getString("appScreenCarControlCenterAutoModeBackToRoot");
-                    var cTextHeight = Math.min(0.625*maxTextHeight,getFontSize(measureFontSize(cText,fontFamily,0.625*maxTextWidth/cText.length,0.625*maxTextWidth, 5, 1.2,0), "px"));
-                    contextForeground.font = cTextHeight +"px "+fontFamily;
+                    var cText, cTextHeight, cTextWidth;
+                    if(cCar == 0 && carParams.autoModeRuns) {
+                        cText = getString("appScreenCarControlCenterAutoModePause");
+                        cTextHeight = controlCenter.fontSizes.carSizes.auto.pause;
+                        cTextWidth = controlCenter.fontSizes.carSizes.auto.pauseLength;
+                    } else if(cCar == 0) {
+                        cText = getString("appScreenCarControlCenterAutoModeResume");
+                        cTextHeight = controlCenter.fontSizes.carSizes.auto.resume;
+                        cTextWidth = controlCenter.fontSizes.carSizes.auto.resumeLength;
+                    } else {
+                        cText = getString("appScreenCarControlCenterAutoModeBackToRoot");
+                        cTextHeight = controlCenter.fontSizes.carSizes.auto.backToRoot;
+                        cTextWidth = controlCenter.fontSizes.carSizes.auto.backToRootLength; 
+                    }
+                    contextForeground.font = cTextHeight +"px "+controlCenter.fontFamily;
                     contextForeground.fillStyle = colorLight;
-                    if(hardware.mouse.moveX > background.x+translateOffset+maxTextWidth/8 && hardware.mouse.moveY > background.y+translateOffset+maxTextHeight*(cCar) && hardware.mouse.moveX < background.x+translateOffset+2*maxTextWidth && hardware.mouse.moveY < background.y+translateOffset+maxTextHeight*(cCar+1)) {
+                    if(hardware.mouse.moveX > background.x+controlCenter.translateOffset+controlCenter.maxTextWidth/8 && hardware.mouse.moveY > background.y+controlCenter.translateOffset+maxTextHeight*(cCar) && hardware.mouse.moveX < background.x+controlCenter.translateOffset+2*controlCenter.maxTextWidth && hardware.mouse.moveY < background.y+controlCenter.translateOffset+maxTextHeight*(cCar+1)) {
                         if(cCar == 0) {
                             hardware.mouse.cursor = "pointer";
                             if(contextClick && carParams.autoModeRuns) {
@@ -1845,45 +1946,42 @@ function drawObjects() {
                     if(cCar == 1 && (carParams.autoModeRuns || carParams.isBackToRoot)) {
                         contextForeground.fillStyle = colorDark;
                     }
-                    contextForeground.fillText(cText,maxTextWidth/8+0.9375*maxTextWidth-contextForeground.measureText(cText).width/2,maxTextHeight*(cCar)+maxTextHeight/2);
+                    contextForeground.fillText(cText,controlCenter.maxTextWidth/8+0.9375*controlCenter.maxTextWidth-cTextWidth/2,maxTextHeight*(cCar)+maxTextHeight/2);
                     contextForeground.strokeStyle = colorLight;
-                    contextForeground.strokeRect(maxTextWidth/8,maxTextHeight*(cCar), 1.875*maxTextWidth,maxTextHeight);
+                    contextForeground.strokeRect(controlCenter.maxTextWidth/8,maxTextHeight*(cCar), 1.875*controlCenter.maxTextWidth,maxTextHeight);
                 }
             }
         /////CONTROL CENTER/Trains/////
         } else {
-            maxTextHeight/=trains.length;
-            var speedTextHeight = Math.min(0.5*maxTextHeight,getFontSize(measureFontSize(getString("appScreenControlCenterSpeedOff"),fontFamily,0.5*(maxTextWidth*0.5)/getString("appScreenControlCenterSpeedOff").length,0.5*(maxTextWidth*0.5), 5, 1.2,0), "px"));
             for(var cTrain = 0; cTrain < trains.length; cTrain++) {
+                var maxTextHeight = controlCenter.maxTextHeight/trains.length;
                 var noCollisionCTrain = !collisionCourse(cTrain, false);
-                if(noCollisionCTrain && hardware.mouse.moveX > background.x+translateOffset+maxTextWidth && hardware.mouse.moveY > background.y+translateOffset+maxTextHeight*cTrain && hardware.mouse.moveX < background.x+translateOffset+1.75*maxTextWidth && hardware.mouse.moveY < background.y+translateOffset+maxTextHeight*(cTrain+1)) {
+                if(noCollisionCTrain && hardware.mouse.moveX > background.x+controlCenter.translateOffset+controlCenter.maxTextWidth && hardware.mouse.moveY > background.y+controlCenter.translateOffset+maxTextHeight*cTrain && hardware.mouse.moveX < background.x+controlCenter.translateOffset+1.75*controlCenter.maxTextWidth && hardware.mouse.moveY < background.y+controlCenter.translateOffset+maxTextHeight*(cTrain+1)) {
                     hardware.mouse.cursor = "pointer";
                 }
-                var cText = getString(["appScreenTrainNames",cTrain]);
-                var cTextHeight = Math.min(0.625*maxTextHeight,getFontSize(measureFontSize(cText,fontFamily,0.625*maxTextWidth/cText.length,0.625*maxTextWidth, 5, 1.2,0), "px"));
-                contextForeground.font = cTextHeight +"px "+fontFamily;
+                contextForeground.font = controlCenter.fontSizes.trainSizes.trainNames[cTrain] +"px "+controlCenter.fontFamily;
                 contextForeground.fillStyle = colorLight;
-                contextForeground.fillText(cText,maxTextWidth/8+0.875*maxTextWidth/2-contextForeground.measureText(cText).width/2,maxTextHeight*cTrain+maxTextHeight/2);
+                contextForeground.fillText(getString(["appScreenTrainNames",cTrain]),controlCenter.maxTextWidth/8+0.875*controlCenter.maxTextWidth/2-controlCenter.fontSizes.trainSizes.trainNamesLength[cTrain]/2,maxTextHeight*cTrain+maxTextHeight/2);
                 var cTrainPercent = trains[cTrain].speedInPercent == undefined || !trains[cTrain].move || trains[cTrain].accelerationSpeed < 0 ? 0 : Math.round(trains[cTrain].speedInPercent);
                 contextForeground.fillStyle = contextForeground.strokeStyle = colorBorder;
-                contextForeground.strokeRect(maxTextWidth/8,maxTextHeight*cTrain,0.875*maxTextWidth,maxTextHeight);
+                contextForeground.strokeRect(controlCenter.maxTextWidth/8,maxTextHeight*cTrain,0.875*controlCenter.maxTextWidth,maxTextHeight);
                 if(cTrainPercent == 0) {
                     contextForeground.fillStyle = noCollisionCTrain ? colorLight : colorDark;
-                    contextForeground.font = speedTextHeight +"px "+fontFamily;
-                    contextForeground.fillText(getString("appScreenControlCenterSpeedOff"),maxTextWidth+(maxTextWidth*0.5)/2-contextForeground.measureText(getString("appScreenControlCenterSpeedOff")).width/2,maxTextHeight*cTrain+maxTextHeight/2);
+                    contextForeground.font = controlCenter.fontSizes.trainSizes.speedTextHeight +"px "+controlCenter.fontFamily;
+                    contextForeground.fillText(getString("appScreenControlCenterSpeedOff"),controlCenter.maxTextWidth+(controlCenter.maxTextWidth*0.5)/2-contextForeground.measureText(getString("appScreenControlCenterSpeedOff")).width/2,maxTextHeight*cTrain+maxTextHeight/2);
                 }
-                contextForeground.fillRect(maxTextWidth,maxTextHeight*cTrain,maxTextWidth*0.5*cTrainPercent/100,maxTextHeight);
+                contextForeground.fillRect(controlCenter.maxTextWidth,maxTextHeight*cTrain,controlCenter.maxTextWidth*0.5*cTrainPercent/100,maxTextHeight);
                 if(cTrainPercent > 0) {
                     contextForeground.fillStyle = colorDark;
-                    contextForeground.font = speedTextHeight +"px "+fontFamily;
-                    contextForeground.fillText((cTrainPercent+"%"),maxTextWidth+(maxTextWidth*0.5)/2-contextForeground.measureText((cTrainPercent+"%")).width/2,maxTextHeight*cTrain+maxTextHeight/2);
+                    contextForeground.font = controlCenter.fontSizes.trainSizes.speedTextHeight +"px "+controlCenter.fontFamily;
+                    contextForeground.fillText((cTrainPercent+"%"),controlCenter.maxTextWidth+(controlCenter.maxTextWidth*0.5)/2-contextForeground.measureText((cTrainPercent+"%")).width/2,maxTextHeight*cTrain+maxTextHeight/2);
                 }
-                var isClick = (contextClick && hardware.mouse.upX-background.x-translateOffset > maxTextWidth && hardware.mouse.upX-background.x-translateOffset < maxTextWidth*1.5 && hardware.mouse.upY-background.y-translateOffset > maxTextHeight*cTrain && hardware.mouse.upY-background.y-translateOffset < maxTextHeight*cTrain+maxTextHeight);
-                var isHold = (hardware.mouse.rightClickHold && hardware.mouse.downX-background.x-translateOffset > maxTextWidth && hardware.mouse.downX-background.x-translateOffset < maxTextWidth*1.5 && hardware.mouse.downY-background.y-translateOffset > maxTextHeight*cTrain && hardware.mouse.downY-background.y-translateOffset < maxTextHeight*cTrain+maxTextHeight && hardware.mouse.moveX-background.x-translateOffset > maxTextWidth && hardware.mouse.moveX-background.x-translateOffset < maxTextWidth*1.5 && hardware.mouse.moveY-background.y-translateOffset > maxTextHeight*cTrain && hardware.mouse.moveY-background.y-translateOffset < maxTextHeight*cTrain+maxTextHeight);
-                if(noCollisionCTrain && (isClick || isHold || (hardware.mouse.rightClickWheelScrolls && hardware.mouse.wheelScrollY != 0 && hardware.mouse.wheelX-background.x-translateOffset > maxTextWidth && hardware.mouse.wheelX-background.x-translateOffset < maxTextWidth*1.5 && hardware.mouse.wheelY-background.y-translateOffset > maxTextHeight*cTrain && hardware.mouse.wheelY-background.y-translateOffset < maxTextHeight*cTrain+maxTextHeight))) {
+                var isClick = (contextClick && hardware.mouse.upX-background.x-controlCenter.translateOffset > controlCenter.maxTextWidth && hardware.mouse.upX-background.x-controlCenter.translateOffset < controlCenter.maxTextWidth*1.5 && hardware.mouse.upY-background.y-controlCenter.translateOffset > maxTextHeight*cTrain && hardware.mouse.upY-background.y-controlCenter.translateOffset < maxTextHeight*cTrain+maxTextHeight);
+                var isHold = (hardware.mouse.rightClickHold && hardware.mouse.downX-background.x-controlCenter.translateOffset > controlCenter.maxTextWidth && hardware.mouse.downX-background.x-controlCenter.translateOffset < controlCenter.maxTextWidth*1.5 && hardware.mouse.downY-background.y-controlCenter.translateOffset > maxTextHeight*cTrain && hardware.mouse.downY-background.y-controlCenter.translateOffset < maxTextHeight*cTrain+maxTextHeight && hardware.mouse.moveX-background.x-controlCenter.translateOffset > controlCenter.maxTextWidth && hardware.mouse.moveX-background.x-controlCenter.translateOffset < controlCenter.maxTextWidth*1.5 && hardware.mouse.moveY-background.y-controlCenter.translateOffset > maxTextHeight*cTrain && hardware.mouse.moveY-background.y-controlCenter.translateOffset < maxTextHeight*cTrain+maxTextHeight);
+                if(noCollisionCTrain && (isClick || isHold || (hardware.mouse.rightClickWheelScrolls && hardware.mouse.wheelScrollY != 0 && hardware.mouse.wheelX-background.x-controlCenter.translateOffset > controlCenter.maxTextWidth && hardware.mouse.wheelX-background.x-controlCenter.translateOffset < controlCenter.maxTextWidth*1.5 && hardware.mouse.wheelY-background.y-controlCenter.translateOffset > maxTextHeight*cTrain && hardware.mouse.wheelY-background.y-controlCenter.translateOffset < maxTextHeight*cTrain+maxTextHeight))) {
                 var newSpeed;
                 if(isClick || isHold) {
-                    newSpeed = Math.round(((isClick ? hardware.mouse.upX : hardware.mouse.moveX)-background.x-translateOffset-maxTextWidth)/maxTextWidth/0.5*100);
+                    newSpeed = Math.round(((isClick ? hardware.mouse.upX : hardware.mouse.moveX)-background.x-controlCenter.translateOffset-controlCenter.maxTextWidth)/controlCenter.maxTextWidth/0.5*100);
                 } else {
                     if(trains[cTrain].speedInPercent ==undefined || trains[cTrain].speedInPercent == 0) {
                         trains[cTrain].speedInPercent = minTrainSpeed;
@@ -1908,8 +2006,8 @@ function drawObjects() {
                    hardware.mouse.cursor = "grabbing";
                 }
             }
-            contextForeground.strokeRect(maxTextWidth,maxTextHeight*cTrain,maxTextWidth*0.5,maxTextHeight);
-            if(noCollisionCTrain && (contextClick && hardware.mouse.upX-background.x-translateOffset > maxTextWidth*1.5 && hardware.mouse.upX-background.x-translateOffset < maxTextWidth*1.75 && hardware.mouse.upY-background.y-translateOffset > maxTextHeight*cTrain && hardware.mouse.upY-background.y-translateOffset < maxTextHeight*cTrain+maxTextHeight)) {
+            contextForeground.strokeRect(controlCenter.maxTextWidth,maxTextHeight*cTrain,controlCenter.maxTextWidth*0.5,maxTextHeight);
+            if(noCollisionCTrain && (contextClick && hardware.mouse.upX-background.x-controlCenter.translateOffset > controlCenter.maxTextWidth*1.5 && hardware.mouse.upX-background.x-controlCenter.translateOffset < controlCenter.maxTextWidth*1.75 && hardware.mouse.upY-background.y-controlCenter.translateOffset > maxTextHeight*cTrain && hardware.mouse.upY-background.y-controlCenter.translateOffset < maxTextHeight*cTrain+maxTextHeight)) {
                 if(trains[cTrain].accelerationSpeed > 0){ 
                     actionSync("trains", cTrain, [{"accelerationSpeed":trains[cTrain].accelerationSpeed *= -1}], null);
                 } else if(!trains[cTrain].move) {
@@ -1919,7 +2017,7 @@ function drawObjects() {
                 }
             }
             contextForeground.save();
-            contextForeground.translate(maxTextWidth*1.625,maxTextHeight/2+maxTextHeight*cTrain);
+            contextForeground.translate(controlCenter.maxTextWidth*1.625,maxTextHeight/2+maxTextHeight*cTrain);
             contextForeground.strokeStyle = noCollisionCTrain ? (trains[cTrain].move && trains[cTrain].accelerationSpeed > 0 ? "rgb(255,180,180)" : "rgb(180,255,180)") : colorDark;
             contextForeground.fillStyle = contextForeground.strokeStyle;
             contextForeground.lineWidth = Math.ceil(maxTextHeight/20);
@@ -1933,12 +2031,12 @@ function drawObjects() {
             contextForeground.arc(0,0,maxTextHeight/3.5,0.15*Math.PI,1.85*Math.PI);
             contextForeground.stroke();   
             contextForeground.restore();
-                contextForeground.strokeRect(maxTextWidth*1.5,maxTextHeight*cTrain,maxTextWidth*0.25,maxTextHeight);
-               if(contextClick && !trains[cTrain].move && hardware.mouse.upX-background.x-translateOffset > maxTextWidth*1.7 && hardware.mouse.upX-background.x-translateOffset < maxTextWidth*2 && hardware.mouse.upY-background.y-translateOffset > maxTextHeight*cTrain && hardware.mouse.upY-background.y-translateOffset < maxTextHeight*cTrain+maxTextHeight) {
+                contextForeground.strokeRect(controlCenter.maxTextWidth*1.5,maxTextHeight*cTrain,controlCenter.maxTextWidth*0.25,maxTextHeight);
+               if(contextClick && !trains[cTrain].move && hardware.mouse.upX-background.x-controlCenter.translateOffset > controlCenter.maxTextWidth*1.7 && hardware.mouse.upX-background.x-controlCenter.translateOffset < controlCenter.maxTextWidth*2 && hardware.mouse.upY-background.y-controlCenter.translateOffset > maxTextHeight*cTrain && hardware.mouse.upY-background.y-controlCenter.translateOffset < maxTextHeight*cTrain+maxTextHeight) {
                     actionSync("trains", cTrain, [{"standardDirection":!trains[cTrain].standardDirection}],null); 
             }
             contextForeground.save();
-                contextForeground.translate(maxTextWidth*1.875,maxTextHeight/2+maxTextHeight*cTrain);
+                contextForeground.translate(controlCenter.maxTextWidth*1.875,maxTextHeight/2+maxTextHeight*cTrain);
             if(!trains[cTrain].standardDirection) {
                 contextForeground.rotate(Math.PI);
             }
@@ -1946,30 +2044,30 @@ function drawObjects() {
                 contextForeground.strokeStyle = colorDark;    
             } else {
                 contextForeground.strokeStyle = colorLight;
-                if(hardware.mouse.moveX > background.x+translateOffset+1.75*maxTextWidth && hardware.mouse.moveY > background.y+translateOffset+maxTextHeight*cTrain && hardware.mouse.moveX < background.x+translateOffset+2*maxTextWidth && hardware.mouse.moveY < background.y+translateOffset+maxTextHeight*cTrain+maxTextHeight) {
+                if(hardware.mouse.moveX > background.x+controlCenter.translateOffset+1.75*controlCenter.maxTextWidth && hardware.mouse.moveY > background.y+controlCenter.translateOffset+maxTextHeight*cTrain && hardware.mouse.moveX < background.x+controlCenter.translateOffset+2*controlCenter.maxTextWidth && hardware.mouse.moveY < background.y+controlCenter.translateOffset+maxTextHeight*cTrain+maxTextHeight) {
                     hardware.mouse.cursor = "pointer";
                 }
             }
             contextForeground.fillStyle = contextForeground.strokeStyle;
             contextForeground.lineWidth = Math.ceil(maxTextHeight/5);
             contextForeground.beginPath();
-            contextForeground.moveTo(-maxTextWidth*0.075, 0);
-            contextForeground.lineTo(maxTextWidth*0.051, 0);
+            contextForeground.moveTo(-controlCenter.maxTextWidth*0.075, 0);
+            contextForeground.lineTo(controlCenter.maxTextWidth*0.051, 0);
             contextForeground.stroke();
             contextForeground.beginPath();
-            contextForeground.moveTo(maxTextWidth*0.05, -0.25*maxTextHeight);
-            contextForeground.lineTo(maxTextWidth*0.05, 0.25*maxTextHeight);
-            contextForeground.lineTo(maxTextWidth*0.1, 0);
-            contextForeground.lineTo(maxTextWidth*0.05, -0.25*maxTextHeight);
+            contextForeground.moveTo(controlCenter.maxTextWidth*0.05, -0.25*maxTextHeight);
+            contextForeground.lineTo(controlCenter.maxTextWidth*0.05, 0.25*maxTextHeight);
+            contextForeground.lineTo(controlCenter.maxTextWidth*0.1, 0);
+            contextForeground.lineTo(controlCenter.maxTextWidth*0.05, -0.25*maxTextHeight);
             contextForeground.fill();
             contextForeground.restore();
-            contextForeground.strokeRect(maxTextWidth*1.75,maxTextHeight*cTrain,maxTextWidth*0.25,maxTextHeight);
+            contextForeground.strokeRect(controlCenter.maxTextWidth*1.75,maxTextHeight*cTrain,controlCenter.maxTextWidth*0.25,maxTextHeight);
             }
         }
         contextForeground.restore();
         hardware.mouse.rightClickWheelScrolls = false;
     } else {
-        showCarCenter = null;
+        controlCenter.showCarCenter = null;
         hardware.mouse.rightClick = false;
     }
 
@@ -2141,16 +2239,16 @@ var trainParams;
 var switches = {inner2outer: {left: {turned: false, angles: {normal: 1.01*Math.PI, turned: 0.941*Math.PI}}, right: {turned: false, angles: {normal: 1.5*Math.PI, turned: 1.56*Math.PI}}}, outer2inner: {left: {turned: false, angles: {normal: 0.25*Math.PI, turned: 2.2*Math.PI}}, right: {turned: false, angles: {normal: 0.27*Math.PI, turned: 0.35*Math.PI}}}, innerWide: {left: {turned: true, angles: {normal: 1.44*Math.PI, turned: 1.37*Math.PI}}, right: {turned: false, angles: {normal: 1.02*Math.PI, turned: 1.1*Math.PI}}}, outerAltState3: {left: {turned: false, angles: {normal: 1.75*Math.PI, turned: 1.85*Math.PI}}, right: {turned: false, angles: {normal: 0.75*Math.PI, turned: 0.65*Math.PI}}}};
 var switchesBeforeFac;
 
-
 var cars = [{src: 16, fac: 0.02, speed: 0.0008, startFrameFac: 0.65, angles: {start: Math.PI,normal: 0}},{src: 17, fac: 0.02, speed: 0.001, startFrameFac: 0.335, angles: {start: 0, normal: Math.PI}},{src: 0, fac: 0.0202, speed: 0.00082, startFrameFac: 0.65, angles: {start: Math.PI, normal: 0}}];
 var carPaths = [{start: [{type: "curve_right", x:[0.29,0.29],y:[0.38,0.227]}], normal: [{type: "curve_hright", x:[0.29,0.29],y:[0.227,0.347]},{type: "linear_vertical", x:[0,0], y: [0,0]},{type: "curve_hright2", x:[0,0], y: [0.282,0.402]},{type: "curve_l2r", x:[0,0.25], y: [0.402,0.412]},{type: "linear", x: [0.25,0.225], y: [0.412,0.412]},{type: "curve_right", x: [0.225,0.225], y: [0.412,0.227]},{type: "linear", x:[0.225,0.29], y:[0.227,0.227]}]},{start: [{type: "curve_left", x:[0.26,0.26], y: [0.3,0.198]},{type: "curve_r2l", x:[0.26,0.216], y: [0.198,0.197]}], normal: [{type: "curve_left", x:[0.216,0.216], y: [0.197,0.419]},{type: "linear", x:[0.216,0.246], y:[0.419,419]},{type: "curve_r2l", x:[0.246,0.286], y:[0.419,0.43]},{type: "linear", x:[0.286,0.31], y:[0.43,0.43]},{type: "curve_hleft", x:[0.31,0.31], y: [0.43,0.33]},{type: "linear_vertical", x:[0,0], y: [0,0]},{type: "curve_hleft2", x:[0,0], y: [0.347,0.197]},{type: "linear", x:[0,0.216], y:[0.197,0.197]},{type: "curve_left", x:[0.216,0.216], y: [0.197,0.419]},{type: "linear", x:[0.216,0.246], y:[0.419,419]},{type: "curve_r2l", x:[0.246,0.276], y:[0.419,0.434]},{type: "linear", x:[0.276,0.38], y:[0.434,434]},{type: "curve_l2r", x:[0.38,0.46], y:[0.434,0.419]},{type: "linear", x:[0.46,0.631], y:[0.419,0.419]},{type: "curve_r2l", x:[0.631,0.665], y:[0.419,0.43]},{type: "curve_left", x:[0.665,0.665], y: [0.43,0.322]},{type: "curve_l2r", x:[0.665,0.59], y: [0.322,0.39]},{type: "linear", x:[0.59,0.339], y:[0.39,0.39]},{type: "curve_hright", x:[0.339,0.339], y: [0.39,0.32]},{type: "linear_vertical", x:[0,0], y: [0,0]},{type: "curve_hleft2", x:[0,0], y: [0.347,0.197]},{type: "linear", x:[0,0.216], y:[0.197,0.197]}]},{start: [{type: "curve_right", x:[0.2773,0.2773],y:[0.38,0.227]},{type: "linear", x:[0.2773,0.29],y:[0.227,0.227]}], normal: [{type: "curve_hright", x:[0.29,0.29],y:[0.227,0.347]},{type: "linear_vertical", x:[0,0], y: [0,0]},{type: "curve_hleft2", x:[0,0], y: [0.299,0.419]},{type: "linear", x:[0,0.631], y:[0.419,0.419]},{type: "curve_r2l", x:[0.631,0.665], y:[0.419,0.43]},{type: "curve_left", x:[0.665,0.665], y: [0.43,0.322]},{type: "curve_l2r", x:[0.665,0.59], y: [0.322,0.39]},{type: "linear", x:[0.59,0.339], y:[0.39,0.39]},{type: "curve_l2r", x:[0.339,0.25], y: [0.39,0.412]},{type: "linear", x: [0.25,0.225], y: [0.412,0.412]},{type: "curve_right", x: [0.225,0.225], y: [0.412,0.227]},{type: "linear", x:[0.225,0.29], y:[0.227,0.227]}]}]; 
 var carWays = [];
 var carParams = {init: true, wayNo: 7};
-var showCarCenter = null;
 
 var taxOffice = {params: {number: 45, frameNo: 6, frameProbability: 0.6, fire: {x: 0.07, y: 0.06, size: 0.000833, color:{red: {red: 200, green: 0, blue: 0, alpha: 0.4}, yellow: {red: 255, green: 160, blue: 0, alpha: 1}, probability: 0.8}}, smoke: {x: 0.07, y: 0.06, size: 0.02, color: {red: 130, green: 120, blue: 130, alpha: 0.3}}, bluelights: {frameNo: 16, cars: [{frameNo: 0, x: [-0.0105, -0.0026], y: [0.177, 0.0047], size: 0.001},{frameNo: 3, x: [0.0275, -0.00275], y: [0.1472, 0.0092], size: 0.001},{frameNo: 5, x: [0.056, 0.0008], y: [0.18, 0.015], size: 0.001}]}}};
 
 var classicUI = {trainSwitch: {src: 11, selectedTrainDisplay: {}}, transformer: {src:13, asrc: 12, angle:(Math.PI/5),input:{src:14,angle:0,minAngle:minTrainSpeed,maxAngle:1.5*Math.PI},directionInput:{src:15,}}, switches: {showDuration: 11, showDurationFade: 33, showDurationEnd: 44}};
+
+var controlCenter = {showCarCenter: null, fontFamily: "sans-serif"};
 
 var hardware = {mouse: {moveX:0, moveY:0,downX:0, downY:0, downTime: 0,upX:0, upY:0, upTime: 0, isMoving: false, isHold: false, rightClick: false, cursor: "default"}};
 var client = {devicePixelRatio: 1,realScaleMax:6,realScaleMin:1.2};
@@ -2214,6 +2312,7 @@ function resize() {
     });
 
     placeClassicUIElements();
+    calcControlCenter();
 
     if(typeof placeOptions == "function") {
         placeOptions("resize");
@@ -2662,6 +2761,7 @@ window.onload = function() {
             } else if(message.data.k == "ready") {
                 trains = message.data.trains;
                 placeClassicUIElements();
+                calcControlCenter();
                 if(typeof placeOptions == "function") {        
                     placeOptions("load");
                 }
@@ -2769,8 +2869,8 @@ window.onload = function() {
 						} else if (typeof appReadyNotification == "function") {
 							appReadyNotification();
 						}
-					}
-                    setLocalAppDataCopy(); 
+                        setLocalAppDataCopy();
+					} 
                     toHide.style.display = "none";
                 }, timeLoad*900);
         }, timeWait*1000);

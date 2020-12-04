@@ -31,9 +31,13 @@ function followLink(input1, input2, input3){
 function followIntent(url) {
         var redirect = "./";
 	var server = "https://app.moroway.de/";
-	if(url !==null &&url.indexOf(server) === 0) {
+	if(url !== null && url.indexOf(server) === 0) {
 	   url = url.replace(server,"");
-	   redirect += "?mode=multiplay&id=" + url.replace(/[/].*$/,"") + "&key=" + url.replace(/.*[/]([^/]+)$/,"$1");
+	   var id = url.replace(/[/].*$/,""); 
+	   var key = url.replace(/.*[/]([^/]+)([/])?$/,"$1");
+	   if(url.length > 0 && id.match(/^[0-9]+$/)  !== null && key.match(/^[a-zA-Z0-9]+$/) !== null) {
+                redirect += "?mode=multiplay&id=" + id + "&key=" + key;
+	   }
 	   followLink(redirect, "_blank", LINK_STATE_INTERNAL_HTML);
 	} else {
 	   followLink(redirect + "html_platform/start.html","_self", LINK_STATE_INTERNAL_LICENSE_FILE);		

@@ -13,8 +13,8 @@ function placeOptions(state){
 			if (container !== null) {
 				container.parentNode.removeChild(document.querySelector("#settingsimport"));
 			}
-			menu.items.controlCenter.addEventListener("click", function(){hardware.mouse.rightClick = !hardware.mouse.rightClick || showCarCenter; showCarCenter = false;}, false);
-			menu.items.carControlCenter.addEventListener("click", function(){hardware.mouse.rightClick = !hardware.mouse.rightClick || !showCarCenter; showCarCenter = true;}, false);
+			menu.items.controlCenter.addEventListener("click", function(){hardware.mouse.rightClick = !hardware.mouse.rightClick || controlCenter.showCarCenter; controlCenter.showCarCenter = false;}, false);
+			menu.items.carControlCenter.addEventListener("click", function(){hardware.mouse.rightClick = !hardware.mouse.rightClick || !controlCenter.showCarCenter; controlCenter.showCarCenter = true;}, false);
 		  }
 		  for (var item in menu.items) {
 		  	menu.items[item].style.display = "none";

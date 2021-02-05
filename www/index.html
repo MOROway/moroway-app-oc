@@ -39,11 +39,16 @@
 	</head>
 
 	<body>
-	
+		
 		<!-- Server side notifications -->
 		<div id="server-note">
 			<div id="server-note-title"></div>
 			<div id="server-note-text"></div>
+			<div id="server-note-later">
+				<input id="server-note-later-box" type="checkbox">
+				<label for="server-note-later-box" data-stringid-content="generalServerNoteButtonLater"></label>
+			</div>
+			<div id="server-note-later-info" data-stringid-content="generalServerNoteInfoLater"></div>
 			<div id="server-note-buttons">
 				<div id="server-note-button-go" data-stringid-content="generalServerNoteButtonGo" data-stringid-content-case="upper"></div>
 				<div id="server-note-button-no" data-stringid-content="generalServerNoteButtonNo" data-stringid-content-case="upper"></div>
@@ -116,6 +121,11 @@
 		
 		<!-- loading animation -->
 		<div id="branding"><img src="assets/asset_background_train.png" alt=""></div>
+		<div id="snake"><div></div></div>
+		<div id="percent">
+			<div id="percent-progress"></div>
+			<div id="percent-text">0%</div>
+		</div>
 		
 		<!-- notify -->
 		<div id="canvas-notifier" class="mdl-js-snackbar mdl-snackbar">

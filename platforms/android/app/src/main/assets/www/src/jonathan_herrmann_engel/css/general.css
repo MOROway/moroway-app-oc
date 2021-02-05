@@ -116,6 +116,15 @@ h2 {
 	line-height: 150%;
 	overflow: auto;
 }
+#server-note-later {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+#server-note-later-info {
+	font-size: 80%;
+	margin-bottom: 1vh;
+}
 #server-note-buttons {
 	font-size: 150%;
 	color: lightblue;

@@ -222,11 +222,11 @@ function onMouseRight(event) {
     event.preventDefault();
     if(controlCenter.showCarCenter === null && hardware.mouse.rightClick) {
         controlCenter.showCarCenter = true;
-        notify(getString("appScreenCarControlCenterTitle"), false, 1250,null,null, client.y);
+        notify(getString("appScreenCarControlCenterTitle"), false, 1000,null,null, client.y, false);
     } else {
         hardware.mouse.rightClick = !hardware.mouse.rightClick; 
         if(hardware.mouse.rightClick) {
-           notify(getString("appScreenControlCenterTitle"), false, 1250,null,null, client.y);
+           notify(getString("appScreenControlCenterTitle"), false, 1000,null,null, client.y, false);
         }
         hardware.mouse.rightClickEvent = false; 
         hardware.mouse.rightClickWheelScrolls = false;
@@ -298,12 +298,12 @@ function getTouchEnd(event) {
     if(hardware.mouse.rightClickPrepare != undefined && hardware.mouse.rightClickPrepare) {
         if(controlCenter.showCarCenter === null && hardware.mouse.rightClick) {
             controlCenter.showCarCenter = true;
-            notify(getString("appScreenCarControlCenterTitle"), false, 1250,null,null, client.y);
+            notify(getString("appScreenCarControlCenterTitle"), false, 1000,null,null, client.y, false);
             hardware.mouse.rightClickPrepare = false;
         } else {
             hardware.mouse.rightClick = !hardware.mouse.rightClick; 
             if(hardware.mouse.rightClick) {
-               notify(getString("appScreenControlCenterTitle"), false, 1250,null,null, client.y);
+               notify(getString("appScreenControlCenterTitle"), false, 1000,null,null, client.y, false);
             }
             hardware.mouse.rightClickEvent = hardware.mouse.rightClickHold = hardware.mouse.rightClickPrepare = false;
         }  
@@ -478,7 +478,7 @@ function placeClassicUIElements(){
      context.textBaseline = "middle";
     var longestName = 0;
     for (var i = 1; i < trains.length; i++){
-        if (getString(["appScreenTrainNames",i]).length > getString(["appScreenTrainNames",i-1]).length){
+        if (getString(["appScreenTrainNames",i]).length > getString(["appScreenTrainNames",longestName]).length){
             longestName = i;
         }
     }
@@ -579,11 +579,51 @@ function drawObjects() {
             context.translate(currentObject.x, currentObject.y);
             context.rotate(currentObject.displayAngle);
             
-            var flickerDuration = 3;    
+            var flickerDuration = 3;
+            if(frameNo <= trains[input1].lastDirectionChange+flickerDuration*6 && !trains[input1].move && Math.random() > 0.7 && (i < 0 || i == trains[input1].cars.length-1)) {
+                context.save();
+                context.strokeStyle = "rgba(255,255,224," + (client.isSmall ? 1 : 0.5) + ")";
+                context.lineWidth = (client.isTiny ? 1 : 3);
+                if(i == -1 && trains[input1].standardDirection) {
+                    if(trains[input1].flickerFacFront == undefined) {
+                       trains[input1].flickerFacFront = 2;
+                    }
+                    if(trains[input1].flickerFacFrontOffset == undefined) {
+                       trains[input1].flickerFacFrontOffset = 3.5;
+                    }
+                    context.beginPath();
+                    context.moveTo(currentObject.width/trains[input1].flickerFacFront+background.width/500,-currentObject.height/trains[input1].flickerFacFrontOffset);
+                    context.lineTo(currentObject.width/trains[input1].flickerFacFront, -currentObject.height/4);
+                    context.moveTo(currentObject.width/trains[input1].flickerFacFront+background.width/500, currentObject.height/trains[input1].flickerFacFrontOffset);
+                    context.lineTo(currentObject.width/trains[input1].flickerFacFront, currentObject.height/4);
+                    context.stroke();
+                    context.closePath();
+                }
+                if(i == trains[input1].cars.length-1 && !trains[input1].standardDirection) {
+                    if(trains[input1].flickerFacBack == undefined) {
+                       trains[input1].flickerFacBack = 2;
+                    }
+                    if(trains[input1].flickerFacBackOffset == undefined) {
+                       trains[input1].flickerFacBackOffset = 3.5;
+                    }
+                    context.beginPath();
+                    context.moveTo(-currentObject.width/trains[input1].flickerFacBack-background.width/500,-currentObject.height/trains[input1].flickerFacBackOffset);
+                    context.lineTo(-currentObject.width/trains[input1].flickerFacBack, -currentObject.height/4);
+                    context.moveTo(-currentObject.width/trains[input1].flickerFacBack-background.width/500, currentObject.height/trains[input1].flickerFacBackOffset);
+                    context.lineTo(-currentObject.width/trains[input1].flickerFacBack, currentObject.height/4);
+                    context.stroke();
+                    context.closePath();
+                }
+                context.restore();
+            }
+            context.save();
+            if(currentObject.assetFlip) {
+                context.scale(-1, 1);
+            }
             if (konamistate < 0) {
                 context.scale(-1,1);
                 context.textAlign = "center";
-                var icon = i == -1 ? getString(["appScreenTrainIcons",input1]) : getString("appScreenTrainCarIcon");
+                var icon = i == -1 || currentObject.konamiUseTrainIcon ? getString(["appScreenTrainIcons",input1]) : getString("appScreenTrainCarIcon");
                 context.font = measureFontSize(icon, "sans-serif",100,currentObject.width, 5, currentObject.width/100, 0);
                 context.fillStyle = "white";
                 context.scale(1,currentObject.height/getFontSize(context.font,"px"));
@@ -593,14 +633,15 @@ function drawObjects() {
             } else {
                 drawImage(pics[currentObject.src], -currentObject.width/2,-currentObject.height/2, currentObject.width, currentObject.height);
             }
-
+            context.restore();
             collisionCourse(input1, true);
             context.beginPath();
             context.rect(-currentObject.width/2, -currentObject.height/2, currentObject.width, currentObject.height);
             if(context.isPointInPath(hardware.mouse.moveX, hardware.mouse.moveY)) {
                 hardware.mouse.cursor = "pointer";
             }
-            if ((hardware.lastInputTouch < hardware.lastInputMouse && context.isPointInPath(hardware.mouse.moveX, hardware.mouse.moveY) && hardware.mouse.isHold) || (hardware.lastInputTouch > hardware.lastInputMouse && context.isPointInPath(hardware.mouse.moveX, hardware.mouse.moveY) && hardware.mouse.isHold)) {
+            if (context.isPointInPath(hardware.mouse.moveX, hardware.mouse.moveY) && hardware.mouse.isHold) {
+                inTrain = true;
                 if(hardware.lastInputTouch < hardware.lastInputMouse) {
                     hardware.mouse.isHold = false;
                 }
@@ -648,64 +689,198 @@ function drawObjects() {
         for(var i = -1; i < trains[input1].cars.length; i++){
             drawTrain(i);
         }
-    }       
+    }
+    
+    function collisionMatrix() {
+        function collisionWeight(input1){
+            contextForeground.save(); 
+            contextForeground.setTransform(1, 0, 0, 1, 0, 0);
+            var currentObjects = [{}];
+            currentObjects[0] = copyJSObject(trains[input1]);
+            if(trains[input1].cars.length == 0 && trains[input1].standardDirection) {
+                currentObjects[0].facs = [{x: -0.5, weight: trainParams.innerCollisionFac/4},{x: 0, weight: trainParams.innerCollisionFac/3},{x: 0.5, weight: trainParams.innerCollisionFac/2},{x: 1, weight: 1}];
+            } else if (trains[input1].cars.length == 0) {
+                currentObjects[0].facs = [{x: -1, weight: 1},{x: -0.5, weight: trainParams.innerCollisionFac/2},{x: 0, weight: trainParams.innerCollisionFac/3},{x: 0.5, weight: trainParams.innerCollisionFac/4}];
+            } else if(trains[input1].standardDirection) {
+                currentObjects[0].facs = [{x: -1, weight: trainParams.innerCollisionFac},{x: -0.5, weight: trainParams.innerCollisionFac},{x: 0, weight: trainParams.innerCollisionFac},{x: 0.5, weight: trainParams.innerCollisionFac},{x: 1, weight: 1}];
+            } else {
+                currentObjects[0].facs = [{x: -1, weight: trainParams.innerCollisionFac},{x: -0.5, weight: trainParams.innerCollisionFac/2},{x: 0, weight: trainParams.innerCollisionFac/3},{x: 0.5, weight: trainParams.innerCollisionFac/4}];
+            }
+            for(var i = 0; i < trains[input1].cars.length; i++) {
+                 currentObjects[i+1] = copyJSObject(trains[input1].cars[i]);
+                if(i == trains[input1].cars.length-1 && !trains[input1].standardDirection) {
+                    currentObjects[i+1].facs = [{x: -1, weight: 1},{x: -0.5, weight:  trainParams.innerCollisionFac},{x: 0, weight:  trainParams.innerCollisionFac},{x: 0.5, weight:  trainParams.innerCollisionFac},{x: 1, weight:  trainParams.innerCollisionFac}];
+                } else if (i == trains[input1].cars.length-1) {
+                    currentObjects[i+1].facs = [{x: -0.5, weight: trainParams.innerCollisionFac/4},{x: 0, weight:  trainParams.innerCollisionFac/3},{x: 0.5, weight:  trainParams.innerCollisionFac/2},{x: 1, weight:  trainParams.innerCollisionFac}];
+                } else {
+                    currentObjects[i+1].facs = [{x: -1, weight:  trainParams.innerCollisionFac},{x: -0.5, weight:  trainParams.innerCollisionFac},{x: 0, weight:  trainParams.innerCollisionFac},{x: 0.5, weight:  trainParams.innerCollisionFac},{x: 1, weight: trainParams.innerCollisionFac}];
+                }
+            }
+            var collisionMatrix = [];
+            currentObjects.forEach(function(currentObject) {
+                currentObject.points = [];
+                currentObject.pointNo = 0;
+                currentObject.facs.forEach(function(fac){
+                    currentObject.points[currentObject.pointNo] = {};
+                    currentObject.points[currentObject.pointNo+1] = {};
+                    currentObject.points[currentObject.pointNo].x = currentObject.x+fac.x*Math.sin(Math.PI/2-currentObject.displayAngle)*currentObject.width/2+Math.cos(-Math.PI/2-currentObject.displayAngle)*currentObject.height/2;
+                    currentObject.points[currentObject.pointNo].y = currentObject.y+fac.x*Math.cos(Math.PI/2-currentObject.displayAngle)*currentObject.width/2-Math.sin(-Math.PI/2-currentObject.displayAngle)*currentObject.height/2;
+                    currentObject.points[currentObject.pointNo].weight = fac.weight;
+                    currentObject.points[currentObject.pointNo+1].x = currentObject.x+fac.x*Math.sin(Math.PI/2-currentObject.displayAngle)*currentObject.width/2-Math.cos(-Math.PI/2-currentObject.displayAngle)*currentObject.height/2;
+                    currentObject.points[currentObject.pointNo+1].y = currentObject.y+fac.x*Math.cos(Math.PI/2-currentObject.displayAngle)*currentObject.width/2+Math.sin(-Math.PI/2-currentObject.displayAngle)*currentObject.height/2;
+                    currentObject.points[currentObject.pointNo+1].weight = fac.weight;
+                    if(fac.weight == 1) {
+                        currentObject.points[currentObject.pointNo+2] = {};
+                        currentObject.points[currentObject.pointNo+3] = {};
+                        currentObject.points[currentObject.pointNo+4] = {};
+                        currentObject.points[currentObject.pointNo+5] = {};
+                        currentObject.points[currentObject.pointNo+2].x = currentObject.x+fac.x*Math.sin(Math.PI/2-currentObject.displayAngle)*currentObject.width/2;
+                        currentObject.points[currentObject.pointNo+2].y = currentObject.y+fac.x*Math.cos(Math.PI/2-currentObject.displayAngle)*currentObject.width/2;
+                        currentObject.points[currentObject.pointNo+2].weight = fac.weight;
+                        currentObject.points[currentObject.pointNo+3].x = currentObject.x+fac.x*1.2*Math.sin(Math.PI/2-currentObject.displayAngle)*currentObject.width/2;
+                        currentObject.points[currentObject.pointNo+3].y = currentObject.y+fac.x*1.2*Math.cos(Math.PI/2-currentObject.displayAngle)*currentObject.width/2;
+                        currentObject.points[currentObject.pointNo+3].weight = fac.weight;
+                        currentObject.points[currentObject.pointNo+4].x = currentObject.x+fac.x*1.1*Math.sin(Math.PI/2-currentObject.displayAngle)*currentObject.width/2+1.1*Math.cos(-Math.PI/2-currentObject.displayAngle)*currentObject.height/2;
+                        currentObject.points[currentObject.pointNo+4].y = currentObject.y+fac.x*1.1*Math.cos(Math.PI/2-currentObject.displayAngle)*currentObject.width/2-1.1*Math.sin(-Math.PI/2-currentObject.displayAngle)*currentObject.height/2;;
+                        currentObject.points[currentObject.pointNo+4].weight = fac.weight;
+                        currentObject.points[currentObject.pointNo+5].x = currentObject.x+fac.x*1.1*Math.sin(Math.PI/2-currentObject.displayAngle)*currentObject.width/2-1.1*Math.cos(-Math.PI/2-currentObject.displayAngle)*currentObject.height/2;
+                        currentObject.points[currentObject.pointNo+5].y = currentObject.y+fac.x*1.1*Math.cos(Math.PI/2-currentObject.displayAngle)*currentObject.width/2+1.1*Math.sin(-Math.PI/2-currentObject.displayAngle)*currentObject.height/2;
+                        currentObject.points[currentObject.pointNo+5].weight = fac.weight;
+                    }
+                    currentObject.pointNo += fac.weight == 1 ? 4 : 2;
+                    if(debug) {
+                        currentObject.points.forEach(function(point) {
+                            var c = Math.max(Math.round(100*(100-100*point.weight))/100,0);
+                            contextForeground.fillStyle = "rgb(" + c + "," + c + "," + c + ")";
+                            contextForeground.fillRect(point.x-3,point.y-3,6,6);
+                        });
+                    }
+                });
+                for(var i = 0; i < trains.length; i++){
+                    if(collisionMatrix[i] === undefined) {
+                        collisionMatrix[i] = 0;
+                    }
+                    if(input1 != i && (trains[input1].circleFamily === null || trains[i].circleFamily === null || trains[input1].circleFamily == trains[i].circleFamily)){
+                        for(var j = -1; j < trains[i].cars.length; j++){
+                            var currentObject2 = j >= 0 ? trains[i].cars[j] : trains[i];
+                            contextForeground.save();
+                            contextForeground.translate(currentObject2.x, currentObject2.y); 
+                            contextForeground.rotate(currentObject2.displayAngle);
+                            contextForeground.beginPath();
+                            contextForeground.rect(-currentObject2.width/2, -currentObject2.height/2, currentObject2.width, currentObject2.height);
+                            currentObject.points.forEach(function(point) {
+                                if (contextForeground.isPointInPath(point.x, point.y) && point.weight > collisionMatrix[i]){
+                                   collisionMatrix[i] = point.weight;
+                                }
+                            });
+                            contextForeground.restore();
+                      }
+                    }
+                }
+            });
+            contextForeground.restore();
+            return(collisionMatrix);
+        }
 
+        var collisionMatrix = [];
+        for(var i = 0; i < trains.length; i++){
+            collisionMatrix[i] = collisionWeight(i);
+        }
+        return collisionMatrix;
+    }
     function collisionCourse(input1, input2){
+        for(var i = 0; i < trains.length; i++){
+            if(input1 != i){
+                if((trainCollisions[input1][i] >= trainParams.innerCollisionFac) || (trainCollisions[input1][i] > trainCollisions[i][input1])) {
+                    if(trains[input1].move){
+                        var note = (input2) ? [{getString:["appScreenObjectHasCrashed", "."]}, {getString:[["appScreenTrainNames",input1]]}, {getString:[["appScreenTrainNames",i]]}] : null;
+                        actionSync("trains",input1, [{move:false},{accelerationSpeed:0},{accelerationSpeedCustom:1}],note);
+                        actionSync("train-crash",input1,[{move:false},{accelerationSpeed:0},{accelerationSpeedCustom:1}]);
+                        trains[input1].move = false;
+                        trains[input1].accelerationSpeed = 0;
+                        trains[input1].accelerationSpeedCustom = 1;
+                    }
+                   return true;
+                }
+            }
+        }
+        return false;/*
         context.save();
         context.fillStyle = "black"; 
         context.setTransform(1, 0, 0, 1, 0, 0);
         var collision = false;
-        var currentObject;
-        var fac;
-        if(trains[input1].standardDirection){
-            fac = 1;
-            currentObject = trains[input1];
+        var currentObjects = [{}];
+        var innerFac = 0.7;
+        currentObjects[0] = copyJSObject(trains[input1]);
+        if(trains[input1].cars.length == 0 && trains[input1].standardDirection) {
+            currentObjects[0].facs = [{x: 0.5, y: innerFac/2},{x: 1, y: 1}];
+        } else if (trains[input1].cars.length == 0) {
+            currentObjects[0].facs = [{x: -0.5, y: innerFac/2},{x: -1, y: 1}];
+        } else if(trains[input1].standardDirection) {
+            currentObjects[0].facs = [{x: -1, y: innerFac},{x: -0.5, y: innerFac},{x: 0, y: innerFac},{x: 0.5, y: innerFac},{x: 1, y: 1}];
         } else {
-            fac = -1;
-            if(trains[input1].cars.length > 0) {
-                currentObject = trains[input1].cars[trains[input1].cars.length-1];
+            currentObjects[0].facs = [{x: -0.5, y: innerFac/2},{x: -1, y: innerFac}];
+        }
+        for(var i = 0; i < trains[input1].cars.length; i++) {
+             currentObjects[i+1] = copyJSObject(trains[input1].cars[i]);
+            if(i == trains[input1].cars.length-1 && !trains[input1].standardDirection) {
+                currentObjects[i+1].facs = [{x: -1, y: 1},{x: -0.5, y: innerFac},{x: 0, y: innerFac},{x: 0.5, y: innerFac},{x: 1, y: innerFac}];
+            } else if (i == trains[input1].cars.length-1) {
+                currentObjects[i+1].facs = [{x: 0.5, y: innerFac/2},{x: 1, y: innerFac}];
             } else {
-                currentObject = trains[input1];
-            }
-        }                                    
-        var x1 = currentObject.x+fac*Math.sin(Math.PI/2-currentObject.displayAngle)*currentObject.width/2+Math.cos(-Math.PI/2-currentObject.displayAngle)*currentObject.height/2;
-        var x2 = currentObject.x+fac*Math.sin(Math.PI/2-currentObject.displayAngle)*currentObject.width/2-Math.cos(-Math.PI/2-currentObject.displayAngle)*currentObject.height/2;
-        var x3 = currentObject.x+fac*Math.sin(Math.PI/2-currentObject.displayAngle)*currentObject.width/2;
-        var y1 = currentObject.y+fac*Math.cos(Math.PI/2-currentObject.displayAngle)*currentObject.width/2-Math.sin(-Math.PI/2-currentObject.displayAngle)*currentObject.height/2;
-        var y2 = currentObject.y+fac*Math.cos(Math.PI/2-currentObject.displayAngle)*currentObject.width/2+Math.sin(-Math.PI/2-currentObject.displayAngle)*currentObject.height/2;
-        var y3 = currentObject.y+fac*Math.cos(Math.PI/2-currentObject.displayAngle)*currentObject.width/2;
-        if(debug) {
-            context.fillRect(x1-3,y1-3,6,6);
-            context.fillRect(x2-3,y2-3,6,6);
-            context.fillRect(x3-3,y3-3,6,6);
-        }
-        for(var i = 0; i < trains.length; i++){
-            if(input1 != i && (trains[input1].circleFamily === null || trains[i].circleFamily === null || trains[input1].circleFamily == trains[i].circleFamily)){
-                for(var j = -1; j < trains[i].cars.length; j++){
-                    currentObject = j >= 0 ? trains[i].cars[j] : trains[i];
-                    context.save();
-                    context.translate(currentObject.x, currentObject.y); 
-                    context.rotate(currentObject.displayAngle);
-                    context.beginPath();
-                    context.rect(-currentObject.width/2, -currentObject.height/2, currentObject.width, currentObject.height);
-                    if (context.isPointInPath(x1, y1) || context.isPointInPath(x2, y2) || context.isPointInPath(x3, y3)){
-                        collision = true;
-                        if(trains[input1].move){
-                            var note = (input2) ? [{getString:["appScreenObjectHasCrashed", "."]}, {getString:[["appScreenTrainNames",input1]]}, {getString:[["appScreenTrainNames",i]]}] : null;
-                            actionSync("trains",input1, [{move:false},{accelerationSpeed:0},{accelerationSpeedCustom:1}],note);
-                            actionSync("train-crash",input1,[{move:false},{accelerationSpeed:0},{accelerationSpeedCustom:1}]);
-                            trains[input1].move = false;
-                            trains[input1].accelerationSpeed = 0;
-                            trains[input1].accelerationSpeedCustom = 1;
-                        }
-                    }
-                    context.restore();
-              }
+                currentObjects[i+1].facs = [{x: -1, y: innerFac},{x: -0.5, y: innerFac},{x: 0, y: innerFac},{x: 0.5, y: innerFac},{x: 1, y: innerFac}];
             }
         }
+        currentObjects.forEach(function(currentObject) {
+            currentObject.points = [];
+            currentObject.pointNo = 0;
+            currentObject.facs.forEach(function(fac){
+                currentObject.points[currentObject.pointNo] = {};
+                currentObject.points[currentObject.pointNo+1] = {};
+                currentObject.points[currentObject.pointNo+2] = {};
+                currentObject.points[currentObject.pointNo].x = currentObject.x+fac.x*Math.sin(Math.PI/2-currentObject.displayAngle)*currentObject.width/2+fac.y*Math.cos(-Math.PI/2-currentObject.displayAngle)*currentObject.height/2;
+                currentObject.points[currentObject.pointNo+1].x = currentObject.x+fac.x*Math.sin(Math.PI/2-currentObject.displayAngle)*currentObject.width/2-fac.y*Math.cos(-Math.PI/2-currentObject.displayAngle)*currentObject.height/2;
+                currentObject.points[currentObject.pointNo+2].x = currentObject.x+fac.x*Math.sin(Math.PI/2-currentObject.displayAngle)*currentObject.width/2;
+                currentObject.points[currentObject.pointNo].y = currentObject.y+fac.x*Math.cos(Math.PI/2-currentObject.displayAngle)*currentObject.width/2-fac.y*Math.sin(-Math.PI/2-currentObject.displayAngle)*currentObject.height/2;
+                currentObject.points[currentObject.pointNo+1].y = currentObject.y+fac.x*Math.cos(Math.PI/2-currentObject.displayAngle)*currentObject.width/2+fac.y*Math.sin(-Math.PI/2-currentObject.displayAngle)*currentObject.height/2;
+                currentObject.points[currentObject.pointNo+2].y = currentObject.y+fac.x*Math.cos(Math.PI/2-currentObject.displayAngle)*currentObject.width/2;
+                currentObject.pointNo+=3;
+                if(debug) {
+                    currentObject.points.forEach(function(point) {
+                        context.fillRect(point.x-3,point.y-3,6,6);
+                    });
+                }
+            });
+            for(var i = 0; i < trains.length; i++){
+                if(input1 != i && (trains[input1].circleFamily === null || trains[i].circleFamily === null || trains[input1].circleFamily == trains[i].circleFamily)){
+                    for(var j = -1; j < trains[i].cars.length; j++){
+                        var currentObject2 = j >= 0 ? trains[i].cars[j] : trains[i];
+                        context.save();
+                        context.translate(currentObject2.x, currentObject2.y); 
+                        context.rotate(currentObject2.displayAngle);
+                        context.beginPath();
+                        context.rect(-currentObject2.width/2, -currentObject2.height/2, currentObject2.width, currentObject2.height);
+                        currentObject.points.forEach(function(point) {
+                            if (context.isPointInPath(point.x, point.y)){
+                                collision = true;
+                                if(trains[input1].move){
+                                    var note = (input2) ? [{getString:["appScreenObjectHasCrashed", "."]}, {getString:[["appScreenTrainNames",input1]]}, {getString:[["appScreenTrainNames",i]]}] : null;
+                                    actionSync("trains",input1, [{move:false},{accelerationSpeed:0},{accelerationSpeedCustom:1}],note);
+                                    actionSync("train-crash",input1,[{move:false},{accelerationSpeed:0},{accelerationSpeedCustom:1}]);
+                                    trains[input1].move = false;
+                                    trains[input1].accelerationSpeed = 0;
+                                    trains[input1].accelerationSpeedCustom = 1;
+                                }
+                            }
+                        });
+                        context.restore();
+                  }
+                }
+            }
+        });
         context.restore();
-        return(collision);
-    } 
+        return(collision);*///TODO
+    }
     
     function drawCars(input1){
         var currentObject = cars[input1];
@@ -945,7 +1120,7 @@ function drawObjects() {
                 context.rect(-currentObject.width/2, -currentObject.height/2, currentObject.width, currentObject.height);
                 if (context.isPointInPath(x1, y1) || context.isPointInPath(x2, y2) || context.isPointInPath(x3, y3)){
                     if(input2 && cars[input1].move){
-                        notify(formatJSString(getString("appScreenObjectHasCrashed", "."), getString(["appScreenCarNames",input1]), getString(["appScreenCarNames",i])), true, 2000,null,null, client.y);
+                        notify(formatJSString(getString("appScreenObjectHasCrashed", "."), getString(["appScreenCarNames",input1]), getString(["appScreenCarNames",i])), false, 2000,null,null, client.y);
                     }
                     collision = true;
                     cars[input1].move = cars[input1].backToInit = false;
@@ -1024,6 +1199,10 @@ function drawObjects() {
     }
     
     /////TRAINS/////
+    var inTrain = false;
+    for(var i = 0; i < trains.length; i++) {
+        trainCollisions = collisionMatrix(i);
+    }
     if(!resized) {
         for(var i = 0; i < trains.length; i++) {
             drawTrains(i);
@@ -1314,7 +1493,13 @@ function drawObjects() {
                     trainParams.selected = trains.length-1;
                 }
                 if (!settings.alwaysShowSelectedTrain) {
-                    notify (formatJSString(getString("appScreenTrainSelected", "."), getString(["appScreenTrainNames",trainParams.selected])), true, 1250,null, null, client.y);
+                    var timeNotify = 1250;
+                    if(classicUI.trainSwitch.notifyTimeout !== undefined && classicUI.trainSwitch.notifyTimeout !== null) {
+                        clearTimeout(classicUI.trainSwitch.notifyTimeout);
+                    }
+                    classicUI.trainSwitch.notifyTimeout = setTimeout(function() {
+                        notify(formatJSString(getString("appScreenTrainSelected", "."), getString(["appScreenTrainNames",trainParams.selected])), true, timeNotify, null, null, client.y);
+                    },timeNotify/4);
                 }
             }
         }
@@ -1333,10 +1518,9 @@ function drawObjects() {
         context.save();
         context.translate(classicUI.transformer.x+classicUI.transformer.width/2, classicUI.transformer.y+classicUI.transformer.height/2);
         context.rotate(classicUI.transformer.angle);
+        drawImage(pics[classicUI.transformer.asrc], -classicUI.transformer.width/2, -classicUI.transformer.height/2 , classicUI.transformer.width, classicUI.transformer.height);
         if(trains[trainParams.selected].accelerationSpeed > 0){
             drawImage(pics[classicUI.transformer.src], -classicUI.transformer.width/2, -classicUI.transformer.height/2 , classicUI.transformer.width, classicUI.transformer.height);
-        } else {
-            drawImage(pics[classicUI.transformer.asrc], -classicUI.transformer.width/2, -classicUI.transformer.height/2 , classicUI.transformer.width, classicUI.transformer.height);
         }
         if(!client.isSmall){
             context.save();
@@ -1500,7 +1684,7 @@ function drawObjects() {
             contextForeground.save();
             contextForeground.beginPath();
             contextForeground.arc(background.x+switches[key][side].x, background.y+switches[key][side].y, classicUI.switches.radius, 0, 2*Math.PI);
-            if (hardware.mouse.isHold && contextForeground.isPointInPath(hardware.mouse.moveX, hardware.mouse.moveY)){
+            if (hardware.mouse.isHold && contextForeground.isPointInPath(hardware.mouse.moveX, hardware.mouse.moveY) && !inTrain){
                 hardware.mouse.isHold = false;
                 if(onlineGame.enabled){
                     teamplaySync("action","switches", [key,side], [{"turned":!switches[key][side].turned}], [{getString:["appScreenSwitchTurns", "."]}]);
@@ -1644,9 +1828,46 @@ function drawObjects() {
             context.arc(rotationPoints.outer.altState3.right.x[debugPointI]+background.x,rotationPoints.outer.altState3.right.y[debugPointI]+background.y, background.width/100,0,2*Math.PI);
             context.fill();
         }
+        context.strokeStyle= "rgba(175,0,0," + (switches.sidings1.left.turned && switches.sidings2.left.turned ? "1" : "0.3") + ")";
         context.beginPath();
-        context.arc(debugPoints[debugPoint].x[debugPointI]+background.x,debugPoints[debugPoint].y[debugPointI]+background.y, background.width/100,0,2*Math.PI);
-        context.fill();
+        context.moveTo(rotationPoints.inner.sidings.first.x[0]+background.x,rotationPoints.inner.sidings.first.y[0]+background.y);
+        context.bezierCurveTo(rotationPoints.inner.sidings.first.x[1]+background.x, rotationPoints.inner.sidings.first.y[1]+background.y,rotationPoints.inner.sidings.first.x[2]+background.x, rotationPoints.inner.sidings.first.y[2]+background.y,rotationPoints.inner.sidings.first.x[3]+background.x, rotationPoints.inner.sidings.first.y[3]+background.y);
+        context.stroke();
+        context.beginPath();
+        context.moveTo(rotationPoints.inner.sidings.firstS1.x[0]+background.x,rotationPoints.inner.sidings.firstS1.y[0]+background.y);
+        context.lineTo(rotationPoints.inner.sidings.firstS1.x[1]+background.x,rotationPoints.inner.sidings.firstS1.y[1]+background.y);
+        context.stroke();
+        context.beginPath();
+        context.moveTo(rotationPoints.inner.sidings.firstS2.x[0]+background.x,rotationPoints.inner.sidings.firstS2.y[0]+background.y);
+        context.bezierCurveTo(rotationPoints.inner.sidings.firstS2.x[1]+background.x, rotationPoints.inner.sidings.firstS2.y[1]+background.y,rotationPoints.inner.sidings.firstS2.x[2]+background.x, rotationPoints.inner.sidings.firstS2.y[2]+background.y,rotationPoints.inner.sidings.firstS2.x[3]+background.x, rotationPoints.inner.sidings.firstS2.y[3]+background.y);
+        context.stroke();
+        context.strokeStyle= "rgba(150,0,0," + (switches.sidings1.left.turned && !switches.sidings2.left.turned && switches.sidings3.left.turned ? "1" : "0.3") + ")";
+        context.beginPath();
+        context.moveTo(rotationPoints.inner.sidings.second.x[0]+background.x,rotationPoints.inner.sidings.second.y[0]+background.y);
+        context.bezierCurveTo(rotationPoints.inner.sidings.second.x[1]+background.x, rotationPoints.inner.sidings.second.y[1]+background.y,rotationPoints.inner.sidings.second.x[2]+background.x, rotationPoints.inner.sidings.second.y[2]+background.y,rotationPoints.inner.sidings.second.x[3]+background.x, rotationPoints.inner.sidings.second.y[3]+background.y);
+        context.stroke();
+        context.beginPath();
+        context.moveTo(rotationPoints.inner.sidings.secondS1.x[0]+background.x,rotationPoints.inner.sidings.secondS1.y[0]+background.y);
+        context.lineTo(rotationPoints.inner.sidings.secondS1.x[1]+background.x,rotationPoints.inner.sidings.secondS1.y[1]+background.y);
+        context.stroke();
+        context.beginPath();
+        context.moveTo(rotationPoints.inner.sidings.secondS2.x[0]+background.x,rotationPoints.inner.sidings.secondS2.y[0]+background.y);
+        context.bezierCurveTo(rotationPoints.inner.sidings.secondS2.x[1]+background.x, rotationPoints.inner.sidings.secondS2.y[1]+background.y,rotationPoints.inner.sidings.secondS2.x[2]+background.x, rotationPoints.inner.sidings.secondS2.y[2]+background.y,rotationPoints.inner.sidings.secondS2.x[3]+background.x, rotationPoints.inner.sidings.secondS2.y[3]+background.y);
+        context.stroke();
+        context.beginPath();
+        context.strokeStyle= "rgba(125,0,0," + (switches.sidings1.left.turned && !switches.sidings2.left.turned && !switches.sidings3.left.turned ? "1" : "0.3") + ")";
+        context.beginPath();
+        context.moveTo(rotationPoints.inner.sidings.third.x[0]+background.x,rotationPoints.inner.sidings.third.y[0]+background.y);
+        context.bezierCurveTo(rotationPoints.inner.sidings.third.x[1]+background.x, rotationPoints.inner.sidings.third.y[1]+background.y,rotationPoints.inner.sidings.third.x[2]+background.x, rotationPoints.inner.sidings.third.y[2]+background.y,rotationPoints.inner.sidings.third.x[3]+background.x, rotationPoints.inner.sidings.third.y[3]+background.y);
+        context.stroke();
+        context.beginPath();
+        context.moveTo(rotationPoints.inner.sidings.thirdS1.x[0]+background.x,rotationPoints.inner.sidings.thirdS1.y[0]+background.y);
+        context.lineTo(rotationPoints.inner.sidings.thirdS1.x[1]+background.x,rotationPoints.inner.sidings.thirdS1.y[1]+background.y);
+        context.stroke();
+        context.beginPath();
+        context.moveTo(rotationPoints.inner.sidings.thirdS2.x[0]+background.x,rotationPoints.inner.sidings.thirdS2.y[0]+background.y);
+        context.bezierCurveTo(rotationPoints.inner.sidings.thirdS2.x[1]+background.x, rotationPoints.inner.sidings.thirdS2.y[1]+background.y,rotationPoints.inner.sidings.thirdS2.x[2]+background.x, rotationPoints.inner.sidings.thirdS2.y[2]+background.y,rotationPoints.inner.sidings.thirdS2.x[3]+background.x, rotationPoints.inner.sidings.thirdS2.y[3]+background.y);
+        context.stroke();
         context.restore();
         context.save();
         context.fillStyle = "yellow"; 
@@ -1871,22 +2092,24 @@ function drawObjects() {
                     contextForeground.translate(1.75*controlCenter.maxTextWidth,maxTextHeight*(cCar));
                     contextForeground.strokeStyle = canBackToRoot ? "rgb(225,220,210)" : colorDark;
                     contextForeground.fillStyle = contextForeground.strokeStyle;
-                    contextForeground.fillRect(5*controlCenter.maxTextWidth/64,controlCenter.maxTextWidth/8.1,3*controlCenter.maxTextWidth/32,controlCenter.maxTextWidth/15.8);
+					var maxHouseWidth = 4 * maxTextHeight;
+                    contextForeground.translate((controlCenter.maxTextWidth/4-maxHouseWidth/4)/2,0);
+                    contextForeground.fillRect(5*maxHouseWidth/64,maxHouseWidth/8.1,3*maxHouseWidth/32,maxHouseWidth/15.8);
                     contextForeground.fillStyle = canBackToRoot ? "rgb(255,180,180)" : colorDark;
-                    contextForeground.fillRect(0.085*controlCenter.maxTextWidth,controlCenter.maxTextWidth/12,controlCenter.maxTextWidth/32,controlCenter.maxTextWidth/30);
+                    contextForeground.fillRect(0.085*maxHouseWidth,maxHouseWidth/12,maxHouseWidth/32,maxHouseWidth/30);
                     contextForeground.beginPath();
-                    contextForeground.moveTo(4.5*controlCenter.maxTextWidth/64, controlCenter.maxTextWidth/8);
-                    contextForeground.lineTo(11.5*controlCenter.maxTextWidth/64, controlCenter.maxTextWidth/8);
-                    contextForeground.lineTo(controlCenter.maxTextWidth/8, controlCenter.maxTextWidth/16);
-                    contextForeground.lineTo(4.5*controlCenter.maxTextWidth/64, controlCenter.maxTextWidth/8);
+                    contextForeground.moveTo(4.5*maxHouseWidth/64, maxHouseWidth/8);
+                    contextForeground.lineTo(11.5*maxHouseWidth/64, maxHouseWidth/8);
+                    contextForeground.lineTo(maxHouseWidth/8, maxHouseWidth/16);
+                    contextForeground.lineTo(4.5*maxHouseWidth/64, maxHouseWidth/8);
                     contextForeground.fill();
                     contextForeground.closePath();
                     if(canBackToRoot) {
                         contextForeground.fillStyle = "rgb(70,121,70)";
-                        contextForeground.fillRect(6*controlCenter.maxTextWidth/64,controlCenter.maxTextWidth/8.1+controlCenter.maxTextWidth/31.6,controlCenter.maxTextWidth/32,controlCenter.maxTextWidth/31.6);
+                        contextForeground.fillRect(6*maxHouseWidth/64,maxHouseWidth/8.1+maxHouseWidth/31.6,maxHouseWidth/32,maxHouseWidth/31.6);
                         contextForeground.beginPath();
-                        contextForeground.moveTo(6*controlCenter.maxTextWidth/64,controlCenter.maxTextWidth/8+controlCenter.maxTextWidth/31.6);
-                        contextForeground.arc(6*controlCenter.maxTextWidth/64+controlCenter.maxTextWidth/63.2,controlCenter.maxTextWidth/8+controlCenter.maxTextWidth/31.6,controlCenter.maxTextWidth/63.2,0,Math.PI, true);
+                        contextForeground.moveTo(6*maxHouseWidth/64,maxHouseWidth/8+maxHouseWidth/31.6);
+                        contextForeground.arc(6*maxHouseWidth/64+maxHouseWidth/63.2,maxHouseWidth/8+maxHouseWidth/31.6,maxHouseWidth/63.2,0,Math.PI, true);
                         contextForeground.fill();
                     }
                     contextForeground.restore();
@@ -2137,7 +2360,7 @@ function drawObjects() {
         contextForeground.fill();
         contextForeground.restore();
     }
-    canvasForeground.style.cursor = (!settings.cursorascircle || !isHardwareAvailable("cursorascircle")) ? hardware.mouse.cursor : "none";
+    canvasForeground.style.cursor =  isHardwareAvailable("cursorascircle") ? (settings.cursorascircle ? "none" : hardware.mouse.cursor) : "default";
     hardware.mouse.wheelScrolls = false;
     
     /////TRANSFORM/////
@@ -2227,16 +2450,17 @@ var doubleClickWaitTime = doubleClickTime*2;
 var konamistate = 0;
 var konamiTimeOut;
 
-var pics = [{id: 0, extension: "png"},{id: 1, extension: "png"},{id: 2, extension: "png"},{id: 3, extension: "png"},{id: 4, extension: "png"},{id: 5, extension: "png"},{id: 6, extension: "png"},{id: 7, extension: "png"},{id: 8, extension: "png"},{id: 9, extension: "jpg"},{id: 10, extension: "png"},{id: 11, extension: "png"},{id: 12, extension: "png"},{id: 13, extension: "png"},{id: 14, extension: "png"},{id: 15, extension: "png"},{id: 16, extension: "png"},{id: 17, extension: "png"}];
+var pics = [{id: 0, extension: "png"},{id: 1, extension: "png"},{id: 2, extension: "png"},{id: 3, extension: "png"},{id: 4, extension: "png"},{id: 5, extension: "png"},{id: 6, extension: "png"},{id: 7, extension: "png"},{id: 8, extension: "png"},{id: 9, extension: "jpg"},{id: 10, extension: "png"},{id: 11, extension: "png"},{id: 12, extension: "png"},{id: 13, extension: "png"},{id: 14, extension: "png"},{id: 15, extension: "png"},{id: 16, extension: "png"},{id: 17, extension: "png"},{id: 18, extension: "png"},{id: 19, extension: "png"},{id: 20, extension: "png"},{id: 21, extension: "png"},{id: 22, extension: "png"}];
 
 var background = {src: 9, secondLayer: 10};
 var oldbackground;
 
 var rotationPoints;
 var trains;
+var trainCollisions;
 var minTrainSpeed = 10;
 var trainParams;
-var switches = {inner2outer: {left: {turned: false, angles: {normal: 1.01*Math.PI, turned: 0.941*Math.PI}}, right: {turned: false, angles: {normal: 1.5*Math.PI, turned: 1.56*Math.PI}}}, outer2inner: {left: {turned: false, angles: {normal: 0.25*Math.PI, turned: 2.2*Math.PI}}, right: {turned: false, angles: {normal: 0.27*Math.PI, turned: 0.35*Math.PI}}}, innerWide: {left: {turned: true, angles: {normal: 1.44*Math.PI, turned: 1.37*Math.PI}}, right: {turned: false, angles: {normal: 1.02*Math.PI, turned: 1.1*Math.PI}}}, outerAltState3: {left: {turned: false, angles: {normal: 1.75*Math.PI, turned: 1.85*Math.PI}}, right: {turned: false, angles: {normal: 0.75*Math.PI, turned: 0.65*Math.PI}}}};
+var switches = {inner2outer: {left: {turned: false, angles: {normal: 1.01*Math.PI, turned: 0.941*Math.PI}}, right: {turned: false, angles: {normal: 1.5*Math.PI, turned: 1.56*Math.PI}}}, outer2inner: {left: {turned: false, angles: {normal: 0.25*Math.PI, turned: 2.2*Math.PI}}, right: {turned: false, angles: {normal: 0.27*Math.PI, turned: 0.35*Math.PI}}}, innerWide: {left: {turned: false, angles: {normal: 1.44*Math.PI, turned: 1.37*Math.PI}}, right: {turned: false, angles: {normal: 1.02*Math.PI, turned: 1.1*Math.PI}}}, outerAltState3: {left: {turned: true, angles: {normal: 1.75*Math.PI, turned: 1.85*Math.PI}}, right: {turned: true, angles: {normal: 0.75*Math.PI, turned: 0.65*Math.PI}}}, sidings1: {left: {turned: false, angles: {normal: 1.75*Math.PI, turned: 1.7*Math.PI}}}, sidings2: {left: {turned: false, angles: {normal: 1.65*Math.PI, turned: 1.72*Math.PI}}}, sidings3: {left: {turned: false, angles: {normal: 1.65*Math.PI, turned: 1.73*Math.PI}}}};
 var switchesBeforeFac;
 
 var cars = [{src: 16, fac: 0.02, speed: 0.0008, startFrameFac: 0.65, angles: {start: Math.PI,normal: 0}},{src: 17, fac: 0.02, speed: 0.001, startFrameFac: 0.335, angles: {start: 0, normal: Math.PI}},{src: 0, fac: 0.0202, speed: 0.00082, startFrameFac: 0.65, angles: {start: Math.PI, normal: 0}}];
@@ -2263,6 +2487,15 @@ var debug = false;
 /******************************************
 *         Window Event Listeners          *
 ******************************************/
+function resizeCars(oldBg) {
+    cars.forEach(function(car){
+        car.speed *= background.width/oldBg.width;
+        car.x *= background.width/oldBg.width;
+        car.y *= background.height/oldBg.height;
+        car.width *= background.width / oldBg.width;
+        car.height *= background.height / oldBg.height;
+    });
+}
 function resize() {
     resized = true;
     client.realScale = client.touchScale = client.lastTouchScale = 1;
@@ -2272,7 +2505,7 @@ function resize() {
     placeBackground();
     
     animateWorker.postMessage({k: "resize", background: background,oldbackground: oldbackground});   
-    
+
     carWays.forEach(function(way){
         Object.keys(way).forEach(function(cType) {
             way[cType].forEach(function(point){
@@ -2280,14 +2513,8 @@ function resize() {
                 point.y*=background.height/oldbackground.height;
             });
         });
-    });
-    cars.forEach(function(car){
-        car.speed *= background.width/oldbackground.width;
-        car.x *= background.width/oldbackground.width;
-        car.y *= background.height/oldbackground.height;
-        car.width *= background.width / oldbackground.width;
-        car.height *= background.height / oldbackground.height;
-    });
+    });    
+    resizeCars(oldbackground);
 
     taxOffice.params.fire.x *= background.width/oldbackground.width;
     taxOffice.params.fire.y *= background.height/oldbackground.height;
@@ -2319,14 +2546,8 @@ function resize() {
     }
 }
 window.onload = function() {
-     
-    function styleTheProcentCounter() {
-        context.textAlign = "center";
-        context.fillStyle = "white";
-        context.font = "300% Arial";
-    }
-
-    function chooseInputMethod(event){
+	
+	function chooseInputMethod(event){
         client.realScale = 1;
         client.lastTouchScale=1;
         client.touchScale=1;
@@ -2701,7 +2922,13 @@ window.onload = function() {
         placeBackground();
        
         defineCarParams();
-        placeCarsAtInitialPositions();
+        if(settings.saveGame && !onlineGame.enabled && window.localStorage.getItem("morowayAppSavedCars") != null && window.localStorage.getItem("morowayAppSavedCarParams") != null && window.localStorage.getItem("morowayAppSavedBg") != null && window.localStorage.getItem("morowayAppSavedWithVersion") != null) {
+           cars = JSON.parse(window.localStorage.getItem("morowayAppSavedCars"));
+           carParams = JSON.parse(window.localStorage.getItem("morowayAppSavedCarParams"));
+           resizeCars(JSON.parse(window.localStorage.getItem("morowayAppSavedBg")));
+        } else {
+            placeCarsAtInitialPositions();
+        }
         
         //TAX OFFICE
         taxOffice.fire = [];
@@ -2755,7 +2982,11 @@ window.onload = function() {
                         trainPics[i].cars[j].width = pics[trains[i].cars[j].src].width;
                     };
                 }
-                animateWorker.postMessage({k: "setTrainPics", trainPics: trainPics});
+                if(settings.saveGame && !onlineGame.enabled && window.localStorage.getItem("morowayAppSavedGameTrains") != null && window.localStorage.getItem("morowayAppSavedGameSwitches") != null && window.localStorage.getItem("morowayAppSavedBg") != null && window.localStorage.getItem("morowayAppSavedWithVersion") != null) {
+                    animateWorker.postMessage({k: "setTrainPics", trainPics: trainPics, savedTrains: JSON.parse(window.localStorage.getItem("morowayAppSavedGameTrains")), savedBg:  JSON.parse(window.localStorage.getItem("morowayAppSavedBg")), savedWithVersion: JSON.parse(window.localStorage.getItem("morowayAppSavedWithVersion"))});
+                } else {
+                    animateWorker.postMessage({k: "setTrainPics", trainPics: trainPics});
+                }
             } else if(message.data.k == "setTrainParams") {
                 trainParams = message.data.trainParams;
             } else if(message.data.k == "ready") {
@@ -2774,6 +3005,28 @@ window.onload = function() {
                 resize();
                 drawInterval = message.data.animateInterval;
                 drawObjects();
+                var timeWait = 0.5;
+                var timeLoad = 1.5;
+                setTimeout(function(){
+                        destroy([document.querySelector("#snake"),document.querySelector("#percent")]);
+                        var toHide = document.querySelector("#branding");
+                        if(toHide != null && !onlineGame.enabled) {
+                            toHide.style.transition = "opacity " + timeLoad + "s ease-in";
+                            toHide.style.opacity = "0";
+                            setTimeout(function(){
+                                var localAppData = getLocalAppDataCopy();
+                                if(settings.classicUI && !settings.alwaysShowSelectedTrain){ 
+                                    notify(formatJSString(getString("appScreenTrainSelected", "."), getString(["appScreenTrainNames",trainParams.selected]), getString("appScreenTrainSelectedAuto", " ")), true,3000,null,null, client.y);
+                                } else if(localAppData !== null && (localAppData.version.major < APP_DATA.version.major || localAppData.version.minor < APP_DATA.version.minor) && typeof appUpdateNotification == "function") { 
+                                    appUpdateNotification();
+                                } else if (typeof appReadyNotification == "function") {
+                                    appReadyNotification();
+                                }
+                                setLocalAppDataCopy();
+                                destroy(toHide);
+                            }, timeLoad*900);
+                        }
+                }, timeWait*1000);
             } else if(message.data.k == "setTrains") {
                 message.data.trains.forEach(function(train,i){
                     trains[i].x = train.x;
@@ -2789,6 +3042,7 @@ window.onload = function() {
                     trains[i].width = train.width;
                     trains[i].height = train.height;
                     trains[i].displayAngle = train.displayAngle;
+                    trains[i].assetFlip = train.assetFlip;
                     trains[i].circleFamily = train.circleFamily;
                     trains[i].move = train.move;
                     trains[i].lastDirectionChange = train.lastDirectionChange;
@@ -2803,6 +3057,8 @@ window.onload = function() {
                         trains[i].cars[j].width = car.width;
                         trains[i].cars[j].height = car.height;
                         trains[i].cars[j].displayAngle = car.displayAngle;
+                        trains[i].cars[j].assetFlip = car.assetFlip;
+                        trains[i].cars[j].konamiUseTrainIcon = car.konamiUseTrainIcon;
                         if(debug) {
                             trains[i].cars[j].front.x = car.front.x;
                             trains[i].cars[j].front.y = car.front.y;
@@ -2824,14 +3080,49 @@ window.onload = function() {
                 trains = message.data.trains;
                 rotationPoints = message.data.rotationPoints;
                 teamplaySync("sync-ready");
+            } else if(message.data.k == "save-game") {
+                if(typeof(window.localStorage) != "undefined") {
+                    if(settings.saveGame && !onlineGame.enabled) {
+                        window.localStorage.setItem("morowayAppSavedGameTrains", JSON.stringify(message.data.saveTrains));
+                        var saveSwitches = {};
+                        Object.keys(switches).forEach(function(key) {
+                            saveSwitches[key] = {};
+                            Object.keys(switches[key]).forEach(function(side) {
+                                saveSwitches[key][side] = switches[key][side].turned;
+                            });
+                        });
+                        window.localStorage.setItem("morowayAppSavedGameSwitches", JSON.stringify(saveSwitches));
+                        window.localStorage.setItem("morowayAppSavedCars", JSON.stringify(cars));
+                        window.localStorage.setItem("morowayAppSavedCarParams", JSON.stringify(carParams));
+                        window.localStorage.setItem("morowayAppSavedBg", JSON.stringify(background));
+                        window.localStorage.setItem("morowayAppSavedWithVersion", JSON.stringify(APP_DATA.version));
+                    }
+                    animateWorker.postMessage({k: "game-saved"});
+                }
             } else if(message.data.k == "debug") {
                 rotationPoints = message.data.rotationPoints;
 				switchesBeforeFac =message.data.switchesBeforeFac;
                 if(!debug) {
                     console.log(message.data.animateInterval);
                 }
+                console.log(message.data.trains);
                 debug=true;
             }
+        }
+        if(settings.saveGame && !onlineGame.enabled && window.localStorage.getItem("morowayAppSavedGameTrains") != null && window.localStorage.getItem("morowayAppSavedGameSwitches") != null && window.localStorage.getItem("morowayAppSavedBg") != null && window.localStorage.getItem("morowayAppSavedWithVersion") != null) {
+            var savedSwitches = JSON.parse(window.localStorage.getItem("morowayAppSavedGameSwitches"));
+            Object.keys(savedSwitches).forEach(function(key) {
+                Object.keys(savedSwitches[key]).forEach(function(side) {
+                    switches[key][side].turned = savedSwitches[key][side];
+                });
+            });
+        } else if(!settings.saveGame) {
+           window.localStorage.removeItem("morowayAppSavedGameTrains");
+           window.localStorage.removeItem("morowayAppSavedGameSwitches");
+           window.localStorage.removeItem("morowayAppSavedCars");
+           window.localStorage.removeItem("morowayAppSavedCarParams");
+           window.localStorage.removeItem("morowayAppSavedBg");
+           window.localStorage.removeItem("morowayAppSavedWithVersion");
         }
         animateWorker.postMessage({k: "start", background: background, switches: switches, online: onlineGame.enabled, onlineInterval: onlineGame.animateInterval});
     }
@@ -2848,32 +3139,17 @@ window.onload = function() {
         );
     }
     
-    function stopPace(showNote) {
-        var timeWait = 0.5;
-        var timeLoad = 1.5;
-        var toDestroy = document.querySelector("body > .pace");
-		if(toDestroy != null) {
-			toDestroy.parentNode.removeChild(toDestroy);
-		}
-        setTimeout(function(){
-                var toHide = document.querySelector("#branding");
-                toHide.style.transition = "opacity " + timeLoad + "s ease-in";
-                toHide.style.opacity = "0";
-                setTimeout(function(){
-					if(showNote){
-						var localAppData = getLocalAppDataCopy();
-						if(settings.classicUI && !settings.alwaysShowSelectedTrain){ 
-							notify(formatJSString(getString("appScreenTrainSelected", "."), getString(["appScreenTrainNames",trainParams.selected]), getString("appScreenTrainSelectedAuto", " ")), true,3000,null,null, client.y);
-						} else if(localAppData !== null && (localAppData.version.major < APP_DATA.version.major || localAppData.version.minor < APP_DATA.version.minor) && typeof appUpdateNotification == "function") { 
-							appUpdateNotification();
-						} else if (typeof appReadyNotification == "function") {
-							appReadyNotification();
-						}
-                        setLocalAppDataCopy();
-					} 
-                    toHide.style.display = "none";
-                }, timeLoad*900);
-        }, timeWait*1000);
+    function destroy(toDestroyElems) {
+        if(typeof toDestroyElems == "object") {
+            if(!Array.isArray(toDestroyElems)){
+                toDestroyElems = [toDestroyElems];
+            }
+            toDestroyElems.forEach( function(toDestroy) {
+                if(toDestroy != null) {
+                    toDestroy.parentNode.removeChild(toDestroy);
+                }
+            });
+        }
     }
     
     settings = getSettings();
@@ -2927,17 +3203,16 @@ window.onload = function() {
                     elem.appendChild(elemStyle);
                 }
                 window.clearInterval(loadingAnimElemChangingFilter);
-                document.querySelector("#branding").style.display = "none";
+                destroy(document.querySelector("#branding"));
             }
             function showStartGame(){
                 hideLoadingAnimation();
                 onlineGame.stop = false;
-                onlineGame.stopRequestByMe = false;
-                document.addEventListener("visibilitychange", pauseGameIfBackground);
-                window.addEventListener("beforeunload", function () {
-                    document.removeEventListener("visibilitychange", pauseGameIfBackground);
-                    if(onlineGame.stopRequestByMe) {
-                        onlineConnection.send({mode: "resume"});
+                document.addEventListener("visibilitychange", function() { 
+                    if (document.hidden) {
+                        onlineConnection.send({mode: "pause-request"});
+                    } else {
+                        onlineConnection.send({mode: "resume-request"});
                     }
                 });
                 var parent = document.querySelector("#content");
@@ -3052,15 +3327,6 @@ window.onload = function() {
                         task.d = obj;
                         onlineConnection.send({mode:"sync-task", message: JSON.stringify(task)});    
                     }
-                }
-            }
-            function pauseGameIfBackground() {
-                if (document.hidden) {
-                    onlineGame.stopRequestByMe = true;
-                    onlineConnection.send({mode: "pause"});
-                } else {
-                    onlineGame.stopRequestByMe = false;
-                    onlineConnection.send({mode: "resume"});
                 }
             }
             onlineConnection.socket = new WebSocket(host);
@@ -3347,7 +3613,17 @@ window.onload = function() {
         document.querySelectorAll("#content > #game, #game > #game-gameplay").forEach(function(elem) {
             elem.style.display = "block";
         });
-        Pace.on("hide", function(){stopPace(true);});
+        Pace.on("hide", function(){
+			destroy(document.querySelector("body > .pace"));
+			setTimeout(function() {
+                var toShowElems = [document.querySelector("#snake"),document.querySelector("#percent")];
+                toShowElems.forEach( function(toShow) {
+                    if(toShow != null) {
+                        toShow.style.display = "block";
+                    }
+                });
+			},2500);
+		});
     }
     hardware.lastInputMouse = hardware.lastInputTouch = 0;
     canvasForeground.addEventListener("touchstart",chooseInputMethod);
@@ -3364,17 +3640,14 @@ window.onload = function() {
         pics[pic.id].src = "assets/asset" +  pic.id + "." + pic.extension;
         pics[pic.id].onload = function() {
             loadNo++;
+            var cPercent = Math.round(100 * (loadNo / finalPicNo));
+			document.querySelector("#percent #percent-text").textContent = cPercent + "%";
+			document.querySelector("#percent #percent-progress").style.left = -100+cPercent + "%";
             if (loadNo == finalPicNo) {
                 Pace.stop();
-                stopPace(false);
+                destroy(document.querySelector("body > .pace"));
+                setTimeout(function(){destroy(document.querySelector("#percent"));},1000);
                 initialDisplay();            
-            } else {
-                context.clearRect(0, 0, canvas.width, canvas.height);
-                var currentText = Math.round(100 * (loadNo / finalPicNo)) + "%";
-                context.save();
-                styleTheProcentCounter();
-                context.fillText(currentText, canvas.width / 2, canvas.height / 2);
-                context.restore();
             }
         };
         pics[pic.id].onerror = function() {

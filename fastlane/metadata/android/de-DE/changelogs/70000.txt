@@ -1,0 +1,6 @@
+10 JAHRE MOROWAY APP
+
+Drei zusätzliche Züge: Thalys, Regionalzug und Straßenbahn.
+Zentrale Abstellgleise sind nutzbar.
+Option, den Zustand des Spieles zu speichern.
+Fehlerkorrekturen.

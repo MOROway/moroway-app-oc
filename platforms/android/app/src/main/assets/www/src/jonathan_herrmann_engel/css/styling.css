@@ -1,3 +1,15 @@
+@keyframes snake {
+	0% {
+		transform: rotate(0deg);
+	}
+	50% {
+		transform: rotate(180deg);
+	}
+	100% {
+		transform: rotate(360deg);
+	}
+}
+
 body { 
 	margin: 0%;
 	overflow: hidden;
@@ -13,7 +25,7 @@ canvas {
 	-webkit-tap-highlight-color: transparent;
 }
 
-#branding {
+#branding, #snake {
 	position: fixed;
 	left: 0;
 	top: 0;
@@ -23,14 +35,64 @@ canvas {
 	background: inherit;
 }
 
-#branding img {
+#snake {
+	background: none;
+	display: none;
+	animation: snake 0.4s infinite;
+}
+
+#branding img, #snake div {
 	width: 20%;
 	max-width: 400px;
-	opacity: 1;
 	position: absolute;
 	transform: translate(-50%,-50%);
 	left: 50%;
 	top: 50%;
+}
+
+#snake div {
+	width: 5vw;
+	height: 5vw;
+	border: 3px solid rgb(0, 0, 0);
+    border-radius: 50%;
+    border-right-color: rgba(0, 0, 0,0);
+    border-bottom-color: rgba(0, 0, 0,0.5);
+    border-left-color: rgba(0, 0, 0,0.75);
+    content: ' ';
+}
+
+#percent {
+	position: fixed;
+	display: none;
+	left: 0;
+	bottom: 0;
+	z-index: 3;
+	width: 100vw;
+}
+
+#percent #percent-progress {
+	position: fixed;
+	left: 0;
+	bottom: 0;
+	content: ' ';
+	background: rgb(207, 207, 207);
+	width: 100vw;
+	height: 50px;
+	left: -100%;
+	transition: left 0.2s;
+}
+
+#percent #percent-text {
+	position: fixed;
+	right: 0;
+	bottom: 0;
+	text-align: right;
+	font-size: 30px;
+	height: 50px;
+	line-height: 50px;
+	padding-right: 30px;
+	color: rgb(207, 207, 207);
+	text-shadow: -1px 1px 5px rgb(48, 48, 48), 1px 1px 5px rgb(48, 48, 48), 1px -1px 5px rgb(48, 48, 48), -1px -1px 5px rgb(48, 48, 48);
 }
 
 #canvas-options {
@@ -45,7 +107,9 @@ canvas {
 	top: 0;
 	right: 0;
 	height: 100vh;
+	height: -webkit-fill-available;
 	width: 450px;
+	max-width: 100vw;
 }
 
 #content > * {

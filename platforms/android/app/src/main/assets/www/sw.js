@@ -1,4 +1,4 @@
-var updatedSW = 76; //TO BE INCREASED ON EACH NEW VERSION
+var updatedSW = 77; //TO BE INCREASED ON EACH NEW VERSION
 
 //generate cache-name from app-version, branch and sw-version
 var locationstr = location.pathname;
@@ -36,6 +36,11 @@ var urlsToCache = [
   'assets/asset15.png',
   'assets/asset16.png',
   'assets/asset17.png',
+  'assets/asset18.png',
+  'assets/asset19.png',
+  'assets/asset20.png',
+  'assets/asset21.png',
+  'assets/asset22.png',
   'assets/helpasset1_bug_report.png',
   'assets/helpasset2_desc.jpg',
   'assets/helpasset3_source.png',
@@ -103,30 +108,19 @@ self.addEventListener('fetch', function(event) {
     caches.match(event.request)
       .then(function(response) {
         if (response !== undefined) {
-		  return response;
+          return response;
         }
-		
-		var fetchRequest = event.request.clone();
-
+        var fetchRequest = event.request.clone();
         return fetch(fetchRequest).then(
           function(response) {
-            if(!response || response.status !== 200 || response.type !== 'basic' || !response.url.startsWith(self.registration.scope)) {
-              return response;
-            }
-			
-            var responseToCache = response.clone();
-
-            caches.open(CACHE_NAME)
-              .then(function(cache) {
-                cache.put(event.request, responseToCache);
-              });
-
             return response;
           }
-        );
-	  }
-	)
-    );
+        ).catch(function(error) {
+          return caches.open(CACHE_NAME).then(function(cache) {
+            return cache.match(event.request, {ignoreSearch: true});
+          });
+        });
+  }));
 });
 
 self.addEventListener('activate', function (event) {

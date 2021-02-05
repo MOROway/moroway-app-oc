@@ -20,16 +20,6 @@
 				navigator.app.exitApp();
 			});
 			
-			var localAppData = getLocalAppDataCopy();
-			if(localAppData !== null && (localAppData.version.major != APP_DATA.version.major || localAppData.version.minor != APP_DATA.version.minor)) {				
-				navigator.notification.confirm(getString("platformOcAppUpdate"), function(button) {
-					if (button == 1){
-						followLink("whatsnew/#newest", "_blank", LINK_STATE_INTERNAL_HTML);
-					}
-				}, getString("platformOcAppUpdateTitel"), [getString("platformOcAppUpdateYes"),getString("platformOcAppUpdateNo")]);
-			}	
-			setLocalAppDataCopy();
-			
 			var ocSettings = getSettingsOC();		
 			if(ocSettings.landscapeApp) {
 				screen.orientation.unlock();
@@ -216,6 +206,11 @@
 		<div id="server-note">
 			<div id="server-note-title"></div>
 			<div id="server-note-text"></div>
+			<div id="server-note-later">
+				<input id="server-note-later-box" type="checkbox">
+				<label for="server-note-later-box" data-stringid-content="generalServerNoteButtonLater"></label>
+			</div>
+			<div id="server-note-later-info" data-stringid-content="generalServerNoteInfoLater"></div>
 			<div id="server-note-buttons">
 				<div id="server-note-button-go" data-stringid-content="generalServerNoteButtonGo" data-stringid-content-case="upper"></div>
 				<div id="server-note-button-no" data-stringid-content="generalServerNoteButtonNo" data-stringid-content-case="upper"></div>
@@ -330,17 +325,21 @@
 				followLink("html_platform/settings_oc", "_self", LINK_STATE_INTERNAL_HTML);
 			});
 			
-			var localAppData = getLocalAppDataCopy();
-			if(localAppData !== null && (localAppData.version.major < APP_DATA.version.major || localAppData.version.minor < APP_DATA.version.minor) && typeof appUpdateNotification == "function") { 
-				notify(getString("appScreenHasUpdated", "!", "upper"), false, 7000, function(){followLink("whatsnew/#newest", "_blank", LINK_STATE_INTERNAL_HTML);}, "Mehr Informationen", client.y);
-				setLocalAppDataCopy(); 
-			}
-			
 			setHTMLStrings();
 			
 			styleContent();
 			
-			showServerNote();
+			var localAppData = getLocalAppDataCopy();
+			if(localAppData !== null && (localAppData.version.major != APP_DATA.version.major || localAppData.version.minor != APP_DATA.version.minor)) {				
+				navigator.notification.confirm(getString("platformOcAppUpdate"), function(button) {
+					if (button == 1){
+						followLink("whatsnew/#newest", "_blank", LINK_STATE_INTERNAL_HTML);
+					}
+				}, getString("platformOcAppUpdateTitel"), [getString("platformOcAppUpdateYes"),getString("platformOcAppUpdateNo")]);
+			} else {
+				showServerNote();
+			}
+			setLocalAppDataCopy();
 		</script>
 	
 

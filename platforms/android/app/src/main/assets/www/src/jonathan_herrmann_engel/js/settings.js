@@ -13,6 +13,22 @@ function chooseInputMethod (event){
     hardware = getLastHardwareConfig();
 }
 
+function setSettingButtons(isInitial) {
+    var btnSaveGameDeleteGame = document.querySelector("#saveGameDeleteGame");
+    if(isInitial) {
+        btnSaveGameDeleteGame.addEventListener("click", function(){
+            removeSavedGame();
+            setSettingButtons();
+        });
+    }
+    if(settings.saveGame || window.localStorage.getItem("morowayAppSavedWithVersion") == null || window.self !== window.top){
+       btnSaveGameDeleteGame.style.display = "";
+    } else {
+       btnSaveGameDeleteGame.style.display = "inline";
+    }
+
+}
+
 function displaySettingsOpts(isInitial){
 	for(var i = 0; i < Object.keys(settings).length; i++) {
 			var a = Object.values(settings)[i];
@@ -54,6 +70,7 @@ function settingsChange(event, suffix) {
 			settings[id] = !settings[id];
 			setSettings(settings);
 			displaySettingsOpts(false);
+            setSettingButtons();
 			notify(getString("settingsScreenApply", "."), false, 900, null, null, window.innerHeight);
 		}
 	}
@@ -90,6 +107,8 @@ window.addEventListener("load", function(){
 		document.querySelector("#backOption").addEventListener("click", function(){try {window.close();}catch(err) {}; followLink("./","_self", LINK_STATE_INTERNAL_HTML);}, false);
 		document.querySelector("#helpOption").addEventListener("click", function(){followLink("help","_self", LINK_STATE_INTERNAL_HTML);}, false);
 		
+        setSettingButtons(true);
+        
 	} else {
 		document.querySelector("body").innerHTML = getString("generalNoDOMStorageSupport");
 	}

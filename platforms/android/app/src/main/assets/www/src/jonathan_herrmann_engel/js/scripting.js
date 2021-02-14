@@ -45,18 +45,6 @@ function getFontSize(f, a){
 *        mouse touch key functions        *
 ******************************************/
 
-function adjustTouchScaleX(x) {
-	if(typeof(client.realScale) == "undefined" || client.realScale == 1) {
-		return x;	
-	}
-	return (canvas.offsetWidth*client.realScale/2-canvas.offsetWidth/2)*client.devicePixelRatio/client.realScale+x/client.realScale-client.touchScaleX*client.devicePixelRatio/client.realScale;
-}
-function adjustTouchScaleY(y) {
-	if(typeof(client.realScale) == "undefined" || client.realScale == 1) {
-		return y;	
-	}
-    return (canvas.offsetHeight*client.realScale/2-canvas.offsetHeight/2)*client.devicePixelRatio/client.realScale+y/client.realScale-client.touchScaleY*client.devicePixelRatio/client.realScale;
-}
 function getGesture(gesture){
     switch(gesture.type) {
         case 'doubletap':
@@ -65,16 +53,16 @@ function getGesture(gesture){
                 client.touchScale = 1;
             } else {
                 client.touchScale = client.realScale = client.realScaleMax/2;
-                client.touchScaleX = (canvas.offsetWidth/2-gesture.deltaX)*client.realScale;
-                client.touchScaleY = (canvas.offsetHeight/2-gesture.deltaY)*client.realScale;
+                client.touchScaleX = (canvas.width/2-gesture.deltaX)*client.realScale;
+                client.touchScaleY = (canvas.height/2-gesture.deltaY)*client.realScale;
             }
             delete gesture.deltaX;
             delete gesture.deltaY;
             break;
         case 'pinch':
 			client.touchScale = gesture.scale;
-            client.touchScaleX = (canvas.offsetWidth/2-gesture.deltaX)*client.realScale;
-            client.touchScaleY = (canvas.offsetHeight/2-gesture.deltaY)*client.realScale;
+            client.touchScaleX = (canvas.width/2-gesture.deltaX)*client.realScale;
+            client.touchScaleY = (canvas.height/2-gesture.deltaY)*client.realScale;
             delete gesture.deltaX;
             delete gesture.deltaY;
             break;
@@ -90,11 +78,11 @@ function getGesture(gesture){
     client.touchScaleY *= newScale/client.realScale;
     client.realScale = newScale;
     if(gesture.deltaX != undefined && gesture.deltaY != undefined && client.PinchOHypot == undefined && client.hasPinched == undefined) {
-        client.touchScaleX += gesture.deltaX/4*client.realScale;
-        client.touchScaleY += gesture.deltaY/4*client.realScale;
+        client.touchScaleX += gesture.deltaX/4;
+        client.touchScaleY += gesture.deltaY/4;
     }
-    client.PinchX = canvas.offsetWidth/2-client.touchScaleX/client.realScale;
-    client.PinchY = canvas.offsetHeight/2-client.touchScaleY/client.realScale;
+    client.PinchX = canvas.width/2-client.touchScaleX/client.realScale;
+    client.PinchY = canvas.height/2-client.touchScaleY/client.realScale;
     
     if(client.realScale < client.realScaleMin) {
         hardware.mouse.isMoving = false;
@@ -107,8 +95,8 @@ function getGesture(gesture){
         hardware.mouse.isMoving = true;
     }
 
-    var xMax = (client.realScale - 1) * (canvas.offsetWidth / 2-background.x/client.devicePixelRatio);
-    var yMax = (client.realScale - 1) * (canvas.offsetHeight / 2-background.y/client.devicePixelRatio);
+    var xMax = (client.realScale - 1) * (canvas.width / 2-background.x/client.devicePixelRatio);
+    var yMax = (client.realScale - 1) * (canvas.height / 2-background.y/client.devicePixelRatio);
     if (client.touchScaleX > xMax) {
         client.touchScaleX = xMax;
     }
@@ -121,39 +109,31 @@ function getGesture(gesture){
     if (client.touchScaleY < -yMax) {
         client.touchScaleY = -yMax;
     }
+
+    if(client.realScale == 1) {
+        client.touchScaleXKeyFake = client.touchScaleYKeyFake = 0;
+    }
+
 }
 
 function onMouseMove(event) {
-    hardware.mouse.cursor = "default"; 
-    if(client.realScale == 1) {  
-        hardware.mouse.moveXPage = hardware.mouse.moveX = event.pageX*client.devicePixelRatio;
-        hardware.mouse.moveYPage = hardware.mouse.moveY = event.pageY*client.devicePixelRatio;
+    hardware.mouse.cursor = "default";
+    hardware.mouse.moveX = event.clientX*client.devicePixelRatio;
+    hardware.mouse.moveY = event.clientY*client.devicePixelRatio;
+    if(client.realScale == 1) {
         hardware.mouse.isMoving = true;
         if(typeof movingTimeOut !== "undefined"){
             clearTimeout(movingTimeOut);
         }
         movingTimeOut = setTimeout(function(){hardware.mouse.isMoving = false;}, 5000);
     } else {
-        if(!settings.cursorascircle) {
-            hardware.mouse.moveX = event.pageX*client.devicePixelRatio;
-            hardware.mouse.moveY = event.pageY*client.devicePixelRatio;
-        } else {
-            hardware.mouse.moveX+=event.pageX*client.devicePixelRatio-hardware.mouse.moveXPage;
-            hardware.mouse.moveY+=event.pageY*client.devicePixelRatio-hardware.mouse.moveYPage;
-            hardware.mouse.moveXPage = event.pageX*client.devicePixelRatio;
-            hardware.mouse.moveYPage = event.pageY*client.devicePixelRatio;
-        }
         hardware.mouse.isHold = false;
-        client.PinchX = hardware.mouse.moveX/client.devicePixelRatio;
-        client.PinchY = hardware.mouse.moveY/client.devicePixelRatio;
+        client.PinchX = hardware.mouse.moveX+client.touchScaleXKeyFake;
+        client.PinchY = hardware.mouse.moveY+client.touchScaleYKeyFake;
         client.PinchOHypot = 1;
         getGesture({type: 'pinch', scale:1, deltaX:client.PinchX,deltaY:client.PinchY});
         getGesture({type: "pinchend"}); 
         delete client.hasPinched;
-        if(!settings.cursorascircle) {
-            hardware.mouse.moveX = adjustTouchScaleX(event.pageX*client.devicePixelRatio);
-            hardware.mouse.moveY = adjustTouchScaleY(event.pageY*client.devicePixelRatio);
-        }
 	}
 }
 function onMouseDown(event) {
@@ -161,29 +141,13 @@ function onMouseDown(event) {
     hardware.lastInputMouse = hardware.mouse.downTime = Date.now();
     hardware.mouse.isHold = (event.which == undefined || event.which == 1) && !hardware.mouse.rightClick;
     hardware.mouse.rightClickHold = (event.which == undefined || event.which == 1) && hardware.mouse.rightClick;
-    if(client.realScale == 1) { 
-        hardware.mouse.moveX = hardware.mouse.downX = event.pageX*client.devicePixelRatio;
-        hardware.mouse.moveY = hardware.mouse.downY = event.pageY*client.devicePixelRatio;
-    } else if (settings.cursorascircle) {
-        hardware.mouse.downX = hardware.mouse.moveX;
-        hardware.mouse.downY = hardware.mouse.moveY;
-    } else {
-        hardware.mouse.moveX = hardware.mouse.downX = adjustTouchScaleX(event.pageX*client.devicePixelRatio);
-        hardware.mouse.moveY = hardware.mouse.downY = adjustTouchScaleY(event.pageY*client.devicePixelRatio);
-    }
+    hardware.mouse.moveX = hardware.mouse.downX = event.clientX*client.devicePixelRatio;
+    hardware.mouse.moveY = hardware.mouse.downY = event.clientY*client.devicePixelRatio;
 }
 function onMouseUp(event) {
     event.preventDefault();
-    if(client.realScale == 1) {
-        hardware.mouse.upX = event.pageX*client.devicePixelRatio;
-        hardware.mouse.upY = event.pageY*client.devicePixelRatio;
-    } else if (settings.cursorascircle) {
-        hardware.mouse.upX = hardware.mouse.moveX;
-        hardware.mouse.upY = hardware.mouse.moveY;
-    } else {
-        hardware.mouse.upX = adjustTouchScaleX(event.pageX*client.devicePixelRatio);
-        hardware.mouse.upY = adjustTouchScaleY(event.pageY*client.devicePixelRatio);
-    }
+    hardware.mouse.upX = event.clientX*client.devicePixelRatio;
+    hardware.mouse.upY = event.clientY*client.devicePixelRatio;
     hardware.mouse.upTime = Date.now(); 
     hardware.mouse.isHold = hardware.mouse.rightClickHold = false;  
     hardware.mouse.rightClickEvent = event.which == 1 && hardware.mouse.rightClick;    
@@ -196,8 +160,8 @@ function onMouseOut(event) {
 function onMouseWheel(event) {
     event.preventDefault();
     if(event.ctrlKey && event.deltaY != 0) {
-        client.PinchX = hardware.mouse.moveX/client.devicePixelRatio;
-        client.PinchY = hardware.mouse.moveY/client.devicePixelRatio;
+        client.PinchX = hardware.mouse.moveX+client.touchScaleXKeyFake;
+        client.PinchY = hardware.mouse.moveY+client.touchScaleYKeyFake;
         if(event.deltaY < 0) {
             client.PinchOHypot = client.realScaleMin;
             getGesture({type: 'pinch', scale:client.realScaleMin, deltaX:client.PinchX,deltaY:client.PinchY});
@@ -211,8 +175,8 @@ function onMouseWheel(event) {
         hardware.mouse.wheelScrolls = !hardware.mouse.rightClick; 
         hardware.mouse.rightClickWheelScrolls = hardware.mouse.rightClick; 
         hardware.mouse.isHold = hardware.mouse.rightClickHold = false; 
-        hardware.mouse.wheelX = event.pageX*client.devicePixelRatio;
-        hardware.mouse.wheelY = event.pageY*client.devicePixelRatio;
+        hardware.mouse.wheelX = event.clientX*client.devicePixelRatio;
+        hardware.mouse.wheelY = event.clientY*client.devicePixelRatio;
         hardware.mouse.wheelScrollX = event.deltaX;
         hardware.mouse.wheelScrollY = event.deltaY;
         hardware.mouse.wheelScrollZ = event.deltaZ;
@@ -220,12 +184,12 @@ function onMouseWheel(event) {
 }
 function onMouseRight(event) {
     event.preventDefault();
-    if(controlCenter.showCarCenter === null && hardware.mouse.rightClick) {
+    if(controlCenter.showCarCenter === null && hardware.mouse.rightClick && client.realScale == 1) {
         controlCenter.showCarCenter = true;
         notify(getString("appScreenCarControlCenterTitle"), false, 1000,null,null, client.y, false);
     } else {
         hardware.mouse.rightClick = !hardware.mouse.rightClick; 
-        if(hardware.mouse.rightClick) {
+        if(hardware.mouse.rightClick && client.realScale == 1) {
            notify(getString("appScreenControlCenterTitle"), false, 1000,null,null, client.y, false);
         }
         hardware.mouse.rightClickEvent = false; 
@@ -236,14 +200,14 @@ function onMouseRight(event) {
 function getTouchMove(event) {
 	event.preventDefault();
     if( event.changedTouches.length == 1) {
-        var deltaX=-2*(hardware.mouse.moveX - adjustTouchScaleX(event.changedTouches[0].clientX*client.devicePixelRatio));
-        var deltaY=-2*(hardware.mouse.moveY - adjustTouchScaleY(event.changedTouches[0].clientY*client.devicePixelRatio));
-        if(client.realScale > 1 && Math.max(Math.abs(deltaX), Math.abs(deltaY)) > Math.min(canvas.offsetWidth, canvas.offsetHeight)/client.realScale/10) {
+        var deltaX=-2*(hardware.mouse.moveX - (event.changedTouches[0].clientX*client.devicePixelRatio));
+        var deltaY=-2*(hardware.mouse.moveY - (event.changedTouches[0].clientY*client.devicePixelRatio));
+        if(client.realScale > 1 && Math.max(Math.abs(deltaX), Math.abs(deltaY)) > Math.min(canvas.width, canvas.height)/10) {
             getGesture({type: "swipe", deltaX:deltaX,deltaY:deltaY});
             hardware.mouse.isHold = false;
         } else {
-            hardware.mouse.moveX = adjustTouchScaleX(event.changedTouches[0].clientX*client.devicePixelRatio);
-            hardware.mouse.moveY = adjustTouchScaleY(event.changedTouches[0].clientY*client.devicePixelRatio);
+            hardware.mouse.moveX = (event.changedTouches[0].clientX*client.devicePixelRatio);
+            hardware.mouse.moveY = (event.changedTouches[0].clientY*client.devicePixelRatio);
             hardware.mouse.isMoving = true;
             if(typeof movingTimeOut !== "undefined"){
                 clearTimeout(movingTimeOut);
@@ -256,8 +220,8 @@ function getTouchMove(event) {
         if(typeof(client.PinchOHypot) == "undefined") {
 			client.PinchOHypot = hypot;
             if(client.realScale == 1) {
-                client.PinchX = (event.changedTouches[0].clientX+(event.changedTouches[0].clientX, event.changedTouches[1].clientX)/2);
-                client.PinchY = (event.changedTouches[0].clientY+(event.changedTouches[0].clientY, event.changedTouches[1].clientY)/2);
+                client.PinchX = (event.changedTouches[0].clientX+(event.changedTouches[0].clientX, event.changedTouches[1].clientX)/2)*client.devicePixelRatio;
+                client.PinchY = (event.changedTouches[0].clientY+(event.changedTouches[0].clientY, event.changedTouches[1].clientY)/2)*client.devicePixelRatio;
            }
         } 
         getGesture({type: 'pinch', scale:hypot/client.PinchOHypot, deltaX:client.PinchX,deltaY:client.PinchY});
@@ -267,11 +231,11 @@ function getTouchMove(event) {
 function getTouchStart(event) {
 	event.preventDefault();
     delete client.hasPinched;
-	var xTS = adjustTouchScaleX(event.changedTouches[0].clientX*client.devicePixelRatio);
-	var yTS = adjustTouchScaleY(event.changedTouches[0].clientY*client.devicePixelRatio);
+	var xTS = (event.changedTouches[0].clientX*client.devicePixelRatio);
+	var yTS = (event.changedTouches[0].clientY*client.devicePixelRatio);
     if(Math.max(hardware.mouse.moveX,xTS) < 1.1*Math.min(hardware.mouse.moveX,xTS) && Math.max(hardware.mouse.moveY,yTS) < 1.1*Math.min(hardware.mouse.moveY,yTS) && Date.now() - hardware.mouse.downTime < 2*doubleClickTime && Date.now() - hardware.mouse.upTime < 2*doubleClickTime) {
-        client.PinchX = event.changedTouches[0].clientX;
-        client.PinchY = event.changedTouches[0].clientY;
+        client.PinchX = xTS;
+        client.PinchY = yTS;
         getGesture({type: "doubletap", deltaX:client.PinchX,deltaY:client.PinchY});
         hardware.mouse.isHold = false; 
     } else if(event.touches.length == 3) {  
@@ -290,8 +254,8 @@ function getTouchStart(event) {
 function getTouchEnd(event) {
 	event.preventDefault();
     getGesture({type: "pinchend"});
-    hardware.mouse.upX = adjustTouchScaleX(event.changedTouches[0].clientX*client.devicePixelRatio);
-    hardware.mouse.upY = adjustTouchScaleY(event.changedTouches[0].clientY*client.devicePixelRatio);
+    hardware.mouse.upX = (event.changedTouches[0].clientX*client.devicePixelRatio);
+    hardware.mouse.upY = (event.changedTouches[0].clientY*client.devicePixelRatio);
     hardware.mouse.upTime = Date.now(); 
     hardware.mouse.isHold = hardware.mouse.rightClickHold = false;  
     hardware.mouse.rightClickEvent = hardware.mouse.rightClick; 
@@ -318,8 +282,8 @@ function onKeyDown(event) {
     if(event.ctrlKey && (event.key == "+" || event.key == "-" || (event.key == "0" && client.realScale > 1))) {
         event.preventDefault();
         if(client.realScale == 1) {
-            client.PinchX = hardware.mouse.moveX/client.devicePixelRatio;
-            client.PinchY = hardware.mouse.moveY/client.devicePixelRatio;
+            client.PinchX = hardware.mouse.moveX+client.touchScaleXKeyFake;
+            client.PinchY = hardware.mouse.moveY+client.touchScaleYKeyFake;
         }
         if(event.key == "+") {
             client.PinchOHypot = 2;
@@ -332,25 +296,27 @@ function onKeyDown(event) {
         }
         getGesture({type: "pinchend"}); 
         delete client.hasPinched;       
-    } else if(client.realScale > 1 && settings.cursorascircle && (event.key == "ArrowRight" || event.key == "ArrowLeft" || event.key == "ArrowDown" || event.key == "ArrowUp")) {
+    } else if(client.realScale > 1 && isHardwareAvailable("cursorascircle") && settings.cursorascircle && (event.key == "ArrowRight" || event.key == "ArrowLeft" || event.key == "ArrowDown" || event.key == "ArrowUp")) {
         event.preventDefault();
-        var deltaDiv = 30;
+        var oTSX=client.touchScaleX;
+        var oTSY=client.touchScaleY;
+        var deltaDiv = 20;
         if(event.key == "ArrowRight") {
-            var deltaX=-canvas.offsetWidth/deltaDiv;
+            var deltaX=-canvas.width*client.realScale/deltaDiv;
             var deltaY=0;
         } else if(event.key == "ArrowLeft") {
-            var deltaX=canvas.offsetWidth/deltaDiv;
+            var deltaX=canvas.width*client.realScale/deltaDiv;
             var deltaY=0;
         } else if(event.key == "ArrowUp") {
             var deltaX=0;
-            var deltaY=canvas.offsetHeight/deltaDiv;
+            var deltaY=canvas.height*client.realScale/deltaDiv;
         } else if(event.key == "ArrowDown") {
             var deltaX=0;
-            var deltaY=-canvas.offsetHeight/deltaDiv;
+            var deltaY=-canvas.height*client.realScale/deltaDiv;
         }
-        getGesture({type: "swipe", deltaX:deltaX,deltaY:deltaY});     
-        hardware.mouse.upX = hardware.mouse.downX = hardware.mouse.moveX = (canvas.offsetWidth/2-client.touchScaleX/client.realScale)*client.devicePixelRatio;
-        hardware.mouse.upY = hardware.mouse.downY = hardware.mouse.moveY = (canvas.offsetHeight/2-client.touchScaleY/client.realScale)*client.devicePixelRatio;
+        getGesture({type: "swipe", deltaX:deltaX,deltaY:deltaY});
+        client.touchScaleXKeyFake -= (client.touchScaleX-oTSX)/client.realScale;
+        client.touchScaleYKeyFake -= (client.touchScaleY-oTSY)/client.realScale;
     } else if ((event.key == "ArrowUp" && (konamistate === 0 || konamistate == 1)) || (event.key == "ArrowDown" && (konamistate == 2 || konamistate == 3)) || (event.key == "ArrowLeft" && (konamistate == 4 || konamistate == 6)) || (event.key == "ArrowRight" && (konamistate == 5 || konamistate == 7)) || (event.key == "b" && konamistate == 8)){ 
         if(typeof konamiTimeOut !== "undefined"){
             clearTimeout(konamiTimeOut);
@@ -380,16 +346,20 @@ function onKeyDown(event) {
 
  function drawBackground() {
     
-    ////DRAW/BACKGROUND/Margins-1/////    
+    ////DRAW/BACKGROUND/Margins-1/////
     contextBackground.clearRect(0, 0, canvas.width, canvas.height);
+    contextBackground.setTransform(client.realScale,0,0,client.realScale,-(client.realScale-1)*canvas.width/2+client.touchScaleX,-(client.realScale-1)*canvas.height/2+client.touchScaleY);
     var pic = pics[background.src];
     var width = pic.height/pic.width - canvas.height/canvas.width < 0 ? canvas.height*(pic.width/pic.height) : canvas.width;
     var height = pic.height/pic.width - canvas.height/canvas.width < 0 ? canvas.height : canvas.width*(pic.height/pic.width);
-    drawImage(pic, -(width-canvas.width)/2,-(height-canvas.height)/2, width,height, contextBackground);        
+    if(client.realScale == 1) {
+        drawImage(pic, -(width-canvas.width)/2,-(height-canvas.height)/2, width,height, contextBackground);
+    }
     /////DRAW/BACKGROUND/Layer-1/////
-    drawImage(pic, background.x, background.y, background.width, background.height, contextBackground);    
+    drawImage(pic, background.x, background.y, background.width, background.height, contextBackground);
 
     contextSemiForeground.clearRect(0, 0, canvas.width, canvas.height);
+    contextSemiForeground.setTransform(client.realScale,0,0,client.realScale,-(client.realScale-1)*canvas.width/2+client.touchScaleX,-(client.realScale-1)*canvas.height/2+client.touchScaleY);
     /////BACKGROUND/Layer-2/////
     drawImage(pics[background.secondLayer], background.x, background.y, background.width, background.height, contextSemiForeground);
     /////BACKGROUND/Margins-2////
@@ -749,11 +719,14 @@ function drawObjects() {
                     }
                     currentObject.pointNo += fac.weight == 1 ? 4 : 2;
                     if(debug) {
+                        contextForeground.save();
+                        contextForeground.setTransform(client.realScale,0,0,client.realScale,-(client.realScale-1)*canvas.width/2+client.touchScaleX,-(client.realScale-1)*canvas.height/2+client.touchScaleY);
                         currentObject.points.forEach(function(point) {
                             var c = Math.max(Math.round(100*(100-100*point.weight))/100,0);
                             contextForeground.fillStyle = "rgb(" + c + "," + c + "," + c + ")";
                             contextForeground.fillRect(point.x-3,point.y-3,6,6);
                         });
+                        contextForeground.restore();
                     }
                 });
                 for(var i = 0; i < trains.length; i++){
@@ -791,7 +764,7 @@ function drawObjects() {
     function collisionCourse(input1, input2){
         for(var i = 0; i < trains.length; i++){
             if(input1 != i){
-                if((trainCollisions[input1][i] >= trainParams.innerCollisionFac) || (trainCollisions[input1][i] > trainCollisions[i][input1])) {
+                if((trainCollisions[input1][i] >= trainParams.innerCollisionFac) || (trainCollisions[input1][i] > trainCollisions[i][input1]) || (trains[input1].endOfTrack && trains[input1].endOfTrackStandardDirection == trains[input1].standardDirection)) {
                     if(trains[input1].move){
                         var note = (input2) ? [{getString:["appScreenObjectHasCrashed", "."]}, {getString:[["appScreenTrainNames",input1]]}, {getString:[["appScreenTrainNames",i]]}] : null;
                         actionSync("trains",input1, [{move:false},{accelerationSpeed:0},{accelerationSpeedCustom:1}],note);
@@ -804,82 +777,7 @@ function drawObjects() {
                 }
             }
         }
-        return false;/*
-        context.save();
-        context.fillStyle = "black"; 
-        context.setTransform(1, 0, 0, 1, 0, 0);
-        var collision = false;
-        var currentObjects = [{}];
-        var innerFac = 0.7;
-        currentObjects[0] = copyJSObject(trains[input1]);
-        if(trains[input1].cars.length == 0 && trains[input1].standardDirection) {
-            currentObjects[0].facs = [{x: 0.5, y: innerFac/2},{x: 1, y: 1}];
-        } else if (trains[input1].cars.length == 0) {
-            currentObjects[0].facs = [{x: -0.5, y: innerFac/2},{x: -1, y: 1}];
-        } else if(trains[input1].standardDirection) {
-            currentObjects[0].facs = [{x: -1, y: innerFac},{x: -0.5, y: innerFac},{x: 0, y: innerFac},{x: 0.5, y: innerFac},{x: 1, y: 1}];
-        } else {
-            currentObjects[0].facs = [{x: -0.5, y: innerFac/2},{x: -1, y: innerFac}];
-        }
-        for(var i = 0; i < trains[input1].cars.length; i++) {
-             currentObjects[i+1] = copyJSObject(trains[input1].cars[i]);
-            if(i == trains[input1].cars.length-1 && !trains[input1].standardDirection) {
-                currentObjects[i+1].facs = [{x: -1, y: 1},{x: -0.5, y: innerFac},{x: 0, y: innerFac},{x: 0.5, y: innerFac},{x: 1, y: innerFac}];
-            } else if (i == trains[input1].cars.length-1) {
-                currentObjects[i+1].facs = [{x: 0.5, y: innerFac/2},{x: 1, y: innerFac}];
-            } else {
-                currentObjects[i+1].facs = [{x: -1, y: innerFac},{x: -0.5, y: innerFac},{x: 0, y: innerFac},{x: 0.5, y: innerFac},{x: 1, y: innerFac}];
-            }
-        }
-        currentObjects.forEach(function(currentObject) {
-            currentObject.points = [];
-            currentObject.pointNo = 0;
-            currentObject.facs.forEach(function(fac){
-                currentObject.points[currentObject.pointNo] = {};
-                currentObject.points[currentObject.pointNo+1] = {};
-                currentObject.points[currentObject.pointNo+2] = {};
-                currentObject.points[currentObject.pointNo].x = currentObject.x+fac.x*Math.sin(Math.PI/2-currentObject.displayAngle)*currentObject.width/2+fac.y*Math.cos(-Math.PI/2-currentObject.displayAngle)*currentObject.height/2;
-                currentObject.points[currentObject.pointNo+1].x = currentObject.x+fac.x*Math.sin(Math.PI/2-currentObject.displayAngle)*currentObject.width/2-fac.y*Math.cos(-Math.PI/2-currentObject.displayAngle)*currentObject.height/2;
-                currentObject.points[currentObject.pointNo+2].x = currentObject.x+fac.x*Math.sin(Math.PI/2-currentObject.displayAngle)*currentObject.width/2;
-                currentObject.points[currentObject.pointNo].y = currentObject.y+fac.x*Math.cos(Math.PI/2-currentObject.displayAngle)*currentObject.width/2-fac.y*Math.sin(-Math.PI/2-currentObject.displayAngle)*currentObject.height/2;
-                currentObject.points[currentObject.pointNo+1].y = currentObject.y+fac.x*Math.cos(Math.PI/2-currentObject.displayAngle)*currentObject.width/2+fac.y*Math.sin(-Math.PI/2-currentObject.displayAngle)*currentObject.height/2;
-                currentObject.points[currentObject.pointNo+2].y = currentObject.y+fac.x*Math.cos(Math.PI/2-currentObject.displayAngle)*currentObject.width/2;
-                currentObject.pointNo+=3;
-                if(debug) {
-                    currentObject.points.forEach(function(point) {
-                        context.fillRect(point.x-3,point.y-3,6,6);
-                    });
-                }
-            });
-            for(var i = 0; i < trains.length; i++){
-                if(input1 != i && (trains[input1].circleFamily === null || trains[i].circleFamily === null || trains[input1].circleFamily == trains[i].circleFamily)){
-                    for(var j = -1; j < trains[i].cars.length; j++){
-                        var currentObject2 = j >= 0 ? trains[i].cars[j] : trains[i];
-                        context.save();
-                        context.translate(currentObject2.x, currentObject2.y); 
-                        context.rotate(currentObject2.displayAngle);
-                        context.beginPath();
-                        context.rect(-currentObject2.width/2, -currentObject2.height/2, currentObject2.width, currentObject2.height);
-                        currentObject.points.forEach(function(point) {
-                            if (context.isPointInPath(point.x, point.y)){
-                                collision = true;
-                                if(trains[input1].move){
-                                    var note = (input2) ? [{getString:["appScreenObjectHasCrashed", "."]}, {getString:[["appScreenTrainNames",input1]]}, {getString:[["appScreenTrainNames",i]]}] : null;
-                                    actionSync("trains",input1, [{move:false},{accelerationSpeed:0},{accelerationSpeedCustom:1}],note);
-                                    actionSync("train-crash",input1,[{move:false},{accelerationSpeed:0},{accelerationSpeedCustom:1}]);
-                                    trains[input1].move = false;
-                                    trains[input1].accelerationSpeed = 0;
-                                    trains[input1].accelerationSpeedCustom = 1;
-                                }
-                            }
-                        });
-                        context.restore();
-                  }
-                }
-            }
-        });
-        context.restore();
-        return(collision);*///TODO
+        return false;
     }
     
     function drawCars(input1){
@@ -1106,9 +1004,12 @@ function drawObjects() {
         var y2 = currentObject.y+fac*Math.cos(Math.PI/2-currentObject.displayAngle)*currentObject.width/2+Math.sin(-Math.PI/2-currentObject.displayAngle)*currentObject.height/2;
         var y3 = currentObject.y+fac*Math.cos(Math.PI/2-currentObject.displayAngle)*currentObject.width/2;
         if(debug) {
+            context.save();
+            context.setTransform(client.realScale,0,0,client.realScale,-(client.realScale-1)*canvas.width/2+client.touchScaleX,-(client.realScale-1)*canvas.height/2+client.touchScaleY);
             context.fillRect(background.x+x1-3,background.y+y1-3,6,6);
             context.fillRect(background.x+x2-3,background.y+y2-3,6,6);
             context.fillRect(background.x+x3-3,background.y+y3-3,6,6);
+            context.restore();
         }
         for(var i = 0; i < cars.length; i++){
             if(input1 != i){
@@ -1186,10 +1087,30 @@ function drawObjects() {
         contextForeground.restore();
     }
     
+    function adjustScaleX(x) {
+        return (canvas.width*client.realScale/2-canvas.width/2)/client.realScale+x/client.realScale-client.touchScaleX/client.realScale;
+    }
+    function adjustScaleY(y) {
+        return (canvas.height*client.realScale/2-canvas.height/2)/client.realScale+y/client.realScale-client.touchScaleY/client.realScale;
+    }
+    
     /////GENERAL/////
 	var starttime = Date.now();
+    if(client.realScale != client.oldRealScale || client.touchScaleX != client.oldTouchScaleX || client.touchScaleY != client.oldTouchScaleY) {
+        client.oldRealScale = client.realScale;
+        client.oldTouchScaleX = client.touchScaleX;
+        client.oldTouchScaleY = client.touchScaleY;
+        drawBackground();
+        if(client.realScale > 1 && typeof placeOptions == "function") {
+            placeOptions("hide");
+        } else if(typeof placeOptions == "function") {
+            placeOptions("show");
+        }
+    }
     context.clearRect(0, 0, canvas.width, canvas.height);
+    context.setTransform(client.realScale,0,0,client.realScale,-(client.realScale-1)*canvas.width/2+client.touchScaleX,-(client.realScale-1)*canvas.height/2+client.touchScaleY);
     contextForeground.clearRect(0, 0, canvasForeground.width, canvasForeground.height);
+    contextForeground.setTransform(client.realScale,0,0,client.realScale,-(client.realScale-1)*canvas.width/2+client.touchScaleX,-(client.realScale-1)*canvas.height/2+client.touchScaleY);
     frameNo++;
     if(frameNo % 1000000 === 0){
         notify(formatJSString(getString("appScreenAMillionFrames","."),frameNo/1000000), false, 500, null, null, client.y);
@@ -1559,8 +1480,8 @@ function drawObjects() {
             if(typeof movingTimeOut !== "undefined"){
                 clearTimeout(movingTimeOut);
             }
-            var x=classicUI.transformer.x+classicUI.transformer.width/2+ classicUI.transformer.input.diffY*Math.sin(classicUI.transformer.angle);
-            var y=classicUI.transformer.y+classicUI.transformer.height/2- classicUI.transformer.input.diffY*Math.cos(classicUI.transformer.angle);
+            var x = classicUI.transformer.x+classicUI.transformer.width/2+classicUI.transformer.input.diffY*Math.sin(classicUI.transformer.angle);
+            var y = classicUI.transformer.y+classicUI.transformer.height/2-classicUI.transformer.input.diffY*Math.cos(classicUI.transformer.angle);
             if(!collisionCourse(trainParams.selected, false)){
                 if(client.isTiny && (typeof(client.realScale) == "undefined" || client.realScale <= Math.max(1,client.realScaleMax/3))){  
                     if(hardware.mouse.isHold){
@@ -1578,23 +1499,23 @@ function drawObjects() {
                         }
                         trains[trainParams.selected].speedInPercent=50;
                     }
-                } else if((hardware.mouse.wheelScrollY !== 0 && hardware.mouse.wheelScrolls && !(hardware.mouse.wheelY > y && hardware.mouse.wheelX < x )) || (!(hardware.mouse.moveY > y && hardware.mouse.moveX < x ))) {
+                } else if((hardware.mouse.wheelScrollY !== 0 && hardware.mouse.wheelScrolls && !(adjustScaleY(hardware.mouse.wheelY > y) && adjustScaleX(hardware.mouse.wheelX < x) )) || (!(adjustScaleY(hardware.mouse.moveY) > y && adjustScaleX(hardware.mouse.moveX) < x ))) {
                     var angle;
                     var oldAngle = classicUI.transformer.input.angle;
-                    if(hardware.mouse.wheelScrollY !== 0 && hardware.mouse.wheelScrolls && !(hardware.mouse.wheelY > y && hardware.mouse.wheelX < x)) {
+                    if(hardware.mouse.wheelScrollY !== 0 && hardware.mouse.wheelScrolls && !(adjustScaleY(hardware.mouse.wheelY) > y && adjustScaleX(hardware.mouse.wheelX) < x)) {
                         angle = classicUI.transformer.input.angle * (hardware.mouse.wheelScrollY < 0 ? 1.1 : 0.9);
                     } else {
-                        if (hardware.mouse.moveY>y){
-                            angle = Math.PI + Math.abs(Math.atan(((hardware.mouse.moveY-y)/(hardware.mouse.moveX-x))));
-                        } else if (hardware.mouse.moveY<y && hardware.mouse.moveX > x){
-                            angle = Math.PI - Math.abs(Math.atan(((hardware.mouse.moveY-y)/(hardware.mouse.moveX-x))));  
+                        if (adjustScaleY(hardware.mouse.moveY)>y){
+                            angle = Math.PI + Math.abs(Math.atan(((adjustScaleY(hardware.mouse.moveY)-y)/(adjustScaleX(hardware.mouse.moveX)-x))));
+                        } else if (adjustScaleY(hardware.mouse.moveY)<y && adjustScaleX(hardware.mouse.moveX) > x){
+                            angle = Math.PI - Math.abs(Math.atan(((adjustScaleY(hardware.mouse.moveY)-y)/(adjustScaleX(hardware.mouse.moveX)-x))));  
                         } else {
-                            angle = Math.abs(Math.atan(((hardware.mouse.moveY-y)/(hardware.mouse.moveX-x))));
+                            angle = Math.abs(Math.atan(((adjustScaleY(hardware.mouse.moveY)-y)/(adjustScaleX(hardware.mouse.moveX)-x))));
                         }
                     }
-                    classicUI.transformer.input.angle = angle >= 0 ? angle <= classicUI.transformer.input.maxAngle ? angle : classicUI.transformer.input.maxAngle : 0;
+                    classicUI.transformer.input.angle = angle >= 0 ? (angle <= classicUI.transformer.input.maxAngle ? angle : classicUI.transformer.input.maxAngle) : 0;
                     var cAngle = classicUI.transformer.input.angle/classicUI.transformer.input.maxAngle*100;
-                    if (hardware.mouse.wheelScrollY < 0 && hardware.mouse.wheelScrolls && !(hardware.mouse.wheelY > y && hardware.mouse.wheelX < x) && cAngle === 0){
+                    if (hardware.mouse.wheelScrollY < 0 && hardware.mouse.wheelScrolls && !(adjustScaleY(hardware.mouse.wheelY) > y && adjustScaleX(hardware.mouse.wheelX) < x) && cAngle === 0){
                         cAngle = classicUI.transformer.input.minAngle;
                         classicUI.transformer.input.angle = cAngle*classicUI.transformer.input.maxAngle/100;
                     } else if(classicUI.transformer.input.angle < 0.95*oldAngle && cAngle < classicUI.transformer.input.minAngle) {
@@ -2348,7 +2269,7 @@ function drawObjects() {
     /////CURSOR/////
     if(settings.cursorascircle && isHardwareAvailable("cursorascircle") && (hardware.mouse.isMoving || hardware.mouse.isHold) && hardware.mouse.cursor != "none") {
         contextForeground.save();
-        contextForeground.translate(hardware.mouse.moveX, hardware.mouse.moveY);
+        contextForeground.translate(adjustScaleX(hardware.mouse.moveX),adjustScaleY(hardware.mouse.moveY));
         contextForeground.fillStyle = hardware.mouse.cursor == "grabbing" ? "rgba(65,56,65," + (Math.random() * (0.3) + 0.6) + ")" : (hardware.mouse.cursor == "pointer" ? "rgba(99,118,140," + (Math.random() * (0.3) + 0.6) + ")" : (hardware.mouse.isHold ? "rgba(144,64,64," + (Math.random() * (0.3) + 0.6) + ")" : "rgba(255,250,240,0.5)"));
         var rectsize = canvas.width / 75;
         contextForeground.beginPath();
@@ -2362,14 +2283,6 @@ function drawObjects() {
     }
     canvasForeground.style.cursor =  isHardwareAvailable("cursorascircle") ? (settings.cursorascircle ? "none" : hardware.mouse.cursor) : "default";
     hardware.mouse.wheelScrolls = false;
-    
-    /////TRANSFORM/////
-    canvasForeground.style.transform = canvasSemiForeground.style.transform = canvasBackground.style.transform = canvas.style.transform =  "translate3d(" + client.touchScaleX + "px," + client.touchScaleY + "px, 0) scale3d(" + client.realScale + ", " + client.realScale + ", 1)";
-    if(client.realScale > 1 && typeof placeOptions == "function") {
-        placeOptions("hide");
-    } else if(typeof placeOptions == "function") {
-        placeOptions("show");
-    }
 			
     /////REPAINT/////
 	if(drawTimeout !== undefined && drawTimeout !== null) {
@@ -2468,7 +2381,7 @@ var carPaths = [{start: [{type: "curve_right", x:[0.29,0.29],y:[0.38,0.227]}], n
 var carWays = [];
 var carParams = {init: true, wayNo: 7};
 
-var taxOffice = {params: {number: 45, frameNo: 6, frameProbability: 0.6, fire: {x: 0.07, y: 0.06, size: 0.000833, color:{red: {red: 200, green: 0, blue: 0, alpha: 0.4}, yellow: {red: 255, green: 160, blue: 0, alpha: 1}, probability: 0.8}}, smoke: {x: 0.07, y: 0.06, size: 0.02, color: {red: 130, green: 120, blue: 130, alpha: 0.3}}, bluelights: {frameNo: 16, cars: [{frameNo: 0, x: [-0.0105, -0.0026], y: [0.177, 0.0047], size: 0.001},{frameNo: 3, x: [0.0275, -0.00275], y: [0.1472, 0.0092], size: 0.001},{frameNo: 5, x: [0.056, 0.0008], y: [0.18, 0.015], size: 0.001}]}}};
+var taxOffice = {params: {number: 45, frameNo: 6, frameProbability: 0.6, fire: {x: 0.07, y: 0.06, size: 0.000833, color:{red: {red: 200, green: 0, blue: 0, alpha: 0.4}, yellow: {red: 255, green: 160, blue: 0, alpha: 1}, probability: 0.8}}, smoke: {x: 0.07, y: 0.06, size: 0.02, color: {red: 130, green: 120, blue: 130, alpha: 0.3}}, bluelights: {frameNo: 16, cars: [{frameNo: 0, x: [-0.0105, -0.0026], y: [0.175, 0.0045], size: 0.0008},{frameNo: 3, x: [0.0275, -0.00275], y: [0.1472, 0.0092], size: 0.001},{frameNo: 5, x: [0.0568, 0.0008], y: [0.177, 0.0148], size: 0.001}]}}};
 
 var classicUI = {trainSwitch: {src: 11, selectedTrainDisplay: {}}, transformer: {src:13, asrc: 12, angle:(Math.PI/5),input:{src:14,angle:0,minAngle:minTrainSpeed,maxAngle:1.5*Math.PI},directionInput:{src:15,}}, switches: {showDuration: 11, showDurationFade: 33, showDurationEnd: 44}};
 
@@ -2476,7 +2389,7 @@ var controlCenter = {showCarCenter: null, fontFamily: "sans-serif"};
 
 var hardware = {mouse: {moveX:0, moveY:0,downX:0, downY:0, downTime: 0,upX:0, upY:0, upTime: 0, isMoving: false, isHold: false, rightClick: false, cursor: "default"}};
 var client = {devicePixelRatio: 1,realScaleMax:6,realScaleMin:1.2};
-var onlineGame = {animateInterval: 40, syncInterval: 20000, excludeFromSync: {"t": ["src", "fac", "speedFac", "accelerationSpeedStartFac", "accelerationSpeedFac", "bogieDistance", "width", "height", "speed", "cars"], "tc": ["src", "fac", "bogieDistance", "width", "height"]}};
+var onlineGame = {animateInterval: 40, syncInterval: 10000, excludeFromSync: {"t": ["src", "assetFlip", "fac", "speedFac", "accelerationSpeedStartFac", "accelerationSpeedFac", "lastDirectionChange", "bogieDistance", "width", "height", "speed", "endOfTrack", "endOfTrackStandardDirection", "flickerFacBack", "flickerFacBackOffset", "flickerFacFront", "flickerFacFrontOffset", "margin", "cars"], "tc": ["src", "assetFlip", "fac", "bogieDistance", "width", "height", "konamiUseTrainIcon"]}};
 var onlineConnection = {serverURI: getServerLink("wss:") + "/multiplay"};
 
 var resizeTimeout;
@@ -2499,7 +2412,7 @@ function resizeCars(oldBg) {
 function resize() {
     resized = true;
     client.realScale = client.touchScale = client.lastTouchScale = 1;
-    client.touchScaleX = client.touchScaleY = 0;
+    client.touchScaleX = client.touchScaleY = client.touchScaleXKeyFake = client.touchScaleYKeyFake = 0;
     oldbackground = copyJSObject(background);
     extendedMeasureViewspace();
     placeBackground();
@@ -2553,6 +2466,8 @@ window.onload = function() {
         client.touchScale=1;
         client.touchScaleX=0;
         client.touchScaleY=0;
+        client.touchScaleXKeyFake=0;
+        client.touchScaleYKeyFake=0;
         var type = event.type;           
         canvasForeground.removeEventListener("touchstart",chooseInputMethod);
         canvasForeground.removeEventListener("mousemove",chooseInputMethod);
@@ -3051,6 +2966,8 @@ window.onload = function() {
                     trains[i].accelerationSpeed = train.accelerationSpeed;
                     trains[i].accelerationSpeedCustom = train.accelerationSpeedCustom;
                     trains[i].standardDirection = train.standardDirection;
+                    trains[i].endOfTrack = train.endOfTrack;
+                    trains[i].endOfTrackStandardDirection = train.endOfTrackStandardDirection;
                     train.cars.forEach(function(car,j){
                         trains[i].cars[j].x = car.x;
                         trains[i].cars[j].y = car.y;
@@ -3096,6 +3013,8 @@ window.onload = function() {
                         window.localStorage.setItem("morowayAppSavedCarParams", JSON.stringify(carParams));
                         window.localStorage.setItem("morowayAppSavedBg", JSON.stringify(background));
                         window.localStorage.setItem("morowayAppSavedWithVersion", JSON.stringify(APP_DATA.version));
+                    } else if (!settings.saveGame){
+                        removeSavedGame();
                     }
                     animateWorker.postMessage({k: "game-saved"});
                 }
@@ -3117,12 +3036,7 @@ window.onload = function() {
                 });
             });
         } else if(!settings.saveGame) {
-           window.localStorage.removeItem("morowayAppSavedGameTrains");
-           window.localStorage.removeItem("morowayAppSavedGameSwitches");
-           window.localStorage.removeItem("morowayAppSavedCars");
-           window.localStorage.removeItem("morowayAppSavedCarParams");
-           window.localStorage.removeItem("morowayAppSavedBg");
-           window.localStorage.removeItem("morowayAppSavedWithVersion");
+           removeSavedGame();
         }
         animateWorker.postMessage({k: "start", background: background, switches: switches, online: onlineGame.enabled, onlineInterval: onlineGame.animateInterval});
     }
@@ -3331,6 +3245,7 @@ window.onload = function() {
             }
             onlineConnection.socket = new WebSocket(host);
             onlineConnection.socket.onopen = function () {
+                window.addEventListener("error", function() {onlineConnection.socket.close();});
                 onlineConnection.send({mode:"hello", message: APP_DATA.version.major+APP_DATA.version.minor/10});
             };
             onlineConnection.socket.onclose = function () {
@@ -3477,6 +3392,15 @@ window.onload = function() {
                         var obj;
                         switch (input.objname){
                             case "trains":
+                                if(onlineGame.sessionId != json.sessionId){
+                                    onlineGame.excludeFromSync["t"].forEach(function(key){
+                                        input.params.forEach(function(param, paramNo){
+                                            if(Object.keys(param)[0] == key) {
+                                                delete input.params[paramNo];
+                                            }
+                                        });
+                                    });
+                                }
                                 animateWorker.postMessage({k: "train", i: input.index, params: input.params});
                             break;
                             case "train-crash":
@@ -3503,7 +3427,7 @@ window.onload = function() {
                         onlineGame.syncingTimeout = window.setTimeout(function(){
                             onlineGame.syncing = false;
                             onlineConnection.send({mode: "sync-cancel"});
-                        },1000);
+                        },3000);
                         onlineGame.syncingCounter = 0;
                         onlineGame.syncingCounterFinal = parseInt(json_message.number,10);
                         onlineGame.syncing = true;

@@ -35,7 +35,7 @@ body {
 	border: 1px grey solid;
 }
 
-#langoption .langvalue {
+#langoption .langvalue, .settings-button {
 	color: black;
 	margin: 3px;
 	margin-left: 16px;
@@ -43,7 +43,11 @@ body {
 	background: none;
 	border: 1px black solid;
 	border-radius: 2px;
-	
+}
+
+.settings-button {
+	display: none;
+	margin-top: 15px;
 }
 
 #backOption {

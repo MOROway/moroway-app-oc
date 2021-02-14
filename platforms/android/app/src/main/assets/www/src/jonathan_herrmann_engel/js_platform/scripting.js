@@ -4,9 +4,9 @@
 function placeOptions(state){
 	var menu = {container: document.querySelector("#canvas-options"),items: {team:document.querySelector("#canvas-team"),single:document.querySelector("#canvas-single"),help:document.querySelector("#canvas-help"), settings:document.querySelector("#canvas-settings"), controlCenter: document.querySelector("#canvas-control-center"), carControlCenter: document.querySelector("#canvas-car-control-center")}};
 	if(state == "hide") {
-	  menu.container.style.opacity = "0";
+	  menu.container.style.display = "none";
 	} else if (state == "show") {
-	  menu.container.style.opacity = "1";
+	  menu.container.style.display = "block";
 	} else {
 		  if(state == "load") {
 			var container = document.querySelector("#settingsimport");

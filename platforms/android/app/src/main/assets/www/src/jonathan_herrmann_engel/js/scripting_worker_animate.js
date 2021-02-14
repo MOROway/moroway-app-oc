@@ -165,6 +165,8 @@ function changeCOSection(cO,isFront, input1, i,reverse){
 			cO.state = 112;
 		} else if (Math.abs(cO.state) == 112 && cO.x - background.x - rotationPoints.inner.sidings.firstS2.x[0] >= 0.95 * (rotationPoints.inner.sidings.firstS2.x[3] - rotationPoints.inner.sidings.firstS2.x[0])) {
 			trains[input1].move = false;
+			trains[input1].endOfTrack = true;
+			trains[input1].endOfTrackStandardDirection = false;
 		} else if (Math.abs(cO.state) == 120 && Math.round(cO.x - background.x) >= Math.round(rotationPoints.inner.sidings.second.x[3])) {
 			cO.angle = Math.PI;
 			cO.state = 121;
@@ -173,6 +175,8 @@ function changeCOSection(cO,isFront, input1, i,reverse){
 			cO.state = 122;
 		} else if (Math.abs(cO.state) == 122 && cO.x - background.x - rotationPoints.inner.sidings.secondS2.x[0] >= 0.95 * (rotationPoints.inner.sidings.secondS2.x[3] - rotationPoints.inner.sidings.secondS2.x[0])) {
 			trains[input1].move = false;
+			trains[input1].endOfTrack = true;
+			trains[input1].endOfTrackStandardDirection = false;
 		} else if (Math.abs(cO.state) == 130 && Math.round(cO.x - background.x) >= Math.round(rotationPoints.inner.sidings.third.x[3])) {
 			cO.angle = Math.PI;
 			cO.state = 131;
@@ -181,6 +185,8 @@ function changeCOSection(cO,isFront, input1, i,reverse){
 			cO.state = 132;
 		} else if (Math.abs(cO.state) == 132 && cO.x - background.x - rotationPoints.inner.sidings.thirdS2.x[0] >= 0.95 * (rotationPoints.inner.sidings.thirdS2.x[3] - rotationPoints.inner.sidings.thirdS2.x[0])) {
 			trains[input1].move = false;
+			trains[input1].endOfTrack = true;
+			trains[input1].endOfTrackStandardDirection = false;
 		}
 	}
 }
@@ -343,6 +349,9 @@ function setCOPos(cO, isFront, input1, currentObject, i, speed, customSpeed) {
 		if(trains[input1].standardDirection){points.x.reverse();points.y.reverse();}
 		setCOPosLinear(points,!trains[input1].standardDirection, true, false);
 	} else if(cO.state == 112){
+		if(trains[input1].standardDirection) {
+			trains[input1].endOfTrack = false;
+		}
 		points ={x:[rotationPoints.inner.sidings.firstS2.x[0] + background.x,rotationPoints.inner.sidings.firstS2.x[1] + background.x,rotationPoints.inner.sidings.firstS2.x[2] + background.x,rotationPoints.inner.sidings.firstS2.x[3] + background.x],y:[rotationPoints.inner.sidings.firstS2.y[0] + background.y,rotationPoints.inner.sidings.firstS2.y[1] + background.y, rotationPoints.inner.sidings.firstS2.y[2] + background.y,rotationPoints.inner.sidings.firstS2.y[3] + background.y]};
 		points.x.reverse();
 		points.y.reverse();
@@ -357,6 +366,9 @@ function setCOPos(cO, isFront, input1, currentObject, i, speed, customSpeed) {
 		if(trains[input1].standardDirection){points.x.reverse();points.y.reverse();}
 		setCOPosLinear(points,!trains[input1].standardDirection, true, false);
 	} else if(cO.state == 122){
+		if(trains[input1].standardDirection) {
+			trains[input1].endOfTrack = false;
+		}
 		points ={x:[rotationPoints.inner.sidings.secondS2.x[0] + background.x,rotationPoints.inner.sidings.secondS2.x[1] + background.x,rotationPoints.inner.sidings.secondS2.x[2] + background.x,rotationPoints.inner.sidings.secondS2.x[3] + background.x],y:[rotationPoints.inner.sidings.secondS2.y[0] + background.y,rotationPoints.inner.sidings.secondS2.y[1] + background.y, rotationPoints.inner.sidings.secondS2.y[2] + background.y,rotationPoints.inner.sidings.secondS2.y[3] + background.y]};
 		points.x.reverse();
 		points.y.reverse();
@@ -371,6 +383,9 @@ function setCOPos(cO, isFront, input1, currentObject, i, speed, customSpeed) {
 		if(trains[input1].standardDirection){points.x.reverse();points.y.reverse();}
 		setCOPosLinear(points,!trains[input1].standardDirection, true, false);
 	} else if(cO.state == 132){
+		if(trains[input1].standardDirection) {
+			trains[input1].endOfTrack = false;
+		}
 		points ={x:[rotationPoints.inner.sidings.thirdS2.x[0] + background.x,rotationPoints.inner.sidings.thirdS2.x[1] + background.x,rotationPoints.inner.sidings.thirdS2.x[2] + background.x,rotationPoints.inner.sidings.thirdS2.x[3] + background.x],y:[rotationPoints.inner.sidings.thirdS2.y[0] + background.y,rotationPoints.inner.sidings.thirdS2.y[1] + background.y, rotationPoints.inner.sidings.thirdS2.y[2] + background.y,rotationPoints.inner.sidings.thirdS2.y[3] + background.y]};
 		points.x.reverse();
 		points.y.reverse();

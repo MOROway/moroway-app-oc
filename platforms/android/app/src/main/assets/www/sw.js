@@ -1,10 +1,10 @@
-var updatedSW = 77; //TO BE INCREASED ON EACH NEW VERSION
+var updatedSW = 80; //TO BE INCREASED ON EACH NEW VERSION
 
-//generate cache-name from app-version, branch and sw-version
+//generate cache-name from branch and sw-version
 var locationstr = location.pathname;
 locationstr = locationstr.substr(0,locationstr.length-(locationstr.length-locationstr.lastIndexOf("/")));
 locationstr = locationstr.substr(locationstr.lastIndexOf("/")-locationstr.length+1);
-var CACHE_NAME = "moroway-app-version-" + locationstr + "-sw-" + updatedSW;
+var CACHE_NAME = "moroway-app-" + locationstr + "-sw-" + updatedSW;
 
 //list of all files related to moroway app
 var urlsToCache = [

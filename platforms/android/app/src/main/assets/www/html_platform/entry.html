@@ -1,33 +1,33 @@
 <!DOCTYPE html>
 <html>
-	<base href="../">
+    <base href="../">
 
 <!-- Cordova Scripts 1 -->
 <script src="cordova.js"></script>
 
 
-	<meta charset="UTF-8">
-	
-	<script>
-	function localDR(){
-		var ocSettings = getSettingsOC();
-		if(!ocSettings.landscapeApp) {
-			screen.orientation.lock('landscape');
-		}
-		window.plugins.webintent.getUri(function(url) {
-			followIntent(url);
-		}, false);
-	}
-	</script>
+    <meta charset="UTF-8">
 
-	<!-- General Scripts -->
-	<script src="src/jonathan_herrmann_engel/js/error_handler.js"></script>
-	<script src="src/jonathan_herrmann_engel/js_platform/error_handler.js"></script>
-	<script src="src/jonathan_herrmann_engel/js/appdata.js"></script>
-	<script src="src/jonathan_herrmann_engel/js_platform/appdata.js"></script>
-	<script src="src/jonathan_herrmann_engel/js/general.js"></script>
-	<script src="src/jonathan_herrmann_engel/js_platform/general.js"></script>
-	<body>
+    <script>
+    function localDR(){
+        var ocSettings = getSettingsOC();
+        if(!ocSettings.landscapeApp) {
+            screen.orientation.lock('landscape');
+        }
+        window.plugins.webintent.getUri(function(url) {
+            followIntent(url);
+        }, false);
+    }
+    </script>
+
+    <!-- General Scripts -->
+    <script src="src/jonathan_herrmann_engel/js/error_handler.js"></script>
+    <script src="src/jonathan_herrmann_engel/js_platform/error_handler.js"></script>
+    <script src="src/jonathan_herrmann_engel/js/appdata.js"></script>
+    <script src="src/jonathan_herrmann_engel/js_platform/appdata.js"></script>
+    <script src="src/jonathan_herrmann_engel/js/general.js"></script>
+    <script src="src/jonathan_herrmann_engel/js_platform/general.js"></script>
+    <body>
 
 <!-- Cordova Scripts 2 -->
 <script>document.addEventListener("deviceready", function() {if(typeof localDR == "function"){localDR();}if(typeof globalDR == "function"){globalDR();}});</script>

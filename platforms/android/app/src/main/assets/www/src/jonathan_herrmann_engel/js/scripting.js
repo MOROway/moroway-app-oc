@@ -33,13 +33,13 @@ function measureFontSize(t,f,a,b,c, d, r){
         a *= (twidth > b) ? (1-c/100) : (1+c/100);
         return measureFontSize(t,f,a,b,c,d, ++r);
     } else {
-       return font;
+        return font;
     }
 }
 
 function getFontSize(f, a){
     return parseInt(f.substr(0,f.length-(f.length-f.indexOf(a))), 10);
-}                               
+}
 
 /******************************************
 *        mouse touch key functions        *
@@ -47,31 +47,31 @@ function getFontSize(f, a){
 
 function getGesture(gesture){
     switch(gesture.type) {
-        case 'doubletap':
-            if(client.lastTouchScale != 1 || client.touchScale != 1) {
-                client.lastTouchScale = 1;
-                client.touchScale = 1;
-            } else {
-                client.touchScale = client.realScale = client.realScaleMax/2;
-                client.touchScaleX = (canvas.width/2-gesture.deltaX)*client.realScale;
-                client.touchScaleY = (canvas.height/2-gesture.deltaY)*client.realScale;
-            }
-            delete gesture.deltaX;
-            delete gesture.deltaY;
-            break;
-        case 'pinch':
-			client.touchScale = gesture.scale;
+    case "doubletap":
+        if(client.lastTouchScale != 1 || client.touchScale != 1) {
+            client.lastTouchScale = 1;
+            client.touchScale = 1;
+        } else {
+            client.touchScale = client.realScale = client.realScaleMax/2;
             client.touchScaleX = (canvas.width/2-gesture.deltaX)*client.realScale;
             client.touchScaleY = (canvas.height/2-gesture.deltaY)*client.realScale;
-            delete gesture.deltaX;
-            delete gesture.deltaY;
-            break;
-        case 'pinchend':	
-            client.lastTouchScale = client.realScale;
-            client.touchScale = 1;
-            client.hasPinched = true;
-            delete client.PinchOHypot;
-            break;
+        }
+        delete gesture.deltaX;
+        delete gesture.deltaY;
+        break;
+    case "pinch":
+        client.touchScale = gesture.scale;
+        client.touchScaleX = (canvas.width/2-gesture.deltaX)*client.realScale;
+        client.touchScaleY = (canvas.height/2-gesture.deltaY)*client.realScale;
+        delete gesture.deltaX;
+        delete gesture.deltaY;
+        break;
+    case "pinchend":
+        client.lastTouchScale = client.realScale;
+        client.touchScale = 1;
+        client.hasPinched = true;
+        delete client.PinchOHypot;
+        break;
     }
     var newScale = Math.max(Math.min(client.lastTouchScale * client.touchScale,client.realScaleMax),1);
     client.touchScaleX *= newScale/client.realScale;
@@ -83,7 +83,7 @@ function getGesture(gesture){
     }
     client.PinchX = canvas.width/2-client.touchScaleX/client.realScale;
     client.PinchY = canvas.height/2-client.touchScaleY/client.realScale;
-    
+
     if(client.realScale < client.realScaleMin) {
         hardware.mouse.isMoving = false;
         client.realScale = 1;
@@ -131,10 +131,10 @@ function onMouseMove(event) {
         client.PinchX = hardware.mouse.moveX+client.touchScaleXKeyFake;
         client.PinchY = hardware.mouse.moveY+client.touchScaleYKeyFake;
         client.PinchOHypot = 1;
-        getGesture({type: 'pinch', scale:1, deltaX:client.PinchX,deltaY:client.PinchY});
-        getGesture({type: "pinchend"}); 
+        getGesture({type: "pinch", scale:1, deltaX:client.PinchX,deltaY:client.PinchY});
+        getGesture({type: "pinchend"});
         delete client.hasPinched;
-	}
+    }
 }
 function onMouseDown(event) {
     event.preventDefault();
@@ -148,13 +148,13 @@ function onMouseUp(event) {
     event.preventDefault();
     hardware.mouse.upX = event.clientX*client.devicePixelRatio;
     hardware.mouse.upY = event.clientY*client.devicePixelRatio;
-    hardware.mouse.upTime = Date.now(); 
-    hardware.mouse.isHold = hardware.mouse.rightClickHold = false;  
-    hardware.mouse.rightClickEvent = event.which == 1 && hardware.mouse.rightClick;    
+    hardware.mouse.upTime = Date.now();
+    hardware.mouse.isHold = hardware.mouse.rightClickHold = false;
+    hardware.mouse.rightClickEvent = event.which == 1 && hardware.mouse.rightClick;
 }
 function onMouseOut(event) {
     event.preventDefault();
-    hardware.mouse.isHold = hardware.mouse.rightClickHold = false;  
+    hardware.mouse.isHold = hardware.mouse.rightClickHold = false;
     hardware.mouse.cursor = "none";
 }
 function onMouseWheel(event) {
@@ -164,17 +164,17 @@ function onMouseWheel(event) {
         client.PinchY = hardware.mouse.moveY+client.touchScaleYKeyFake;
         if(event.deltaY < 0) {
             client.PinchOHypot = client.realScaleMin;
-            getGesture({type: 'pinch', scale:client.realScaleMin, deltaX:client.PinchX,deltaY:client.PinchY});
+            getGesture({type: "pinch", scale:client.realScaleMin, deltaX:client.PinchX,deltaY:client.PinchY});
         } else {
             client.PinchOHypot = 1/client.realScaleMin;
-            getGesture({type: 'pinch', scale:1/client.realScaleMin, deltaX:client.PinchX,deltaY:client.PinchY});
+            getGesture({type: "pinch", scale:1/client.realScaleMin, deltaX:client.PinchX,deltaY:client.PinchY});
         }
-        getGesture({type: "pinchend"}); 
-        delete client.hasPinched;   
+        getGesture({type: "pinchend"});
+        delete client.hasPinched;
     } else {
-        hardware.mouse.wheelScrolls = !hardware.mouse.rightClick; 
-        hardware.mouse.rightClickWheelScrolls = hardware.mouse.rightClick; 
-        hardware.mouse.isHold = hardware.mouse.rightClickHold = false; 
+        hardware.mouse.wheelScrolls = !hardware.mouse.rightClick;
+        hardware.mouse.rightClickWheelScrolls = hardware.mouse.rightClick;
+        hardware.mouse.isHold = hardware.mouse.rightClickHold = false;
         hardware.mouse.wheelX = event.clientX*client.devicePixelRatio;
         hardware.mouse.wheelY = event.clientY*client.devicePixelRatio;
         hardware.mouse.wheelScrollX = event.deltaX;
@@ -186,19 +186,19 @@ function onMouseRight(event) {
     event.preventDefault();
     if(controlCenter.showCarCenter === null && hardware.mouse.rightClick && client.realScale == 1) {
         controlCenter.showCarCenter = true;
-        notify(getString("appScreenCarControlCenterTitle"), false, 1000,null,null, client.y, false);
+        notify("#canvas-notifier", getString("appScreenCarControlCenterTitle"), NOTIFICATION_PRIO_LOW, 1000,null,null, client.y, false);
     } else {
-        hardware.mouse.rightClick = !hardware.mouse.rightClick; 
+        hardware.mouse.rightClick = !hardware.mouse.rightClick;
         if(hardware.mouse.rightClick && client.realScale == 1) {
-           notify(getString("appScreenControlCenterTitle"), false, 1000,null,null, client.y, false);
+            notify("#canvas-notifier", getString("appScreenControlCenterTitle"), NOTIFICATION_PRIO_LOW, 1000,null,null, client.y, false);
         }
-        hardware.mouse.rightClickEvent = false; 
+        hardware.mouse.rightClickEvent = false;
         hardware.mouse.rightClickWheelScrolls = false;
     }
 }
 
 function getTouchMove(event) {
-	event.preventDefault();
+    event.preventDefault();
     if( event.changedTouches.length == 1) {
         var deltaX=-2*(hardware.mouse.moveX - (event.changedTouches[0].clientX*client.devicePixelRatio));
         var deltaY=-2*(hardware.mouse.moveY - (event.changedTouches[0].clientY*client.devicePixelRatio));
@@ -215,33 +215,33 @@ function getTouchMove(event) {
             movingTimeOut = setTimeout(function(){hardware.mouse.isMoving = false;}, 5000);
         }
     } else if( event.changedTouches.length == 2) {
-        hardware.mouse.isHold = false; 
+        hardware.mouse.isHold = false;
         var hypot = Math.hypot( event.changedTouches[0].clientX - event.changedTouches[1].clientX, event.changedTouches[0].clientY - event.touches[1].clientY);
         if(typeof(client.PinchOHypot) == "undefined") {
-			client.PinchOHypot = hypot;
+            client.PinchOHypot = hypot;
             if(client.realScale == 1) {
                 client.PinchX = (event.changedTouches[0].clientX+(event.changedTouches[0].clientX, event.changedTouches[1].clientX)/2)*client.devicePixelRatio;
                 client.PinchY = (event.changedTouches[0].clientY+(event.changedTouches[0].clientY, event.changedTouches[1].clientY)/2)*client.devicePixelRatio;
-           }
-        } 
-        getGesture({type: 'pinch', scale:hypot/client.PinchOHypot, deltaX:client.PinchX,deltaY:client.PinchY});
+            }
+        }
+        getGesture({type: "pinch", scale:hypot/client.PinchOHypot, deltaX:client.PinchX,deltaY:client.PinchY});
     }
 }
 
 function getTouchStart(event) {
-	event.preventDefault();
+    event.preventDefault();
     delete client.hasPinched;
-	var xTS = (event.changedTouches[0].clientX*client.devicePixelRatio);
-	var yTS = (event.changedTouches[0].clientY*client.devicePixelRatio);
+    var xTS = (event.changedTouches[0].clientX*client.devicePixelRatio);
+    var yTS = (event.changedTouches[0].clientY*client.devicePixelRatio);
     if(Math.max(hardware.mouse.moveX,xTS) < 1.1*Math.min(hardware.mouse.moveX,xTS) && Math.max(hardware.mouse.moveY,yTS) < 1.1*Math.min(hardware.mouse.moveY,yTS) && Date.now() - hardware.mouse.downTime < 2*doubleClickTime && Date.now() - hardware.mouse.upTime < 2*doubleClickTime) {
         client.PinchX = xTS;
         client.PinchY = yTS;
         getGesture({type: "doubletap", deltaX:client.PinchX,deltaY:client.PinchY});
-        hardware.mouse.isHold = false; 
-    } else if(event.touches.length == 3) {  
+        hardware.mouse.isHold = false;
+    } else if(event.touches.length == 3) {
         hardware.mouse.rightClickPrepare = true;
     } else {
-        hardware.lastInputTouch = hardware.mouse.downTime = Date.now(); 
+        hardware.lastInputTouch = hardware.mouse.downTime = Date.now();
         hardware.mouse.moveX = hardware.mouse.downX =  xTS;
         hardware.mouse.moveY = hardware.mouse.downY =  yTS;
         if(hardware.mouse.isHoldTimeout !== undefined && hardware.mouse.isHoldTimeout !== null) {
@@ -252,30 +252,30 @@ function getTouchStart(event) {
     }
 }
 function getTouchEnd(event) {
-	event.preventDefault();
+    event.preventDefault();
     getGesture({type: "pinchend"});
     hardware.mouse.upX = (event.changedTouches[0].clientX*client.devicePixelRatio);
     hardware.mouse.upY = (event.changedTouches[0].clientY*client.devicePixelRatio);
-    hardware.mouse.upTime = Date.now(); 
-    hardware.mouse.isHold = hardware.mouse.rightClickHold = false;  
-    hardware.mouse.rightClickEvent = hardware.mouse.rightClick; 
+    hardware.mouse.upTime = Date.now();
+    hardware.mouse.isHold = hardware.mouse.rightClickHold = false;
+    hardware.mouse.rightClickEvent = hardware.mouse.rightClick;
     if(hardware.mouse.rightClickPrepare != undefined && hardware.mouse.rightClickPrepare) {
         if(controlCenter.showCarCenter === null && hardware.mouse.rightClick) {
             controlCenter.showCarCenter = true;
-            notify(getString("appScreenCarControlCenterTitle"), false, 1000,null,null, client.y, false);
+            notify("#canvas-notifier", getString("appScreenCarControlCenterTitle"), NOTIFICATION_PRIO_LOW, 1000,null,null, client.y, false);
             hardware.mouse.rightClickPrepare = false;
         } else {
-            hardware.mouse.rightClick = !hardware.mouse.rightClick; 
+            hardware.mouse.rightClick = !hardware.mouse.rightClick;
             if(hardware.mouse.rightClick) {
-               notify(getString("appScreenControlCenterTitle"), false, 1000,null,null, client.y, false);
+                notify("#canvas-notifier", getString("appScreenControlCenterTitle"), NOTIFICATION_PRIO_LOW, 1000,null,null, client.y, false);
             }
             hardware.mouse.rightClickEvent = hardware.mouse.rightClickHold = hardware.mouse.rightClickPrepare = false;
-        }  
+        }
     }
 
 }
 function getTouchLeave(event) {
-    hardware.mouse.isHold = hardware.mouse.rightClickHold = false;  
+    hardware.mouse.isHold = hardware.mouse.rightClickHold = false;
 }
 
 function onKeyDown(event) {
@@ -287,37 +287,38 @@ function onKeyDown(event) {
         }
         if(event.key == "+") {
             client.PinchOHypot = 2;
-            getGesture({type: 'pinch', scale:2, deltaX:client.PinchX,deltaY:client.PinchY});
+            getGesture({type: "pinch", scale:2, deltaX:client.PinchX,deltaY:client.PinchY});
         } else if(event.key == "-") {
             client.PinchOHypot = 0.5;
-            getGesture({type: 'pinch', scale:0.5, deltaX:client.PinchX,deltaY:client.PinchY});
+            getGesture({type: "pinch", scale:0.5, deltaX:client.PinchX,deltaY:client.PinchY});
         } else {
             getGesture({type: "doubletap", deltaX:client.PinchX,deltaY:client.PinchY});
         }
-        getGesture({type: "pinchend"}); 
-        delete client.hasPinched;       
+        getGesture({type: "pinchend"});
+        delete client.hasPinched;
     } else if(client.realScale > 1 && isHardwareAvailable("cursorascircle") && settings.cursorascircle && (event.key == "ArrowRight" || event.key == "ArrowLeft" || event.key == "ArrowDown" || event.key == "ArrowUp")) {
         event.preventDefault();
         var oTSX=client.touchScaleX;
         var oTSY=client.touchScaleY;
         var deltaDiv = 20;
+        var deltaX,deltaY;
         if(event.key == "ArrowRight") {
-            var deltaX=-canvas.width*client.realScale/deltaDiv;
-            var deltaY=0;
+            deltaX=-canvas.width*client.realScale/deltaDiv;
+            deltaY=0;
         } else if(event.key == "ArrowLeft") {
-            var deltaX=canvas.width*client.realScale/deltaDiv;
-            var deltaY=0;
+            deltaX=canvas.width*client.realScale/deltaDiv;
+            deltaY=0;
         } else if(event.key == "ArrowUp") {
-            var deltaX=0;
-            var deltaY=canvas.height*client.realScale/deltaDiv;
+            deltaX=0;
+            deltaY=canvas.height*client.realScale/deltaDiv;
         } else if(event.key == "ArrowDown") {
-            var deltaX=0;
-            var deltaY=-canvas.height*client.realScale/deltaDiv;
+            deltaX=0;
+            deltaY=-canvas.height*client.realScale/deltaDiv;
         }
         getGesture({type: "swipe", deltaX:deltaX,deltaY:deltaY});
         client.touchScaleXKeyFake -= (client.touchScaleX-oTSX)/client.realScale;
         client.touchScaleYKeyFake -= (client.touchScaleY-oTSY)/client.realScale;
-    } else if ((event.key == "ArrowUp" && (konamistate === 0 || konamistate == 1)) || (event.key == "ArrowDown" && (konamistate == 2 || konamistate == 3)) || (event.key == "ArrowLeft" && (konamistate == 4 || konamistate == 6)) || (event.key == "ArrowRight" && (konamistate == 5 || konamistate == 7)) || (event.key == "b" && konamistate == 8)){ 
+    } else if ((event.key == "ArrowUp" && (konamistate === 0 || konamistate == 1)) || (event.key == "ArrowDown" && (konamistate == 2 || konamistate == 3)) || (event.key == "ArrowLeft" && (konamistate == 4 || konamistate == 6)) || (event.key == "ArrowRight" && (konamistate == 5 || konamistate == 7)) || (event.key == "b" && konamistate == 8)){
         if(typeof konamiTimeOut !== "undefined"){
             clearTimeout(konamiTimeOut);
         }
@@ -344,8 +345,8 @@ function onKeyDown(event) {
 * Animation functions for load and resize *
 ******************************************/
 
- function drawBackground() {
-    
+function drawBackground() {
+
     ////DRAW/BACKGROUND/Margins-1/////
     contextBackground.clearRect(0, 0, canvas.width, canvas.height);
     contextBackground.setTransform(client.realScale,0,0,client.realScale,-(client.realScale-1)*canvas.width/2+client.touchScaleX,-(client.realScale-1)*canvas.height/2+client.touchScaleY);
@@ -379,10 +380,10 @@ function onKeyDown(event) {
         contextSemiForeground.fillRect(0,canvas.height-background.y,canvas.width,background.y);
         contextSemiForeground.restore();
     }
-     
-    /////DRAW/BACKGROUND/Konami/////    
+
+    /////DRAW/BACKGROUND/Konami/////
     if(konamistate < 0) {
-         /////DRAW/BACKGROUND/Layer-1/////
+        /////DRAW/BACKGROUND/Layer-1/////
         var imgData = contextBackground.getImageData(background.x, background.y, background.width, background.height);
         var data = imgData.data;
         for (var i = 0; i < data.length; i += 8) {
@@ -393,8 +394,8 @@ function onKeyDown(event) {
         contextBackground.putImageData(imgData, background.x, background.y);
         /////DRAW/BACKGROUND/Layer-2/////
         imgData = contextSemiForeground.getImageData(background.x, background.y, background.width, background.height);
-        var data = imgData.data;
-        for (var i = 0; i < data.length; i += 8) {
+        data = imgData.data;
+        for (i = 0; i < data.length; i += 8) {
             data[i] = data[i+4] = Math.min(255,data[i] < 120 ? data[i]/1.3 : data[i]*1.1);
             data[i+1] = data[i+5] = Math.min(255,data[i+1] < 120 ? data[i+1]/1.3 : data[i+1]*1.1);
             data[i+2] = data[i+6] = Math.min(255,data[i+2] < 120 ? data[i+2]/1.3 : data[i+2]*1.1);
@@ -435,7 +436,7 @@ function placeClassicUIElements(){
     fac = 0.17;
     classicUI.transformer.directionInput.width = fac * classicUI.transformer.width;
     classicUI.transformer.directionInput.height = fac * (pics[classicUI.transformer.directionInput.src].height * ( classicUI.transformer.width/ pics[classicUI.transformer.directionInput.src].width));
-    
+
     classicUI.trainSwitch.x = background.x + background.width /99;
     classicUI.trainSwitch.y = background.y + background.height / 1.175;
     classicUI.transformer.x = background.x + background.width / 1.1;
@@ -443,9 +444,9 @@ function placeClassicUIElements(){
     classicUI.transformer.input.diffY = classicUI.transformer.height/6;
     classicUI.transformer.directionInput.diffX = classicUI.transformer.width*0.46-classicUI.transformer.directionInput.width;
     classicUI.transformer.directionInput.diffY = classicUI.transformer.height*0.46-classicUI.transformer.directionInput.height;
-    
+
     var cwidth =  background.width*0.07;
-     context.textBaseline = "middle";
+    context.textBaseline = "middle";
     var longestName = 0;
     for (var i = 1; i < trains.length; i++){
         if (getString(["appScreenTrainNames",i]).length > getString(["appScreenTrainNames",longestName]).length){
@@ -478,8 +479,9 @@ function calcControlCenter() {
     contextForeground.save();
     controlCenter.fontSizes.closeTextHeight = Math.min(controlCenter.maxTextWidth/12,getFontSize(measureFontSize(getString("appScreenControlCenterClose",null,"upper"),controlCenter.fontFamily,controlCenter.maxTextWidth/12,controlCenter.maxTextHeight, 5, 1.2,0), "px"));
     controlCenter.fontSizes.trainSizes.speedTextHeight = Math.min(0.5*controlCenter.maxTextHeight/trains.length,getFontSize(measureFontSize(getString("appScreenControlCenterSpeedOff"),controlCenter.fontFamily,0.5*(controlCenter.maxTextWidth*0.5)/getString("appScreenControlCenterSpeedOff").length,0.5*(controlCenter.maxTextWidth*0.5), 5, 1.2,0), "px"));
+    var cText;
     for(var cTrain = 0; cTrain < trains.length; cTrain++) {
-        var cText = getString(["appScreenTrainNames",cTrain]);
+        cText = getString(["appScreenTrainNames",cTrain]);
         controlCenter.fontSizes.trainSizes.trainNames[cTrain] = Math.min(0.625*controlCenter.maxTextHeight/trains.length,getFontSize(measureFontSize(cText,controlCenter.fontFamily,0.625*controlCenter.maxTextWidth/cText.length,0.625*controlCenter.maxTextWidth, 5, 1.2,0), "px"));
         contextForeground.font = controlCenter.fontSizes.trainSizes.trainNames[cTrain] +"px "+controlCenter.fontFamily;
         controlCenter.fontSizes.trainSizes.trainNamesLength[cTrain] = contextForeground.measureText(cText).width;
@@ -508,10 +510,10 @@ function calcControlCenter() {
     if(controlCenter.fontSizes.carSizes.auto == undefined) {
         controlCenter.fontSizes.carSizes.auto = {};
     }
-    var cText = getString("appScreenCarControlCenterAutoModeActivate");
-    controlCenter.fontSizes.carSizes.init.autoModeActivate = Math.min(0.5*controlCenter.maxTextHeight/cars.length,getFontSize(measureFontSize(cText,controlCenter.fontFamily,1.5*controlCenter.maxTextWidth/cText.length,1.5*controlCenter.maxTextWidth, 5, 1.2,0), "px")); 
+    cText = getString("appScreenCarControlCenterAutoModeActivate");
+    controlCenter.fontSizes.carSizes.init.autoModeActivate = Math.min(0.5*controlCenter.maxTextHeight/cars.length,getFontSize(measureFontSize(cText,controlCenter.fontFamily,1.5*controlCenter.maxTextWidth/cText.length,1.5*controlCenter.maxTextWidth, 5, 1.2,0), "px"));
     contextForeground.font = controlCenter.fontSizes.carSizes.init.autoModeActivate +"px "+controlCenter.fontFamily;
-    controlCenter.fontSizes.carSizes.init.autoModeActivateLength = contextForeground.measureText(cText).width; 
+    controlCenter.fontSizes.carSizes.init.autoModeActivateLength = contextForeground.measureText(cText).width;
     for(var cCar = 0; cCar < cars.length; cCar++) {
         cText = formatJSString(getString("appScreenCarControlCenterStartCar"), getString(["appScreenCarNames",cCar]));
         controlCenter.fontSizes.carSizes.init.carNames[cCar] = Math.min(0.5*controlCenter.maxTextHeight/cars.length,getFontSize(measureFontSize(cText,controlCenter.fontFamily,1.5*controlCenter.maxTextWidth/cText.length,1.5*controlCenter.maxTextWidth, 5, 1.2,0), "px"));
@@ -521,20 +523,20 @@ function calcControlCenter() {
         controlCenter.fontSizes.carSizes.manual.carNames[cCar] = Math.min(0.625*controlCenter.maxTextHeight/cars.length,getFontSize(measureFontSize(cText,controlCenter.fontFamily,0.625*controlCenter.maxTextWidth/cText.length,0.625*controlCenter.maxTextWidth, 5, 1.2,0), "px"));
         contextForeground.font = controlCenter.fontSizes.carSizes.manual.carNames[cCar] +"px "+controlCenter.fontFamily;
         controlCenter.fontSizes.carSizes.manual.carNamesLength[cCar] = contextForeground.measureText(cText).width;
-   }      
-   cText = getString("appScreenCarControlCenterAutoModePause");
-   controlCenter.fontSizes.carSizes.auto.pause = Math.min(0.625*controlCenter.maxTextHeight/2,getFontSize(measureFontSize(cText,controlCenter.fontFamily,0.625*controlCenter.maxTextWidth/cText.length,0.625*controlCenter.maxTextWidth, 5, 1.2,0), "px"));
-   contextForeground.font = controlCenter.fontSizes.carSizes.auto.pause +"px "+controlCenter.fontFamily;
-   controlCenter.fontSizes.carSizes.auto.pauseLength = contextForeground.measureText(cText).width;
-   cText = getString("appScreenCarControlCenterAutoModeResume");
-   controlCenter.fontSizes.carSizes.auto.resume = Math.min(0.625*controlCenter.maxTextHeight/2,getFontSize(measureFontSize(cText,controlCenter.fontFamily,0.625*controlCenter.maxTextWidth/cText.length,0.625*controlCenter.maxTextWidth, 5, 1.2,0), "px"));
-   contextForeground.font = controlCenter.fontSizes.carSizes.auto.resume +"px "+controlCenter.fontFamily;
-   controlCenter.fontSizes.carSizes.auto.resumeLength = contextForeground.measureText(cText).width;
-   cText = getString("appScreenCarControlCenterAutoModeBackToRoot");
-   controlCenter.fontSizes.carSizes.auto.backToRoot = Math.min(0.625*controlCenter.maxTextHeight/2,getFontSize(measureFontSize(cText,controlCenter.fontFamily,0.625*controlCenter.maxTextWidth/cText.length,0.625*controlCenter.maxTextWidth, 5, 1.2,0), "px"));
-   contextForeground.font = controlCenter.fontSizes.carSizes.auto.backToRoot +"px "+controlCenter.fontFamily;
-   controlCenter.fontSizes.carSizes.auto.backToRootLength = contextForeground.measureText(cText).width;
-   contextForeground.restore();
+    }
+    cText = getString("appScreenCarControlCenterAutoModePause");
+    controlCenter.fontSizes.carSizes.auto.pause = Math.min(0.625*controlCenter.maxTextHeight/2,getFontSize(measureFontSize(cText,controlCenter.fontFamily,0.625*controlCenter.maxTextWidth/cText.length,0.625*controlCenter.maxTextWidth, 5, 1.2,0), "px"));
+    contextForeground.font = controlCenter.fontSizes.carSizes.auto.pause +"px "+controlCenter.fontFamily;
+    controlCenter.fontSizes.carSizes.auto.pauseLength = contextForeground.measureText(cText).width;
+    cText = getString("appScreenCarControlCenterAutoModeResume");
+    controlCenter.fontSizes.carSizes.auto.resume = Math.min(0.625*controlCenter.maxTextHeight/2,getFontSize(measureFontSize(cText,controlCenter.fontFamily,0.625*controlCenter.maxTextWidth/cText.length,0.625*controlCenter.maxTextWidth, 5, 1.2,0), "px"));
+    contextForeground.font = controlCenter.fontSizes.carSizes.auto.resume +"px "+controlCenter.fontFamily;
+    controlCenter.fontSizes.carSizes.auto.resumeLength = contextForeground.measureText(cText).width;
+    cText = getString("appScreenCarControlCenterAutoModeBackToRoot");
+    controlCenter.fontSizes.carSizes.auto.backToRoot = Math.min(0.625*controlCenter.maxTextHeight/2,getFontSize(measureFontSize(cText,controlCenter.fontFamily,0.625*controlCenter.maxTextWidth/cText.length,0.625*controlCenter.maxTextWidth, 5, 1.2,0), "px"));
+    contextForeground.font = controlCenter.fontSizes.carSizes.auto.backToRoot +"px "+controlCenter.fontFamily;
+    controlCenter.fontSizes.carSizes.auto.backToRootLength = contextForeground.measureText(cText).width;
+    contextForeground.restore();
 }
 
 /******************************************
@@ -544,11 +546,11 @@ function drawObjects() {
     function drawTrains(input1){
         function drawTrain(i) {
             var currentObject = (i < 0)?trains[input1]:trains[input1].cars[i];
-       
-            context.save();        
+
+            context.save();
             context.translate(currentObject.x, currentObject.y);
             context.rotate(currentObject.displayAngle);
-            
+
             var flickerDuration = 3;
             if(frameNo <= trains[input1].lastDirectionChange+flickerDuration*6 && !trains[input1].move && Math.random() > 0.7 && (i < 0 || i == trains[input1].cars.length-1)) {
                 context.save();
@@ -556,10 +558,10 @@ function drawObjects() {
                 context.lineWidth = (client.isTiny ? 1 : 3);
                 if(i == -1 && trains[input1].standardDirection) {
                     if(trains[input1].flickerFacFront == undefined) {
-                       trains[input1].flickerFacFront = 2;
+                        trains[input1].flickerFacFront = 2;
                     }
                     if(trains[input1].flickerFacFrontOffset == undefined) {
-                       trains[input1].flickerFacFrontOffset = 3.5;
+                        trains[input1].flickerFacFrontOffset = 3.5;
                     }
                     context.beginPath();
                     context.moveTo(currentObject.width/trains[input1].flickerFacFront+background.width/500,-currentObject.height/trains[input1].flickerFacFrontOffset);
@@ -571,10 +573,10 @@ function drawObjects() {
                 }
                 if(i == trains[input1].cars.length-1 && !trains[input1].standardDirection) {
                     if(trains[input1].flickerFacBack == undefined) {
-                       trains[input1].flickerFacBack = 2;
+                        trains[input1].flickerFacBack = 2;
                     }
                     if(trains[input1].flickerFacBackOffset == undefined) {
-                       trains[input1].flickerFacBackOffset = 3.5;
+                        trains[input1].flickerFacBackOffset = 3.5;
                     }
                     context.beginPath();
                     context.moveTo(-currentObject.width/trains[input1].flickerFacBack-background.width/500,-currentObject.height/trains[input1].flickerFacBackOffset);
@@ -597,7 +599,7 @@ function drawObjects() {
                 context.font = measureFontSize(icon, "sans-serif",100,currentObject.width, 5, currentObject.width/100, 0);
                 context.fillStyle = "white";
                 context.scale(1,currentObject.height/getFontSize(context.font,"px"));
-                context.fillText(icon,0,0); 
+                context.fillText(icon,0,0);
             } else if(frameNo <= trains[input1].lastDirectionChange+flickerDuration*3 && (frameNo <= trains[input1].lastDirectionChange+flickerDuration || frameNo > trains[input1].lastDirectionChange+flickerDuration*2)) {
                 drawImage(pics[currentObject.src], -currentObject.width*1.01/2,-currentObject.height*1.01/2, currentObject.width*1.01, currentObject.height*1.01);
             } else {
@@ -619,20 +621,20 @@ function drawObjects() {
                     if(typeof clickTimeOut !== "undefined"){
                         clearTimeout(clickTimeOut);
                         clickTimeOut = null;
-                   }
+                    }
                     if(hardware.lastInputTouch > hardware.lastInputMouse) {
                         hardware.mouse.isHold = false;
                     }
-                    if(trains[input1].accelerationSpeed <= 0 && Math.abs(trains[input1].accelerationSpeed) < 0.2){ 
+                    if(trains[input1].accelerationSpeed <= 0 && Math.abs(trains[input1].accelerationSpeed) < 0.2){
                         actionSync("trains", input1, [{"accelerationSpeed": 0}, {"move": false}, {"lastDirectionChange": frameNo}, {"standardDirection": !trains[input1].standardDirection}], [{getString: ["appScreenObjectChangesDirection","."]}, {getString: [["appScreenTrainNames",input1]]}]);
                     }
                 } else {
                     if(typeof clickTimeOut !== "undefined"){
                         clearTimeout(clickTimeOut);
-                         clickTimeOut = null;
-                   }
+                        clickTimeOut = null;
+                    }
                     clickTimeOut = setTimeout(function(){
-                         clickTimeOut = null;
+                        clickTimeOut = null;
                         if(hardware.lastInputTouch > hardware.lastInputMouse) {
                             hardware.mouse.isHold = false;
                         }
@@ -641,29 +643,29 @@ function drawObjects() {
                                 actionSync("trains", input1, [{"accelerationSpeed": trains[input1].accelerationSpeed *= -1}], [{getString: ["appScreenObjectStops", "."]}, {getString:[["appScreenTrainNames",input1]]}]);
                             } else {
                                 if(trains[input1].move){
-                                   actionSync("trains", input1, [{"accelerationSpeed": trains[input1].accelerationSpeed *= -1},{"speedInPercent":50}], [{getString:["appScreenObjectStarts", "."]}, {getString:[["appScreenTrainNames",input1]]}]);
+                                    actionSync("trains", input1, [{"accelerationSpeed": trains[input1].accelerationSpeed *= -1},{"speedInPercent":50}], [{getString:["appScreenObjectStarts", "."]}, {getString:[["appScreenTrainNames",input1]]}]);
                                 } else {
-                                   actionSync("trains", input1, [{"move": true},{"speedInPercent":50}], [{getString:["appScreenObjectStarts", "."]}, {getString:[["appScreenTrainNames",input1]]}]);
-                                   trains[input1].move = true;
-                                   trains[input1].accelerationSpeed = 1;
+                                    actionSync("trains", input1, [{"move": true},{"speedInPercent":50}], [{getString:["appScreenObjectStarts", "."]}, {getString:[["appScreenTrainNames",input1]]}]);
+                                    trains[input1].move = true;
+                                    trains[input1].accelerationSpeed = 1;
                                 }
                                 trains[input1].speedInPercent = 50;
                             }
-                        }                           
-                    }, (hardware.lastInputTouch > hardware.lastInputMouse) ? longTouchWaitTime : doubleClickWaitTime);                             
+                        }
+                    }, (hardware.lastInputTouch > hardware.lastInputMouse) ? longTouchWaitTime : doubleClickWaitTime);
                 }
             }
             context.restore();
         }
-         
+
         for(var i = -1; i < trains[input1].cars.length; i++){
             drawTrain(i);
         }
     }
-    
+
     function collisionMatrix() {
         function collisionWeight(input1){
-            contextForeground.save(); 
+            contextForeground.save();
             contextForeground.setTransform(1, 0, 0, 1, 0, 0);
             var currentObjects = [{}];
             currentObjects[0] = copyJSObject(trains[input1]);
@@ -677,7 +679,7 @@ function drawObjects() {
                 currentObjects[0].facs = [{x: -1, weight: trainParams.innerCollisionFac},{x: -0.5, weight: trainParams.innerCollisionFac/2},{x: 0, weight: trainParams.innerCollisionFac/3},{x: 0.5, weight: trainParams.innerCollisionFac/4}];
             }
             for(var i = 0; i < trains[input1].cars.length; i++) {
-                 currentObjects[i+1] = copyJSObject(trains[input1].cars[i]);
+                currentObjects[i+1] = copyJSObject(trains[input1].cars[i]);
                 if(i == trains[input1].cars.length-1 && !trains[input1].standardDirection) {
                     currentObjects[i+1].facs = [{x: -1, weight: 1},{x: -0.5, weight:  trainParams.innerCollisionFac},{x: 0, weight:  trainParams.innerCollisionFac},{x: 0.5, weight:  trainParams.innerCollisionFac},{x: 1, weight:  trainParams.innerCollisionFac}];
                 } else if (i == trains[input1].cars.length-1) {
@@ -711,7 +713,7 @@ function drawObjects() {
                         currentObject.points[currentObject.pointNo+3].y = currentObject.y+fac.x*1.2*Math.cos(Math.PI/2-currentObject.displayAngle)*currentObject.width/2;
                         currentObject.points[currentObject.pointNo+3].weight = fac.weight;
                         currentObject.points[currentObject.pointNo+4].x = currentObject.x+fac.x*1.1*Math.sin(Math.PI/2-currentObject.displayAngle)*currentObject.width/2+1.1*Math.cos(-Math.PI/2-currentObject.displayAngle)*currentObject.height/2;
-                        currentObject.points[currentObject.pointNo+4].y = currentObject.y+fac.x*1.1*Math.cos(Math.PI/2-currentObject.displayAngle)*currentObject.width/2-1.1*Math.sin(-Math.PI/2-currentObject.displayAngle)*currentObject.height/2;;
+                        currentObject.points[currentObject.pointNo+4].y = currentObject.y+fac.x*1.1*Math.cos(Math.PI/2-currentObject.displayAngle)*currentObject.width/2-1.1*Math.sin(-Math.PI/2-currentObject.displayAngle)*currentObject.height/2;
                         currentObject.points[currentObject.pointNo+4].weight = fac.weight;
                         currentObject.points[currentObject.pointNo+5].x = currentObject.x+fac.x*1.1*Math.sin(Math.PI/2-currentObject.displayAngle)*currentObject.width/2-1.1*Math.cos(-Math.PI/2-currentObject.displayAngle)*currentObject.height/2;
                         currentObject.points[currentObject.pointNo+5].y = currentObject.y+fac.x*1.1*Math.cos(Math.PI/2-currentObject.displayAngle)*currentObject.width/2+1.1*Math.sin(-Math.PI/2-currentObject.displayAngle)*currentObject.height/2;
@@ -737,17 +739,17 @@ function drawObjects() {
                         for(var j = -1; j < trains[i].cars.length; j++){
                             var currentObject2 = j >= 0 ? trains[i].cars[j] : trains[i];
                             contextForeground.save();
-                            contextForeground.translate(currentObject2.x, currentObject2.y); 
+                            contextForeground.translate(currentObject2.x, currentObject2.y);
                             contextForeground.rotate(currentObject2.displayAngle);
                             contextForeground.beginPath();
                             contextForeground.rect(-currentObject2.width/2, -currentObject2.height/2, currentObject2.width, currentObject2.height);
                             currentObject.points.forEach(function(point) {
                                 if (contextForeground.isPointInPath(point.x, point.y) && point.weight > collisionMatrix[i]){
-                                   collisionMatrix[i] = point.weight;
+                                    collisionMatrix[i] = point.weight;
                                 }
                             });
                             contextForeground.restore();
-                      }
+                        }
                     }
                 }
             });
@@ -773,18 +775,17 @@ function drawObjects() {
                         trains[input1].accelerationSpeed = 0;
                         trains[input1].accelerationSpeedCustom = 1;
                     }
-                   return true;
+                    return true;
                 }
             }
         }
         return false;
     }
-    
+
     function drawCars(input1){
         var currentObject = cars[input1];
-        var currentObject = cars[input1];
         carCollisionCourse(input1,true);
-        context.save();        
+        context.save();
         context.translate(background.x, background.y);
         context.translate(currentObject.x, currentObject.y);
         context.rotate(currentObject.displayAngle);
@@ -796,7 +797,7 @@ function drawObjects() {
             context.font = measureFontSize(icon,"sans-serif",100,currentObject.width, 5, currentObject.width/100, 0);
             context.fillStyle = "white";
             context.scale(1,currentObject.height/getFontSize(context.font,"px"));
-            context.fillText(icon,0,0); 
+            context.fillText(icon,0,0);
         } else if ( frameNo <= currentObject.lastDirectionChange+flickerDuration*3 && (frameNo <= currentObject.lastDirectionChange+flickerDuration || frameNo > currentObject.lastDirectionChange+flickerDuration*2)) {
             drawImage(pics[currentObject.src], -currentObject.width*1.03/2,-currentObject.height*1.03/2, currentObject.width*1.03, currentObject.height*1.03);
         } else {
@@ -825,13 +826,13 @@ function drawObjects() {
                         carParams.autoModeOff = false;
                         carParams.autoModeRuns = true;
                         carParams.autoModeInit = true;
-                        notify(formatJSString(getString("appScreenCarAutoModeChange", "."), getString("appScreenCarAutoModeInit")),  false, 500,null, null, client.y);
+                        notify("#canvas-notifier", formatJSString(getString("appScreenCarAutoModeChange", "."), getString("appScreenCarAutoModeInit")), NOTIFICATION_PRIO_DEFAULT, 500,null, null, client.y);
                     } else if(carParams.autoModeOff && !currentObject.move && currentObject.backwardsState === 0) {
                         currentObject.lastDirectionChange = frameNo;
                         currentObject.backwardsState = 1;
                         currentObject.backToInit = false;
                         currentObject.move = !carCollisionCourse(input1,false);
-                        notify(formatJSString(getString("appScreenCarStepsBack","."), getString(["appScreenCarNames",input1])), false, 750,null,null, client.y);
+                        notify("#canvas-notifier", formatJSString(getString("appScreenCarStepsBack","."), getString(["appScreenCarNames",input1])), NOTIFICATION_PRIO_DEFAULT, 750,null,null, client.y);
                     }
                 } else {
                     if(typeof clickTimeOut !== "undefined"){
@@ -845,27 +846,27 @@ function drawObjects() {
                         }
                         if(!carCollisionCourse(input1,false)) {
                             if(carParams.autoModeRuns) {
-                                notify(formatJSString(getString("appScreenCarAutoModeChange", "."), getString("appScreenCarAutoModePause")),  false, 500,null, null, client.y);
+                                notify("#canvas-notifier", formatJSString(getString("appScreenCarAutoModeChange", "."), getString("appScreenCarAutoModePause")), NOTIFICATION_PRIO_DEFAULT, 500,null, null, client.y);
                                 carParams.autoModeRuns = false;
                             } else if(carParams.init || carParams.autoModeOff) {
                                 currentObject.parking = false;
-                                if (currentObject.move){ 
+                                if (currentObject.move){
                                     currentObject.move = false;
-                                    notify(formatJSString(getString("appScreenObjectStops", "."), getString(["appScreenCarNames",input1])),  false, 500 ,null,  null, client.y);
+                                    notify("#canvas-notifier", formatJSString(getString("appScreenObjectStops", "."), getString(["appScreenCarNames",input1])), NOTIFICATION_PRIO_DEFAULT, 500 ,null,  null, client.y);
                                 } else {
                                     currentObject.move = !carCollisionCourse(input1,false);
-                                    notify(formatJSString(getString("appScreenObjectStarts", "."), getString(["appScreenCarNames",input1])),  false, 500,null, null, client.y);
+                                    notify("#canvas-notifier", formatJSString(getString("appScreenObjectStarts", "."), getString(["appScreenCarNames",input1])), NOTIFICATION_PRIO_DEFAULT, 500,null, null, client.y);
                                 }
                                 currentObject.backwardsState = 0;
                                 currentObject.backToInit = false;
                                 carParams.init = false;
                                 carParams.autoModeOff = true;
                             } else {
-                                notify(formatJSString(getString("appScreenCarAutoModeChange", "."), getString("appScreenCarAutoModeInit")),  false, 500,null, null, client.y);
+                                notify("#canvas-notifier", formatJSString(getString("appScreenCarAutoModeChange", "."), getString("appScreenCarAutoModeInit")), NOTIFICATION_PRIO_DEFAULT, 500,null, null, client.y);
                                 carParams.autoModeRuns = true;
-                                carParams.autoModeInit = true;                            
-                            }                        
-                        }                           
+                                carParams.autoModeInit = true;
+                            }
+                        }
                     }, (hardware.lastInputTouch > hardware.lastInputMouse) ? longTouchWaitTime : doubleClickWaitTime);
 
                 }
@@ -885,11 +886,11 @@ function drawObjects() {
                         if(carParams.autoModeOff) {
                             currentObject.move = true;
                             currentObject.backToInit = true;
-                            notify(formatJSString(getString("appScreenCarParking", "."), getString(["appScreenCarNames",input1])),  false, 500 ,null,  null, client.y);
+                            notify("#canvas-notifier", formatJSString(getString("appScreenCarParking", "."), getString(["appScreenCarNames",input1])), NOTIFICATION_PRIO_DEFAULT, 500 ,null,  null, client.y);
                         } else {
                             carParams.autoModeRuns = true;
                             carParams.isBackToRoot = true;
-                            notify(getString("appScreenCarAutoModeParking", "."),  false, 750 ,null,  null, client.y);
+                            notify("#canvas-notifier", getString("appScreenCarAutoModeParking", "."), NOTIFICATION_PRIO_DEFAULT, 750 ,null,  null, client.y);
                         }
                     }
                 }
@@ -897,7 +898,7 @@ function drawObjects() {
             context.closePath();
             context.restore();
             if(debug){
-                context.save();        
+                context.save();
                 context.translate(background.x+currentObject.x, background.y+currentObject.y);
                 context.rotate(currentObject.displayAngle);
                 context.strokeRect(-currentObject.width/2,-currentObject.height/2, currentObject.width, currentObject.height);
@@ -946,10 +947,10 @@ function drawObjects() {
                     currentObject.counter = currentObject.backToInit || currentObject.backwardsState > 0 ? (--currentObject.counter < cars[input1].startFrame ? cars[input1].startFrame : currentObject.counter) : (++currentObject.counter > carWays[input1].start.length-1 ? 0 : currentObject.counter);
                     if(currentObject.counter === 0) {
                         currentObject.cType = "normal";
-                   } else if (currentObject.counter == currentObject.startFrame) {
+                    } else if (currentObject.counter == currentObject.startFrame) {
                         currentObject.parking = true;
                         currentObject.backToInit = false;
-                        currentObject.backwardsState = 0;                
+                        currentObject.backwardsState = 0;
                         currentObject.move = false;
                         if(!carParams.autoModeInit) {
                             var allParking = true;
@@ -981,7 +982,7 @@ function drawObjects() {
             context.restore();
         }
     }
-    
+
     function carCollisionCourse(input1, input2, fixFac){
         context.save();
         context.setTransform(1, 0, 0, 1, 0, 0);
@@ -1015,13 +1016,13 @@ function drawObjects() {
             if(input1 != i){
                 currentObject = cars[i];
                 context.save();
-                context.translate(currentObject.x, currentObject.y); 
+                context.translate(currentObject.x, currentObject.y);
                 context.rotate(currentObject.displayAngle);
                 context.beginPath();
                 context.rect(-currentObject.width/2, -currentObject.height/2, currentObject.width, currentObject.height);
                 if (context.isPointInPath(x1, y1) || context.isPointInPath(x2, y2) || context.isPointInPath(x3, y3)){
                     if(input2 && cars[input1].move){
-                        notify(formatJSString(getString("appScreenObjectHasCrashed", "."), getString(["appScreenCarNames",input1]), getString(["appScreenCarNames",i])), false, 2000,null,null, client.y);
+                        notify("#canvas-notifier", formatJSString(getString("appScreenObjectHasCrashed", "."), getString(["appScreenCarNames",input1]), getString(["appScreenCarNames",i])), NOTIFICATION_PRIO_DEFAULT, 2000,null,null, client.y);
                     }
                     collision = true;
                     cars[input1].move = cars[input1].backToInit = false;
@@ -1033,7 +1034,7 @@ function drawObjects() {
         context.restore();
         return(collision);
     }
-    
+
     function carAutoModeIsFutureCollision(i,k,stop,j) {
         if(typeof stop == "undefined"){
             stop = -1;
@@ -1044,7 +1045,7 @@ function drawObjects() {
         context.save();
         context.setTransform(1, 0, 0, 1, 0, 0);
         var coll = false;
-        var jmax = false;            
+        var jmax = false;
         var m = j;
         var n = j;
         if(m >= points.angle[i].length-1 || n >= points.angle[k].length-1) {
@@ -1064,7 +1065,7 @@ function drawObjects() {
         var y1 = points.y[i][m]+(carParams.isBackToRoot ? -1 : 1)*Math.cos(Math.PI/2-points.angle[i][m])*cCars[i].width/2-Math.sin(-Math.PI/2-points.angle[i][m])*cCars[i].height/2;
         var y2 = points.y[i][m]+(carParams.isBackToRoot ? -1 : 1)*Math.cos(Math.PI/2-points.angle[i][m])*cCars[i].width/2+Math.sin(-Math.PI/2-points.angle[i][m])*cCars[i].height/2;
         var y3 = points.y[i][m]+(carParams.isBackToRoot ? -1 : 1)*Math.cos(Math.PI/2-points.angle[i][m])*cCars[i].width/2;
-        context.translate(points.x[k][n], points.y[k][n]); 
+        context.translate(points.x[k][n], points.y[k][n]);
         context.rotate(points.angle[k][n]);
         context.beginPath();
         context.rect(-sizeNo*cCars[k].width/2, -sizeNo*cCars[carParams.thickestCar].height/2, sizeNo*cCars[k].width, sizeNo*cCars[carParams.thickestCar].height);
@@ -1074,7 +1075,7 @@ function drawObjects() {
         context.restore();
         return (coll) ? j : ((jmax) ? -1 : carAutoModeIsFutureCollision(i,k,stop,++j));
     }
-    
+
     function classicUISwicthesLocate(angle, radius, style){
         contextForeground.save();
         contextForeground.rotate(angle);
@@ -1086,16 +1087,16 @@ function drawObjects() {
         contextForeground.stroke();
         contextForeground.restore();
     }
-    
+
     function adjustScaleX(x) {
         return (canvas.width*client.realScale/2-canvas.width/2)/client.realScale+x/client.realScale-client.touchScaleX/client.realScale;
     }
     function adjustScaleY(y) {
         return (canvas.height*client.realScale/2-canvas.height/2)/client.realScale+y/client.realScale-client.touchScaleY/client.realScale;
     }
-    
+
     /////GENERAL/////
-	var starttime = Date.now();
+    var starttime = Date.now();
     if(client.realScale != client.oldRealScale || client.touchScaleX != client.oldTouchScaleX || client.touchScaleY != client.oldTouchScaleY) {
         client.oldRealScale = client.realScale;
         client.oldTouchScaleX = client.touchScaleX;
@@ -1113,12 +1114,12 @@ function drawObjects() {
     contextForeground.setTransform(client.realScale,0,0,client.realScale,-(client.realScale-1)*canvas.width/2+client.touchScaleX,-(client.realScale-1)*canvas.height/2+client.touchScaleY);
     frameNo++;
     if(frameNo % 1000000 === 0){
-        notify(formatJSString(getString("appScreenAMillionFrames","."),frameNo/1000000), false, 500, null, null, client.y);
-    }    
+        notify("#canvas-notifier", formatJSString(getString("appScreenAMillionFrames","."),frameNo/1000000), NOTIFICATION_PRIO_DEFAULT, 500, null, null, client.y);
+    }
     if(hardware.mouse.cursor != "none") {
         hardware.mouse.cursor = "default";
     }
-    
+
     /////TRAINS/////
     var inTrain = false;
     for(var i = 0; i < trains.length; i++) {
@@ -1172,7 +1173,7 @@ function drawObjects() {
                     if(cCars[i].cType == "normal" && counter-cAbstrNo < 0) {
                         cCars[i].cType = "start";
                     } else if(cCars[i].cType == "start" && counter-cAbstrNo < cCars[i].startFrame) {
-                       counter = cCars[i].startFrame;
+                        counter = cCars[i].startFrame;
                     }
                     counter = counter-cAbstrNo < 0 ? (carWays[i][cCars[i].cType].length-1)+(counter-cAbstrNo) : counter-cAbstrNo;
                 }
@@ -1198,7 +1199,6 @@ function drawObjects() {
             }
             cCars[i].cType = cars[i].cType;
         }
-        var state = 0;
         var change;
         var changeNum = 0;
         do {
@@ -1273,7 +1273,7 @@ function drawObjects() {
         drawCars(i);
     }
 
-    /////KONAMI/Animals/////    
+    /////KONAMI/Animals/////
     if(konamistate < 0) {
         var animalPos = [{x: background.x+background.width*0.88, y: background.y+background.height*0.58},{x: background.x+background.width*0.055, y: background.y+background.height*0.07}];
         var animals = [];
@@ -1284,7 +1284,7 @@ function drawObjects() {
         }
         animals.forEach(function(animal,i){
             context.save();
-            context.translate(animalPos[i].x, animalPos[i].y);    
+            context.translate(animalPos[i].x, animalPos[i].y);
             context.font = measureFontSize(animal, "sans-serif",100,background.width*0.001, 5,background.width*0.012, 0);
             context.fillStyle = "white";
             context.textAlign = "center";
@@ -1304,9 +1304,9 @@ function drawObjects() {
             if(frameNo % taxOffice.params.frameNo === 0) {
                 if ( Math.random() > taxOffice.params.frameProbability ) {
                     if ( Math.random() >= taxOffice.params.fire.color.probability ) {
-                        taxOffice.fire[i].color = "rgba(" + taxOffice.params.fire.color.yellow.red + "," + taxOffice.params.fire.color.yellow.green + "," + taxOffice.params.fire.color.yellow.blue + "," + (taxOffice.params.fire.color.yellow.alpha * Math.random()) + ")";            
+                        taxOffice.fire[i].color = "rgba(" + taxOffice.params.fire.color.yellow.red + "," + taxOffice.params.fire.color.yellow.green + "," + taxOffice.params.fire.color.yellow.blue + "," + (taxOffice.params.fire.color.yellow.alpha * Math.random()) + ")";
                     } else {
-                        taxOffice.fire[i].color = "rgba(" + taxOffice.params.fire.color.red.red + "," + taxOffice.params.fire.color.red.green + "," + taxOffice.params.fire.color.red.blue + "," + (taxOffice.params.fire.color.red.alpha * Math.random()) + ")";            
+                        taxOffice.fire[i].color = "rgba(" + taxOffice.params.fire.color.red.red + "," + taxOffice.params.fire.color.red.green + "," + taxOffice.params.fire.color.red.blue + "," + (taxOffice.params.fire.color.red.alpha * Math.random()) + ")";
                     }
                     taxOffice.fire[i].x = Math.random() * taxOffice.params.fire.x;
                     taxOffice.fire[i].y = Math.random() * taxOffice.params.fire.y;
@@ -1339,9 +1339,9 @@ function drawObjects() {
             if((frameNo +  taxOffice.params.bluelights.cars[i].frameNo) %  taxOffice.params.bluelights.frameNo < 4) {
                 contextForeground.fillStyle = "rgba(0, 0,255,1)";
             } else if ((frameNo +  taxOffice.params.bluelights.cars[i].frameNo) %  taxOffice.params.bluelights.frameNo < 6 || (frameNo +  taxOffice.params.bluelights.cars[i].frameNo) %  taxOffice.params.bluelights.frameNo > (taxOffice.params.bluelights.frameNo  - 3)) {
-                contextForeground.fillStyle = "rgba(0, 0,255,0.5)";          
+                contextForeground.fillStyle = "rgba(0, 0,255,0.5)";
             } else {
-                contextForeground.fillStyle = "rgba(0, 0,255,0.2)";          
+                contextForeground.fillStyle = "rgba(0, 0,255,0.2)";
             }
             contextForeground.save();
             contextForeground.translate(taxOffice.params.bluelights.cars[i].x[0],taxOffice.params.bluelights.cars[i].y[0]);
@@ -1372,25 +1372,25 @@ function drawObjects() {
             } else {
                 classicUI.transformer.input.angle -= step;
                 if(classicUI.transformer.input.angle <= trains[trainParams.selected].speedInPercent/100 * classicUI.transformer.input.maxAngle){
-                  classicUI.transformer.input.angle = trains[trainParams.selected].speedInPercent/100 * classicUI.transformer.input.maxAngle;
+                    classicUI.transformer.input.angle = trains[trainParams.selected].speedInPercent/100 * classicUI.transformer.input.maxAngle;
                 }
             }
         } else {
-                if(classicUI.transformer.input.angle > 0){
-                    classicUI.transformer.input.angle -= step;
-                    if(classicUI.transformer.input.angle < 0){
-                        classicUI.transformer.input.angle = 0;
-                    }
+            if(classicUI.transformer.input.angle > 0){
+                classicUI.transformer.input.angle -= step;
+                if(classicUI.transformer.input.angle < 0){
+                    classicUI.transformer.input.angle = 0;
                 }
-        }    
+            }
+        }
         context.save();
         drawImage(pics[classicUI.trainSwitch.src], classicUI.trainSwitch.x, classicUI.trainSwitch.y, classicUI.trainSwitch.width, classicUI.trainSwitch.height);
         context.beginPath();
-		var wasInSwitchPath = false;
+        var wasInSwitchPath = false;
         context.rect(classicUI.trainSwitch.x, classicUI.trainSwitch.y, classicUI.trainSwitch.width, classicUI.trainSwitch.height);
         if ((context.isPointInPath(hardware.mouse.wheelX, hardware.mouse.wheelY) && hardware.mouse.wheelScrollY !== 0 && hardware.mouse.wheelScrolls) || context.isPointInPath(hardware.mouse.moveX, hardware.mouse.moveY)) {
-			wasInSwitchPath = true;
-		}
+            wasInSwitchPath = true;
+        }
         context.restore();
         context.save();
         context.beginPath();
@@ -1414,26 +1414,20 @@ function drawObjects() {
                     trainParams.selected = trains.length-1;
                 }
                 if (!settings.alwaysShowSelectedTrain) {
-                    var timeNotify = 1250;
-                    if(classicUI.trainSwitch.notifyTimeout !== undefined && classicUI.trainSwitch.notifyTimeout !== null) {
-                        clearTimeout(classicUI.trainSwitch.notifyTimeout);
-                    }
-                    classicUI.trainSwitch.notifyTimeout = setTimeout(function() {
-                        notify(formatJSString(getString("appScreenTrainSelected", "."), getString(["appScreenTrainNames",trainParams.selected])), true, timeNotify, null, null, client.y);
-                    },timeNotify/4);
+                    notify("#canvas-notifier", formatJSString(getString("appScreenTrainSelected", "."), getString(["appScreenTrainNames",trainParams.selected])), NOTIFICATION_PRIO_HIGH, 1250, null, null, window.innerHeight, NOTIFICATION_CHANNEL_CLASSIC_UI_TRAIN_SWITCH);
                 }
             }
         }
         if(settings.alwaysShowSelectedTrain){
             context.font = classicUI.trainSwitch.selectedTrainDisplay.font;
-            context.fillStyle="#000";        
-            context.strokeStyle="#eee";        
+            context.fillStyle="#000";
+            context.strokeStyle="#eee";
             context.fillRect(classicUI.trainSwitch.x+classicUI.trainSwitch.width,classicUI.trainSwitch.y+classicUI.trainSwitch.height-sTDposY, classicUI.trainSwitch.selectedTrainDisplay.width, classicUI.trainSwitch.selectedTrainDisplay.height);
             context.strokeRect(classicUI.trainSwitch.x+classicUI.trainSwitch.width,classicUI.trainSwitch.y+classicUI.trainSwitch.height-sTDposY, classicUI.trainSwitch.selectedTrainDisplay.width, classicUI.trainSwitch.selectedTrainDisplay.height);
-            context.fillStyle="#eee";    
+            context.fillStyle="#eee";
             context.translate(classicUI.trainSwitch.x+classicUI.trainSwitch.width+classicUI.trainSwitch.selectedTrainDisplay.width/2,0);
-            context.textBaseline = "middle"; 
-			context.fillText(getString(["appScreenTrainNames",trainParams.selected]), -context.measureText(getString(["appScreenTrainNames",trainParams.selected])).width/2,classicUI.trainSwitch.y+classicUI.trainSwitch.height-sTDposY+classicUI.trainSwitch.selectedTrainDisplay.height/2);
+            context.textBaseline = "middle";
+            context.fillText(getString(["appScreenTrainNames",trainParams.selected]), -context.measureText(getString(["appScreenTrainNames",trainParams.selected])).width/2,classicUI.trainSwitch.y+classicUI.trainSwitch.height-sTDposY+classicUI.trainSwitch.selectedTrainDisplay.height/2);
         }
         context.restore();
         context.save();
@@ -1457,9 +1451,9 @@ function drawObjects() {
                 if(hardware.mouse.isHold){
                     hardware.mouse.isHold = false;
                     actionSync("trains", trainParams.selected, [{"standardDirection":!trains[trainParams.selected].standardDirection}], [{getString:["appScreenObjectChangesDirection","."]}, {getString:[["appScreenTrainNames",trainParams.selected]]}]);
-                }  
+                }
             }
-            context.restore();  
+            context.restore();
         }
         context.save();
         context.translate(0, -classicUI.transformer.input.diffY);
@@ -1483,7 +1477,7 @@ function drawObjects() {
             var x = classicUI.transformer.x+classicUI.transformer.width/2+classicUI.transformer.input.diffY*Math.sin(classicUI.transformer.angle);
             var y = classicUI.transformer.y+classicUI.transformer.height/2-classicUI.transformer.input.diffY*Math.cos(classicUI.transformer.angle);
             if(!collisionCourse(trainParams.selected, false)){
-                if(client.isTiny && (typeof(client.realScale) == "undefined" || client.realScale <= Math.max(1,client.realScaleMax/3))){  
+                if(client.isTiny && (typeof(client.realScale) == "undefined" || client.realScale <= Math.max(1,client.realScaleMax/3))){
                     if(hardware.mouse.isHold){
                         hardware.mouse.isHold = false;
                         if(trains[trainParams.selected].move && trains[trainParams.selected].accelerationSpeed > 0){
@@ -1508,7 +1502,7 @@ function drawObjects() {
                         if (adjustScaleY(hardware.mouse.moveY)>y){
                             angle = Math.PI + Math.abs(Math.atan(((adjustScaleY(hardware.mouse.moveY)-y)/(adjustScaleX(hardware.mouse.moveX)-x))));
                         } else if (adjustScaleY(hardware.mouse.moveY)<y && adjustScaleX(hardware.mouse.moveX) > x){
-                            angle = Math.PI - Math.abs(Math.atan(((adjustScaleY(hardware.mouse.moveY)-y)/(adjustScaleX(hardware.mouse.moveX)-x))));  
+                            angle = Math.PI - Math.abs(Math.atan(((adjustScaleY(hardware.mouse.moveY)-y)/(adjustScaleX(hardware.mouse.moveX)-x))));
                         } else {
                             angle = Math.abs(Math.atan(((adjustScaleY(hardware.mouse.moveY)-y)/(adjustScaleX(hardware.mouse.moveX)-x))));
                         }
@@ -1534,7 +1528,7 @@ function drawObjects() {
                     } else {
                         hardware.mouse.isHold = false;
                     }
-                    if(cAngle === 0 && trains[trainParams.selected].accelerationSpeed > 0){ 
+                    if(cAngle === 0 && trains[trainParams.selected].accelerationSpeed > 0){
                         actionSync("trains", trainParams.selected, [{"accelerationSpeed":trains[trainParams.selected].accelerationSpeed *= -1}], [{getString:["appScreenObjectStops", "."]}, {getString:[["appScreenTrainNames",trainParams.selected]]}]);
                     } else if(cAngle > 0 && !trains[trainParams.selected].move) {
                         actionSync("trains", trainParams.selected, [{"move":true}],[{getString:["appScreenObjectStarts", "."]}, {getString:[["appScreenTrainNames",trainParams.selected]]}]);
@@ -1553,7 +1547,7 @@ function drawObjects() {
                 hardware.mouse.isHold = false;
             }
             if(classicUI.transformer.input.angle > 0 && classicUI.transformer.input.angle < classicUI.transformer.input.maxAngle) {
-                        hardware.mouse.cursor = "grabbing";
+                hardware.mouse.cursor = "grabbing";
             }
         } else {
             context.restore();
@@ -1583,7 +1577,7 @@ function drawObjects() {
             context.arc(x,y,classicUI.transformer.input.width/2,Math.PI,Math.PI+classicUI.transformer.input.maxAngle,false);
             context.stroke();
             context.restore();
-        }  
+        }
     }
 
     /////SWITCHES/////
@@ -1613,7 +1607,7 @@ function drawObjects() {
                     switches[key][side].turned = !switches[key][side].turned;
                     switches[key][side].lastStateChange = frameNo;
                     animateWorker.postMessage({k: "switches", switches: switches});
-                    notify (getString("appScreenSwitchTurns", "."),false, 500,null, null, client.y);
+                    notify("#canvas-notifier", getString("appScreenSwitchTurns", "."), NOTIFICATION_PRIO_DEFAULT, 500,null, null, client.y,NOTIFICATION_CHANNEL_TRAIN_SWITCHES);
                 }
                 contextForeground.fillStyle = switches[key][side].turned ? "rgba(144, 255, 144,1)" : "rgba(255,0,0,1)";
                 contextForeground.closePath();
@@ -1637,7 +1631,7 @@ function drawObjects() {
                 contextForeground.restore();
             } else if((client.chosenInputMethod == "mouse" && !wasPointer && !hardware.mouse.isHold && (switches[key][side].lastStateChange == undefined || frameNo-switches[key][side].lastStateChange > classicUI.switches.showDurationEnd) && contextForeground.isPointInPath(hardware.mouse.moveX, hardware.mouse.moveY)) || (hardware.mouse.isHold && hardware.mouse.cursor == "default" && (clickTimeOut === null || clickTimeOut === undefined))){
                 contextForeground.closePath();
-                contextForeground.restore(); 
+                contextForeground.restore();
                 contextForeground.save();
                 contextForeground.lineWidth = 5;
                 contextForeground.translate(background.x+switches[key][side].x, background.y+switches[key][side].y);
@@ -1669,7 +1663,7 @@ function drawObjects() {
                 }
             } else {
                 contextForeground.closePath();
-                contextForeground.restore(); 
+                contextForeground.restore();
             }
         });
     });
@@ -1678,51 +1672,51 @@ function drawObjects() {
     if(debug) {
         context.save();
         context.lineWidth = 5;
-        context.strokeStyle= "red"; 
-        context.fillStyle = "blue"; 
+        context.strokeStyle= "red";
+        context.fillStyle = "blue";
         var debugPoints = [ rotationPoints.inner.narrow, rotationPoints.inner.wide, rotationPoints.outer.narrow ];
         for (var debugPoint in debugPoints) {
-            context.save();     
+            context.save();
             for (var debugPointI in debugPoints[debugPoint].x) {
                 context.beginPath();
                 context.arc(debugPoints[debugPoint].x[debugPointI]+background.x,debugPoints[debugPoint].y[debugPointI]+background.y, background.width/100,0,2*Math.PI);
                 context.fill();
             }
             context.restore();
-            context.save();        
+            context.save();
             context.beginPath();
             context.moveTo(debugPoints[debugPoint].x[0]+background.x, debugPoints[debugPoint].y[0]+background.y);
             context.lineTo(debugPoints[debugPoint].x[1]+background.x, debugPoints[debugPoint].y[1]+background.y);
-            context.stroke(); 
+            context.stroke();
             context.restore();
-            context.save();        
+            context.save();
             context.beginPath();
             context.moveTo(debugPoints[debugPoint].x[2]+background.x, debugPoints[debugPoint].y[2]+background.y);
             context.lineTo(debugPoints[debugPoint].x[3]+background.x, debugPoints[debugPoint].y[3]+background.y);
-            context.stroke(); 
+            context.stroke();
             context.restore();
-            context.save();        
+            context.save();
             context.beginPath();
             context.moveTo(debugPoints[debugPoint].x[1]+background.x, debugPoints[debugPoint].y[1]+background.y);
             context.bezierCurveTo(debugPoints[debugPoint].x[4]+background.x, debugPoints[debugPoint].y[4]+background.y,debugPoints[debugPoint].x[5]+background.x, debugPoints[debugPoint].y[5]+background.y,debugPoints[debugPoint].x[2]+background.x, debugPoints[debugPoint].y[2]+background.y);
-            context.stroke(); 
-            context.restore();        
-            context.save();        
+            context.stroke();
+            context.restore();
+            context.save();
             context.beginPath();
             context.moveTo(debugPoints[debugPoint].x[3]+background.x, debugPoints[debugPoint].y[3]+background.y);
             context.bezierCurveTo(debugPoints[debugPoint].x[6]+background.x, debugPoints[debugPoint].y[6]+background.y,debugPoints[debugPoint].x[7]+background.x, debugPoints[debugPoint].y[7]+background.y,debugPoints[debugPoint].x[0]+background.x, debugPoints[debugPoint].y[0]+background.y);
-            context.stroke(); 
+            context.stroke();
             context.restore();
         }
         context.save();
         context.beginPath();
         context.moveTo(rotationPoints.outer.narrow.x[1]+background.x, rotationPoints.outer.narrow.y[1]+background.y);
         context.bezierCurveTo(rotationPoints.inner2outer.right.x[1]+background.x, rotationPoints.inner2outer.right.y[1]+background.y,rotationPoints.inner2outer.right.x[2]+background.x, rotationPoints.inner2outer.right.y[2]+background.y,rotationPoints.inner.narrow.x[2]+background.x, rotationPoints.inner.narrow.y[2]+background.y);
-        context.stroke(); 
+        context.stroke();
         context.beginPath();
         context.moveTo(rotationPoints.inner.narrow.x[3]+background.x, rotationPoints.inner.narrow.y[3]+background.y);
         context.bezierCurveTo(rotationPoints.inner2outer.left.x[1]+background.x, rotationPoints.inner2outer.left.y[1]+background.y,rotationPoints.inner2outer.left.x[2]+background.x, rotationPoints.inner2outer.left.y[2]+background.y,rotationPoints.outer.narrow.x[0]+background.x, rotationPoints.outer.narrow.y[0]+background.y);
-        context.stroke(); 
+        context.stroke();
         context.beginPath();
         context.moveTo(rotationPoints.outer.altState3.left.x[1]+background.x, rotationPoints.outer.altState3.left.y[1]+background.y);
         context.lineTo(rotationPoints.outer.altState3.right.x[1]+background.x, rotationPoints.outer.altState3.right.y[1]+background.y);
@@ -1730,7 +1724,7 @@ function drawObjects() {
         context.beginPath();
         context.moveTo(rotationPoints.outer.altState3.left.x[0]+background.x, rotationPoints.outer.altState3.left.y[0]+background.y);
         context.bezierCurveTo(rotationPoints.outer.altState3.left.x[3]+background.x, rotationPoints.outer.altState3.left.y[3]+background.y,rotationPoints.outer.altState3.left.x[3]+background.x, rotationPoints.outer.altState3.left.y[3]+background.y,rotationPoints.outer.altState3.left.x[2]+background.x, rotationPoints.outer.altState3.left.y[2]+background.y);
-        context.stroke(); 
+        context.stroke();
         context.beginPath();
         context.moveTo(rotationPoints.outer.altState3.left.x[2]+background.x, rotationPoints.outer.altState3.left.y[2]+background.y);
         context.bezierCurveTo(rotationPoints.outer.altState3.left.x[4]+background.x, rotationPoints.outer.altState3.left.y[4]+background.y,rotationPoints.outer.altState3.left.x[4]+background.x, rotationPoints.outer.altState3.left.y[4]+background.y,rotationPoints.outer.altState3.left.x[1]+background.x, rotationPoints.outer.altState3.left.y[1]+background.y);
@@ -1738,11 +1732,11 @@ function drawObjects() {
         context.beginPath();
         context.moveTo(rotationPoints.outer.altState3.right.x[0]+background.x, rotationPoints.outer.altState3.right.y[0]+background.y);
         context.bezierCurveTo(rotationPoints.outer.altState3.right.x[3]+background.x, rotationPoints.outer.altState3.right.y[3]+background.y,rotationPoints.outer.altState3.right.x[3]+background.x, rotationPoints.outer.altState3.right.y[3]+background.y,rotationPoints.outer.altState3.right.x[2]+background.x, rotationPoints.outer.altState3.right.y[2]+background.y);
-        context.stroke(); 
+        context.stroke();
         context.beginPath();
         context.moveTo(rotationPoints.outer.altState3.right.x[2]+background.x, rotationPoints.outer.altState3.right.y[2]+background.y);
         context.bezierCurveTo(rotationPoints.outer.altState3.right.x[4]+background.x, rotationPoints.outer.altState3.right.y[4]+background.y,rotationPoints.outer.altState3.right.x[4]+background.x, rotationPoints.outer.altState3.right.y[4]+background.y,rotationPoints.outer.altState3.right.x[1]+background.x, rotationPoints.outer.altState3.right.y[1]+background.y);
-        context.stroke(); 
+        context.stroke();
         for (var debugPointI in rotationPoints.outer.altState3.left.x) {
             context.beginPath();
             context.arc(rotationPoints.outer.altState3.left.x[debugPointI]+background.x,rotationPoints.outer.altState3.left.y[debugPointI]+background.y, background.width/100,0,2*Math.PI);
@@ -1791,7 +1785,7 @@ function drawObjects() {
         context.stroke();
         context.restore();
         context.save();
-        context.fillStyle = "yellow"; 
+        context.fillStyle = "yellow";
         context.beginPath();
         context.arc(switches.outer2inner.right.x+background.x,(switches.outer2inner.right.y)/switchesBeforeFac+background.y, background.width/100,0,2*Math.PI);
         context.fill();
@@ -1806,15 +1800,15 @@ function drawObjects() {
         context.fill();
         context.restore();
         context.lineWidth = 2;
-        context.fillStyle = "black"; 
-        context.strokeStyle= "black"; 
+        context.fillStyle = "black";
+        context.strokeStyle= "black";
         for(var debugTrain in trains){
-            context.save();        
+            context.save();
             context.translate(trains[debugTrain].x, trains[debugTrain].y);
             context.rotate(trains[debugTrain].displayAngle);
             context.strokeRect(-trains[debugTrain].width/2,-trains[debugTrain].height/2, trains[debugTrain].width, trains[debugTrain].height);
             context.restore();
-            context.save();        
+            context.save();
             context.translate(trains[debugTrain].front.x, trains[debugTrain].front.y);
             context.rotate(trains[debugTrain].front.angle);
             context.beginPath();
@@ -1823,7 +1817,7 @@ function drawObjects() {
             context.arc(0,trains[debugTrain].height/2,background.width/200,0,2*Math.PI);
             context.fill();
             context.restore();
-            context.save();        
+            context.save();
             context.translate(trains[debugTrain].back.x, trains[debugTrain].back.y);
             context.rotate(trains[debugTrain].back.angle);
             context.beginPath();
@@ -1833,12 +1827,12 @@ function drawObjects() {
             context.fill();
             context.restore();
             for(var debugTrainCar in trains[debugTrain].cars){
-                context.save();        
+                context.save();
                 context.translate(trains[debugTrain].cars[debugTrainCar].x, trains[debugTrain].cars[debugTrainCar].y);
                 context.rotate(trains[debugTrain].cars[debugTrainCar].displayAngle);
                 context.strokeRect(-trains[debugTrain].cars[debugTrainCar].width/2,-trains[debugTrain].cars[debugTrainCar].height/2, trains[debugTrain].cars[debugTrainCar].width, trains[debugTrain].cars[debugTrainCar].height);
                 context.restore();
-                context.save();        
+                context.save();
                 context.translate(trains[debugTrain].cars[debugTrainCar].front.x, trains[debugTrain].cars[debugTrainCar].front.y);
                 context.rotate(trains[debugTrain].cars[debugTrainCar].front.angle);
                 context.beginPath();
@@ -1847,7 +1841,7 @@ function drawObjects() {
                 context.arc(0,trains[debugTrain].cars[debugTrainCar].height/2,background.width/200,0,2*Math.PI);
                 context.fill();
                 context.restore();
-                context.save();        
+                context.save();
                 context.translate(trains[debugTrain].cars[debugTrainCar].back.x, trains[debugTrain].cars[debugTrainCar].back.y);
                 context.rotate(trains[debugTrain].cars[debugTrainCar].back.angle);
                 context.beginPath();
@@ -1860,7 +1854,7 @@ function drawObjects() {
         }
         context.restore();
     }
-    
+
     /////CONTROL CENTER/////
     if(client.realScale == 1 && hardware.mouse.rightClick){
         var colorLight =  "floralwhite";
@@ -1869,10 +1863,10 @@ function drawObjects() {
         var contextClick = (hardware.mouse.rightClickEvent && Math.abs(hardware.mouse.downX-hardware.mouse.upX) < canvas.width/100 && Math.abs(hardware.mouse.downY-hardware.mouse.upY) < canvas.width/100);
         hardware.mouse.rightClickEvent = false;
         if(hardware.mouse.cursor != "none") {
-           hardware.mouse.cursor = "default";
+            hardware.mouse.cursor = "default";
         }
         contextForeground.save();
-        contextForeground.textBaseline = "middle"; 
+        contextForeground.textBaseline = "middle";
         contextForeground.translate(background.x+controlCenter.translateOffset,background.y+controlCenter.translateOffset);
         contextForeground.fillStyle = "rgba(0,0,0,0.5)";
         contextForeground.fillRect(0,0,background.width-2*controlCenter.translateOffset,background.height-2*controlCenter.translateOffset);
@@ -1889,8 +1883,8 @@ function drawObjects() {
         contextForeground.fillText(getString("appScreenControlCenterClose",null,"upper"),-controlCenter.maxTextHeight/2+(controlCenter.maxTextHeight/2-contextForeground.measureText(getString("appScreenControlCenterClose",null,"upper")).width/2),controlCenter.fontSizes.closeTextHeight/6);
         contextForeground.restore();
         if(contextClick && hardware.mouse.upX-background.x-controlCenter.translateOffset > 0 && hardware.mouse.upX-background.x-controlCenter.translateOffset < controlCenter.maxTextWidth/8 && hardware.mouse.upY-background.y-controlCenter.translateOffset > 0 && hardware.mouse.upY-background.y-controlCenter.translateOffset < controlCenter.maxTextHeight*trains.length) {
-            hardware.mouse.rightClick = false; 
-            hardware.mouse.rightClickWheelScrolls = false; 
+            hardware.mouse.rightClick = false;
+            hardware.mouse.rightClickWheelScrolls = false;
         }
         /////CONTROL CENTER/Cars/////
         if(controlCenter.showCarCenter) {
@@ -1904,7 +1898,7 @@ function drawObjects() {
                         cTextWidth = controlCenter.fontSizes.carSizes.init.autoModeActivateLength;
                     } else {
                         cText = formatJSString(getString("appScreenCarControlCenterStartCar"), getString(["appScreenCarNames",cCar]));
-                        cTextHeight = controlCenter.fontSizes.carSizes.init.carNames[cCar]
+                        cTextHeight = controlCenter.fontSizes.carSizes.init.carNames[cCar];
                         cTextWidth = controlCenter.fontSizes.carSizes.init.carNamesLength[cCar];
                     }
                     contextForeground.font = cTextHeight +"px "+controlCenter.fontFamily;
@@ -1919,7 +1913,7 @@ function drawObjects() {
                             carParams.autoModeOff = false;
                             carParams.autoModeRuns = true;
                             carParams.autoModeInit = true;
-                            notify(formatJSString(getString("appScreenCarAutoModeChange", "."), getString("appScreenCarAutoModeInit")),  false, 500,null, null, client.y);
+                            notify("#canvas-notifier", formatJSString(getString("appScreenCarAutoModeChange", "."), getString("appScreenCarAutoModeInit")), NOTIFICATION_PRIO_DEFAULT, 500,null, null, client.y);
 
                         } else if(contextClick) {
                             cars[cCar].move = !carCollisionCourse(cCar,false);
@@ -1928,7 +1922,7 @@ function drawObjects() {
                             cars[cCar].backToInit = false;
                             carParams.init = false;
                             carParams.autoModeOff = true;
-                            notify(formatJSString(getString("appScreenObjectStarts", "."), getString(["appScreenCarNames",cCar])),  false, 500,null, null, client.y);
+                            notify("#canvas-notifier", formatJSString(getString("appScreenObjectStarts", "."), getString(["appScreenCarNames",cCar])), NOTIFICATION_PRIO_DEFAULT, 500,null, null, client.y);
                         }
                     }
                 }
@@ -1942,7 +1936,7 @@ function drawObjects() {
                     contextForeground.fillStyle = colorLight;
                     contextForeground.fillText(cText,controlCenter.maxTextWidth/8+0.5625*controlCenter.maxTextWidth-controlCenter.fontSizes.carSizes.manual.carNamesLength[cCar]/2,maxTextHeight*(cCar)+maxTextHeight/2);
                     contextForeground.strokeStyle = colorLight;
-                    contextForeground.strokeRect(controlCenter.maxTextWidth/8,maxTextHeight*(cCar), 1.125*controlCenter.maxTextWidth,maxTextHeight);     
+                    contextForeground.strokeRect(controlCenter.maxTextWidth/8,maxTextHeight*(cCar), 1.125*controlCenter.maxTextWidth,maxTextHeight);
                     var canMove = noCollisionCCar  && (cars[cCar].backwardsState === undefined || cars[cCar].backwardsState === 0);
                     contextForeground.save();
                     contextForeground.translate(1.375*controlCenter.maxTextWidth,maxTextHeight*(cCar)+maxTextHeight/2);
@@ -1957,7 +1951,7 @@ function drawObjects() {
                     contextForeground.beginPath();
                     contextForeground.rotate(-Math.PI/2);
                     contextForeground.arc(0,0,maxTextHeight/3.5,0.15*Math.PI,1.85*Math.PI);
-                    contextForeground.stroke();   
+                    contextForeground.stroke();
                     contextForeground.restore();
                     contextForeground.strokeRect(1.25*controlCenter.maxTextWidth,maxTextHeight*(cCar), 0.25*controlCenter.maxTextWidth,maxTextHeight);
                     if(canMove) {
@@ -1967,12 +1961,12 @@ function drawObjects() {
                                 cars[cCar].parking = false;
                                 cars[cCar].backwardsState = 0;
                                 cars[cCar].backToInit = false;
-                                if (cars[cCar].move){ 
+                                if (cars[cCar].move){
                                     cars[cCar].move = false;
-                                    notify(formatJSString(getString("appScreenObjectStops", "."), getString(["appScreenCarNames",cCar])),  false, 500 ,null,  null, client.y);
+                                    notify("#canvas-notifier", formatJSString(getString("appScreenObjectStops", "."), getString(["appScreenCarNames",cCar])), NOTIFICATION_PRIO_DEFAULT, 500 ,null,  null, client.y);
                                 } else {
                                     cars[cCar].move = noCollisionCCar;
-                                    notify(formatJSString(getString("appScreenObjectStarts", "."), getString(["appScreenCarNames",cCar])),  false, 500,null, null, client.y);
+                                    notify("#canvas-notifier", formatJSString(getString("appScreenObjectStarts", "."), getString(["appScreenCarNames",cCar])), NOTIFICATION_PRIO_DEFAULT, 500,null, null, client.y);
                                 }
                             }
                         }
@@ -1998,13 +1992,13 @@ function drawObjects() {
                     contextForeground.strokeRect(1.5*controlCenter.maxTextWidth,maxTextHeight*(cCar), 0.25*controlCenter.maxTextWidth,maxTextHeight);
                     if(canStepBack) {
                         if(hardware.mouse.moveX > background.x+controlCenter.translateOffset+controlCenter.maxTextWidth*1.5 && hardware.mouse.moveY > background.y+controlCenter.translateOffset+maxTextHeight*(cCar) && hardware.mouse.moveX < background.x+controlCenter.translateOffset+1.75*controlCenter.maxTextWidth && hardware.mouse.moveY < background.y+controlCenter.translateOffset+maxTextHeight*(cCar+1)) {
-                        hardware.mouse.cursor = "pointer";
-                        if(contextClick) {
+                            hardware.mouse.cursor = "pointer";
+                            if(contextClick) {
                                 cars[cCar].lastDirectionChange = frameNo;
                                 cars[cCar].backwardsState = 1;
                                 cars[cCar].backToInit = false;
                                 cars[cCar].move = !carCollisionCourse(cCar,false);
-                                notify(formatJSString(getString("appScreenCarStepsBack","."), getString(["appScreenCarNames",cCar])), false, 750,null,null, client.y);
+                                notify("#canvas-notifier", formatJSString(getString("appScreenCarStepsBack","."), getString(["appScreenCarNames",cCar])), NOTIFICATION_PRIO_DEFAULT, 750,null,null, client.y);
                             }
                         }
                     }
@@ -2013,7 +2007,7 @@ function drawObjects() {
                     contextForeground.translate(1.75*controlCenter.maxTextWidth,maxTextHeight*(cCar));
                     contextForeground.strokeStyle = canBackToRoot ? "rgb(225,220,210)" : colorDark;
                     contextForeground.fillStyle = contextForeground.strokeStyle;
-					var maxHouseWidth = 4 * maxTextHeight;
+                    var maxHouseWidth = 4 * maxTextHeight;
                     contextForeground.translate((controlCenter.maxTextWidth/4-maxHouseWidth/4)/2,0);
                     contextForeground.fillRect(5*maxHouseWidth/64,maxHouseWidth/8.1,3*maxHouseWidth/32,maxHouseWidth/15.8);
                     contextForeground.fillStyle = canBackToRoot ? "rgb(255,180,180)" : colorDark;
@@ -2037,11 +2031,11 @@ function drawObjects() {
                     contextForeground.strokeRect(1.75*controlCenter.maxTextWidth,maxTextHeight*(cCar), 0.25*controlCenter.maxTextWidth,maxTextHeight);
                     if(canBackToRoot) {
                         if(hardware.mouse.moveX > background.x+controlCenter.translateOffset+controlCenter.maxTextWidth*1.75 && hardware.mouse.moveY > background.y+controlCenter.translateOffset+maxTextHeight*(cCar) && hardware.mouse.moveX < background.x+controlCenter.translateOffset+2*controlCenter.maxTextWidth && hardware.mouse.moveY < background.y+controlCenter.translateOffset+maxTextHeight*(cCar+1)) {
-                        hardware.mouse.cursor = "pointer";
+                            hardware.mouse.cursor = "pointer";
                             if(contextClick) {
                                 cars[cCar].move = true;
                                 cars[cCar].backToInit = true;
-                                notify(formatJSString(getString("appScreenCarParking", "."), getString(["appScreenCarNames",cCar])),  false, 500 ,null,  null, client.y);
+                                notify("#canvas-notifier", formatJSString(getString("appScreenCarParking", "."), getString(["appScreenCarNames",cCar])), NOTIFICATION_PRIO_DEFAULT, 500 ,null,  null, client.y);
                             }
                         }
                     }
@@ -2061,7 +2055,7 @@ function drawObjects() {
                     } else {
                         cText = getString("appScreenCarControlCenterAutoModeBackToRoot");
                         cTextHeight = controlCenter.fontSizes.carSizes.auto.backToRoot;
-                        cTextWidth = controlCenter.fontSizes.carSizes.auto.backToRootLength; 
+                        cTextWidth = controlCenter.fontSizes.carSizes.auto.backToRootLength;
                     }
                     contextForeground.font = cTextHeight +"px "+controlCenter.fontFamily;
                     contextForeground.fillStyle = colorLight;
@@ -2069,10 +2063,10 @@ function drawObjects() {
                         if(cCar == 0) {
                             hardware.mouse.cursor = "pointer";
                             if(contextClick && carParams.autoModeRuns) {
-                                notify(formatJSString(getString("appScreenCarAutoModeChange", "."), getString("appScreenCarAutoModePause")),  false, 500,null, null, client.y);
+                                notify("#canvas-notifier", formatJSString(getString("appScreenCarAutoModeChange", "."), getString("appScreenCarAutoModePause")), NOTIFICATION_PRIO_DEFAULT, 500,null, null, client.y);
                                 carParams.autoModeRuns = false;
                             } else if(contextClick) {
-                                notify(formatJSString(getString("appScreenCarAutoModeChange", "."), getString("appScreenCarAutoModeInit")),  false, 500,null, null, client.y);
+                                notify("#canvas-notifier", formatJSString(getString("appScreenCarAutoModeChange", "."), getString("appScreenCarAutoModeInit")), NOTIFICATION_PRIO_DEFAULT, 500,null, null, client.y);
                                 carParams.autoModeRuns = true;
                                 carParams.autoModeInit = true;
                             }
@@ -2082,7 +2076,7 @@ function drawObjects() {
                                 if(contextClick) {
                                     carParams.autoModeRuns = true;
                                     carParams.isBackToRoot = true;
-                                    notify(getString("appScreenCarAutoModeParking", "."),  false, 750 ,null,  null, client.y);
+                                    notify("#canvas-notifier", getString("appScreenCarAutoModeParking", "."), NOTIFICATION_PRIO_DEFAULT, 750 ,null,  null, client.y);
                                 }
                             }
                         }
@@ -2123,89 +2117,89 @@ function drawObjects() {
                 var isClick = (contextClick && hardware.mouse.upX-background.x-controlCenter.translateOffset > controlCenter.maxTextWidth && hardware.mouse.upX-background.x-controlCenter.translateOffset < controlCenter.maxTextWidth*1.5 && hardware.mouse.upY-background.y-controlCenter.translateOffset > maxTextHeight*cTrain && hardware.mouse.upY-background.y-controlCenter.translateOffset < maxTextHeight*cTrain+maxTextHeight);
                 var isHold = (hardware.mouse.rightClickHold && hardware.mouse.downX-background.x-controlCenter.translateOffset > controlCenter.maxTextWidth && hardware.mouse.downX-background.x-controlCenter.translateOffset < controlCenter.maxTextWidth*1.5 && hardware.mouse.downY-background.y-controlCenter.translateOffset > maxTextHeight*cTrain && hardware.mouse.downY-background.y-controlCenter.translateOffset < maxTextHeight*cTrain+maxTextHeight && hardware.mouse.moveX-background.x-controlCenter.translateOffset > controlCenter.maxTextWidth && hardware.mouse.moveX-background.x-controlCenter.translateOffset < controlCenter.maxTextWidth*1.5 && hardware.mouse.moveY-background.y-controlCenter.translateOffset > maxTextHeight*cTrain && hardware.mouse.moveY-background.y-controlCenter.translateOffset < maxTextHeight*cTrain+maxTextHeight);
                 if(noCollisionCTrain && (isClick || isHold || (hardware.mouse.rightClickWheelScrolls && hardware.mouse.wheelScrollY != 0 && hardware.mouse.wheelX-background.x-controlCenter.translateOffset > controlCenter.maxTextWidth && hardware.mouse.wheelX-background.x-controlCenter.translateOffset < controlCenter.maxTextWidth*1.5 && hardware.mouse.wheelY-background.y-controlCenter.translateOffset > maxTextHeight*cTrain && hardware.mouse.wheelY-background.y-controlCenter.translateOffset < maxTextHeight*cTrain+maxTextHeight))) {
-                var newSpeed;
-                if(isClick || isHold) {
-                    newSpeed = Math.round(((isClick ? hardware.mouse.upX : hardware.mouse.moveX)-background.x-controlCenter.translateOffset-controlCenter.maxTextWidth)/controlCenter.maxTextWidth/0.5*100);
-                } else {
-                    if(trains[cTrain].speedInPercent ==undefined || trains[cTrain].speedInPercent == 0) {
-                        trains[cTrain].speedInPercent = minTrainSpeed;
+                    var newSpeed;
+                    if(isClick || isHold) {
+                        newSpeed = Math.round(((isClick ? hardware.mouse.upX : hardware.mouse.moveX)-background.x-controlCenter.translateOffset-controlCenter.maxTextWidth)/controlCenter.maxTextWidth/0.5*100);
+                    } else {
+                        if(trains[cTrain].speedInPercent ==undefined || trains[cTrain].speedInPercent == 0) {
+                            trains[cTrain].speedInPercent = minTrainSpeed;
+                        }
+                        newSpeed = Math.round(trains[cTrain].speedInPercent*(hardware.mouse.wheelScrollY < 0 ? 1.1 : 0.9));
                     }
-                    newSpeed = Math.round(trains[cTrain].speedInPercent*(hardware.mouse.wheelScrollY < 0 ? 1.1 : 0.9));
+                    if(newSpeed < minTrainSpeed) {
+                        newSpeed = 0;
+                    } else if(newSpeed > 100) {
+                        newSpeed = 100;
+                    }
+                    if(trains[cTrain].accelerationSpeed > 0 && newSpeed == 0) {
+                        actionSync("trains", cTrain, [{"accelerationSpeed":trains[cTrain].accelerationSpeed *= -1}], null);
+                    } else if(trains[cTrain].accelerationSpeed > 0 ) {
+                        actionSync("trains", cTrain, [{"speedInPercent": newSpeed}],null);
+                    } else if(!trains[cTrain].move && newSpeed > 0) {
+                        actionSync("trains", cTrain, [{"move":true},{"speedInPercent":newSpeed}], null);
+                    } else if (trains[cTrain].accelerationSpeed < 0 && newSpeed > 0) {
+                        actionSync("trains", cTrain, [{"accelerationSpeed":trains[cTrain].accelerationSpeed *= -1},{"speedInPercent":newSpeed}], null);
+                    }
+                    if(newSpeed > 0 && newSpeed < 100) {
+                        hardware.mouse.cursor = "grabbing";
+                    }
                 }
-                if(newSpeed < minTrainSpeed) {
-                    newSpeed = 0;
-                } else if(newSpeed > 100) {
-                    newSpeed = 100;
+                contextForeground.strokeRect(controlCenter.maxTextWidth,maxTextHeight*cTrain,controlCenter.maxTextWidth*0.5,maxTextHeight);
+                if(noCollisionCTrain && (contextClick && hardware.mouse.upX-background.x-controlCenter.translateOffset > controlCenter.maxTextWidth*1.5 && hardware.mouse.upX-background.x-controlCenter.translateOffset < controlCenter.maxTextWidth*1.75 && hardware.mouse.upY-background.y-controlCenter.translateOffset > maxTextHeight*cTrain && hardware.mouse.upY-background.y-controlCenter.translateOffset < maxTextHeight*cTrain+maxTextHeight)) {
+                    if(trains[cTrain].accelerationSpeed > 0){
+                        actionSync("trains", cTrain, [{"accelerationSpeed":trains[cTrain].accelerationSpeed *= -1}], null);
+                    } else if(!trains[cTrain].move) {
+                        actionSync("trains", cTrain, [{"move":true},{"speedInPercent":50}], null);
+                    } else if (trains[cTrain].accelerationSpeed < 0) {
+                        actionSync("trains", cTrain, [{"accelerationSpeed":trains[cTrain].accelerationSpeed *= -1},{"speedInPercent":50}], null);
+                    }
                 }
-                if(trains[cTrain].accelerationSpeed > 0 && newSpeed == 0) { 
-                    actionSync("trains", cTrain, [{"accelerationSpeed":trains[cTrain].accelerationSpeed *= -1}], null);
-                } else if(trains[cTrain].accelerationSpeed > 0 ) {
-                    actionSync("trains", cTrain, [{"speedInPercent": newSpeed}],null);
-                } else if(!trains[cTrain].move && newSpeed > 0) {
-                    actionSync("trains", cTrain, [{"move":true},{"speedInPercent":newSpeed}], null);
-                } else if (trains[cTrain].accelerationSpeed < 0 && newSpeed > 0) {
-                    actionSync("trains", cTrain, [{"accelerationSpeed":trains[cTrain].accelerationSpeed *= -1},{"speedInPercent":newSpeed}], null);
-                }
-                if(newSpeed > 0 && newSpeed < 100) {
-                   hardware.mouse.cursor = "grabbing";
-                }
-            }
-            contextForeground.strokeRect(controlCenter.maxTextWidth,maxTextHeight*cTrain,controlCenter.maxTextWidth*0.5,maxTextHeight);
-            if(noCollisionCTrain && (contextClick && hardware.mouse.upX-background.x-controlCenter.translateOffset > controlCenter.maxTextWidth*1.5 && hardware.mouse.upX-background.x-controlCenter.translateOffset < controlCenter.maxTextWidth*1.75 && hardware.mouse.upY-background.y-controlCenter.translateOffset > maxTextHeight*cTrain && hardware.mouse.upY-background.y-controlCenter.translateOffset < maxTextHeight*cTrain+maxTextHeight)) {
-                if(trains[cTrain].accelerationSpeed > 0){ 
-                    actionSync("trains", cTrain, [{"accelerationSpeed":trains[cTrain].accelerationSpeed *= -1}], null);
-                } else if(!trains[cTrain].move) {
-                    actionSync("trains", cTrain, [{"move":true},{"speedInPercent":50}], null);
-                } else if (trains[cTrain].accelerationSpeed < 0) {
-                    actionSync("trains", cTrain, [{"accelerationSpeed":trains[cTrain].accelerationSpeed *= -1},{"speedInPercent":50}], null);
-                }
-            }
-            contextForeground.save();
-            contextForeground.translate(controlCenter.maxTextWidth*1.625,maxTextHeight/2+maxTextHeight*cTrain);
-            contextForeground.strokeStyle = noCollisionCTrain ? (trains[cTrain].move && trains[cTrain].accelerationSpeed > 0 ? "rgb(255,180,180)" : "rgb(180,255,180)") : colorDark;
-            contextForeground.fillStyle = contextForeground.strokeStyle;
-            contextForeground.lineWidth = Math.ceil(maxTextHeight/20);
-            contextForeground.beginPath();
-            contextForeground.moveTo(0, -maxTextHeight/18);
-            contextForeground.lineTo(0, -maxTextHeight/3);
-            contextForeground.stroke();
-            contextForeground.strokeStyle = noCollisionCTrain ? colorLight : colorDark;
-            contextForeground.beginPath();
-            contextForeground.rotate(-Math.PI/2);
-            contextForeground.arc(0,0,maxTextHeight/3.5,0.15*Math.PI,1.85*Math.PI);
-            contextForeground.stroke();   
-            contextForeground.restore();
+                contextForeground.save();
+                contextForeground.translate(controlCenter.maxTextWidth*1.625,maxTextHeight/2+maxTextHeight*cTrain);
+                contextForeground.strokeStyle = noCollisionCTrain ? (trains[cTrain].move && trains[cTrain].accelerationSpeed > 0 ? "rgb(255,180,180)" : "rgb(180,255,180)") : colorDark;
+                contextForeground.fillStyle = contextForeground.strokeStyle;
+                contextForeground.lineWidth = Math.ceil(maxTextHeight/20);
+                contextForeground.beginPath();
+                contextForeground.moveTo(0, -maxTextHeight/18);
+                contextForeground.lineTo(0, -maxTextHeight/3);
+                contextForeground.stroke();
+                contextForeground.strokeStyle = noCollisionCTrain ? colorLight : colorDark;
+                contextForeground.beginPath();
+                contextForeground.rotate(-Math.PI/2);
+                contextForeground.arc(0,0,maxTextHeight/3.5,0.15*Math.PI,1.85*Math.PI);
+                contextForeground.stroke();
+                contextForeground.restore();
                 contextForeground.strokeRect(controlCenter.maxTextWidth*1.5,maxTextHeight*cTrain,controlCenter.maxTextWidth*0.25,maxTextHeight);
-               if(contextClick && !trains[cTrain].move && hardware.mouse.upX-background.x-controlCenter.translateOffset > controlCenter.maxTextWidth*1.7 && hardware.mouse.upX-background.x-controlCenter.translateOffset < controlCenter.maxTextWidth*2 && hardware.mouse.upY-background.y-controlCenter.translateOffset > maxTextHeight*cTrain && hardware.mouse.upY-background.y-controlCenter.translateOffset < maxTextHeight*cTrain+maxTextHeight) {
-                    actionSync("trains", cTrain, [{"standardDirection":!trains[cTrain].standardDirection}],null); 
-            }
-            contextForeground.save();
-                contextForeground.translate(controlCenter.maxTextWidth*1.875,maxTextHeight/2+maxTextHeight*cTrain);
-            if(!trains[cTrain].standardDirection) {
-                contextForeground.rotate(Math.PI);
-            }
-            if(trains[cTrain].move) {
-                contextForeground.strokeStyle = colorDark;    
-            } else {
-                contextForeground.strokeStyle = colorLight;
-                if(hardware.mouse.moveX > background.x+controlCenter.translateOffset+1.75*controlCenter.maxTextWidth && hardware.mouse.moveY > background.y+controlCenter.translateOffset+maxTextHeight*cTrain && hardware.mouse.moveX < background.x+controlCenter.translateOffset+2*controlCenter.maxTextWidth && hardware.mouse.moveY < background.y+controlCenter.translateOffset+maxTextHeight*cTrain+maxTextHeight) {
-                    hardware.mouse.cursor = "pointer";
+                if(contextClick && !trains[cTrain].move && hardware.mouse.upX-background.x-controlCenter.translateOffset > controlCenter.maxTextWidth*1.7 && hardware.mouse.upX-background.x-controlCenter.translateOffset < controlCenter.maxTextWidth*2 && hardware.mouse.upY-background.y-controlCenter.translateOffset > maxTextHeight*cTrain && hardware.mouse.upY-background.y-controlCenter.translateOffset < maxTextHeight*cTrain+maxTextHeight) {
+                    actionSync("trains", cTrain, [{"standardDirection":!trains[cTrain].standardDirection}],null);
                 }
-            }
-            contextForeground.fillStyle = contextForeground.strokeStyle;
-            contextForeground.lineWidth = Math.ceil(maxTextHeight/5);
-            contextForeground.beginPath();
-            contextForeground.moveTo(-controlCenter.maxTextWidth*0.075, 0);
-            contextForeground.lineTo(controlCenter.maxTextWidth*0.051, 0);
-            contextForeground.stroke();
-            contextForeground.beginPath();
-            contextForeground.moveTo(controlCenter.maxTextWidth*0.05, -0.25*maxTextHeight);
-            contextForeground.lineTo(controlCenter.maxTextWidth*0.05, 0.25*maxTextHeight);
-            contextForeground.lineTo(controlCenter.maxTextWidth*0.1, 0);
-            contextForeground.lineTo(controlCenter.maxTextWidth*0.05, -0.25*maxTextHeight);
-            contextForeground.fill();
-            contextForeground.restore();
-            contextForeground.strokeRect(controlCenter.maxTextWidth*1.75,maxTextHeight*cTrain,controlCenter.maxTextWidth*0.25,maxTextHeight);
+                contextForeground.save();
+                contextForeground.translate(controlCenter.maxTextWidth*1.875,maxTextHeight/2+maxTextHeight*cTrain);
+                if(!trains[cTrain].standardDirection) {
+                    contextForeground.rotate(Math.PI);
+                }
+                if(trains[cTrain].move) {
+                    contextForeground.strokeStyle = colorDark;
+                } else {
+                    contextForeground.strokeStyle = colorLight;
+                    if(hardware.mouse.moveX > background.x+controlCenter.translateOffset+1.75*controlCenter.maxTextWidth && hardware.mouse.moveY > background.y+controlCenter.translateOffset+maxTextHeight*cTrain && hardware.mouse.moveX < background.x+controlCenter.translateOffset+2*controlCenter.maxTextWidth && hardware.mouse.moveY < background.y+controlCenter.translateOffset+maxTextHeight*cTrain+maxTextHeight) {
+                        hardware.mouse.cursor = "pointer";
+                    }
+                }
+                contextForeground.fillStyle = contextForeground.strokeStyle;
+                contextForeground.lineWidth = Math.ceil(maxTextHeight/5);
+                contextForeground.beginPath();
+                contextForeground.moveTo(-controlCenter.maxTextWidth*0.075, 0);
+                contextForeground.lineTo(controlCenter.maxTextWidth*0.051, 0);
+                contextForeground.stroke();
+                contextForeground.beginPath();
+                contextForeground.moveTo(controlCenter.maxTextWidth*0.05, -0.25*maxTextHeight);
+                contextForeground.lineTo(controlCenter.maxTextWidth*0.05, 0.25*maxTextHeight);
+                contextForeground.lineTo(controlCenter.maxTextWidth*0.1, 0);
+                contextForeground.lineTo(controlCenter.maxTextWidth*0.05, -0.25*maxTextHeight);
+                contextForeground.fill();
+                contextForeground.restore();
+                contextForeground.strokeRect(controlCenter.maxTextWidth*1.75,maxTextHeight*cTrain,controlCenter.maxTextWidth*0.25,maxTextHeight);
             }
         }
         contextForeground.restore();
@@ -2215,7 +2209,7 @@ function drawObjects() {
         hardware.mouse.rightClick = false;
     }
 
-    /////KONAMI/Colors/////    
+    /////KONAMI/Colors/////
     if(konamistate < -1) {
         var imgData = context.getImageData(background.x, background.y, background.width, background.height);
         var data = imgData.data;
@@ -2234,10 +2228,10 @@ function drawObjects() {
         }
         contextForeground.putImageData(imgData, background.x, background.y);
     }
-    
+
     /////BACKGROUND/Margins-2////
     if(konamistate < 0) {
-     	context.save();
+        context.save();
         var bgGradient = context.createRadialGradient(0,canvas.height/2,canvas.height/2,canvas.width+canvas.height/2,canvas.height/2,canvas.height/2);
         bgGradient.addColorStop(0, "red");
         bgGradient.addColorStop(0.2,"orange");
@@ -2246,26 +2240,26 @@ function drawObjects() {
         bgGradient.addColorStop(0.8,"blue");
         bgGradient.addColorStop(1,"violet");
         if(konamistate == -1) {
-     	        contextForeground.save();
-                contextForeground.fillStyle = "black";
-                contextForeground.fillRect(background.x,background.y,background.width,background.height);
-                contextForeground.textAlign = "center";
-                contextForeground.fillStyle = bgGradient;
-                var konamiText = getString("appScreenKonami", "!");
-                contextForeground.font = measureFontSize(konamiText,"monospace",100,background.width/1.1,5, background.width/300, 0);
-                contextForeground.fillText(konamiText,background.x+background.width/2,background.y+background.height/2); 
-                contextForeground.fillText(getString("appScreenKonamiIconRow"),background.x+background.width/2,background.y+background.height/4); 
-                contextForeground.fillText(getString("appScreenKonamiIconRow"),background.x+background.width/2,background.y+background.height/2+background.height/4); 
-    	        contextForeground.restore();
+            contextForeground.save();
+            contextForeground.fillStyle = "black";
+            contextForeground.fillRect(background.x,background.y,background.width,background.height);
+            contextForeground.textAlign = "center";
+            contextForeground.fillStyle = bgGradient;
+            var konamiText = getString("appScreenKonami", "!");
+            contextForeground.font = measureFontSize(konamiText,"monospace",100,background.width/1.1,5, background.width/300, 0);
+            contextForeground.fillText(konamiText,background.x+background.width/2,background.y+background.height/2);
+            contextForeground.fillText(getString("appScreenKonamiIconRow"),background.x+background.width/2,background.y+background.height/4);
+            contextForeground.fillText(getString("appScreenKonamiIconRow"),background.x+background.width/2,background.y+background.height/2+background.height/4);
+            contextForeground.restore();
         }
         context.fillStyle = bgGradient;
         context.fillRect(0,0,background.x,canvas.height);
         context.fillRect(0,0,canvas.width,background.y);
         context.fillRect(canvas.width-background.x,0,background.x,canvas.height);
         context.fillRect(0,canvas.height-background.y,canvas.width,background.y);
-    	context.restore();
+        context.restore();
     }
-    
+
     /////CURSOR/////
     if(settings.cursorascircle && isHardwareAvailable("cursorascircle") && (hardware.mouse.isMoving || hardware.mouse.isHold) && hardware.mouse.cursor != "none") {
         contextForeground.save();
@@ -2283,11 +2277,11 @@ function drawObjects() {
     }
     canvasForeground.style.cursor =  isHardwareAvailable("cursorascircle") ? (settings.cursorascircle ? "none" : hardware.mouse.cursor) : "default";
     hardware.mouse.wheelScrolls = false;
-			
+
     /////REPAINT/////
-	if(drawTimeout !== undefined && drawTimeout !== null) {
-		clearTimeout(drawTimeout);
-	}
+    if(drawTimeout !== undefined && drawTimeout !== null) {
+        clearTimeout(drawTimeout);
+    }
     var resttime = Math.max(drawInterval-(Date.now()-starttime),0);
     drawTimeout = setTimeout(drawObjects, resttime);
 
@@ -2304,18 +2298,18 @@ function actionSync (objname, index, params, notification) {
         }
     } else {
         switch (objname) {
-            case "trains":
-                animateWorker.postMessage({k: "train", i: index, params: params});
-                if(notification !== null) {
-                    var notifyArr = [];
-                    notification.forEach(function(elem){
-                        notifyArr.push(getString( ...elem.getString ));
-                    });
-                    var notifyStr = formatJSString( ...notifyArr );
-                    notify(notifyStr, false, 1000, null,null,client.y);
-                }
-                break;
+        case "trains":
+            animateWorker.postMessage({k: "train", i: index, params: params});
+            if(notification !== null) {
+                var notifyArr = [];
+                notification.forEach(function(elem){
+                    notifyArr.push(getString( ...elem.getString ));
+                });
+                var notifyStr = formatJSString( ...notifyArr );
+                notify("#canvas-notifier", notifyStr, NOTIFICATION_PRIO_DEFAULT, 1000, null,null,client.y);
             }
+            break;
+        }
     }
 }
 
@@ -2325,7 +2319,7 @@ function teamplaySync (mode, objname, index, params, notification) {
         var output = {};
         output.objname = objname;
         output.index = index;
-        output.params = params;    
+        output.params = params;
         output.notification = notification;
         onlineConnection.send({mode: "action", gameId: onlineGame.id, message: JSON.stringify(output)});
         break;
@@ -2377,7 +2371,7 @@ var switches = {inner2outer: {left: {turned: false, angles: {normal: 1.01*Math.P
 var switchesBeforeFac;
 
 var cars = [{src: 16, fac: 0.02, speed: 0.0008, startFrameFac: 0.65, angles: {start: Math.PI,normal: 0}},{src: 17, fac: 0.02, speed: 0.001, startFrameFac: 0.335, angles: {start: 0, normal: Math.PI}},{src: 0, fac: 0.0202, speed: 0.00082, startFrameFac: 0.65, angles: {start: Math.PI, normal: 0}}];
-var carPaths = [{start: [{type: "curve_right", x:[0.29,0.29],y:[0.38,0.227]}], normal: [{type: "curve_hright", x:[0.29,0.29],y:[0.227,0.347]},{type: "linear_vertical", x:[0,0], y: [0,0]},{type: "curve_hright2", x:[0,0], y: [0.282,0.402]},{type: "curve_l2r", x:[0,0.25], y: [0.402,0.412]},{type: "linear", x: [0.25,0.225], y: [0.412,0.412]},{type: "curve_right", x: [0.225,0.225], y: [0.412,0.227]},{type: "linear", x:[0.225,0.29], y:[0.227,0.227]}]},{start: [{type: "curve_left", x:[0.26,0.26], y: [0.3,0.198]},{type: "curve_r2l", x:[0.26,0.216], y: [0.198,0.197]}], normal: [{type: "curve_left", x:[0.216,0.216], y: [0.197,0.419]},{type: "linear", x:[0.216,0.246], y:[0.419,419]},{type: "curve_r2l", x:[0.246,0.286], y:[0.419,0.43]},{type: "linear", x:[0.286,0.31], y:[0.43,0.43]},{type: "curve_hleft", x:[0.31,0.31], y: [0.43,0.33]},{type: "linear_vertical", x:[0,0], y: [0,0]},{type: "curve_hleft2", x:[0,0], y: [0.347,0.197]},{type: "linear", x:[0,0.216], y:[0.197,0.197]},{type: "curve_left", x:[0.216,0.216], y: [0.197,0.419]},{type: "linear", x:[0.216,0.246], y:[0.419,419]},{type: "curve_r2l", x:[0.246,0.276], y:[0.419,0.434]},{type: "linear", x:[0.276,0.38], y:[0.434,434]},{type: "curve_l2r", x:[0.38,0.46], y:[0.434,0.419]},{type: "linear", x:[0.46,0.631], y:[0.419,0.419]},{type: "curve_r2l", x:[0.631,0.665], y:[0.419,0.43]},{type: "curve_left", x:[0.665,0.665], y: [0.43,0.322]},{type: "curve_l2r", x:[0.665,0.59], y: [0.322,0.39]},{type: "linear", x:[0.59,0.339], y:[0.39,0.39]},{type: "curve_hright", x:[0.339,0.339], y: [0.39,0.32]},{type: "linear_vertical", x:[0,0], y: [0,0]},{type: "curve_hleft2", x:[0,0], y: [0.347,0.197]},{type: "linear", x:[0,0.216], y:[0.197,0.197]}]},{start: [{type: "curve_right", x:[0.2773,0.2773],y:[0.38,0.227]},{type: "linear", x:[0.2773,0.29],y:[0.227,0.227]}], normal: [{type: "curve_hright", x:[0.29,0.29],y:[0.227,0.347]},{type: "linear_vertical", x:[0,0], y: [0,0]},{type: "curve_hleft2", x:[0,0], y: [0.299,0.419]},{type: "linear", x:[0,0.631], y:[0.419,0.419]},{type: "curve_r2l", x:[0.631,0.665], y:[0.419,0.43]},{type: "curve_left", x:[0.665,0.665], y: [0.43,0.322]},{type: "curve_l2r", x:[0.665,0.59], y: [0.322,0.39]},{type: "linear", x:[0.59,0.339], y:[0.39,0.39]},{type: "curve_l2r", x:[0.339,0.25], y: [0.39,0.412]},{type: "linear", x: [0.25,0.225], y: [0.412,0.412]},{type: "curve_right", x: [0.225,0.225], y: [0.412,0.227]},{type: "linear", x:[0.225,0.29], y:[0.227,0.227]}]}]; 
+var carPaths = [{start: [{type: "curve_right", x:[0.29,0.29],y:[0.38,0.227]}], normal: [{type: "curve_hright", x:[0.29,0.29],y:[0.227,0.347]},{type: "linear_vertical", x:[0,0], y: [0,0]},{type: "curve_hright2", x:[0,0], y: [0.282,0.402]},{type: "curve_l2r", x:[0,0.25], y: [0.402,0.412]},{type: "linear", x: [0.25,0.225], y: [0.412,0.412]},{type: "curve_right", x: [0.225,0.225], y: [0.412,0.227]},{type: "linear", x:[0.225,0.29], y:[0.227,0.227]}]},{start: [{type: "curve_left", x:[0.26,0.26], y: [0.3,0.198]},{type: "curve_r2l", x:[0.26,0.216], y: [0.198,0.197]}], normal: [{type: "curve_left", x:[0.216,0.216], y: [0.197,0.419]},{type: "linear", x:[0.216,0.246], y:[0.419,419]},{type: "curve_r2l", x:[0.246,0.286], y:[0.419,0.43]},{type: "linear", x:[0.286,0.31], y:[0.43,0.43]},{type: "curve_hleft", x:[0.31,0.31], y: [0.43,0.33]},{type: "linear_vertical", x:[0,0], y: [0,0]},{type: "curve_hleft2", x:[0,0], y: [0.347,0.197]},{type: "linear", x:[0,0.216], y:[0.197,0.197]},{type: "curve_left", x:[0.216,0.216], y: [0.197,0.419]},{type: "linear", x:[0.216,0.246], y:[0.419,419]},{type: "curve_r2l", x:[0.246,0.276], y:[0.419,0.434]},{type: "linear", x:[0.276,0.38], y:[0.434,434]},{type: "curve_l2r", x:[0.38,0.46], y:[0.434,0.419]},{type: "linear", x:[0.46,0.631], y:[0.419,0.419]},{type: "curve_r2l", x:[0.631,0.665], y:[0.419,0.43]},{type: "curve_left", x:[0.665,0.665], y: [0.43,0.322]},{type: "curve_l2r", x:[0.665,0.59], y: [0.322,0.39]},{type: "linear", x:[0.59,0.339], y:[0.39,0.39]},{type: "curve_hright", x:[0.339,0.339], y: [0.39,0.32]},{type: "linear_vertical", x:[0,0], y: [0,0]},{type: "curve_hleft2", x:[0,0], y: [0.347,0.197]},{type: "linear", x:[0,0.216], y:[0.197,0.197]}]},{start: [{type: "curve_right", x:[0.2773,0.2773],y:[0.38,0.227]},{type: "linear", x:[0.2773,0.29],y:[0.227,0.227]}], normal: [{type: "curve_hright", x:[0.29,0.29],y:[0.227,0.347]},{type: "linear_vertical", x:[0,0], y: [0,0]},{type: "curve_hleft2", x:[0,0], y: [0.299,0.419]},{type: "linear", x:[0,0.631], y:[0.419,0.419]},{type: "curve_r2l", x:[0.631,0.665], y:[0.419,0.43]},{type: "curve_left", x:[0.665,0.665], y: [0.43,0.322]},{type: "curve_l2r", x:[0.665,0.59], y: [0.322,0.39]},{type: "linear", x:[0.59,0.339], y:[0.39,0.39]},{type: "curve_l2r", x:[0.339,0.25], y: [0.39,0.412]},{type: "linear", x: [0.25,0.225], y: [0.412,0.412]},{type: "curve_right", x: [0.225,0.225], y: [0.412,0.227]},{type: "linear", x:[0.225,0.29], y:[0.227,0.227]}]}];
 var carWays = [];
 var carParams = {init: true, wayNo: 7};
 
@@ -2416,8 +2410,8 @@ function resize() {
     oldbackground = copyJSObject(background);
     extendedMeasureViewspace();
     placeBackground();
-    
-    animateWorker.postMessage({k: "resize", background: background,oldbackground: oldbackground});   
+
+    animateWorker.postMessage({k: "resize", background: background,oldbackground: oldbackground});
 
     carWays.forEach(function(way){
         Object.keys(way).forEach(function(cType) {
@@ -2426,7 +2420,7 @@ function resize() {
                 point.y*=background.height/oldbackground.height;
             });
         });
-    });    
+    });
     resizeCars(oldbackground);
 
     taxOffice.params.fire.x *= background.width/oldbackground.width;
@@ -2435,7 +2429,7 @@ function resize() {
     taxOffice.params.smoke.x *= background.width/oldbackground.width;
     taxOffice.params.smoke.y *= background.height/oldbackground.height;
     taxOffice.params.smoke.size *= background.width/oldbackground.width;
-    for (var i = 0; i <  taxOffice.params.number; i++) {            
+    for (var i = 0; i <  taxOffice.params.number; i++) {
         taxOffice.fire[i].x *= background.width/oldbackground.width;
         taxOffice.fire[i].y *= background.height/oldbackground.height;
         taxOffice.fire[i].size *= background.width/oldbackground.width;
@@ -2459,8 +2453,8 @@ function resize() {
     }
 }
 window.onload = function() {
-	
-	function chooseInputMethod(event){
+
+    function chooseInputMethod(event){
         client.realScale = 1;
         client.lastTouchScale=1;
         client.touchScale=1;
@@ -2468,19 +2462,19 @@ window.onload = function() {
         client.touchScaleY=0;
         client.touchScaleXKeyFake=0;
         client.touchScaleYKeyFake=0;
-        var type = event.type;           
+        var type = event.type;
         canvasForeground.removeEventListener("touchstart",chooseInputMethod);
         canvasForeground.removeEventListener("mousemove",chooseInputMethod);
         canvasForeground.addEventListener("touchmove", getTouchMove, false);
         canvasForeground.addEventListener("touchstart", getTouchStart, false);
         canvasForeground.addEventListener("touchleave", getTouchLeave, false);
-        canvasForeground.addEventListener("touchend", getTouchEnd, false); 
+        canvasForeground.addEventListener("touchend", getTouchEnd, false);
         canvasForeground.addEventListener("mousemove", onMouseMove, false);
         canvasForeground.addEventListener("mousedown", onMouseDown, false);
-        canvasForeground.addEventListener("mouseup", onMouseUp, false); 
+        canvasForeground.addEventListener("mouseup", onMouseUp, false);
         canvasForeground.addEventListener("mouseout", onMouseOut, false);
-        canvasForeground.addEventListener("wheel", onMouseWheel, false); 
-        canvasForeground.addEventListener("contextmenu", onMouseRight, false); 
+        canvasForeground.addEventListener("wheel", onMouseWheel, false);
+        canvasForeground.addEventListener("contextmenu", onMouseRight, false);
         if(type == "touchstart"){
             client.chosenInputMethod = "touch";
             getTouchStart(event);
@@ -2488,12 +2482,12 @@ window.onload = function() {
             client.chosenInputMethod = "mouse";
             onMouseMove(event);
         }
-         setCurrentHardwareConfig("input",client.chosenInputMethod);
-   }    
+        setCurrentHardwareConfig("input",client.chosenInputMethod);
+    }
 
     function initialDisplay() {
-        
-        function defineCarParams(){ 
+
+        function defineCarParams(){
             cars.forEach(function(car, i){
                 car.speed *= background.width;
                 car.collStop = true;
@@ -2504,8 +2498,8 @@ window.onload = function() {
                     carParams.lowestSpeedNo = i;
                 }
             });
-            cars.forEach(function(car,i){  
-                Object.keys(carPaths[i]).forEach(function(cType) {            
+            cars.forEach(function(car,i){
+                Object.keys(carPaths[i]).forEach(function(cType) {
                     carPaths[i][cType].forEach(function(cPoint){
                         for(var k = 0; k < cPoint.x.length && k < cPoint.y.length; k++){
                             cPoint.x[k]*=background.width;
@@ -2515,20 +2509,20 @@ window.onload = function() {
                     for(var j = 0; j < carPaths[i][cType].length; j++){
                         for(var k = 0; k < carPaths[i][cType][j].type.length; k++){
                             switch(carPaths[i][cType][j].type){
-                                case "linear_vertical":
-                                    carPaths[i][cType][j].x[0] = carPaths[i][cType][j].x[1] = carPaths[i][cType][j-1].x[1]+Math.abs((carPaths[i][cType][j-1].y[1]-carPaths[i][cType][j-1].y[0])/2)*((carPaths[i][cType][j-1].type == "curve_hright") ? 1 : -1)*((carPaths[i][cType][j-1].y[1] > carPaths[i][cType][j-1].y[0]) ? 1 : -1);
-                                    carPaths[i][cType][j].y[0] = carPaths[i][cType][j-1].y[0]+(carPaths[i][cType][j-1].y[1]-carPaths[i][cType][j-1].y[0])/2;
-                                    carPaths[i][cType][j].y[1] = carPaths[i][cType][j+1].y[1]+(carPaths[i][cType][j+1].y[0]-carPaths[i][cType][j+1].y[1])/2;
-                                break;    
-                                case "curve_hright2":
-                                    var x0 = carPaths[i][cType][j-1].x[0]-(carPaths[i][cType][j].y[1]-carPaths[i][cType][j].y[0])/2;
-                                    carPaths[i][cType][j].x =[x0,x0];
-                                    carPaths[i][cType][j+1 >= carPaths[i][cType].length ? 0 : j+1].x[0]=x0;
+                            case "linear_vertical":
+                                carPaths[i][cType][j].x[0] = carPaths[i][cType][j].x[1] = carPaths[i][cType][j-1].x[1]+Math.abs((carPaths[i][cType][j-1].y[1]-carPaths[i][cType][j-1].y[0])/2)*((carPaths[i][cType][j-1].type == "curve_hright") ? 1 : -1)*((carPaths[i][cType][j-1].y[1] > carPaths[i][cType][j-1].y[0]) ? 1 : -1);
+                                carPaths[i][cType][j].y[0] = carPaths[i][cType][j-1].y[0]+(carPaths[i][cType][j-1].y[1]-carPaths[i][cType][j-1].y[0])/2;
+                                carPaths[i][cType][j].y[1] = carPaths[i][cType][j+1].y[1]+(carPaths[i][cType][j+1].y[0]-carPaths[i][cType][j+1].y[1])/2;
                                 break;
-                                case "curve_hleft2":
-                                    var x0 = carPaths[i][cType][j-1].x[0]-(carPaths[i][cType][j].y[0]-carPaths[i][cType][j].y[1])/2;
-                                    carPaths[i][cType][j].x =[x0,x0];
-                                    carPaths[i][cType][j+1 >= carPaths[i][cType].length ? 0 : j+1].x[0]=x0;
+                            case "curve_hright2":
+                                var x0 = carPaths[i][cType][j-1].x[0]-(carPaths[i][cType][j].y[1]-carPaths[i][cType][j].y[0])/2;
+                                carPaths[i][cType][j].x =[x0,x0];
+                                carPaths[i][cType][j+1 >= carPaths[i][cType].length ? 0 : j+1].x[0]=x0;
+                                break;
+                            case "curve_hleft2":
+                                var x0 = carPaths[i][cType][j-1].x[0]-(carPaths[i][cType][j].y[0]-carPaths[i][cType][j].y[1])/2;
+                                carPaths[i][cType][j].x =[x0,x0];
+                                carPaths[i][cType][j+1 >= carPaths[i][cType].length ? 0 : j+1].x[0]=x0;
                                 break;
                             }
                         }
@@ -2540,11 +2534,11 @@ window.onload = function() {
                 });
             });
         }
-        
+
         function placeCarsAtInitialPositions() {
             for (var i = 0; i < cars.length; i++){
                 cars[i].width = cars[i].fac * background.width;
-                cars[i].height = cars[i].fac * (pics[cars[i].src].height * (background.width / pics[cars[i].src].width)); 
+                cars[i].height = cars[i].fac * (pics[cars[i].src].height * (background.width / pics[cars[i].src].width));
                 if(i === 0){
                     carParams.thickestCar = i;
                 } else if (cars[i].height > cars[carParams.thickestCar].height) {
@@ -2553,12 +2547,12 @@ window.onload = function() {
                 cars[i].cType =  typeof carWays[i].start == "undefined" ?  "normal" : "start";
                 cars[i].displayAngle = carWays[i][cars[i].cType][cars[i].counter].angle;
                 cars[i].x = carWays[i][cars[i].cType][cars[i].counter].x;
-                cars[i].y = carWays[i][cars[i].cType][cars[i].counter].y; 
-                cars[i].backToInit = false; 
-                cars[i].parking = true; 
-            }  
+                cars[i].y = carWays[i][cars[i].cType][cars[i].counter].y;
+                cars[i].backToInit = false;
+                cars[i].parking = true;
+            }
         }
-    
+
         function defineCarWays(cType, isFirst, i, j, obj, currentObject, stateNullAgain) {
 
             function curve_right(p){
@@ -2567,64 +2561,64 @@ window.onload = function() {
                 }
                 var radius = Math.abs(p.y[0]-p.y[1])/2;
                 var arc = Math.abs(currentObject.angle)*radius;
-                arc += currentObject.speed; 
+                arc += currentObject.speed;
                 currentObject.angle = (arc / radius);
-                 var chord = 2* radius * Math.sin((currentObject.angle)/2);
-                 var gamma = Math.PI/2-(Math.PI-(currentObject.angle))/2;
-                 var x = Math.cos(gamma)*chord;
-                 var y = Math.sin(gamma)*chord;
-                 currentObject.x = ( p.y[1] < p.y[0] ) ? x + p.x[1] : x + p.x[0];
-                 currentObject.y = ( p.y[1] < p.y[0] ) ? y + p.y[1] : y + p.y[0];
+                var chord = 2* radius * Math.sin((currentObject.angle)/2);
+                var gamma = Math.PI/2-(Math.PI-(currentObject.angle))/2;
+                var x = Math.cos(gamma)*chord;
+                var y = Math.sin(gamma)*chord;
+                currentObject.x = ( p.y[1] < p.y[0] ) ? x + p.x[1] : x + p.x[0];
+                currentObject.y = ( p.y[1] < p.y[0] ) ? y + p.y[1] : y + p.y[0];
                 if(p.y[1] > p.y[0]) {
-                  if(arc >= Math.PI*radius || currentObject.angle >= Math.PI){
-                    currentObject.x = p.x[1];
-                    currentObject.y = p.y[1]; 
-                    currentObject.angle = Math.PI; 
-                    currentObject.state = ++currentObject.state >= carPaths[i][cType].length ? (carPaths[i][cType].length == 1 ? -1 : 0) : currentObject.state;
-                  }  
-                 } else {  
-                  if(arc >= 2*Math.PI*radius || currentObject.angle >= 2*Math.PI){
-                    currentObject.x = p.x[1];
-                    currentObject.y = p.y[1];
-                    currentObject.angle = 0;             
-                    currentObject.state = ++currentObject.state >= carPaths[i][cType].length ? (carPaths[i][cType].length == 1 ? -1 : 0) : currentObject.state;
-                  }
-                 }
-                 currentObject.displayAngle = currentObject.angle;
+                    if(arc >= Math.PI*radius || currentObject.angle >= Math.PI){
+                        currentObject.x = p.x[1];
+                        currentObject.y = p.y[1];
+                        currentObject.angle = Math.PI;
+                        currentObject.state = ++currentObject.state >= carPaths[i][cType].length ? (carPaths[i][cType].length == 1 ? -1 : 0) : currentObject.state;
+                    }
+                } else {
+                    if(arc >= 2*Math.PI*radius || currentObject.angle >= 2*Math.PI){
+                        currentObject.x = p.x[1];
+                        currentObject.y = p.y[1];
+                        currentObject.angle = 0;
+                        currentObject.state = ++currentObject.state >= carPaths[i][cType].length ? (carPaths[i][cType].length == 1 ? -1 : 0) : currentObject.state;
+                    }
+                }
+                currentObject.displayAngle = currentObject.angle;
             }
-            
+
             function curve_left(p){
                 if(p.x[0]!=p.x[1]){
                     p.x[1]=p.x[0];
                 }
-                var radius = Math.abs(p.y[0]-p.y[1])/2;    
+                var radius = Math.abs(p.y[0]-p.y[1])/2;
                 var arc = Math.abs(currentObject.angle)*radius;
-                arc += currentObject.speed; 
+                arc += currentObject.speed;
                 currentObject.angle = (arc / radius);
-                 var chord = 2* radius * Math.sin((currentObject.angle)/2);
-                 var gamma = Math.PI/2-(Math.PI-(currentObject.angle))/2;
-                 var x = Math.cos(gamma)*chord;
-                 var y = Math.sin(gamma)*chord;
-                 currentObject.x = ( p.y[1] < p.y[0] ) ? p.x[0] + x : p.x[1] + x;
-                 currentObject.y = ( p.y[1] < p.y[0] ) ? p.y[0] - y : p.y[1] - y;        
-                 if(p.y[1] > p.y[0]) {  
-                  if(arc >= 2*Math.PI*radius || currentObject.angle >= 2*Math.PI){
-                    currentObject.x = p.x[1];
-                    currentObject.y = p.y[1]; 
-                    currentObject.angle = 0; 
-                    currentObject.state = ++currentObject.state >= carPaths[i][cType].length ? (carPaths[i][cType].length == 1 ? -1 : 0) : currentObject.state;
-                  }  
-                 } else {  
-                  if(arc >= Math.PI*radius || currentObject.angle >= Math.PI){
-                    currentObject.x = p.x[1];
-                    currentObject.y = p.y[1];
-                    currentObject.angle = Math.PI;
-                    currentObject.state = ++currentObject.state >= carPaths[i][cType].length ? (carPaths[i][cType].length == 1 ? -1 : 0) : currentObject.state;
-                  }
-                 }
-                 currentObject.displayAngle = -currentObject.angle;
+                var chord = 2* radius * Math.sin((currentObject.angle)/2);
+                var gamma = Math.PI/2-(Math.PI-(currentObject.angle))/2;
+                var x = Math.cos(gamma)*chord;
+                var y = Math.sin(gamma)*chord;
+                currentObject.x = ( p.y[1] < p.y[0] ) ? p.x[0] + x : p.x[1] + x;
+                currentObject.y = ( p.y[1] < p.y[0] ) ? p.y[0] - y : p.y[1] - y;
+                if(p.y[1] > p.y[0]) {
+                    if(arc >= 2*Math.PI*radius || currentObject.angle >= 2*Math.PI){
+                        currentObject.x = p.x[1];
+                        currentObject.y = p.y[1];
+                        currentObject.angle = 0;
+                        currentObject.state = ++currentObject.state >= carPaths[i][cType].length ? (carPaths[i][cType].length == 1 ? -1 : 0) : currentObject.state;
+                    }
+                } else {
+                    if(arc >= Math.PI*radius || currentObject.angle >= Math.PI){
+                        currentObject.x = p.x[1];
+                        currentObject.y = p.y[1];
+                        currentObject.angle = Math.PI;
+                        currentObject.state = ++currentObject.state >= carPaths[i][cType].length ? (carPaths[i][cType].length == 1 ? -1 : 0) : currentObject.state;
+                    }
+                }
+                currentObject.displayAngle = -currentObject.angle;
             }
-            
+
             if(typeof j == "undefined") {
                 j = 0;
             }
@@ -2654,172 +2648,172 @@ window.onload = function() {
             obj[j].angle = currentObject.displayAngle;
             switch(carPaths[i][cType][currentObject.state].type){
 
-                case "linear": 
-                    currentObject.angle = currentObject.angle < Math.PI/2 ? 0 : Math.PI;
-                    currentObject.x += currentObject.speed*(currentObject.angle < Math.PI/2 ? 1 : -1); 
-                    if(currentObject.angle < Math.PI/2) {  
-                        if(currentObject.x >= carPaths[i][cType][currentObject.state].x[1]){
-                            currentObject.x = carPaths[i][cType][currentObject.state].x[1];
-                            currentObject.state = ++currentObject.state >= carPaths[i][cType].length ? (carPaths[i][cType].length == 1 ? -1 : 0) : currentObject.state;
-                        }
-                    } else {           
-                        if(currentObject.x <= carPaths[i][cType][currentObject.state].x[1]){
-                            currentObject.x = carPaths[i][cType][currentObject.state].x[1];
-                            currentObject.state = ++currentObject.state >= carPaths[i][cType].length ? (carPaths[i][cType].length == 1 ? -1 : 0) : currentObject.state;
-                        }
+            case "linear":
+                currentObject.angle = currentObject.angle < Math.PI/2 ? 0 : Math.PI;
+                currentObject.x += currentObject.speed*(currentObject.angle < Math.PI/2 ? 1 : -1);
+                if(currentObject.angle < Math.PI/2) {
+                    if(currentObject.x >= carPaths[i][cType][currentObject.state].x[1]){
+                        currentObject.x = carPaths[i][cType][currentObject.state].x[1];
+                        currentObject.state = ++currentObject.state >= carPaths[i][cType].length ? (carPaths[i][cType].length == 1 ? -1 : 0) : currentObject.state;
                     }
-                    currentObject.displayAngle = currentObject.angle;
+                } else {
+                    if(currentObject.x <= carPaths[i][cType][currentObject.state].x[1]){
+                        currentObject.x = carPaths[i][cType][currentObject.state].x[1];
+                        currentObject.state = ++currentObject.state >= carPaths[i][cType].length ? (carPaths[i][cType].length == 1 ? -1 : 0) : currentObject.state;
+                    }
+                }
+                currentObject.displayAngle = currentObject.angle;
                 break;
 
-                case "linear_vertical":
-                    currentObject.angle = currentObject.angle < Math.PI ? 0.5*Math.PI : 1.5*Math.PI;
-                    currentObject.y += currentObject.speed*(currentObject.angle < Math.PI ? 1 : -1); 
-                    if(currentObject.angle < Math.PI) {  
-                        if(currentObject.y >= carPaths[i][cType][currentObject.state].y[1]){
-                            currentObject.y = carPaths[i][cType][currentObject.state].y[1];
-                            currentObject.state = ++currentObject.state >= carPaths[i][cType].length ? (carPaths[i][cType].length == 1 ? -1 : 0) : currentObject.state;
+            case "linear_vertical":
+                currentObject.angle = currentObject.angle < Math.PI ? 0.5*Math.PI : 1.5*Math.PI;
+                currentObject.y += currentObject.speed*(currentObject.angle < Math.PI ? 1 : -1);
+                if(currentObject.angle < Math.PI) {
+                    if(currentObject.y >= carPaths[i][cType][currentObject.state].y[1]){
+                        currentObject.y = carPaths[i][cType][currentObject.state].y[1];
+                        currentObject.state = ++currentObject.state >= carPaths[i][cType].length ? (carPaths[i][cType].length == 1 ? -1 : 0) : currentObject.state;
+                    }
+                } else {
+                    if(currentObject.y <= carPaths[i][cType][currentObject.state].y[1]){
+                        currentObject.y = carPaths[i][cType][currentObject.state].y[1];
+                        currentObject.state = ++currentObject.state >= carPaths[i][cType].length ? (carPaths[i][cType].length == 1 ? -1 : 0) : currentObject.state;
+                    }
+                }
+                currentObject.displayAngle = currentObject.angle;
+                break;
+
+            case "curve_right":
+                curve_right(carPaths[i][cType][currentObject.state]);
+                break;
+
+            case "curve_left":
+                curve_left(carPaths[i][cType][currentObject.state]);
+                break;
+
+            case "curve_r2l":
+                var p = copyJSObject(carPaths[i][cType][currentObject.state]);
+                if(carPaths[i][cType][currentObject.state].y[0] < carPaths[i][cType][currentObject.state].y[1]) {
+                    var dx = (carPaths[i][cType][currentObject.state].x[1]-carPaths[i][cType][currentObject.state].x[0])/2;
+                    var dy = (carPaths[i][cType][currentObject.state].y[1]-carPaths[i][cType][currentObject.state].y[0])/2;
+                    if(currentObject.angle <= Math.PI){
+                        p.y[1] = carPaths[i][cType][currentObject.state].y[0]+2*((Math.pow(dy,2)+Math.pow(dx,2))/(2*dy));
+                        curve_right(p);
+                        if(currentObject.y >= carPaths[i][cType][currentObject.state].y[0]+(carPaths[i][cType][currentObject.state].y[1]-carPaths[i][cType][currentObject.state].y[0])/2) {
+                            var diff = currentObject.angle-Math.PI*45/180;
+                            currentObject.angle = Math.PI*315/180-diff;
+                            currentObject.x = carPaths[i][cType][currentObject.state].x[0]-(carPaths[i][cType][currentObject.state].x[0]-carPaths[i][cType][currentObject.state].x[1])/2;
+                            currentObject.y = carPaths[i][cType][currentObject.state].y[0]+(carPaths[i][cType][currentObject.state].y[1]-carPaths[i][cType][currentObject.state].y[0])/2;
                         }
                     } else {
-                        if(currentObject.y <= carPaths[i][cType][currentObject.state].y[1]){
-                            currentObject.y = carPaths[i][cType][currentObject.state].y[1];
-                            currentObject.state = ++currentObject.state >= carPaths[i][cType].length ? (carPaths[i][cType].length == 1 ? -1 : 0) : currentObject.state;
-                        }
+                        p.x[0] = carPaths[i][cType][currentObject.state].x[1];
+                        p.y[0] = carPaths[i][cType][currentObject.state].y[1]-2*((Math.pow(dy,2)+Math.pow(dx,2))/(2*dy));
+                        curve_left(p);
                     }
-                    currentObject.displayAngle = currentObject.angle;
-                break;
-
-                case "curve_right":
-                    curve_right(carPaths[i][cType][currentObject.state]);
-                break;
-
-                case "curve_left":
-                    curve_left(carPaths[i][cType][currentObject.state]);
-                break;
-
-                case "curve_r2l":
-                   var p = copyJSObject(carPaths[i][cType][currentObject.state]);
-                   if(carPaths[i][cType][currentObject.state].y[0] < carPaths[i][cType][currentObject.state].y[1]) {
-                        var dx = (carPaths[i][cType][currentObject.state].x[1]-carPaths[i][cType][currentObject.state].x[0])/2;
-                        var dy = (carPaths[i][cType][currentObject.state].y[1]-carPaths[i][cType][currentObject.state].y[0])/2;
-                        if(currentObject.angle <= Math.PI){
-                            p.y[1] = carPaths[i][cType][currentObject.state].y[0]+2*((Math.pow(dy,2)+Math.pow(dx,2))/(2*dy));
-                            curve_right(p);
-                            if(currentObject.y >= carPaths[i][cType][currentObject.state].y[0]+(carPaths[i][cType][currentObject.state].y[1]-carPaths[i][cType][currentObject.state].y[0])/2) {
-                                var diff = currentObject.angle-Math.PI*45/180;
-                                currentObject.angle = Math.PI*315/180-diff;
-                                currentObject.x = carPaths[i][cType][currentObject.state].x[0]-(carPaths[i][cType][currentObject.state].x[0]-carPaths[i][cType][currentObject.state].x[1])/2;
-                                currentObject.y = carPaths[i][cType][currentObject.state].y[0]+(carPaths[i][cType][currentObject.state].y[1]-carPaths[i][cType][currentObject.state].y[0])/2;
-                            }
-                        } else {
-                            p.x[0] = carPaths[i][cType][currentObject.state].x[1];
-                            p.y[0] = carPaths[i][cType][currentObject.state].y[1]-2*((Math.pow(dy,2)+Math.pow(dx,2))/(2*dy));
-                            curve_left(p);
+                } else {
+                    var dx = (carPaths[i][cType][currentObject.state].x[0]-carPaths[i][cType][currentObject.state].x[1])/2;
+                    var dy = (carPaths[i][cType][currentObject.state].y[0]-carPaths[i][cType][currentObject.state].y[1])/2;
+                    if(currentObject.angle >= Math.PI){
+                        p.y[1] = carPaths[i][cType][currentObject.state].y[0]-2*((Math.pow(dy,2)+Math.pow(dx,2))/(2*dy));
+                        curve_right(p);
+                        if(currentObject.y <= carPaths[i][cType][currentObject.state].y[0]-(carPaths[i][cType][currentObject.state].y[0]-carPaths[i][cType][currentObject.state].y[1])/2) {
+                            var diff = currentObject.angle-Math.PI*225/180;
+                            currentObject.angle = Math.PI*135/180-diff;
+                            currentObject.x = carPaths[i][cType][currentObject.state].x[0]+(carPaths[i][cType][currentObject.state].x[1]-carPaths[i][cType][currentObject.state].x[0])/2;
+                            currentObject.y = carPaths[i][cType][currentObject.state].y[0]-(carPaths[i][cType][currentObject.state].y[0]-carPaths[i][cType][currentObject.state].y[1])/2;
                         }
                     } else {
-                        var dx = (carPaths[i][cType][currentObject.state].x[0]-carPaths[i][cType][currentObject.state].x[1])/2;
-                        var dy = (carPaths[i][cType][currentObject.state].y[0]-carPaths[i][cType][currentObject.state].y[1])/2;
-                        if(currentObject.angle >= Math.PI){
-                            p.y[1] = carPaths[i][cType][currentObject.state].y[0]-2*((Math.pow(dy,2)+Math.pow(dx,2))/(2*dy));
-                            curve_right(p);
-                            if(currentObject.y <= carPaths[i][cType][currentObject.state].y[0]-(carPaths[i][cType][currentObject.state].y[0]-carPaths[i][cType][currentObject.state].y[1])/2) {
-                                var diff = currentObject.angle-Math.PI*225/180;
-                                currentObject.angle = Math.PI*135/180-diff;
-                                currentObject.x = carPaths[i][cType][currentObject.state].x[0]+(carPaths[i][cType][currentObject.state].x[1]-carPaths[i][cType][currentObject.state].x[0])/2;
-                                currentObject.y = carPaths[i][cType][currentObject.state].y[0]-(carPaths[i][cType][currentObject.state].y[0]-carPaths[i][cType][currentObject.state].y[1])/2;
-                            }
-                        } else {
-                            p.x[0] = carPaths[i][cType][currentObject.state].x[1];
-                            p.y[0] = carPaths[i][cType][currentObject.state].y[1]+2*((Math.pow(dy,2)+Math.pow(dx,2))/(2*dy));
-                            curve_left(p);
-                        }
+                        p.x[0] = carPaths[i][cType][currentObject.state].x[1];
+                        p.y[0] = carPaths[i][cType][currentObject.state].y[1]+2*((Math.pow(dy,2)+Math.pow(dx,2))/(2*dy));
+                        curve_left(p);
                     }
+                }
                 break;
 
-                case "curve_l2r":
-                    if(carPaths[i][cType][currentObject.state].y[0] < carPaths[i][cType][currentObject.state].y[1]) {
-                        var dx = (carPaths[i][cType][currentObject.state].x[0]-carPaths[i][cType][currentObject.state].x[1])/2;
-                        var dy = (carPaths[i][cType][currentObject.state].y[1]-carPaths[i][cType][currentObject.state].y[0])/2;
-                        var p = copyJSObject(carPaths[i][cType][currentObject.state]);
-                        if(currentObject.angle >= Math.PI){
-                            p.y[1] = carPaths[i][cType][currentObject.state].y[0]+2*((Math.pow(dy,2)+Math.pow(dx,2))/(2*dy));
-                            curve_left(p);
-                            if(currentObject.y >= carPaths[i][cType][currentObject.state].y[0]+(carPaths[i][cType][currentObject.state].y[1]-carPaths[i][cType][currentObject.state].y[0])/2) {
-                                var diff = currentObject.angle-Math.PI*225/180;
-                                currentObject.angle = Math.PI*135/180-diff;    
-                                currentObject.x = carPaths[i][cType][currentObject.state].x[0]-(carPaths[i][cType][currentObject.state].x[0]-carPaths[i][cType][currentObject.state].x[1])/2;
-                                currentObject.y = carPaths[i][cType][currentObject.state].y[0]+(carPaths[i][cType][currentObject.state].y[1]-carPaths[i][cType][currentObject.state].y[0])/2;
-                            }
-                        } else {
-                            p.x[0] = carPaths[i][cType][currentObject.state].x[1];
-                            p.y[0] = carPaths[i][cType][currentObject.state].y[1]-2*((Math.pow(dy,2)+Math.pow(dx,2))/(2*dy));
-                            curve_right(p);
-
-                        }
-                    } else {
-                        var dx = (carPaths[i][cType][currentObject.state].x[1]-carPaths[i][cType][currentObject.state].x[0])/2;
-                        var dy = (carPaths[i][cType][currentObject.state].y[0]-carPaths[i][cType][currentObject.state].y[1])/2;
-                        var p = copyJSObject(carPaths[i][cType][currentObject.state]);
-                        if(currentObject.angle <= Math.PI){
-                            p.y[1] = carPaths[i][cType][currentObject.state].y[0]-2*((Math.pow(dy,2)+Math.pow(dx,2))/(2*dy));
-                            curve_left(p);
-                            if(currentObject.y <= carPaths[i][cType][currentObject.state].y[0]-(carPaths[i][cType][currentObject.state].y[0]-carPaths[i][cType][currentObject.state].y[1])/2) {
-                                var diff = currentObject.angle-Math.PI*45/180;
-                                currentObject.angle = Math.PI*315/180-diff;
-                                currentObject.x = carPaths[i][cType][currentObject.state].x[0]+(carPaths[i][cType][currentObject.state].x[1]-carPaths[i][cType][currentObject.state].x[0])/2;
-                                currentObject.y = carPaths[i][cType][currentObject.state].y[0]-(carPaths[i][cType][currentObject.state].y[0]-carPaths[i][cType][currentObject.state].y[1])/2;
-                            }
-                        } else {
-                            p.x[0] = carPaths[i][cType][currentObject.state].x[1];
-                            p.y[0] = carPaths[i][cType][currentObject.state].y[1]+2*((Math.pow(dy,2)+Math.pow(dx,2))/(2*dy));
-                            curve_right(p);
-                        }
-                    }
-                break;
-
-                case "curve_hright":
+            case "curve_l2r":
+                if(carPaths[i][cType][currentObject.state].y[0] < carPaths[i][cType][currentObject.state].y[1]) {
+                    var dx = (carPaths[i][cType][currentObject.state].x[0]-carPaths[i][cType][currentObject.state].x[1])/2;
+                    var dy = (carPaths[i][cType][currentObject.state].y[1]-carPaths[i][cType][currentObject.state].y[0])/2;
                     var p = copyJSObject(carPaths[i][cType][currentObject.state]);
-                    curve_right(p);
-                    if(p.y[1] > p.y[0]) {  
-                        if(currentObject.angle >= 0.5*Math.PI){
-                            currentObject.x = p.x[1]+(p.y[1]-p.y[0])/2;
-                            currentObject.y = p.y[1]-(p.y[1]-p.y[0])/2; 
-                            currentObject.angle = currentObject.displayAngle = 0.5*Math.PI; 
-                            currentObject.state = ++currentObject.state >= carPaths[i][cType].length ? (carPaths[i][cType].length == 1 ? -1 : 0) : currentObject.state;
-                        }  
-                    } else {  
-                        if(currentObject.angle >= 1.5*Math.PI){
-                            currentObject.x = p.x[1]-(p.y[0]-p.y[1])/2;
-                            currentObject.y = p.y[1]+(p.y[0]-p.y[1])/2;
-                            currentObject.angle = currentObject.displayAngle = 1.5*Math.PI;   
-                            currentObject.state = ++currentObject.state >= carPaths[i][cType].length ? (carPaths[i][cType].length == 1 ? -1 : 0) : currentObject.state;
+                    if(currentObject.angle >= Math.PI){
+                        p.y[1] = carPaths[i][cType][currentObject.state].y[0]+2*((Math.pow(dy,2)+Math.pow(dx,2))/(2*dy));
+                        curve_left(p);
+                        if(currentObject.y >= carPaths[i][cType][currentObject.state].y[0]+(carPaths[i][cType][currentObject.state].y[1]-carPaths[i][cType][currentObject.state].y[0])/2) {
+                            var diff = currentObject.angle-Math.PI*225/180;
+                            currentObject.angle = Math.PI*135/180-diff;
+                            currentObject.x = carPaths[i][cType][currentObject.state].x[0]-(carPaths[i][cType][currentObject.state].x[0]-carPaths[i][cType][currentObject.state].x[1])/2;
+                            currentObject.y = carPaths[i][cType][currentObject.state].y[0]+(carPaths[i][cType][currentObject.state].y[1]-carPaths[i][cType][currentObject.state].y[0])/2;
                         }
-                     }
+                    } else {
+                        p.x[0] = carPaths[i][cType][currentObject.state].x[1];
+                        p.y[0] = carPaths[i][cType][currentObject.state].y[1]-2*((Math.pow(dy,2)+Math.pow(dx,2))/(2*dy));
+                        curve_right(p);
+
+                    }
+                } else {
+                    var dx = (carPaths[i][cType][currentObject.state].x[1]-carPaths[i][cType][currentObject.state].x[0])/2;
+                    var dy = (carPaths[i][cType][currentObject.state].y[0]-carPaths[i][cType][currentObject.state].y[1])/2;
+                    var p = copyJSObject(carPaths[i][cType][currentObject.state]);
+                    if(currentObject.angle <= Math.PI){
+                        p.y[1] = carPaths[i][cType][currentObject.state].y[0]-2*((Math.pow(dy,2)+Math.pow(dx,2))/(2*dy));
+                        curve_left(p);
+                        if(currentObject.y <= carPaths[i][cType][currentObject.state].y[0]-(carPaths[i][cType][currentObject.state].y[0]-carPaths[i][cType][currentObject.state].y[1])/2) {
+                            var diff = currentObject.angle-Math.PI*45/180;
+                            currentObject.angle = Math.PI*315/180-diff;
+                            currentObject.x = carPaths[i][cType][currentObject.state].x[0]+(carPaths[i][cType][currentObject.state].x[1]-carPaths[i][cType][currentObject.state].x[0])/2;
+                            currentObject.y = carPaths[i][cType][currentObject.state].y[0]-(carPaths[i][cType][currentObject.state].y[0]-carPaths[i][cType][currentObject.state].y[1])/2;
+                        }
+                    } else {
+                        p.x[0] = carPaths[i][cType][currentObject.state].x[1];
+                        p.y[0] = carPaths[i][cType][currentObject.state].y[1]+2*((Math.pow(dy,2)+Math.pow(dx,2))/(2*dy));
+                        curve_right(p);
+                    }
+                }
                 break;
 
-                case "curve_hleft":
-                     var p = copyJSObject(carPaths[i][cType][currentObject.state]);
-                     curve_left(p);
-                     if (p.y[1] > p.y[0]) {  
-                        //TODO
-                     } else {
-                      if(currentObject.angle >= 0.5*Math.PI){
+            case "curve_hright":
+                var p = copyJSObject(carPaths[i][cType][currentObject.state]);
+                curve_right(p);
+                if(p.y[1] > p.y[0]) {
+                    if(currentObject.angle >= 0.5*Math.PI){
+                        currentObject.x = p.x[1]+(p.y[1]-p.y[0])/2;
+                        currentObject.y = p.y[1]-(p.y[1]-p.y[0])/2;
+                        currentObject.angle = currentObject.displayAngle = 0.5*Math.PI;
+                        currentObject.state = ++currentObject.state >= carPaths[i][cType].length ? (carPaths[i][cType].length == 1 ? -1 : 0) : currentObject.state;
+                    }
+                } else {
+                    if(currentObject.angle >= 1.5*Math.PI){
+                        currentObject.x = p.x[1]-(p.y[0]-p.y[1])/2;
+                        currentObject.y = p.y[1]+(p.y[0]-p.y[1])/2;
+                        currentObject.angle = currentObject.displayAngle = 1.5*Math.PI;
+                        currentObject.state = ++currentObject.state >= carPaths[i][cType].length ? (carPaths[i][cType].length == 1 ? -1 : 0) : currentObject.state;
+                    }
+                }
+                break;
+
+            case "curve_hleft":
+                var p = copyJSObject(carPaths[i][cType][currentObject.state]);
+                curve_left(p);
+                if (p.y[1] > p.y[0]) {
+                    //TODO
+                } else {
+                    if(currentObject.angle >= 0.5*Math.PI){
                         currentObject.x = p.x[1]+(p.y[0]-p.y[1])/2;
                         currentObject.y = p.y[1]+(p.y[0]-p.y[1])/2;
-                        currentObject.angle = currentObject.displayAngle = 1.5*Math.PI;   
+                        currentObject.angle = currentObject.displayAngle = 1.5*Math.PI;
                         currentObject.state = ++currentObject.state >= carPaths[i][cType].length ? (carPaths[i][cType].length == 1 ? -1 : 0) : currentObject.state;
-                      }
-                     }
+                    }
+                }
                 break;
-                 
-                case "curve_hright2":
-                     curve_right(carPaths[i][cType][currentObject.state]);
+
+            case "curve_hright2":
+                curve_right(carPaths[i][cType][currentObject.state]);
                 break;
-                  
-                case "curve_hleft2":
-                     if((currentObject.angle == 0.5*Math.PI || currentObject.angle == 1.5*Math.PI)){
-                        currentObject.angle = (2 * Math.PI - (currentObject.angle));
-                     }
-                     curve_left(carPaths[i][cType][currentObject.state]);
+
+            case "curve_hleft2":
+                if((currentObject.angle == 0.5*Math.PI || currentObject.angle == 1.5*Math.PI)){
+                    currentObject.angle = (2 * Math.PI - (currentObject.angle));
+                }
+                curve_left(carPaths[i][cType][currentObject.state]);
                 break;
 
             }
@@ -2831,20 +2825,20 @@ window.onload = function() {
             }
             return ((currentObject.state === 0 || currentObject.state == -1)  && stateNullAgain) ? obj : defineCarWays(cType,isFirst,i,++j,obj, currentObject, stateNullAgain);
         }
-        
+
         context.clearRect(0, 0, canvas.width, canvas.height);
 
         placeBackground();
-       
+
         defineCarParams();
         if(settings.saveGame && !onlineGame.enabled && window.localStorage.getItem("morowayAppSavedCars") != null && window.localStorage.getItem("morowayAppSavedCarParams") != null && window.localStorage.getItem("morowayAppSavedBg") != null && window.localStorage.getItem("morowayAppSavedWithVersion") != null) {
-           cars = JSON.parse(window.localStorage.getItem("morowayAppSavedCars"));
-           carParams = JSON.parse(window.localStorage.getItem("morowayAppSavedCarParams"));
-           resizeCars(JSON.parse(window.localStorage.getItem("morowayAppSavedBg")));
+            cars = JSON.parse(window.localStorage.getItem("morowayAppSavedCars"));
+            carParams = JSON.parse(window.localStorage.getItem("morowayAppSavedCarParams"));
+            resizeCars(JSON.parse(window.localStorage.getItem("morowayAppSavedBg")));
         } else {
             placeCarsAtInitialPositions();
         }
-        
+
         //TAX OFFICE
         taxOffice.fire = [];
         taxOffice.smoke = [];
@@ -2858,9 +2852,9 @@ window.onload = function() {
             taxOffice.fire[i] = {};
             taxOffice.smoke[i] = {};
             if ( Math.random() >= taxOffice.params.fire.color.probability) {
-                taxOffice.fire[i].color = "rgba(" + taxOffice.params.fire.color.yellow.red + "," + taxOffice.params.fire.color.yellow.green + "," + taxOffice.params.fire.color.yellow.blue + "," + (taxOffice.params.fire.color.yellow.alpha * Math.random()) + ")";            
+                taxOffice.fire[i].color = "rgba(" + taxOffice.params.fire.color.yellow.red + "," + taxOffice.params.fire.color.yellow.green + "," + taxOffice.params.fire.color.yellow.blue + "," + (taxOffice.params.fire.color.yellow.alpha * Math.random()) + ")";
             } else {
-                taxOffice.fire[i].color = "rgba(" + taxOffice.params.fire.color.red.red + "," + taxOffice.params.fire.color.red.green + "," + taxOffice.params.fire.color.red.blue + "," + (taxOffice.params.fire.color.red.alpha * Math.random()) + ")";            
+                taxOffice.fire[i].color = "rgba(" + taxOffice.params.fire.color.red.red + "," + taxOffice.params.fire.color.red.green + "," + taxOffice.params.fire.color.red.blue + "," + (taxOffice.params.fire.color.red.alpha * Math.random()) + ")";
             }
             taxOffice.fire[i].x = Math.random()*taxOffice.params.fire.x;
             taxOffice.fire[i].y = Math.random()*taxOffice.params.fire.y;
@@ -2877,10 +2871,10 @@ window.onload = function() {
             taxOffice.params.bluelights.cars[i].y[1] *= background.height;
             taxOffice.params.bluelights.cars[i].size *= background.width;
         }
-     
-        animateWorker.onerror = function(message) {
-            notify(getString("appScreenIsFail", "!", "upper"), true, 60000, function(){followLink("error#animate", "_blank", LINK_STATE_INTERNAL_HTML);}, getString("appScreenFurtherInformation"), client.y);
-        }
+
+        animateWorker.onerror = function() {
+            notify("#canvas-notifier", getString("appScreenIsFail", "!", "upper"), NOTIFICATION_PRIO_HIGH, 60000, function(){followLink("error#animate", "_blank", LINK_STATE_INTERNAL_HTML);}, getString("appScreenFurtherInformation"), client.y);
+        };
         animateWorker.onmessage = function(message) {
             if(message.data.k == "getTrainPics") {
                 trains = message.data.trains;
@@ -2895,7 +2889,7 @@ window.onload = function() {
                         trainPics[i].cars[j] = {};
                         trainPics[i].cars[j].height = pics[trains[i].cars[j].src].height;
                         trainPics[i].cars[j].width = pics[trains[i].cars[j].src].width;
-                    };
+                    }
                 }
                 if(settings.saveGame && !onlineGame.enabled && window.localStorage.getItem("morowayAppSavedGameTrains") != null && window.localStorage.getItem("morowayAppSavedGameSwitches") != null && window.localStorage.getItem("morowayAppSavedBg") != null && window.localStorage.getItem("morowayAppSavedWithVersion") != null) {
                     animateWorker.postMessage({k: "setTrainPics", trainPics: trainPics, savedTrains: JSON.parse(window.localStorage.getItem("morowayAppSavedGameTrains")), savedBg:  JSON.parse(window.localStorage.getItem("morowayAppSavedBg")), savedWithVersion: JSON.parse(window.localStorage.getItem("morowayAppSavedWithVersion"))});
@@ -2908,7 +2902,7 @@ window.onload = function() {
                 trains = message.data.trains;
                 placeClassicUIElements();
                 calcControlCenter();
-                if(typeof placeOptions == "function") {        
+                if(typeof placeOptions == "function") {
                     placeOptions("load");
                 }
                 window.onresize = function(){
@@ -2923,37 +2917,37 @@ window.onload = function() {
                 var timeWait = 0.5;
                 var timeLoad = 1.5;
                 setTimeout(function(){
-                        destroy([document.querySelector("#snake"),document.querySelector("#percent")]);
-                        var toHide = document.querySelector("#branding");
-                        if(toHide != null && !onlineGame.enabled) {
-                            toHide.style.transition = "opacity " + timeLoad + "s ease-in";
-                            toHide.style.opacity = "0";
-                            setTimeout(function(){
-                                var localAppData = getLocalAppDataCopy();
-                                if(settings.classicUI && !settings.alwaysShowSelectedTrain){ 
-                                    notify(formatJSString(getString("appScreenTrainSelected", "."), getString(["appScreenTrainNames",trainParams.selected]), getString("appScreenTrainSelectedAuto", " ")), true,3000,null,null, client.y);
-                                } else if(localAppData !== null && (localAppData.version.major < APP_DATA.version.major || localAppData.version.minor < APP_DATA.version.minor) && typeof appUpdateNotification == "function") { 
-                                    appUpdateNotification();
-                                } else if (typeof appReadyNotification == "function") {
-                                    appReadyNotification();
-                                }
-                                setLocalAppDataCopy();
-                                destroy(toHide);
-                            }, timeLoad*900);
-                        }
+                    destroy([document.querySelector("#snake"),document.querySelector("#percent")]);
+                    var toHide = document.querySelector("#branding");
+                    if(toHide != null && !onlineGame.enabled) {
+                        toHide.style.transition = "opacity " + timeLoad + "s ease-in";
+                        toHide.style.opacity = "0";
+                        setTimeout(function(){
+                            var localAppData = getLocalAppDataCopy();
+                            if(settings.classicUI && !settings.alwaysShowSelectedTrain){
+                                notify("#canvas-notifier", formatJSString(getString("appScreenTrainSelected", "."), getString(["appScreenTrainNames",trainParams.selected]), getString("appScreenTrainSelectedAuto", " ")), NOTIFICATION_PRIO_HIGH,3000,null,null, client.y);
+                            } else if(localAppData !== null && (localAppData.version.major < APP_DATA.version.major || localAppData.version.minor < APP_DATA.version.minor) && typeof appUpdateNotification == "function") {
+                                appUpdateNotification();
+                            } else if (typeof appReadyNotification == "function") {
+                                appReadyNotification();
+                            }
+                            setLocalAppDataCopy();
+                            destroy(toHide);
+                        }, timeLoad*900);
+                    }
                 }, timeWait*1000);
             } else if(message.data.k == "setTrains") {
                 message.data.trains.forEach(function(train,i){
                     trains[i].x = train.x;
                     trains[i].y = train.y;
-					if(debug) {
+                    if(debug) {
                         trains[i].front.x = train.front.x;
                         trains[i].front.y = train.front.y;
                         trains[i].front.angle = train.front.angle;
                         trains[i].back.x = train.back.x;
                         trains[i].back.y = train.back.y;
-                        trains[i].back.angle = train.back.angle;		
-					}
+                        trains[i].back.angle = train.back.angle;
+                    }
                     trains[i].width = train.width;
                     trains[i].height = train.height;
                     trains[i].displayAngle = train.displayAngle;
@@ -2982,15 +2976,15 @@ window.onload = function() {
                             trains[i].cars[j].front.angle = car.front.angle;
                             trains[i].cars[j].back.x = car.back.x;
                             trains[i].cars[j].back.y = car.back.y;
-                            trains[i].cars[j].back.angle = car.back.angle;		
+                            trains[i].cars[j].back.angle = car.back.angle;
                         }
                     });
                 });
             } else if(message.data.k == "resized") {
-                resized = false; 
-				if(debug){
-					animateWorker.postMessage({k:"debug"});
-				}
+                resized = false;
+                if(debug){
+                    animateWorker.postMessage({k:"debug"});
+                }
             } else if(message.data.k == "switches") {
                 switches = message.data.switches;
             } else if(message.data.k == "sync-ready") {
@@ -3020,14 +3014,14 @@ window.onload = function() {
                 }
             } else if(message.data.k == "debug") {
                 rotationPoints = message.data.rotationPoints;
-				switchesBeforeFac =message.data.switchesBeforeFac;
+                switchesBeforeFac =message.data.switchesBeforeFac;
                 if(!debug) {
                     console.log(message.data.animateInterval);
                 }
                 console.log(message.data.trains);
                 debug=true;
             }
-        }
+        };
         if(settings.saveGame && !onlineGame.enabled && window.localStorage.getItem("morowayAppSavedGameTrains") != null && window.localStorage.getItem("morowayAppSavedGameSwitches") != null && window.localStorage.getItem("morowayAppSavedBg") != null && window.localStorage.getItem("morowayAppSavedWithVersion") != null) {
             var savedSwitches = JSON.parse(window.localStorage.getItem("morowayAppSavedGameSwitches"));
             Object.keys(savedSwitches).forEach(function(key) {
@@ -3036,7 +3030,7 @@ window.onload = function() {
                 });
             });
         } else if(!settings.saveGame) {
-           removeSavedGame();
+            removeSavedGame();
         }
         animateWorker.postMessage({k: "start", background: background, switches: switches, online: onlineGame.enabled, onlineInterval: onlineGame.animateInterval});
     }
@@ -3052,7 +3046,7 @@ window.onload = function() {
             }
         );
     }
-    
+
     function destroy(toDestroyElems) {
         if(typeof toDestroyElems == "object") {
             if(!Array.isArray(toDestroyElems)){
@@ -3065,7 +3059,7 @@ window.onload = function() {
             });
         }
     }
-    
+
     settings = getSettings();
     canvas = document.querySelector("canvas#game-gameplay-main");
     canvasBackground = document.querySelector("canvas#game-gameplay-bg");
@@ -3075,19 +3069,19 @@ window.onload = function() {
     contextBackground = canvasBackground.getContext("2d");
     contextSemiForeground = canvasSemiForeground.getContext("2d");
     contextForeground = canvasForeground.getContext("2d");
-    
+
     document.addEventListener("keydown", onKeyDown);
     if(getQueryString("mode") == "multiplay") {
         if ("WebSocket" in window) {
             onlineGame.enabled = true;
         } else {
             onlineGame.enabled = false;
-            notify(getString("appScreenTeamplayNoWebsocket", "!", "upper"), true, 6000, null, null, client.y);
+            notify("#canvas-notifier", getString("appScreenTeamplayNoWebsocket", "!", "upper"), NOTIFICATION_PRIO_HIGH, 6000, null, null, client.y);
         }
     } else {
         onlineGame.enabled = false;
     }
-    
+
     if(onlineGame.enabled){
         var loadingAnimElem = document.querySelector("#branding img");
         var loadingAnimElemDefaultFilter = "blur(1px) saturate(5) sepia(1) hue-rotate({{0}}deg)";
@@ -3096,7 +3090,6 @@ window.onload = function() {
         var loadingAnimElemChangingFilter = window.setInterval(function(){
             loadingAnimElem.style.filter = formatJSString(loadingAnimElemDefaultFilter, Math.random()*260+100);
         }, 10);
-        window.set 
         var parent = document.querySelector("#content");
         var elem = parent.querySelector("#game");
         resetForElem(parent, elem, "block");
@@ -3122,7 +3115,7 @@ window.onload = function() {
             function showStartGame(){
                 hideLoadingAnimation();
                 onlineGame.stop = false;
-                document.addEventListener("visibilitychange", function() { 
+                document.addEventListener("visibilitychange", function() {
                     if (document.hidden) {
                         onlineConnection.send({mode: "pause-request"});
                     } else {
@@ -3138,7 +3131,7 @@ window.onload = function() {
                 elem.querySelector("#game-start-button").onclick = function(){
                     onlineConnection.send({mode:"start"});
                 };
-            }            
+            }
             function showNewGameLink(){
                 hideLoadingAnimation();
                 var parent = document.querySelector("#content");
@@ -3148,9 +3141,9 @@ window.onload = function() {
                 var elem = parent.querySelector("#setup-create");
                 resetForElem(parent, elem);
                 var elem = document.querySelector("#setup #setup-create #setup-create-link");
-                elem.addEventListener("click",function(){followLink("?mode=multiplay", "_self", LINK_STATE_INTERNAL_HTML)});
+                elem.addEventListener("click",function(){followLink("?mode=multiplay", "_self", LINK_STATE_INTERNAL_HTML);});
                 var elem = document.querySelector("#setup #setup-create #setup-create-escape");
-                elem.addEventListener("click",function(){followLink("?", "_self", LINK_STATE_INTERNAL_HTML)});
+                elem.addEventListener("click",function(){followLink("?", "_self", LINK_STATE_INTERNAL_HTML);});
             }
             function getPlayerNameFromInput(){
                 var elem = document.querySelector("#setup-init-name");
@@ -3169,23 +3162,22 @@ window.onload = function() {
             }
             function sendSyncRequest(){
                 if(!onlineGame.stop){
-                    var output = {};
                     var number = 0;
                     number += trains.length;
                     trains.forEach(function(train){
-                        number += train.cars.length
+                        number += train.cars.length;
                     });
                     number++; //Switches
                     var obj = {"number": number};
                     onlineConnection.send({mode: "sync-request", message: JSON.stringify(obj)});
-                }         
+                }
             }
             function sendSyncData(){
                 var task = {};
                 task.o = "s";
                 var obj = copyJSObject(switches);
                 task.d = obj;
-                onlineConnection.send({mode:"sync-task", message: JSON.stringify(task)});    
+                onlineConnection.send({mode:"sync-task", message: JSON.stringify(task)});
                 for(var i = 0; i < trains.length; i++){
                     task = {};
                     task.o = "t";
@@ -3193,7 +3185,7 @@ window.onload = function() {
                     obj = copyJSObject(trains[i]);
                     obj.front.x = (obj.front.x-background.x) / background.width;
                     obj.back.x = (obj.back.x-background.x) / background.width;
-                    obj.x = (obj.x-background.x) / background.width;                
+                    obj.x = (obj.x-background.x) / background.width;
                     obj.front.y = (obj.front.y - background.y) / background.height;
                     obj.back.y = (obj.back.y-background.y) / background.height;
                     obj.y = (obj.y-background.y) / background.height;
@@ -3221,7 +3213,7 @@ window.onload = function() {
                         delete obj.circle;
                     }
                     task.d = obj;
-                    onlineConnection.send({mode:"sync-task", message: JSON.stringify(task)});    
+                    onlineConnection.send({mode:"sync-task", message: JSON.stringify(task)});
                     for(var j = 0; j < trains[i].cars.length; j++){
                         task = {};
                         task.o = "tc";
@@ -3229,7 +3221,7 @@ window.onload = function() {
                         obj = copyJSObject(trains[i].cars[j]);
                         obj.front.x = (obj.front.x-background.x) / background.width;
                         obj.back.x = (obj.back.x-background.x) / background.width;
-                        obj.x = (obj.x-background.x) / background.width;                
+                        obj.x = (obj.x-background.x) / background.width;
                         obj.front.y = (obj.front.y - background.y) / background.height;
                         obj.back.y = (obj.back.y-background.y) / background.height;
                         obj.y = (obj.y-background.y) / background.height;
@@ -3239,7 +3231,7 @@ window.onload = function() {
                             delete obj[key];
                         });
                         task.d = obj;
-                        onlineConnection.send({mode:"sync-task", message: JSON.stringify(task)});    
+                        onlineConnection.send({mode:"sync-task", message: JSON.stringify(task)});
                     }
                 }
             }
@@ -3250,270 +3242,270 @@ window.onload = function() {
             };
             onlineConnection.socket.onclose = function () {
                 showNewGameLink();
-                notify(getString("appScreenTeamplayConnectionError", "."), true, 6000, function(){followLink("error#tp-connection", "_self", LINK_STATE_INTERNAL_HTML)}, getString("appScreenFurtherInformation"), client.y);
+                notify("#canvas-notifier", getString("appScreenTeamplayConnectionError", "."), NOTIFICATION_PRIO_HIGH, 6000, function(){followLink("error#tp-connection", "_self", LINK_STATE_INTERNAL_HTML);}, getString("appScreenFurtherInformation"), client.y);
             };
             onlineConnection.socket.onmessage = function (message) {
-            var json = JSON.parse(message.data);
+                var json = JSON.parse(message.data);
                 if(debug){
                     console.log(json);
                 }
                 switch (json.mode) {
-                    case "hello":
-                        if(json.errorLevel < 2) {
-                            if(json.errorLevel == 1){
-                                notify(getString("appScreenTeamplayUpdateNote", "!"), false, 900, null,null,client.y);
-                            }
-                            var parent = document.querySelector("#content");
-                            var elem = parent.querySelector("#setup");
-                            resetForElem(parent, elem, "block");
-                            if(window.sessionStorage.getItem("playername") != null){
-                                sendPlayerName(window.sessionStorage.getItem("playername"));
-                            } else {
-                                hideLoadingAnimation();
-                                var parent = document.querySelector("#setup-inner-content");
-                                var elem = parent.querySelector("#setup-init");
-                                resetForElem(parent, elem);
-                                elem.querySelector("#setup-init-button").addEventListener("click", function(event) {
-                                        var name = getPlayerNameFromInput();
-                                        if(name !== false) {
-                                            sendPlayerName(name);
-                                        }
-                                });
-                                elem.querySelector("#setup-init-name").addEventListener("keyup", function(event) {
-                                    if(event.key === "Enter") {
-                                        var name = getPlayerNameFromInput();
-                                        if(name !== false) {
-                                            sendPlayerName(name);
-                                        }
-                                    }
-                                }); 
-                            }
-                        } else {
-                            document.querySelector("#content").style.display = "none";
-                            window.setTimeout(function(){followLink("error#tp-update", "_self", LINK_STATE_INTERNAL_HTML)},1000);
-                            notify(getString("appScreenTeamplayUpdateError", "!"), true, 6000, null,null,client.y);
+                case "hello":
+                    if(json.errorLevel < 2) {
+                        if(json.errorLevel == 1){
+                            notify("#canvas-notifier", getString("appScreenTeamplayUpdateNote", "!"), NOTIFICATION_PRIO_DEFAULT, 900, null,null,client.y);
                         }
-                    break;
-                    case "init":
-                        if(json.errorLevel === 0){
-                            onlineGame.sessionId = json.sessionId;
-                            if(onlineGame.gameKey == "" || onlineGame.gameId == ""){
-                                onlineConnection.send({mode:"connect"}); 
-                            } else {
-                                onlineConnection.send({mode:"join",gameKey:onlineGame.gameKey,gameId:onlineGame.gameId}); 
-                            }
+                        var parent = document.querySelector("#content");
+                        var elem = parent.querySelector("#setup");
+                        resetForElem(parent, elem, "block");
+                        if(window.sessionStorage.getItem("playername") != null){
+                            sendPlayerName(window.sessionStorage.getItem("playername"));
                         } else {
-                            showNewGameLink();
-                            notify(getString("appScreenTeamplayConnectionError", "."), true, 6000, function(){followLink("error#tp-connection", "_self", LINK_STATE_INTERNAL_HTML)}, getString("appScreenFurtherInformation"), client.y);
-                        }
-                    break;
-                    case "connect":
-                        if(json.errorLevel === 0){
-                            onlineGame.locomotive = true;
-                            onlineGame.gameKey = json.gameKey;
-                            onlineGame.gameId = json.gameId;
                             hideLoadingAnimation();
                             var parent = document.querySelector("#setup-inner-content");
-                            var elem = parent.querySelector("#setup-start");
-                            resetForElem(parent, elem)
-                            elem.querySelector("#setup-start-gamelink").textContent = getShareLink(onlineGame.gameId, onlineGame.gameKey);
-                            elem.querySelector("#setup-start-button").onclick = function(){copy("#setup #setup-start #setup-start-gamelink")};
-                        } else {
-                            showNewGameLink();
-                            notify(getString("appScreenTeamplayCreateError", "!"), true, 6000, function(){followLink("error#tp-connection", "_self", LINK_STATE_INTERNAL_HTML)}, getString("appScreenFurtherInformation"), client.y);
-                        }
-                    break;
-                    case "join":
-                        if(json.sessionId == onlineGame.sessionId) {
-                            if(json.errorLevel === 0){
-                                onlineGame.locomotive = false;
-                                showStartGame();
-                            } else {
-                                showNewGameLink();
-                                notify(getString("appScreenTeamplayJoinError", "!"), true, 6000, function(){followLink("error#tp-join", "_self", LINK_STATE_INTERNAL_HTML)}, getString("appScreenFurtherInformation"), client.y);
-                            }
-                        } else {
-                            if(json.errorLevel === 0){
-                                showStartGame();
-                            } else {
-                                showNewGameLink();
-                                notify(getString("appScreenTeamplayJoinTeammateError", "!"), true, 6000, function(){followLink("error#tp-connection", "_self", LINK_STATE_INTERNAL_HTML)}, getString("appScreenFurtherInformation"), client.y);
-                            }
-                        }
-                    break;
-                    case "start":
-                        if(json.errorLevel < 2){
-                            switch(json.message){
-                                case "wait":
-                                    if(json.sessionId == onlineGame.sessionId) {
-                                        var parent = document.querySelector("#game");
-                                        var elem = parent.querySelector("#game-wait");
-                                        resetForElem(parent, elem);
-                                    } else {
-                                        notify(getString("appScreenTeamplayTeammateReady", "?"), false, 1000, null,null,client.y);
-                                    }
-                                break;
-                                case "run":
-                                    onlineGame.syncing = false;
-                                    if(onlineGame.syncRequest !== undefined && onlineGame.syncRequest !== null) {
-                                        clearTimeout(onlineGame.syncRequest);
-                                    }
-                                    if(onlineGame.locomotive){
-                                        onlineGame.syncRequest = window.setTimeout(sendSyncRequest, onlineGame.syncInterval);
-                                    }
-                                    var parent = document.querySelector("#game");
-                                    var elem = parent.querySelector("#game-gameplay");
-                                    resetForElem(parent, elem);
-                                break;
-                            }
-                        } else {
-                            showNewGameLink();
-                            notify(getString("appScreenTeamplayStartError", "!"), true, 6000, function(){followLink("error#tp-connection", "_self", LINK_STATE_INTERNAL_HTML)}, getString("appScreenFurtherInformation"), client.y);
-                        }
-                    break;
-                    case "action":
-                        var json = JSON.parse(message.data);
-                        var input = JSON.parse(json.message);
-                        var notifyArr = [];
-                        if(typeof input.notification == "object" && Array.isArray(input.notification)){
-                            input.notification.forEach(function(elem){
-                                if(typeof elem == "object" && Array.isArray(elem.getString)) {
-                                     notifyArr.push(getString( ...elem.getString ));
-                                } else if(typeof elem == "string") {
-                                     notifyArr.push( elem );
+                            var elem = parent.querySelector("#setup-init");
+                            resetForElem(parent, elem);
+                            elem.querySelector("#setup-init-button").addEventListener("click", function(event) {
+                                var name = getPlayerNameFromInput();
+                                if(name !== false) {
+                                    sendPlayerName(name);
                                 }
                             });
-                            var notifyStr = formatJSString( ...notifyArr );
-                            if(onlineGame.sessionId != json.sessionId){
-                                notifyStr = json.sessionName + ": " + notifyStr;
-                            }
-                            notify(notifyStr, false, 1000, null,null,client.y)
-                        }
-                        var obj;
-                        switch (input.objname){
-                            case "trains":
-                                if(onlineGame.sessionId != json.sessionId){
-                                    onlineGame.excludeFromSync["t"].forEach(function(key){
-                                        input.params.forEach(function(param, paramNo){
-                                            if(Object.keys(param)[0] == key) {
-                                                delete input.params[paramNo];
-                                            }
-                                        });
-                                    });
+                            elem.querySelector("#setup-init-name").addEventListener("keyup", function(event) {
+                                if(event.key === "Enter") {
+                                    var name = getPlayerNameFromInput();
+                                    if(name !== false) {
+                                        sendPlayerName(name);
+                                    }
                                 }
-                                animateWorker.postMessage({k: "train", i: input.index, params: input.params});
-                            break;
-                            case "train-crash":
-							   if(onlineGame.syncRequest !== undefined && onlineGame.syncRequest !== null) {
-									clearTimeout(onlineGame.syncRequest);
-								}
-								if(onlineGame.locomotive){
-									onlineGame.syncRequest = window.setTimeout(sendSyncRequest, 200);
-								}
-                            break;
-                            case "switches":
-                                obj = switches[input.index[0]][input.index[1]]
-                                input.params.forEach(function(param){
-                                    obj[Object.keys(param)[0]] = Object.values(param)[0];
-                                });
-                                obj.lastStateChange = frameNo;
-                                animateWorker.postMessage({k: "switches", switches: switches});
-                            break;
+                            });
                         }
+                    } else {
+                        document.querySelector("#content").style.display = "none";
+                        window.setTimeout(function(){followLink("error#tp-update", "_self", LINK_STATE_INTERNAL_HTML);},1000);
+                        notify("#canvas-notifier", getString("appScreenTeamplayUpdateError", "!"), NOTIFICATION_PRIO_HIGH, 6000, null,null,client.y);
+                    }
                     break;
-                    case "sync-request":
-                        var json = JSON.parse(message.data);
-                        var json_message = JSON.parse(json.message);
-                        onlineGame.syncingTimeout = window.setTimeout(function(){
+                case "init":
+                    if(json.errorLevel === 0){
+                        onlineGame.sessionId = json.sessionId;
+                        if(onlineGame.gameKey == "" || onlineGame.gameId == ""){
+                            onlineConnection.send({mode:"connect"});
+                        } else {
+                            onlineConnection.send({mode:"join",gameKey:onlineGame.gameKey,gameId:onlineGame.gameId});
+                        }
+                    } else {
+                        showNewGameLink();
+                        notify("#canvas-notifier", getString("appScreenTeamplayConnectionError", "."), NOTIFICATION_PRIO_HIGH, 6000, function(){followLink("error#tp-connection", "_self", LINK_STATE_INTERNAL_HTML);}, getString("appScreenFurtherInformation"), client.y);
+                    }
+                    break;
+                case "connect":
+                    if(json.errorLevel === 0){
+                        onlineGame.locomotive = true;
+                        onlineGame.gameKey = json.gameKey;
+                        onlineGame.gameId = json.gameId;
+                        hideLoadingAnimation();
+                        var parent = document.querySelector("#setup-inner-content");
+                        var elem = parent.querySelector("#setup-start");
+                        resetForElem(parent, elem);
+                        elem.querySelector("#setup-start-gamelink").textContent = getShareLink(onlineGame.gameId, onlineGame.gameKey);
+                        elem.querySelector("#setup-start-button").onclick = function(){copy("#setup #setup-start #setup-start-gamelink");};
+                    } else {
+                        showNewGameLink();
+                        notify("#canvas-notifier", getString("appScreenTeamplayCreateError", "!"), NOTIFICATION_PRIO_HIGH, 6000, function(){followLink("error#tp-connection", "_self", LINK_STATE_INTERNAL_HTML);}, getString("appScreenFurtherInformation"), client.y);
+                    }
+                    break;
+                case "join":
+                    if(json.sessionId == onlineGame.sessionId) {
+                        if(json.errorLevel === 0){
+                            onlineGame.locomotive = false;
+                            showStartGame();
+                        } else {
+                            showNewGameLink();
+                            notify("#canvas-notifier", getString("appScreenTeamplayJoinError", "!"), NOTIFICATION_PRIO_HIGH, 6000, function(){followLink("error#tp-join", "_self", LINK_STATE_INTERNAL_HTML);}, getString("appScreenFurtherInformation"), client.y);
+                        }
+                    } else {
+                        if(json.errorLevel === 0){
+                            showStartGame();
+                        } else {
+                            showNewGameLink();
+                            notify("#canvas-notifier", getString("appScreenTeamplayJoinTeammateError", "!"), NOTIFICATION_PRIO_HIGH, 6000, function(){followLink("error#tp-connection", "_self", LINK_STATE_INTERNAL_HTML);}, getString("appScreenFurtherInformation"), client.y);
+                        }
+                    }
+                    break;
+                case "start":
+                    if(json.errorLevel < 2){
+                        switch(json.message){
+                        case "wait":
+                            if(json.sessionId == onlineGame.sessionId) {
+                                var parent = document.querySelector("#game");
+                                var elem = parent.querySelector("#game-wait");
+                                resetForElem(parent, elem);
+                            } else {
+                                notify("#canvas-notifier", getString("appScreenTeamplayTeammateReady", "?"), NOTIFICATION_PRIO_DEFAULT, 1000, null,null,client.y);
+                            }
+                            break;
+                        case "run":
                             onlineGame.syncing = false;
-                            onlineConnection.send({mode: "sync-cancel"});
-                        },3000);
-                        onlineGame.syncingCounter = 0;
-                        onlineGame.syncingCounterFinal = parseInt(json_message.number,10);
-                        onlineGame.syncing = true;
-                        animateWorker.postMessage({k: "sync-request"});
-                    break;
-                    case "sync-ready":
-                        if(onlineGame.locomotive){
-                            sendSyncData();
-                        }
-                    break;
-                    case "sync-task":
-                        if(onlineGame.syncing) {
-                            onlineGame.syncingCounter++;
-                            var json = JSON.parse(message.data);
-                            var task = JSON.parse(json.message);
-                            switch(task.o){
-                                case "t":
-                                    animateWorker.postMessage({k: "sync-t", i: task.i, d: task.d});
-                                break;
-                                case "tc":
-                                    animateWorker.postMessage({k: "sync-tc", i: task.i, d: task.d});
-                                break;
-                                case "s":
-                                    Object.keys(task.d).forEach(function(key){
-                                        Object.keys(switches[key]).forEach(function(currentKey){
-                                            switches[key][currentKey].turned = task["d"][key][currentKey].turned;
-                                        });
-                                    });
-                                    animateWorker.postMessage({k: "switches", switches: switches});
-                                break;
-                            }
-                            if(onlineGame.syncingCounter == onlineGame.syncingCounterFinal){
-                                window.clearTimeout(onlineGame.syncingTimeout);
-                                onlineConnection.send({mode: "sync-done"});
-                            }
-                        }
-                    break;
-                    case "sync-done":
-                        onlineGame.syncing = false;
-                        if(!onlineGame.stop){
                             if(onlineGame.syncRequest !== undefined && onlineGame.syncRequest !== null) {
                                 clearTimeout(onlineGame.syncRequest);
                             }
                             if(onlineGame.locomotive){
                                 onlineGame.syncRequest = window.setTimeout(sendSyncRequest, onlineGame.syncInterval);
                             }
-                            animateWorker.postMessage({k: "resume"});
+                            var parent = document.querySelector("#game");
+                            var elem = parent.querySelector("#game-gameplay");
+                            resetForElem(parent, elem);
+                            break;
                         }
+                    } else {
+                        showNewGameLink();
+                        notify("#canvas-notifier", getString("appScreenTeamplayStartError", "!"), NOTIFICATION_PRIO_HIGH, 6000, function(){followLink("error#tp-connection", "_self", LINK_STATE_INTERNAL_HTML);}, getString("appScreenFurtherInformation"), client.y);
+                    }
                     break;
-                    case "pause":
+                case "action":
+                    var json = JSON.parse(message.data);
+                    var input = JSON.parse(json.message);
+                    var notifyArr = [];
+                    if(typeof input.notification == "object" && Array.isArray(input.notification)){
+                        input.notification.forEach(function(elem){
+                            if(typeof elem == "object" && Array.isArray(elem.getString)) {
+                                notifyArr.push(getString( ...elem.getString ));
+                            } else if(typeof elem == "string") {
+                                notifyArr.push( elem );
+                            }
+                        });
+                        var notifyStr = formatJSString( ...notifyArr );
+                        if(onlineGame.sessionId != json.sessionId){
+                            notifyStr = json.sessionName + ": " + notifyStr;
+                        }
+                        notify("#canvas-notifier", notifyStr, NOTIFICATION_PRIO_DEFAULT, 1000, null,null,client.y);
+                    }
+                    var obj;
+                    switch (input.objname){
+                    case "trains":
+                        if(onlineGame.sessionId != json.sessionId){
+                            onlineGame.excludeFromSync["t"].forEach(function(key){
+                                input.params.forEach(function(param, paramNo){
+                                    if(Object.keys(param)[0] == key) {
+                                        delete input.params[paramNo];
+                                    }
+                                });
+                            });
+                        }
+                        animateWorker.postMessage({k: "train", i: input.index, params: input.params});
+                        break;
+                    case "train-crash":
                         if(onlineGame.syncRequest !== undefined && onlineGame.syncRequest !== null) {
                             clearTimeout(onlineGame.syncRequest);
                         }
-                        onlineGame.stop = true;
-                        animateWorker.postMessage({k: "pause"});
-                        notify(getString("appScreenTeamplayGamePaused", "."), true, 900, null, null, client.y);
-                    break;
-                    case "resume":
-                        if(onlineGame.stop){
-                            if(onlineGame.syncRequest !== undefined && onlineGame.syncRequest !== null) {
-                                clearTimeout(onlineGame.syncRequest);
-                            }
-                            if(onlineGame.locomotive){
-                                onlineGame.syncRequest = window.setTimeout(sendSyncRequest, onlineGame.syncInterval);
-                            }
-                            onlineGame.stop = false;
-                            notify(getString("appScreenTeamplayGameResumed", "."), true, 900, null, null, client.y);
-                            animateWorker.postMessage({k: "resume"});
+                        if(onlineGame.locomotive){
+                            onlineGame.syncRequest = window.setTimeout(sendSyncRequest, 200);
                         }
+                        break;
+                    case "switches":
+                        obj = switches[input.index[0]][input.index[1]];
+                        input.params.forEach(function(param){
+                            obj[Object.keys(param)[0]] = Object.values(param)[0];
+                        });
+                        obj.lastStateChange = frameNo;
+                        animateWorker.postMessage({k: "switches", switches: switches});
+                        break;
+                    }
                     break;
-                    case "leave":
-                        if(json.errorLevel == 2){
-                            showNewGameLink();
-                            notify(getString("appScreenTeamplayTeammateLeft", "."), true, 900, null, null, client.y);
-                        } else {
-                            notify(json.sessionName + ": " + getString("appScreenTeamplaySomebodyLeft", "."), true, 900, null, null, client.y);
+                case "sync-request":
+                    var json = JSON.parse(message.data);
+                    var json_message = JSON.parse(json.message);
+                    onlineGame.syncingTimeout = window.setTimeout(function(){
+                        onlineGame.syncing = false;
+                        onlineConnection.send({mode: "sync-cancel"});
+                    },3000);
+                    onlineGame.syncingCounter = 0;
+                    onlineGame.syncingCounterFinal = parseInt(json_message.number,10);
+                    onlineGame.syncing = true;
+                    animateWorker.postMessage({k: "sync-request"});
+                    break;
+                case "sync-ready":
+                    if(onlineGame.locomotive){
+                        sendSyncData();
+                    }
+                    break;
+                case "sync-task":
+                    if(onlineGame.syncing) {
+                        onlineGame.syncingCounter++;
+                        var json = JSON.parse(message.data);
+                        var task = JSON.parse(json.message);
+                        switch(task.o){
+                        case "t":
+                            animateWorker.postMessage({k: "sync-t", i: task.i, d: task.d});
+                            break;
+                        case "tc":
+                            animateWorker.postMessage({k: "sync-tc", i: task.i, d: task.d});
+                            break;
+                        case "s":
+                            Object.keys(task.d).forEach(function(key){
+                                Object.keys(switches[key]).forEach(function(currentKey){
+                                    switches[key][currentKey].turned = task["d"][key][currentKey].turned;
+                                });
+                            });
+                            animateWorker.postMessage({k: "switches", switches: switches});
+                            break;
                         }
+                        if(onlineGame.syncingCounter == onlineGame.syncingCounterFinal){
+                            window.clearTimeout(onlineGame.syncingTimeout);
+                            onlineConnection.send({mode: "sync-done"});
+                        }
+                    }
                     break;
-                    case "unknown":
-                        notify(getString("appScreenTeamplayUnknownRequest", "."), true, 2000, null, null, client.y);
+                case "sync-done":
+                    onlineGame.syncing = false;
+                    if(!onlineGame.stop){
+                        if(onlineGame.syncRequest !== undefined && onlineGame.syncRequest !== null) {
+                            clearTimeout(onlineGame.syncRequest);
+                        }
+                        if(onlineGame.locomotive){
+                            onlineGame.syncRequest = window.setTimeout(sendSyncRequest, onlineGame.syncInterval);
+                        }
+                        animateWorker.postMessage({k: "resume"});
+                    }
+                    break;
+                case "pause":
+                    if(onlineGame.syncRequest !== undefined && onlineGame.syncRequest !== null) {
+                        clearTimeout(onlineGame.syncRequest);
+                    }
+                    onlineGame.stop = true;
+                    animateWorker.postMessage({k: "pause"});
+                    notify("#canvas-notifier", getString("appScreenTeamplayGamePaused", "."), NOTIFICATION_PRIO_HIGH, 900, null, null, client.y);
+                    break;
+                case "resume":
+                    if(onlineGame.stop){
+                        if(onlineGame.syncRequest !== undefined && onlineGame.syncRequest !== null) {
+                            clearTimeout(onlineGame.syncRequest);
+                        }
+                        if(onlineGame.locomotive){
+                            onlineGame.syncRequest = window.setTimeout(sendSyncRequest, onlineGame.syncInterval);
+                        }
+                        onlineGame.stop = false;
+                        notify("#canvas-notifier", getString("appScreenTeamplayGameResumed", "."), NOTIFICATION_PRIO_HIGH, 900, null, null, client.y);
+                        animateWorker.postMessage({k: "resume"});
+                    }
+                    break;
+                case "leave":
+                    if(json.errorLevel == 2){
+                        showNewGameLink();
+                        notify("#canvas-notifier", getString("appScreenTeamplayTeammateLeft", "."), NOTIFICATION_PRIO_HIGH, 900, null, null, client.y);
+                    } else {
+                        notify("#canvas-notifier", json.sessionName + ": " + getString("appScreenTeamplaySomebodyLeft", "."), NOTIFICATION_PRIO_HIGH, 900, null, null, client.y);
+                    }
+                    break;
+                case "unknown":
+                    notify("#canvas-notifier", getString("appScreenTeamplayUnknownRequest", "."), NOTIFICATION_PRIO_HIGH, 2000, null, null, client.y);
                     break;
                 }
             };
-            onlineConnection.socket.onerror = function (error) {
+            onlineConnection.socket.onerror = function () {
                 showNewGameLink();
-                notify(getString("appScreenTeamplayConnectionError", "!"), true, 6000, function(){followLink("error#tp-connection", "_self", LINK_STATE_INTERNAL_HTML)}, getString("appScreenFurtherInformation"), client.y);
+                notify("#canvas-notifier", getString("appScreenTeamplayConnectionError", "!"), NOTIFICATION_PRIO_HIGH, 6000, function(){followLink("error#tp-connection", "_self", LINK_STATE_INTERNAL_HTML);}, getString("appScreenFurtherInformation"), client.y);
             };
         });
         onlineConnection.send = (function(obj) {
@@ -3524,7 +3516,7 @@ window.onload = function() {
         document.getElementById("setup").addEventListener("mousemove", function(event) {
             document.getElementById("setup-ball").style.left = event.pageX + "px";
             document.getElementById("setup-ball").style.top = event.pageY + "px";
-        });  
+        });
         document.getElementById("setup").addEventListener("mouseout", function(event) {
             document.getElementById("setup-ball").style.left = "-1vw";
             document.getElementById("setup-ball").style.top = "-1vw";
@@ -3538,23 +3530,23 @@ window.onload = function() {
             elem.style.display = "block";
         });
         Pace.on("hide", function(){
-			destroy(document.querySelector("body > .pace"));
-			setTimeout(function() {
+            destroy(document.querySelector("body > .pace"));
+            setTimeout(function() {
                 var toShowElems = [document.querySelector("#snake"),document.querySelector("#percent")];
                 toShowElems.forEach( function(toShow) {
                     if(toShow != null) {
                         toShow.style.display = "block";
                     }
                 });
-			},2500);
-		});
+            },2500);
+        });
     }
     hardware.lastInputMouse = hardware.lastInputTouch = 0;
     canvasForeground.addEventListener("touchstart",chooseInputMethod);
     canvasForeground.addEventListener("mousemove",chooseInputMethod);
-    
+
     extendedMeasureViewspace();
-      
+
     var defaultPics = copyJSObject(pics);
     var finalPicNo = defaultPics.length;
     pics = [];
@@ -3565,17 +3557,17 @@ window.onload = function() {
         pics[pic.id].onload = function() {
             loadNo++;
             var cPercent = Math.round(100 * (loadNo / finalPicNo));
-			document.querySelector("#percent #percent-text").textContent = cPercent + "%";
-			document.querySelector("#percent #percent-progress").style.left = -100+cPercent + "%";
+            document.querySelector("#percent #percent-text").textContent = cPercent + "%";
+            document.querySelector("#percent #percent-progress").style.left = -100+cPercent + "%";
             if (loadNo == finalPicNo) {
                 Pace.stop();
                 destroy(document.querySelector("body > .pace"));
                 setTimeout(function(){destroy(document.querySelector("#percent"));},1000);
-                initialDisplay();            
+                initialDisplay();
             }
         };
         pics[pic.id].onerror = function() {
-                 notify(getString("appScreenIsFail", "!", "upper"), true, 60000, function(){followLink("error#pic", "_blank", LINK_STATE_INTERNAL_HTML);}, getString("appScreenFurtherInformation"), client.y);
+            notify("#canvas-notifier", getString("appScreenIsFail", "!", "upper"), NOTIFICATION_PRIO_HIGH, 60000, function(){followLink("error#pic", "_blank", LINK_STATE_INTERNAL_HTML);}, getString("appScreenFurtherInformation"), client.y);
         };
-    }); 
+    });
 };

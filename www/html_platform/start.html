@@ -1,340 +1,331 @@
 <!DOCTYPE html>
 <html>
-	<head>
-		<base href="../">
-		<meta charset="UTF-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<meta name="theme-color" content="#000" />
-		<title data-stringid-content="generalTitle"></title>
-		<link rel="manifest" href="manifest.webmanifest">
-		<link rel="icon" type="image/x-icon" sizes="32x32" href="favicon.ico">
-		<script>
-		function localDR(){
-			window.plugins.insomnia.keepAwake();
-			document.addEventListener("backbutton", function(){
-				navigator.app.exitApp();
-			});
-			
-			var ocSettings = getSettingsOC();		
-			if(ocSettings.landscapeApp) {
-				screen.orientation.unlock();
-			} else {
-				screen.orientation.lock('landscape');
-			}			
-			navigator.splashscreen.hide();
-		}
-		</script>
-		
-		<!-- Open Source Libraries And Fonts -->
-		<!-- Google: Material Design Lite -->
-		<script src="src/others/open_source/open_code/google/mdl/material.min.js"></script>
-		<link rel="stylesheet" type="text/css" href="src/others/open_source/open_code/google/mdl/material.min.css">
-		<!-- Fonts -->
-		<link rel="stylesheet" type="text/css" href="src/others/open_source/open_fonts/google/MaterialIcons/font.css">
-		<link rel="stylesheet" type="text/css" href="src/others/open_source/open_fonts/google/Roboto/font.css">
+    <head>
+        <base href="../">
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="theme-color" content="#000" />
+        <title data-stringid-content="generalTitle"></title>
+        <link rel="manifest" href="manifest.webmanifest">
+        <link rel="icon" type="image/x-icon" sizes="32x32" href="favicon.ico">
+        <script>
+        function localDR(){
+            window.plugins.insomnia.keepAwake();
+            document.addEventListener("backbutton", function(){
+                navigator.app.exitApp();
+            });
 
-		<!-- General Scripts -->
-		<script src="src/jonathan_herrmann_engel/js/error_handler.js"></script>
-		<script src="src/jonathan_herrmann_engel/js_platform/error_handler.js"></script>
-		<script src="src/jonathan_herrmann_engel/js/appdata.js"></script>
-		<script src="src/jonathan_herrmann_engel/js_platform/appdata.js"></script>
-		<script src="src/jonathan_herrmann_engel/js/general.js"></script>
-		<script src="src/jonathan_herrmann_engel/js_platform/general.js"></script>
+            var ocSettings = getSettingsOC();
+            if(ocSettings.landscapeApp) {
+                screen.orientation.unlock();
+            } else {
+                screen.orientation.lock('landscape');
+            }
+            navigator.splashscreen.hide();
+        }
+        </script>
 
-		<!-- General Styles -->
-		<link rel="stylesheet" type="text/css" href="src/jonathan_herrmann_engel/css/general.css">
-		<link rel="stylesheet" type="text/css" href="src/jonathan_herrmann_engel/css_platform/general.css">
+        <!-- Open Source Libraries And Fonts -->
+        <!-- Fonts -->
+        <link rel="stylesheet" type="text/css" href="src/others/open_source/open_fonts/google/MaterialIcons/font.css">
+        <link rel="stylesheet" type="text/css" href="src/others/open_source/open_fonts/google/Roboto/font.css">
 
-		<style>
-			body {
-				background-image: url('assets_platform/background.jpg');
-				background-size: cover;
-				background-position: center;
-				background-repeat: no-repeat;
-				display: flex;
-				align-items: center;
-				justify-items: center;
-				align-content: center;
-				justify-content: center;
-				padding: 0;
-				margin: 0;
-				border: 0;
-			}
-			
-			#content {
-				background: rgba(255,180,230,0.05);
-				color: black;
-				font-weight: bold;
-				text-align: center;
-				padding: 5vh 2vw;
-				margin: 0;
-				font-size: 2.5em;
-				line-height: 2em;
-				overflow-y: auto;
-				max-height: 85vh;
-				min-height: 85vh;
-				height: 85vh;
-				width: 90vw;
-				border-radius: 3vh;
-				border: 2vw solid rgba(0,0,0,0.2);
-				border-top: 1vh solid rgba(0,0,0,0.2);
-				border-bottom: 3vh solid rgba(0,0,0,0.2);
-				display: flex;
-				flex-direction: column;
-				align-items: center;
-				justify-items: center;
-				align-content: center;
-				justify-content: center;
-				user-select: none;
-			}
-			#content:hover {
-				background: rgba(255,180,230,0.1);
-			}
-			#content div {
-				display: inline-block;
-				text-overflow: ellipsis;
-				white-space: nowrap;
-				max-width: 100%;
-				max-height: 100%;
-			}
-			#content div:hover {
-				color: #ac5076;
-			}
-			#content .text-icon-small {
-				display: none;
-			}
-			@media (max-width: 300px) {
-				#content {
-					text-align: left;
-				}
-			}
-			@media (max-width: 400px) {
-				#content div {
-					width: 100%;
-					overflow: hidden;
-				}
-				#content .text-icons {
-					display: none;
-				}
-			}
-			@media (orientation: landscape) and (min-width: 500px) {
-				
-				#content {
-					font-size: 1.5em;
-					flex-direction: row;
-					max-width: 100%;
-					max-height: 100%;
-					overflow: hidden;
-				}
-				
-				#content > div {
-					display: flex;
-					flex-direction: column;
-					align-items: center;
-					justify-items: center;
-					align-content: center;
-					justify-content: center;
-					height: 100;
-					flex-grow: 1;
-					flex-basis: 0;
-				}
-				
-				#content > div#link_game {
-					order: 3;
-					flex-grow: 3;
-				}
-				
-				#content > div#link_multiplayer {
-					order: 2;
-					flex-grow: 1.5;
-				}
-				
-				#content > div#link_help {
-					order: 4;
-					flex-grow: 1.5;
-				}
-				
-				#content > div#link_settings {
-					order: 1;
-				}
-				
-				#content > div#link_settings_oc {
-					order: 5;
-				}
-				
-				#content div {
-					width: 100%;
-					overflow: hidden;
-				}
-				
-				#content .content-text {
-					font-size: 0.75em;
-					white-space: normal;
-					line-height: normal;
-				}
-				
-				#content .text-icon-big .material-icons {
-					width: 50%;
-				}
-				
-				#content .text-icon-small {
-					width: unset;
-					display: block;
-					position: absolute;
-				}
-			}
-			@media (orientation: landscape) and (min-width: 1000px) {
-				
-				#content .content-text {
-					font-size: inherit;
-				}
-				
-			}
-			
-		</style>
-		
-	</head>
+        <!-- General Scripts -->
+        <script src="src/jonathan_herrmann_engel/js/error_handler.js"></script>
+        <script src="src/jonathan_herrmann_engel/js_platform/error_handler.js"></script>
+        <script src="src/jonathan_herrmann_engel/js/appdata.js"></script>
+        <script src="src/jonathan_herrmann_engel/js_platform/appdata.js"></script>
+        <script src="src/jonathan_herrmann_engel/js/general.js"></script>
+        <script src="src/jonathan_herrmann_engel/js_platform/general.js"></script>
 
-	<body>
-		
-		<!-- Server side notifications -->
-		<div id="server-note">
-			<div id="server-note-title"></div>
-			<div id="server-note-text"></div>
-			<div id="server-note-later">
-				<input id="server-note-later-box" type="checkbox">
-				<label for="server-note-later-box" data-stringid-content="generalServerNoteButtonLater"></label>
-			</div>
-			<div id="server-note-later-info" data-stringid-content="generalServerNoteInfoLater"></div>
-			<div id="server-note-buttons">
-				<div id="server-note-button-go" data-stringid-content="generalServerNoteButtonGo" data-stringid-content-case="upper"></div>
-				<div id="server-note-button-no" data-stringid-content="generalServerNoteButtonNo" data-stringid-content-case="upper"></div>
-			</div>
-		</div>
-		
-		<!-- Content -->
-		<main id="content">		
-			<div id="link_game">
-				<div class="text-icons">
-					<div class="text-icon-big">
-						<i class="material-icons">gamepad</i>
-					</div>
-					<div class="text-icon-small">
-						<i class="material-icons">person</i>
-					</div>
-				</div>
-				<div class="content-text" data-stringid-content="platformOcStartGame">
-				</div>
-			</div>
-			<div id="link_multiplayer">
-				<div class="text-icons">
-					<div class="text-icon-big">
-						<i class="material-icons">gamepad</i>
-					</div>
-					<div class="text-icon-small">
-						<i class="material-icons">people</i>
-					</div>
-				</div>
-				<div class="content-text" data-stringid-content="platformOcStartGameOnline">
-				</div>
-			</div>
-			<div id="link_help">
-				<div class="text-icons">
-					<div class="text-icon-big">
-						<i class="material-icons">help_outline</i>
-					</div>
-				</div>
-				<div class="content-text" data-stringid-content="platformOcStartHelp">
-				</div>
-			</div>
-			<div id="link_settings">
-				<div class="text-icons">
-					<div class="text-icon-big">
-						<i class="material-icons">settings</i>
-					</div>
-					<div class="text-icon-small">
-						<i class="material-icons">menu</i>
-					</div>
-				</div>
-				<div class="content-text" data-stringid-content="platformOcStartSettings">
-				</div>
-			</div>
-			<div id="link_settings_oc">
-				<div class="text-icons">
-					<div class="text-icon-big">
-						<i class="material-icons">settings</i>
-					</div>
-					<div class="text-icon-small">
-						<i class="material-icons">more_horiz</i>
-					</div>
-				</div>
-				<div class="content-text" data-stringid-content="platformOcStartSettingsOc">
-				</div>
-			</div>
-		</main>
-		
-		<!-- notify -->
-		<div id="canvas-notifier" class="mdl-js-snackbar mdl-snackbar">
-			<div class="mdl-snackbar__text"></div>
-			<button class="mdl-snackbar__action" type="button"></button>
-		</div>		
-		
-		<script>
-			function styleContent(){
-				var content = document.getElementById("content");
-				content.style.display = "";
-				if(window.innerHeight < content.scrollHeight){
-					content.style.display = "block";
-				}
-				var icons = document.querySelectorAll("#content .text-icon-big .material-icons");
-				var iconSize;
-				for(var iC = 0; iC < icons.length; iC++) {
-					icons[iC].style.fontSize = '';
-					iconSize = icons[iC].offsetWidth;
-					icons[iC].style.fontSize = iconSize + 'px';
-				}
-				icons = document.querySelectorAll("#content .text-icon-small");
-				for(var iC = 0; iC < icons.length; iC++) {
-					icons[iC].querySelector(".material-icons").style.fontSize = (iconSize/4*window.getComputedStyle(icons[iC].parentNode.parentNode).getPropertyValue("flex-grow")) + 'px';
-					icons[iC].style.left = (icons[iC].parentNode.querySelector(".material-icons").offsetLeft + icons[iC].parentNode.offsetWidth/2 - icons[iC].offsetWidth) + 'px';
-					icons[iC].style.top = (icons[iC].parentNode.querySelector(".material-icons").offsetTop + icons[iC].parentNode.offsetHeight * 0.95 - icons[iC].offsetHeight) + 'px';
-				}
-			}
-			
-			window.addEventListener("load", styleContent);
-			window.addEventListener("resize", function(){styleContent(); window.setTimeout(styleContent,50);});
-			
-			document.getElementById("link_game").addEventListener("click", function(){
-				followLink("./", "_self", LINK_STATE_INTERNAL_HTML);
-			});
-			document.getElementById("link_multiplayer").addEventListener("click", function(){
-				followLink("./?mode=multiplay", "_self", LINK_STATE_INTERNAL_HTML);
-			});
-			document.getElementById("link_help").addEventListener("click", function(){
-				followLink("help", "_self", LINK_STATE_INTERNAL_HTML);
-			});
-			document.getElementById("link_settings").addEventListener("click", function(){
-				followLink("settings", "_self", LINK_STATE_INTERNAL_HTML);
-			});
-			document.getElementById("link_settings_oc").addEventListener("click", function(){
-				followLink("html_platform/settings_oc", "_self", LINK_STATE_INTERNAL_HTML);
-			});
-			
-			setHTMLStrings();
-			
-			styleContent();
-			
-			var localAppData = getLocalAppDataCopy();
-			if(localAppData !== null && (localAppData.version.major != APP_DATA.version.major || localAppData.version.minor != APP_DATA.version.minor)) {				
-				navigator.notification.confirm(getString("platformOcAppUpdate"), function(button) {
-					if (button == 1){
-						followLink("whatsnew/#newest", "_blank", LINK_STATE_INTERNAL_HTML);
-					}
-				}, getString("platformOcAppUpdateTitel"), [getString("platformOcAppUpdateYes"),getString("platformOcAppUpdateNo")]);
-			} else {
-				showServerNote();
-			}
-			setLocalAppDataCopy();
-		</script>
-	</body>
+        <!-- General Styles -->
+        <link rel="stylesheet" type="text/css" href="src/jonathan_herrmann_engel/css/general.css">
+        <link rel="stylesheet" type="text/css" href="src/jonathan_herrmann_engel/css_platform/general.css">
+
+        <style>
+            body {
+                background-image: url('assets_platform/background.jpg');
+                background-size: cover;
+                background-position: center;
+                background-repeat: no-repeat;
+                display: flex;
+                align-items: center;
+                justify-items: center;
+                align-content: center;
+                justify-content: center;
+                padding: 0;
+                margin: 0;
+                border: 0;
+            }
+
+            #content {
+                background: rgba(255,180,230,0.05);
+                color: black;
+                font-weight: bold;
+                text-align: center;
+                padding: 5vh 2vw;
+                margin: 0;
+                font-size: 2.5em;
+                line-height: 2em;
+                overflow-y: auto;
+                max-height: 85vh;
+                min-height: 85vh;
+                height: 85vh;
+                width: 90vw;
+                border-radius: 3vh;
+                border: 2vw solid rgba(0,0,0,0.2);
+                border-top: 1vh solid rgba(0,0,0,0.2);
+                border-bottom: 3vh solid rgba(0,0,0,0.2);
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-items: center;
+                align-content: center;
+                justify-content: center;
+                user-select: none;
+            }
+            #content:hover {
+                background: rgba(255,180,230,0.1);
+            }
+            #content div {
+                display: inline-block;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                max-width: 100%;
+                max-height: 100%;
+            }
+            #content div:hover {
+                color: #ac5076;
+            }
+            #content .text-icon-small {
+                display: none;
+            }
+            @media (max-width: 300px) {
+                #content {
+                    text-align: left;
+                }
+            }
+            @media (max-width: 400px) {
+                #content div {
+                    width: 100%;
+                    overflow: hidden;
+                }
+                #content .text-icons {
+                    display: none;
+                }
+            }
+            @media (orientation: landscape) and (min-width: 500px) {
+
+                #content {
+                    font-size: 1.5em;
+                    flex-direction: row;
+                    max-width: 100%;
+                    max-height: 100%;
+                    overflow: hidden;
+                }
+
+                #content > div {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-items: center;
+                    align-content: center;
+                    justify-content: center;
+                    height: 100;
+                    flex-grow: 1;
+                    flex-basis: 0;
+                }
+
+                #content > div#link_game {
+                    order: 3;
+                    flex-grow: 3;
+                }
+
+                #content > div#link_multiplayer {
+                    order: 2;
+                    flex-grow: 1.5;
+                }
+
+                #content > div#link_help {
+                    order: 4;
+                    flex-grow: 1.5;
+                }
+
+                #content > div#link_settings {
+                    order: 1;
+                }
+
+                #content > div#link_settings_oc {
+                    order: 5;
+                }
+
+                #content div {
+                    width: 100%;
+                    overflow: hidden;
+                }
+
+                #content .content-text {
+                    font-size: 0.75em;
+                    white-space: normal;
+                    line-height: normal;
+                }
+
+                #content .text-icon-big .material-icons {
+                    width: 50%;
+                }
+
+                #content .text-icon-small {
+                    width: unset;
+                    display: block;
+                    position: absolute;
+                }
+            }
+            @media (orientation: landscape) and (min-width: 1000px) {
+
+                #content .content-text {
+                    font-size: inherit;
+                }
+
+            }
+
+        </style>
+
+    </head>
+
+    <body>
+
+        <!-- Server side notifications -->
+        <div id="server-note">
+            <div id="server-note-title"></div>
+            <div id="server-note-text"></div>
+            <div id="server-note-later">
+                <input id="server-note-later-box" type="checkbox">
+                <label for="server-note-later-box" data-stringid-content="generalServerNoteButtonLater"></label>
+            </div>
+            <div id="server-note-later-info" data-stringid-content="generalServerNoteInfoLater"></div>
+            <div id="server-note-buttons">
+                <div id="server-note-button-go" data-stringid-content="generalServerNoteButtonGo" data-stringid-content-case="upper"></div>
+                <div id="server-note-button-no" data-stringid-content="generalServerNoteButtonNo" data-stringid-content-case="upper"></div>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <main id="content">
+            <div id="link_game">
+                <div class="text-icons">
+                    <div class="text-icon-big">
+                        <i class="material-icons">gamepad</i>
+                    </div>
+                    <div class="text-icon-small">
+                        <i class="material-icons">person</i>
+                    </div>
+                </div>
+                <div class="content-text" data-stringid-content="platformOcStartGame">
+                </div>
+            </div>
+            <div id="link_multiplayer">
+                <div class="text-icons">
+                    <div class="text-icon-big">
+                        <i class="material-icons">gamepad</i>
+                    </div>
+                    <div class="text-icon-small">
+                        <i class="material-icons">people</i>
+                    </div>
+                </div>
+                <div class="content-text" data-stringid-content="platformOcStartGameOnline">
+                </div>
+            </div>
+            <div id="link_help">
+                <div class="text-icons">
+                    <div class="text-icon-big">
+                        <i class="material-icons">help_outline</i>
+                    </div>
+                </div>
+                <div class="content-text" data-stringid-content="platformOcStartHelp">
+                </div>
+            </div>
+            <div id="link_settings">
+                <div class="text-icons">
+                    <div class="text-icon-big">
+                        <i class="material-icons">settings</i>
+                    </div>
+                    <div class="text-icon-small">
+                        <i class="material-icons">menu</i>
+                    </div>
+                </div>
+                <div class="content-text" data-stringid-content="platformOcStartSettings">
+                </div>
+            </div>
+            <div id="link_settings_oc">
+                <div class="text-icons">
+                    <div class="text-icon-big">
+                        <i class="material-icons">settings</i>
+                    </div>
+                    <div class="text-icon-small">
+                        <i class="material-icons">more_horiz</i>
+                    </div>
+                </div>
+                <div class="content-text" data-stringid-content="platformOcStartSettingsOc">
+                </div>
+            </div>
+        </main>
+
+        <script>
+            function styleContent(){
+                var content = document.getElementById("content");
+                content.style.display = "";
+                if(window.innerHeight < content.scrollHeight){
+                    content.style.display = "block";
+                }
+                var icons = document.querySelectorAll("#content .text-icon-big .material-icons");
+                var iconSize;
+                for(var iC = 0; iC < icons.length; iC++) {
+                    icons[iC].style.fontSize = '';
+                    iconSize = icons[iC].offsetWidth;
+                    icons[iC].style.fontSize = iconSize + 'px';
+                }
+                icons = document.querySelectorAll("#content .text-icon-small");
+                for(var iC = 0; iC < icons.length; iC++) {
+                    icons[iC].querySelector(".material-icons").style.fontSize = (iconSize/4*window.getComputedStyle(icons[iC].parentNode.parentNode).getPropertyValue("flex-grow")) + 'px';
+                    icons[iC].style.left = (icons[iC].parentNode.querySelector(".material-icons").offsetLeft + icons[iC].parentNode.offsetWidth/2 - icons[iC].offsetWidth) + 'px';
+                    icons[iC].style.top = (icons[iC].parentNode.querySelector(".material-icons").offsetTop + icons[iC].parentNode.offsetHeight * 0.95 - icons[iC].offsetHeight) + 'px';
+                }
+            }
+
+            window.addEventListener("load", styleContent);
+            window.addEventListener("resize", function(){styleContent(); window.setTimeout(styleContent,50);});
+
+            document.getElementById("link_game").addEventListener("click", function(){
+                followLink("./", "_self", LINK_STATE_INTERNAL_HTML);
+            });
+            document.getElementById("link_multiplayer").addEventListener("click", function(){
+                followLink("./?mode=multiplay", "_self", LINK_STATE_INTERNAL_HTML);
+            });
+            document.getElementById("link_help").addEventListener("click", function(){
+                followLink("help", "_self", LINK_STATE_INTERNAL_HTML);
+            });
+            document.getElementById("link_settings").addEventListener("click", function(){
+                followLink("settings", "_self", LINK_STATE_INTERNAL_HTML);
+            });
+            document.getElementById("link_settings_oc").addEventListener("click", function(){
+                followLink("html_platform/settings_oc", "_self", LINK_STATE_INTERNAL_HTML);
+            });
+
+            setHTMLStrings();
+
+            styleContent();
+
+            var localAppData = getLocalAppDataCopy();
+            if(localAppData !== null && (localAppData.version.major != APP_DATA.version.major || localAppData.version.minor != APP_DATA.version.minor)) {
+                navigator.notification.confirm(getString("platformOcAppUpdate"), function(button) {
+                    if (button == 1){
+                        followLink("whatsnew/#newest", "_blank", LINK_STATE_INTERNAL_HTML);
+                    }
+                }, getString("platformOcAppUpdateTitel"), [getString("platformOcAppUpdateYes"),getString("platformOcAppUpdateNo")]);
+            } else {
+                showServerNote();
+            }
+            setLocalAppDataCopy();
+        </script>
+    </body>
 </html>

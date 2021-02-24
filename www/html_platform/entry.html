@@ -1,26 +1,26 @@
 <!DOCTYPE html>
 <html>
-	<base href="../">
-	<meta charset="UTF-8">
-	
-	<script>
-	function localDR(){
-		var ocSettings = getSettingsOC();
-		if(!ocSettings.landscapeApp) {
-			screen.orientation.lock('landscape');
-		}
-		window.plugins.webintent.getUri(function(url) {
-			followIntent(url);
-		}, false);
-	}
-	</script>
+    <base href="../">
+    <meta charset="UTF-8">
 
-	<!-- General Scripts -->
-	<script src="src/jonathan_herrmann_engel/js/error_handler.js"></script>
-	<script src="src/jonathan_herrmann_engel/js_platform/error_handler.js"></script>
-	<script src="src/jonathan_herrmann_engel/js/appdata.js"></script>
-	<script src="src/jonathan_herrmann_engel/js_platform/appdata.js"></script>
-	<script src="src/jonathan_herrmann_engel/js/general.js"></script>
-	<script src="src/jonathan_herrmann_engel/js_platform/general.js"></script>
-	<body></body>
+    <script>
+    function localDR(){
+        var ocSettings = getSettingsOC();
+        if(!ocSettings.landscapeApp) {
+            screen.orientation.lock('landscape');
+        }
+        window.plugins.webintent.getUri(function(url) {
+            followIntent(url);
+        }, false);
+    }
+    </script>
+
+    <!-- General Scripts -->
+    <script src="src/jonathan_herrmann_engel/js/error_handler.js"></script>
+    <script src="src/jonathan_herrmann_engel/js_platform/error_handler.js"></script>
+    <script src="src/jonathan_herrmann_engel/js/appdata.js"></script>
+    <script src="src/jonathan_herrmann_engel/js_platform/appdata.js"></script>
+    <script src="src/jonathan_herrmann_engel/js/general.js"></script>
+    <script src="src/jonathan_herrmann_engel/js_platform/general.js"></script>
+    <body></body>
 </html>

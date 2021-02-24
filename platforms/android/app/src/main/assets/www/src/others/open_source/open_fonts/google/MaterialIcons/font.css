@@ -16,4 +16,7 @@
   direction: ltr;
   text-rendering: optimizeLegibility;
   font-feature-settings: 'liga';
+  line-height: 1;
+  text-transform: none;
+  user-select: none;
 }

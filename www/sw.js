@@ -1,4 +1,4 @@
-var updatedSW = 83; //TO BE INCREASED ON EACH NEW VERSION
+var updatedSW = 86; //TO BE INCREASED ON EACH NEW VERSION
 
 //generate cache-name from branch and sw-version
 var locationstr = location.pathname;

@@ -10,7 +10,7 @@
 
     <script>
     function localDR(){
-        var ocSettings = getSettingsOC();
+        var ocSettings = getSettings(false,"morowayAppOC");
         if(!ocSettings.landscapeApp) {
             screen.orientation.lock('landscape');
         }

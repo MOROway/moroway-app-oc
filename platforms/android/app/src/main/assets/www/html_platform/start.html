@@ -20,7 +20,7 @@
                 navigator.app.exitApp();
             });
 
-            var ocSettings = getSettingsOC();
+            var ocSettings = getSettings(false,"morowayAppOC");
             if(ocSettings.landscapeApp) {
                 screen.orientation.unlock();
             } else {
@@ -142,13 +142,13 @@
                 }
 
                 #content > div#link_game {
-                    order: 3;
+                    order: 2;
                     flex-grow: 3;
                 }
 
                 #content > div#link_multiplayer {
-                    order: 2;
-                    flex-grow: 1.5;
+                    order: 3;
+                    flex-grow: 3;
                 }
 
                 #content > div#link_help {
@@ -158,10 +158,7 @@
 
                 #content > div#link_settings {
                     order: 1;
-                }
-
-                #content > div#link_settings_oc {
-                    order: 5;
+                    flex-grow: 1.5;
                 }
 
                 #content div {
@@ -254,23 +251,8 @@
                     <div class="text-icon-big">
                         <i class="material-icons">settings</i>
                     </div>
-                    <div class="text-icon-small">
-                        <i class="material-icons">menu</i>
-                    </div>
                 </div>
                 <div class="content-text" data-stringid-content="platformOcStartSettings">
-                </div>
-            </div>
-            <div id="link_settings_oc">
-                <div class="text-icons">
-                    <div class="text-icon-big">
-                        <i class="material-icons">settings</i>
-                    </div>
-                    <div class="text-icon-small">
-                        <i class="material-icons">more_horiz</i>
-                    </div>
-                </div>
-                <div class="content-text" data-stringid-content="platformOcStartSettingsOc">
                 </div>
             </div>
         </main>
@@ -293,7 +275,7 @@
                 for(var iC = 0; iC < icons.length; iC++) {
                     icons[iC].querySelector(".material-icons").style.fontSize = (iconSize/4*window.getComputedStyle(icons[iC].parentNode.parentNode).getPropertyValue("flex-grow")) + 'px';
                     icons[iC].style.left = (icons[iC].parentNode.querySelector(".material-icons").offsetLeft + icons[iC].parentNode.offsetWidth/2 - icons[iC].offsetWidth) + 'px';
-                    icons[iC].style.top = (icons[iC].parentNode.querySelector(".material-icons").offsetTop + icons[iC].parentNode.offsetHeight * 0.95 - icons[iC].offsetHeight) + 'px';
+                    icons[iC].style.top = (icons[iC].parentNode.querySelector(".material-icons").offsetTop + icons[iC].parentNode.offsetHeight * 0.99 - icons[iC].offsetHeight) + 'px';
                 }
             }
 
@@ -311,9 +293,6 @@
             });
             document.getElementById("link_settings").addEventListener("click", function(){
                 followLink("settings", "_self", LINK_STATE_INTERNAL_HTML);
-            });
-            document.getElementById("link_settings_oc").addEventListener("click", function(){
-                followLink("html_platform/settings_oc", "_self", LINK_STATE_INTERNAL_HTML);
             });
 
             setHTMLStrings();

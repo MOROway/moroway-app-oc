@@ -34,7 +34,7 @@ function placeOptions(state){
 }
 function localDR(){
     window.plugins.insomnia.keepAwake();
-    var ocSettings = getSettingsOC();
+    var ocSettings = getSettings(false,"morowayAppOC");
     if(!ocSettings.landscapeGame || !ocSettings.landscapeApp) {
         screen.orientation.lock("landscape");
     }

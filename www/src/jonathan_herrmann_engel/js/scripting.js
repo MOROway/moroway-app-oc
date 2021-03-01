@@ -665,8 +665,8 @@ function drawObjects() {
 
     function collisionMatrix() {
         function collisionWeight(input1){
-            contextForeground.save();
-            contextForeground.setTransform(1, 0, 0, 1, 0, 0);
+            context.save();
+            context.setTransform(1, 0, 0, 1, 0, 0);
             var currentObjects = [{}];
             currentObjects[0] = copyJSObject(trains[input1]);
             if(trains[input1].cars.length == 0 && trains[input1].standardDirection) {
@@ -721,14 +721,14 @@ function drawObjects() {
                     }
                     currentObject.pointNo += fac.weight == 1 ? 4 : 2;
                     if(debug) {
-                        contextForeground.save();
-                        contextForeground.setTransform(client.realScale,0,0,client.realScale,-(client.realScale-1)*canvas.width/2+client.touchScaleX,-(client.realScale-1)*canvas.height/2+client.touchScaleY);
+                        context.save();
+                        context.setTransform(client.realScale,0,0,client.realScale,-(client.realScale-1)*canvas.width/2+client.touchScaleX,-(client.realScale-1)*canvas.height/2+client.touchScaleY);
                         currentObject.points.forEach(function(point) {
                             var c = Math.max(Math.round(100*(100-100*point.weight))/100,0);
-                            contextForeground.fillStyle = "rgb(" + c + "," + c + "," + c + ")";
-                            contextForeground.fillRect(point.x-3,point.y-3,6,6);
+                            context.fillStyle = "rgb(" + c + "," + c + "," + c + ")";
+                            context.fillRect(point.x-3,point.y-3,6,6);
                         });
-                        contextForeground.restore();
+                        context.restore();
                     }
                 });
                 for(var i = 0; i < trains.length; i++){
@@ -738,22 +738,22 @@ function drawObjects() {
                     if(input1 != i && (trains[input1].circleFamily === null || trains[i].circleFamily === null || trains[input1].circleFamily == trains[i].circleFamily)){
                         for(var j = -1; j < trains[i].cars.length; j++){
                             var currentObject2 = j >= 0 ? trains[i].cars[j] : trains[i];
-                            contextForeground.save();
-                            contextForeground.translate(currentObject2.x, currentObject2.y);
-                            contextForeground.rotate(currentObject2.displayAngle);
-                            contextForeground.beginPath();
-                            contextForeground.rect(-currentObject2.width/2, -currentObject2.height/2, currentObject2.width, currentObject2.height);
+                            context.save();
+                            context.translate(currentObject2.x, currentObject2.y);
+                            context.rotate(currentObject2.displayAngle);
+                            context.beginPath();
+                            context.rect(-currentObject2.width/2, -currentObject2.height/2, currentObject2.width, currentObject2.height);
                             currentObject.points.forEach(function(point) {
-                                if (contextForeground.isPointInPath(point.x, point.y) && point.weight > collisionMatrix[i]){
+                                if (context.isPointInPath(point.x, point.y) && point.weight > collisionMatrix[i]){
                                     collisionMatrix[i] = point.weight;
                                 }
                             });
-                            contextForeground.restore();
+                            context.restore();
                         }
                     }
                 }
             });
-            contextForeground.restore();
+            context.restore();
             return(collisionMatrix);
         }
 
@@ -2303,9 +2303,9 @@ function actionSync (objname, index, params, notification) {
             if(notification !== null) {
                 var notifyArr = [];
                 notification.forEach(function(elem){
-                    notifyArr.push(getString( ...elem.getString ));
+                    notifyArr.push(getString.apply( null, elem.getString ));
                 });
-                var notifyStr = formatJSString( ...notifyArr );
+                var notifyStr = formatJSString.apply( null, notifyArr );
                 notify("#canvas-notifier", notifyStr, NOTIFICATION_PRIO_DEFAULT, 1000, null,null,client.y);
             }
             break;
@@ -3038,13 +3038,12 @@ window.onload = function() {
         if (to == undefined) {
             to = "";
         }
-        parent.childNodes.forEach(
-            function(currentElem){
-                if(currentElem.nodeName.substr(0,1) != "#"){
-                    currentElem.style.display = currentElem == elem ? to : "none";
-                }
+        var elems = parent.childNodes;
+        for(var i = 0; i < elems.length; i++) {
+            if(elems[i].nodeName.substr(0,1) != "#"){
+                elems[i].style.display = elems[i] == elem ? to : "none";
             }
-        );
+        }
     }
 
     function destroy(toDestroyElems) {
@@ -3370,12 +3369,12 @@ window.onload = function() {
                     if(typeof input.notification == "object" && Array.isArray(input.notification)){
                         input.notification.forEach(function(elem){
                             if(typeof elem == "object" && Array.isArray(elem.getString)) {
-                                notifyArr.push(getString( ...elem.getString ));
+                                notifyArr.push(getString.apply( null, elem.getString ));
                             } else if(typeof elem == "string") {
                                 notifyArr.push( elem );
                             }
                         });
-                        var notifyStr = formatJSString( ...notifyArr );
+                        var notifyStr = formatJSString.apply( null, notifyArr );
                         if(onlineGame.sessionId != json.sessionId){
                             notifyStr = json.sessionName + ": " + notifyStr;
                         }
@@ -3523,12 +3522,14 @@ window.onload = function() {
         });
         onlineConnection.connect(onlineConnection.serverURI);
     } else {
-        document.querySelectorAll("#content > *:not(#game), #game > *:not(#game-gameplay)").forEach(function(elem) {
-            elem.style.display = "none";
-        });
-        document.querySelectorAll("#content > #game, #game > #game-gameplay").forEach(function(elem) {
-            elem.style.display = "block";
-        });
+        var elems = document.querySelectorAll("#content > *:not(#game), #game > *:not(#game-gameplay)");
+        for (var i = 0; i < elems.length; i++) {
+            elems[i].style.display = "none";
+        }
+        elems = document.querySelectorAll("#content > #game, #game > #game-gameplay");
+        for (i = 0; i < elems.length; i++) {
+            elems[i].style.display = "block";
+        }
         Pace.on("hide", function(){
             destroy(document.querySelector("body > .pace"));
             setTimeout(function() {

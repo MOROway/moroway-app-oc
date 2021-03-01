@@ -1,0 +1,2 @@
+Vereinfachtes Menü
+Fix für ältere Androidversionen

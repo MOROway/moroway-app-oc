@@ -1,3 +1,7 @@
-#helpOption {
-    display: none;
+.settings {
+    display: flex;
+    flex-direction: column;
+}
+#langoption {
+    order: 1;
 }

@@ -144,6 +144,7 @@ h1, h2 {
 /* Notify */
 .notify {
     padding: 15px;
+    margin: 0;
     z-index: 100;
     position: fixed;
     background: rgb(48, 48, 48);

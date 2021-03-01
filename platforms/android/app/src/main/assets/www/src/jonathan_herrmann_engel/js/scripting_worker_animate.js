@@ -3,8 +3,8 @@ function saveTheGameSend() {
     for(var t = 0; t < saveTrains.length; t++) {
         delete saveTrains[t].lastDirectionChange;
         if(trains[t].circleFamily != null) {
-            var cF = Object.keys(rotationPoints).find(key => rotationPoints[key] === trains[t].circleFamily);
-            var c = Object.keys(rotationPoints[cF]).find(key => rotationPoints[cF][key] === trains[t].circle);
+            var cF = Object.keys(rotationPoints).filter(function(key) {return rotationPoints[key] === trains[t].circleFamily})[0];
+            var c = Object.keys(rotationPoints[cF]).filter(function(key) {return rotationPoints[cF][key] === trains[t].circle})[0];
             saveTrains[t].circleFamily = cF;
             saveTrains[t].circle = c;
         }
@@ -1185,3 +1185,12 @@ onmessage = function(message) {
         postMessage({k: "debug", animateInterval: animateInterval, trains: trains, rotationPoints: rotationPoints, switchesBeforeFac: switchesBeforeFac});
     }
 };
+
+//Browser Compatibility
+if(typeof Object.values == "undefined") {
+    Object.values = function(obj) {
+        return Object.keys(obj).map(function(key) {
+            return obj[key];
+        });
+    }
+}

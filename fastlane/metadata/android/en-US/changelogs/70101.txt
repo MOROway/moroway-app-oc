@@ -1,0 +1,2 @@
+Simplified menu
+Fix for older Android versions

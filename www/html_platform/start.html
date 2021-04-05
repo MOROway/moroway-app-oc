@@ -14,13 +14,6 @@
             document.addEventListener("backbutton", function(){
                 navigator.app.exitApp();
             });
-
-            var ocSettings = getSettings(false,"morowayAppOC");
-            if(ocSettings.landscapeApp) {
-                screen.orientation.unlock();
-            } else {
-                screen.orientation.lock('landscape');
-            }
             navigator.splashscreen.hide();
         }
         </script>
@@ -175,6 +168,8 @@
                     width: unset;
                     display: block;
                     position: absolute;
+                    left: 0;
+                    top: 0;
                 }
             }
             @media (orientation: landscape) and (min-width: 1000px) {
@@ -268,13 +263,16 @@
                 }
                 icons = document.querySelectorAll("#content .text-icon-small");
                 for(var iC = 0; iC < icons.length; iC++) {
-                    icons[iC].querySelector(".material-icons").style.fontSize = (iconSize/4*window.getComputedStyle(icons[iC].parentNode.parentNode).getPropertyValue("flex-grow")) + 'px';
-                    icons[iC].style.left = (icons[iC].parentNode.querySelector(".material-icons").offsetLeft + icons[iC].parentNode.offsetWidth/2 - icons[iC].offsetWidth) + 'px';
-                    icons[iC].style.top = (icons[iC].parentNode.querySelector(".material-icons").offsetTop + icons[iC].parentNode.offsetHeight * 0.99 - icons[iC].offsetHeight) + 'px';
+                    var iconSizeSmall = (iconSize/4*window.getComputedStyle(icons[iC].parentNode.parentNode).getPropertyValue("flex-grow"));
+                    icons[iC].style.width = iconSizeSmall + 'px';
+                    icons[iC].style.height = iconSizeSmall + 'px';
+                    icons[iC].querySelector(".material-icons").style.fontSize = iconSizeSmall + 'px';
+                    icons[iC].style.left = (icons[iC].parentNode.offsetLeft + icons[iC].parentNode.offsetWidth / 2 + icons[iC].offsetWidth / 2) + 'px';
+                    icons[iC].style.top = (icons[iC].parentNode.offsetTop + icons[iC].parentNode.offsetHeight*0.9 - icons[iC].offsetHeight) + 'px';
                 }
             }
 
-            window.addEventListener("load", styleContent);
+            window.addEventListener("load", function(){styleContent(); window.setTimeout(styleContent,50);});
             window.addEventListener("resize", function(){styleContent(); window.setTimeout(styleContent,50);});
 
             document.getElementById("link_game").addEventListener("click", function(){

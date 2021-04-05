@@ -34,10 +34,6 @@ function placeOptions(state){
 }
 function localDR(){
     window.plugins.insomnia.keepAwake();
-    var ocSettings = getSettings(false,"morowayAppOC");
-    if(!ocSettings.landscapeGame || !ocSettings.landscapeApp) {
-        screen.orientation.lock("landscape");
-    }
     document.addEventListener("backbutton", function(e) {
         e.preventDefault();
         if((typeof settings == "object" && !settings.saveGame) || (typeof onlineGame == "object" && onlineGame.enabled)) {

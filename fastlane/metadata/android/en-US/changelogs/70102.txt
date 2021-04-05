@@ -1,0 +1,2 @@
+Remove portrait mode (Compatibility issues with "save game"-option)
+Fixes for Android 5.1

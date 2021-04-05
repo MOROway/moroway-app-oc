@@ -3045,6 +3045,20 @@ window.onload = function() {
             }
         }
     }
+    
+    function hidePace() {
+        try{
+            document.styleSheets[0].insertRule(".pace, .pace-progress {display: none !important;}",0);
+        } catch (e){
+            if(debug){
+                console.log(e);
+            }
+            var elem = document.querySelector("head");
+            var elemStyle = document.createElement("style");
+            elemStyle.textContent = ".pace, .pace-progress {display: none !important;}";
+            elem.appendChild(elemStyle);
+        }
+    }
 
     function destroy(toDestroyElems) {
         if(typeof toDestroyElems == "object") {
@@ -3097,17 +3111,7 @@ window.onload = function() {
         resetForElem(parent, elem);
         onlineConnection.connect = (function(host) {
             function hideLoadingAnimation(){
-                try{
-                    document.styleSheets[0].insertRule(".pace, .pace-progress {display: none !important;}");
-                } catch (e){
-                    if(debug){
-                        console.log(e);
-                    }
-                    var elem = document.querySelector("head");
-                    var elemStyle = document.createElement("style");
-                    elemStyle.textContent = ".pace, .pace-progress {display: none !important;}";
-                    elem.appendChild(elemStyle);
-                }
+                hidePace();
                 window.clearInterval(loadingAnimElemChangingFilter);
                 destroy(document.querySelector("#branding"));
             }
@@ -3531,6 +3535,7 @@ window.onload = function() {
             elems[i].style.display = "block";
         }
         Pace.on("hide", function(){
+            hidePace();
             destroy(document.querySelector("body > .pace"));
             setTimeout(function() {
                 var toShowElems = [document.querySelector("#snake"),document.querySelector("#percent")];
@@ -3562,6 +3567,7 @@ window.onload = function() {
             document.querySelector("#percent #percent-progress").style.left = -100+cPercent + "%";
             if (loadNo == finalPicNo) {
                 Pace.stop();
+                hidePace();
                 destroy(document.querySelector("body > .pace"));
                 setTimeout(function(){destroy(document.querySelector("#percent"));},1000);
                 initialDisplay();

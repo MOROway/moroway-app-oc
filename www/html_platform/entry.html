@@ -5,10 +5,6 @@
 
     <script>
     function localDR(){
-        var ocSettings = getSettings(false,"morowayAppOC");
-        if(!ocSettings.landscapeApp) {
-            screen.orientation.lock('landscape');
-        }
         window.plugins.webintent.getUri(function(url) {
             followIntent(url);
         }, false);

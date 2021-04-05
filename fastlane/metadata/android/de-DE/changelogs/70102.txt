@@ -1,0 +1,2 @@
+﻿Entfernen der Hochformatunterstützung (Kompatibilitätsprobleme mit "Spiel speichern"-Option)
+Fixes für Android 5.1

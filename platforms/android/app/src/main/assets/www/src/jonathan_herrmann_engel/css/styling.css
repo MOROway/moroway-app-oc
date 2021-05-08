@@ -37,7 +37,6 @@ canvas {
 
 #snake {
     background: none;
-    display: none;
     animation: snake 0.4s infinite;
 }
 

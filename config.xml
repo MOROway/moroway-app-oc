@@ -1,28 +1,24 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="de.moroway.oc" version="7.1.2" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget id="de.moroway.oc" version="7.1.4" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>MOROway</name>
     <author>Jonathan Herrmann-Engel</author>
     <content src="html_platform/entry.html" />
     <access origin="*" />
     <allow-intent href="http:*" />
     <allow-intent href="https:*" />
-    <allow-intent href="tel:*" />
-    <allow-intent href="sms:*" />
     <allow-intent href="mailto:*" />
-    <allow-intent href="geo:*" />
     <hook src="scripts/conf.bash" type="before_build" />
     <hook src="scripts/conf.bash" type="before_run" />
     <hook src="scripts/html.bash" type="before_build" />
     <hook src="scripts/html.bash" type="before_run" />
-	<preference name="SplashScreen" value="screen" />
-	<preference name="SplashScreenDelay" value="3000" />
-    <preference name="ShowSplashScreenSpinner" value="false"/>
+    <preference name="SplashScreen" value="screen" />
+    <preference name="SplashScreenDelay" value="3000" />
+    <preference name="ShowSplashScreenSpinner" value="false" />
     <preference name="SplashMaintainAspectRatio" value="true" />
-	<preference name="SplashShowOnlyFirstTime" value="true" />
+    <preference name="SplashShowOnlyFirstTime" value="true" />
     <platform name="android">
         <preference name="Fullscreen" value="true" />
         <preference name="AndroidLaunchMode" value="singleTask" />
-        <allow-intent href="market:*" />
         <resource-file src="www/icons_platform/icon.png" target="app/src/main/res/mipmap/ic_bg.png" />
         <resource-file src="www/icons_platform/fore.png" target="app/src/main/res/mipmap/ic_fg.png" />
         <resource-file src="www/icons_platform/icon.png" target="app/src/main/res/mipmap/ic_launcher.png" />
@@ -31,6 +27,9 @@
         <resource-file src="www/icons_platform/icon.xml" target="app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml" />
         <edit-config file="app/src/main/AndroidManifest.xml" mode="merge" target="/manifest/application">
             <application android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher_round" />
+        </edit-config>
+        <edit-config file="app/src/main/AndroidManifest.xml" mode="merge" target="/manifest/application/activity[@android:name='MainActivity']">
+            <activity android:screenOrientation="sensorLandscape" />
         </edit-config>
         <config-file parent="application/activity" target="AndroidManifest.xml">
             <intent-filter android:autoVerify="true" android:label="MOROway OC">
@@ -46,5 +45,4 @@
     <plugin name="cordova-webintent" spec="~2.0.0" />
     <plugin name="cordova-plugin-insomnia" spec="~4.3.0" />
     <plugin name="cordova-plugin-dialogs" spec="~2.0.2" />
-    <plugin name="cordova-plugin-screen-orientation" spec="~3.0.2" />
 </widget>

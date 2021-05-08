@@ -46,7 +46,6 @@ function followIntent(url) {
 
 ////Optional code (app works without it))
 function globalDR() {
-    screen.orientation.lock('landscape');
     window.plugins.webintent.onNewIntent(function (url) {
         followIntent(url);
     });

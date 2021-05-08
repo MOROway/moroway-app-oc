@@ -1,0 +1,2 @@
+﻿Bessere Erkennung von Unfällen bei den Zügen
+Entfernen von Pace.js

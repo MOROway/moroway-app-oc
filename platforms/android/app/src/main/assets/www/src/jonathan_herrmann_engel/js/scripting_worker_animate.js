@@ -729,7 +729,7 @@ function defineTrainParams(){
         }
     }
 
-    /*------------------------------------------------------------------------------------------------------------------*
+  /*------------------------------------------------------------------------------------------------------------------*
    *  0---------------------------------------------------------1                                                     *
    *  -      ___       ___                                      -                                                     *
    *  -     |   \      |   \   ________  _____   _______        -        0-7: required                                *
@@ -765,7 +765,7 @@ function defineTrainParams(){
     switches.outer2inner.right.x = 0.934 * background.width;
     switches.outer2inner.right.y = 0.505 * background.height;
 
-    /*------------------------------------------------------------------------------------------------------------------*
+  /*------------------------------------------------------------------------------------------------------------------*
    *  left--------------------------------------------------right                                                     *
    *  -      ___       ___                                      -                                                     *
    *  -     |   \      |   \   ________  _____   _______        -                                                     *
@@ -859,7 +859,7 @@ function defineTrainParams(){
     switches.sidings3.left.x = 0.33 * background.width;
     switches.sidings3.left.y = 0.7 * background.height;
 
-    /*------------------------------------------------------------------------------------------------------------------*
+  /*------------------------------------------------------------------------------------------------------------------*
    *  -----------------------------------------------------------                                                     *
    *  -    Sidings:                                             -                                                     *
    *  -         States per Track:                               -   State % 10 == 0: BezierCurve From Main Track      *
@@ -913,7 +913,7 @@ function defineTrainParams(){
     rotationPoints.outer.altState3.left.bezierLength = templenleft + getBezierLength(bezierPoints,100);
 
 
-    /*------------------------------------------------------------------------------------------------------------------*
+  /*------------------------------------------------------------------------------------------------------------------*
    *  -----------------------------------------------------------                                                     *
    *  -      ___       ___                                      -                                                     *
    *  -     |   \      |   \   ________  _____   _______        -                                                     *
@@ -939,6 +939,96 @@ function defineTrainParams(){
 ******************************************/
 
 function animateObjects() {
+
+    function collisionMatrix() {
+        function collisionWeight(input1){
+        var currentObjects = [{}];
+        currentObjects[0] = JSON.parse(JSON.stringify(trains[input1]));
+        if(trains[input1].cars.length == 0 && trains[input1].standardDirection) {
+            currentObjects[0].facs = [{x: -0.5, weight: trainParams.innerCollisionFac/4},{x: 0, weight: trainParams.innerCollisionFac/3},{x: 0.5, weight: trainParams.innerCollisionFac/2},{x: 1, weight: 1}];
+        } else if (trains[input1].cars.length == 0) {
+            currentObjects[0].facs = [{x: -1, weight: 1},{x: -0.5, weight: trainParams.innerCollisionFac/2},{x: 0, weight: trainParams.innerCollisionFac/3},{x: 0.5, weight: trainParams.innerCollisionFac/4}];
+        } else if(trains[input1].standardDirection) {
+            currentObjects[0].facs = [{x: -1, weight: trainParams.innerCollisionFac},{x: -0.5, weight: trainParams.innerCollisionFac},{x: 0, weight: trainParams.innerCollisionFac},{x: 0.5, weight: trainParams.innerCollisionFac},{x: 1, weight: 1}];
+        } else {
+            currentObjects[0].facs = [{x: -1, weight: trainParams.innerCollisionFac},{x: -0.5, weight: trainParams.innerCollisionFac/2},{x: 0, weight: trainParams.innerCollisionFac/3},{x: 0.5, weight: trainParams.innerCollisionFac/4}];
+        }
+        for(var i = 0; i < trains[input1].cars.length; i++) {
+            currentObjects[i+1] = JSON.parse(JSON.stringify(trains[input1].cars[i]));
+            if(i == trains[input1].cars.length-1 && !trains[input1].standardDirection) {
+                currentObjects[i+1].facs = [{x: -1, weight: 1},{x: -0.5, weight:  trainParams.innerCollisionFac},{x: 0, weight:  trainParams.innerCollisionFac},{x: 0.5, weight:  trainParams.innerCollisionFac},{x: 1, weight:  trainParams.innerCollisionFac}];
+            } else if (i == trains[input1].cars.length-1) {
+                currentObjects[i+1].facs = [{x: -0.5, weight: trainParams.innerCollisionFac/4},{x: 0, weight:  trainParams.innerCollisionFac/3},{x: 0.5, weight:  trainParams.innerCollisionFac/2},{x: 1, weight:  trainParams.innerCollisionFac}];
+            } else {
+                currentObjects[i+1].facs = [{x: -1, weight:  trainParams.innerCollisionFac},{x: -0.5, weight:  trainParams.innerCollisionFac},{x: 0, weight:  trainParams.innerCollisionFac},{x: 0.5, weight:  trainParams.innerCollisionFac},{x: 1, weight: trainParams.innerCollisionFac}];
+            }
+        }
+        var collisionMatrix = [];
+        currentObjects.forEach(function(currentObject) {
+            currentObject.points = [];
+            currentObject.facs.forEach(function(fac){
+                currentObject.points[0] = {};
+                currentObject.points[1] = {};
+                currentObject.points[0].x = currentObject.x+fac.x*Math.sin(Math.PI/2-currentObject.displayAngle)*currentObject.width/2+Math.cos(-Math.PI/2-currentObject.displayAngle)*currentObject.height/2;
+                currentObject.points[0].y = currentObject.y+fac.x*Math.cos(Math.PI/2-currentObject.displayAngle)*currentObject.width/2-Math.sin(-Math.PI/2-currentObject.displayAngle)*currentObject.height/2;
+                currentObject.points[0].weight = fac.weight;
+                currentObject.points[1].x = currentObject.x+fac.x*Math.sin(Math.PI/2-currentObject.displayAngle)*currentObject.width/2-Math.cos(-Math.PI/2-currentObject.displayAngle)*currentObject.height/2;
+                currentObject.points[1].y = currentObject.y+fac.x*Math.cos(Math.PI/2-currentObject.displayAngle)*currentObject.width/2+Math.sin(-Math.PI/2-currentObject.displayAngle)*currentObject.height/2;
+                currentObject.points[1].weight = fac.weight;
+                if(fac.weight == 1) {
+                    currentObject.points[2] = {};
+                    currentObject.points[3] = {};
+                    currentObject.points[4] = {};
+                    currentObject.points[5] = {};
+                    currentObject.points[2].x = currentObject.x+fac.x*Math.sin(Math.PI/2-currentObject.displayAngle)*currentObject.width/2;
+                    currentObject.points[2].y = currentObject.y+fac.x*Math.cos(Math.PI/2-currentObject.displayAngle)*currentObject.width/2;
+                    currentObject.points[2].weight = fac.weight;
+                    currentObject.points[3].x = currentObject.x+fac.x*1.2*Math.sin(Math.PI/2-currentObject.displayAngle)*currentObject.width/2;
+                    currentObject.points[3].y = currentObject.y+fac.x*1.2*Math.cos(Math.PI/2-currentObject.displayAngle)*currentObject.width/2;
+                    currentObject.points[3].weight = fac.weight;
+                    currentObject.points[4].x = currentObject.x+fac.x*1.1*Math.sin(Math.PI/2-currentObject.displayAngle)*currentObject.width/2+1.1*Math.cos(-Math.PI/2-currentObject.displayAngle)*currentObject.height/2;
+                    currentObject.points[4].y = currentObject.y+fac.x*1.1*Math.cos(Math.PI/2-currentObject.displayAngle)*currentObject.width/2-1.1*Math.sin(-Math.PI/2-currentObject.displayAngle)*currentObject.height/2;
+                    currentObject.points[4].weight = fac.weight;
+                    currentObject.points[5].x = currentObject.x+fac.x*1.1*Math.sin(Math.PI/2-currentObject.displayAngle)*currentObject.width/2-1.1*Math.cos(-Math.PI/2-currentObject.displayAngle)*currentObject.height/2;
+                    currentObject.points[5].y = currentObject.y+fac.x*1.1*Math.cos(Math.PI/2-currentObject.displayAngle)*currentObject.width/2+1.1*Math.sin(-Math.PI/2-currentObject.displayAngle)*currentObject.height/2;
+                    currentObject.points[5].weight = fac.weight;
+                }
+                if(debug) {
+                    for(var p = 0; p < currentObject.points.length; p++) {
+                        debugDrawPoints.push(currentObject.points[p]);
+                    }
+                }
+            });
+            for(var i = 0; i < trains.length; i++){
+                if(collisionMatrix[i] === undefined) {
+                    collisionMatrix[i] = 0;
+                }
+                if(input1 != i && (trains[input1].circleFamily === null || trains[i].circleFamily === null || trains[input1].circleFamily == trains[i].circleFamily)){
+                    for(var j = -1; j < trains[i].cars.length; j++){
+                        var currentObject2 = j >= 0 ? trains[i].cars[j] : trains[i];
+                        currentObject.points.forEach(function(point) {
+                            var testXC = (point.x-currentObject2.x);
+                            var testYC = (point.y-currentObject2.y);
+                            var testX = testXC*Math.cos(-currentObject2.displayAngle)-testYC*Math.sin(-currentObject2.displayAngle);
+                            var testY = testXC*Math.sin(-currentObject2.displayAngle)+testYC*Math.cos(-currentObject2.displayAngle);
+                            if (testX>=-currentObject2.width/2&&testX<=currentObject2.width/2 && testY>=-currentObject2.height/2 && testY<=currentObject2.height/2  && point.weight > collisionMatrix[i]){
+                                collisionMatrix[i] = point.weight;
+                                debugDrawPointsCrash.push(point);
+                            }
+                        });
+                    }
+                }
+            }
+        });
+        return(collisionMatrix);
+        }
+
+        var collisionMatrix = [];
+        for(var i = 0; i < trains.length; i++){
+        collisionMatrix[i] = collisionWeight(i);
+        }
+        return collisionMatrix;
+    }
 
     function animateTrains(input1){
 
@@ -1015,16 +1105,43 @@ function animateObjects() {
         animateTrains(i);
     }
 
+    var debugDrawPoints = [];
+    var debugDrawPointsCrash = [];
+    var trainCollisions = collisionMatrix();
+    var newCrash = [];
+    for(var i = 0; i < trains.length; i++) {
+        trains[i].crash = false;
+        for(var j = 0; j < trains.length; j++){
+            if(i != j){
+                if((trainCollisions[i][j] >= trainParams.innerCollisionFac) || (trainCollisions[i][j] > trainCollisions[j][i]) || (trains[i].endOfTrack && trains[i].endOfTrackStandardDirection == trains[i].standardDirection)) {
+                    trains[i].crash = true;
+                    if(trains[i].move) {
+                        trains[i].move = false;
+                        trains[i].accelerationSpeed = 0;
+                        trains[i].accelerationSpeedCustom = 1;
+                        newCrash.push({i:i,j:j});
+                    }
+                }
+            }
+        }
+    }
+
     /////RECALC/////
     if(animateTimeout !== undefined && animateTimeout !== null) {
         clearTimeout(animateTimeout);
     }
     if(firstRun) {
         firstRun = false;
-        postMessage({k: "ready", trains: trains,animateInterval: animateInterval});
+        postMessage({k: "ready", trains: trains, animateInterval: animateInterval});
         saveTheGameSend();
     }
     postMessage({k: "setTrains", trains: trains});
+    for(var i = 0; i < newCrash.length; i++) {
+        postMessage({k: "trainCrash", i: newCrash[i].i, j: newCrash[i].j});
+    }
+    if(debug) {
+        postMessage({k: "debugDrawPoints", p: debugDrawPoints, pC: debugDrawPointsCrash, tC: trainCollisions});
+    }
     if(online){
         if(syncing){
             postMessage({k: "sync-ready", trains: trains, rotationPoints: rotationPoints});
@@ -1064,6 +1181,8 @@ var syncing = false;
 var saveTheGameSendTimeout;
 
 var firstRun = true;
+
+var debug = false;
 
 onmessage = function(message) {
     function resizeTrains(oldbackground) {
@@ -1182,6 +1301,7 @@ onmessage = function(message) {
         }
         saveTheGameSendTimeout = setTimeout(saveTheGameSend, 5000);
     } else if(message.data.k == "debug") {
+        debug = true;
         postMessage({k: "debug", animateInterval: animateInterval, trains: trains, rotationPoints: rotationPoints, switchesBeforeFac: switchesBeforeFac});
     }
 };

@@ -123,9 +123,9 @@ function onMouseMove(event) {
     if(client.realScale == 1) {
         hardware.mouse.isMoving = true;
         if(typeof movingTimeOut !== "undefined"){
-            clearTimeout(movingTimeOut);
+            window.clearTimeout(movingTimeOut);
         }
-        movingTimeOut = setTimeout(function(){hardware.mouse.isMoving = false;}, 5000);
+        movingTimeOut = window.setTimeout(function(){hardware.mouse.isMoving = false;}, 5000);
     } else {
         hardware.mouse.isHold = false;
         client.PinchX = hardware.mouse.moveX+client.touchScaleXKeyFake;
@@ -210,9 +210,9 @@ function getTouchMove(event) {
             hardware.mouse.moveY = (event.changedTouches[0].clientY*client.devicePixelRatio);
             hardware.mouse.isMoving = true;
             if(typeof movingTimeOut !== "undefined"){
-                clearTimeout(movingTimeOut);
+                window.clearTimeout(movingTimeOut);
             }
-            movingTimeOut = setTimeout(function(){hardware.mouse.isMoving = false;}, 5000);
+            movingTimeOut = window.setTimeout(function(){hardware.mouse.isMoving = false;}, 5000);
         }
     } else if( event.changedTouches.length == 2) {
         hardware.mouse.isHold = false;
@@ -320,19 +320,19 @@ function onKeyDown(event) {
         client.touchScaleYKeyFake -= (client.touchScaleY-oTSY)/client.realScale;
     } else if ((event.key == "ArrowUp" && (konamistate === 0 || konamistate == 1)) || (event.key == "ArrowDown" && (konamistate == 2 || konamistate == 3)) || (event.key == "ArrowLeft" && (konamistate == 4 || konamistate == 6)) || (event.key == "ArrowRight" && (konamistate == 5 || konamistate == 7)) || (event.key == "b" && konamistate == 8)){
         if(typeof konamiTimeOut !== "undefined"){
-            clearTimeout(konamiTimeOut);
+            window.clearTimeout(konamiTimeOut);
         }
         konamistate +=1;
-        konamiTimeOut = setTimeout(function(){konamistate = 0;}, 1000);
+        konamiTimeOut = window.setTimeout(function(){konamistate = 0;}, 1000);
     } else if (event.key == "a" && konamistate == 9){
         if(typeof konamiTimeOut !== "undefined"){
-            clearTimeout(konamiTimeOut);
+            window.clearTimeout(konamiTimeOut);
         }
         konamistate = -1;
         drawBackground();
     } else {
         if(typeof konamiTimeOut !== "undefined"){
-            clearTimeout(konamiTimeOut);
+            window.clearTimeout(konamiTimeOut);
         }
         konamistate = (konamistate < 0 && konamistate > -2) ? --konamistate : 0;
         if(konamistate == 0) {
@@ -606,7 +606,6 @@ function drawObjects() {
                 drawImage(pics[currentObject.src], -currentObject.width/2,-currentObject.height/2, currentObject.width, currentObject.height);
             }
             context.restore();
-            collisionCourse(input1, true);
             context.beginPath();
             context.rect(-currentObject.width/2, -currentObject.height/2, currentObject.width, currentObject.height);
             if(context.isPointInPath(hardware.mouse.moveX, hardware.mouse.moveY)) {
@@ -619,7 +618,7 @@ function drawObjects() {
                 }
                 if((hardware.lastInputTouch < hardware.lastInputMouse && hardware.mouse.downTime - hardware.mouse.upTime > 0 && context.isPointInPath(hardware.mouse.upX, hardware.mouse.upY) && context.isPointInPath(hardware.mouse.downX, hardware.mouse.downY) && hardware.mouse.downTime - hardware.mouse.upTime < doubleClickTime) || (hardware.lastInputTouch > hardware.lastInputMouse && context.isPointInPath(hardware.mouse.downX, hardware.mouse.downY) && Date.now()-hardware.mouse.downTime > longTouchTime)) {
                     if(typeof clickTimeOut !== "undefined"){
-                        clearTimeout(clickTimeOut);
+                        window.clearTimeout(clickTimeOut);
                         clickTimeOut = null;
                     }
                     if(hardware.lastInputTouch > hardware.lastInputMouse) {
@@ -630,15 +629,15 @@ function drawObjects() {
                     }
                 } else {
                     if(typeof clickTimeOut !== "undefined"){
-                        clearTimeout(clickTimeOut);
+                        window.clearTimeout(clickTimeOut);
                         clickTimeOut = null;
                     }
-                    clickTimeOut = setTimeout(function(){
+                    clickTimeOut = window.setTimeout(function(){
                         clickTimeOut = null;
                         if(hardware.lastInputTouch > hardware.lastInputMouse) {
                             hardware.mouse.isHold = false;
                         }
-                        if(!collisionCourse(input1, false)) {
+                        if(!collisionCourse(input1)) {
                             if(trains[input1].move && trains[input1].accelerationSpeed > 0){
                                 actionSync("trains", input1, [{"accelerationSpeed": trains[input1].accelerationSpeed *= -1}], [{getString: ["appScreenObjectStops", "."]}, {getString:[["appScreenTrainNames",input1]]}]);
                             } else {
@@ -663,123 +662,8 @@ function drawObjects() {
         }
     }
 
-    function collisionMatrix() {
-        function collisionWeight(input1){
-            context.save();
-            context.setTransform(1, 0, 0, 1, 0, 0);
-            var currentObjects = [{}];
-            currentObjects[0] = copyJSObject(trains[input1]);
-            if(trains[input1].cars.length == 0 && trains[input1].standardDirection) {
-                currentObjects[0].facs = [{x: -0.5, weight: trainParams.innerCollisionFac/4},{x: 0, weight: trainParams.innerCollisionFac/3},{x: 0.5, weight: trainParams.innerCollisionFac/2},{x: 1, weight: 1}];
-            } else if (trains[input1].cars.length == 0) {
-                currentObjects[0].facs = [{x: -1, weight: 1},{x: -0.5, weight: trainParams.innerCollisionFac/2},{x: 0, weight: trainParams.innerCollisionFac/3},{x: 0.5, weight: trainParams.innerCollisionFac/4}];
-            } else if(trains[input1].standardDirection) {
-                currentObjects[0].facs = [{x: -1, weight: trainParams.innerCollisionFac},{x: -0.5, weight: trainParams.innerCollisionFac},{x: 0, weight: trainParams.innerCollisionFac},{x: 0.5, weight: trainParams.innerCollisionFac},{x: 1, weight: 1}];
-            } else {
-                currentObjects[0].facs = [{x: -1, weight: trainParams.innerCollisionFac},{x: -0.5, weight: trainParams.innerCollisionFac/2},{x: 0, weight: trainParams.innerCollisionFac/3},{x: 0.5, weight: trainParams.innerCollisionFac/4}];
-            }
-            for(var i = 0; i < trains[input1].cars.length; i++) {
-                currentObjects[i+1] = copyJSObject(trains[input1].cars[i]);
-                if(i == trains[input1].cars.length-1 && !trains[input1].standardDirection) {
-                    currentObjects[i+1].facs = [{x: -1, weight: 1},{x: -0.5, weight:  trainParams.innerCollisionFac},{x: 0, weight:  trainParams.innerCollisionFac},{x: 0.5, weight:  trainParams.innerCollisionFac},{x: 1, weight:  trainParams.innerCollisionFac}];
-                } else if (i == trains[input1].cars.length-1) {
-                    currentObjects[i+1].facs = [{x: -0.5, weight: trainParams.innerCollisionFac/4},{x: 0, weight:  trainParams.innerCollisionFac/3},{x: 0.5, weight:  trainParams.innerCollisionFac/2},{x: 1, weight:  trainParams.innerCollisionFac}];
-                } else {
-                    currentObjects[i+1].facs = [{x: -1, weight:  trainParams.innerCollisionFac},{x: -0.5, weight:  trainParams.innerCollisionFac},{x: 0, weight:  trainParams.innerCollisionFac},{x: 0.5, weight:  trainParams.innerCollisionFac},{x: 1, weight: trainParams.innerCollisionFac}];
-                }
-            }
-            var collisionMatrix = [];
-            currentObjects.forEach(function(currentObject) {
-                currentObject.points = [];
-                currentObject.pointNo = 0;
-                currentObject.facs.forEach(function(fac){
-                    currentObject.points[currentObject.pointNo] = {};
-                    currentObject.points[currentObject.pointNo+1] = {};
-                    currentObject.points[currentObject.pointNo].x = currentObject.x+fac.x*Math.sin(Math.PI/2-currentObject.displayAngle)*currentObject.width/2+Math.cos(-Math.PI/2-currentObject.displayAngle)*currentObject.height/2;
-                    currentObject.points[currentObject.pointNo].y = currentObject.y+fac.x*Math.cos(Math.PI/2-currentObject.displayAngle)*currentObject.width/2-Math.sin(-Math.PI/2-currentObject.displayAngle)*currentObject.height/2;
-                    currentObject.points[currentObject.pointNo].weight = fac.weight;
-                    currentObject.points[currentObject.pointNo+1].x = currentObject.x+fac.x*Math.sin(Math.PI/2-currentObject.displayAngle)*currentObject.width/2-Math.cos(-Math.PI/2-currentObject.displayAngle)*currentObject.height/2;
-                    currentObject.points[currentObject.pointNo+1].y = currentObject.y+fac.x*Math.cos(Math.PI/2-currentObject.displayAngle)*currentObject.width/2+Math.sin(-Math.PI/2-currentObject.displayAngle)*currentObject.height/2;
-                    currentObject.points[currentObject.pointNo+1].weight = fac.weight;
-                    if(fac.weight == 1) {
-                        currentObject.points[currentObject.pointNo+2] = {};
-                        currentObject.points[currentObject.pointNo+3] = {};
-                        currentObject.points[currentObject.pointNo+4] = {};
-                        currentObject.points[currentObject.pointNo+5] = {};
-                        currentObject.points[currentObject.pointNo+2].x = currentObject.x+fac.x*Math.sin(Math.PI/2-currentObject.displayAngle)*currentObject.width/2;
-                        currentObject.points[currentObject.pointNo+2].y = currentObject.y+fac.x*Math.cos(Math.PI/2-currentObject.displayAngle)*currentObject.width/2;
-                        currentObject.points[currentObject.pointNo+2].weight = fac.weight;
-                        currentObject.points[currentObject.pointNo+3].x = currentObject.x+fac.x*1.2*Math.sin(Math.PI/2-currentObject.displayAngle)*currentObject.width/2;
-                        currentObject.points[currentObject.pointNo+3].y = currentObject.y+fac.x*1.2*Math.cos(Math.PI/2-currentObject.displayAngle)*currentObject.width/2;
-                        currentObject.points[currentObject.pointNo+3].weight = fac.weight;
-                        currentObject.points[currentObject.pointNo+4].x = currentObject.x+fac.x*1.1*Math.sin(Math.PI/2-currentObject.displayAngle)*currentObject.width/2+1.1*Math.cos(-Math.PI/2-currentObject.displayAngle)*currentObject.height/2;
-                        currentObject.points[currentObject.pointNo+4].y = currentObject.y+fac.x*1.1*Math.cos(Math.PI/2-currentObject.displayAngle)*currentObject.width/2-1.1*Math.sin(-Math.PI/2-currentObject.displayAngle)*currentObject.height/2;
-                        currentObject.points[currentObject.pointNo+4].weight = fac.weight;
-                        currentObject.points[currentObject.pointNo+5].x = currentObject.x+fac.x*1.1*Math.sin(Math.PI/2-currentObject.displayAngle)*currentObject.width/2-1.1*Math.cos(-Math.PI/2-currentObject.displayAngle)*currentObject.height/2;
-                        currentObject.points[currentObject.pointNo+5].y = currentObject.y+fac.x*1.1*Math.cos(Math.PI/2-currentObject.displayAngle)*currentObject.width/2+1.1*Math.sin(-Math.PI/2-currentObject.displayAngle)*currentObject.height/2;
-                        currentObject.points[currentObject.pointNo+5].weight = fac.weight;
-                    }
-                    currentObject.pointNo += fac.weight == 1 ? 4 : 2;
-                    if(debug) {
-                        context.save();
-                        context.setTransform(client.realScale,0,0,client.realScale,-(client.realScale-1)*canvas.width/2+client.touchScaleX,-(client.realScale-1)*canvas.height/2+client.touchScaleY);
-                        currentObject.points.forEach(function(point) {
-                            var c = Math.max(Math.round(100*(100-100*point.weight))/100,0);
-                            context.fillStyle = "rgb(" + c + "," + c + "," + c + ")";
-                            context.fillRect(point.x-3,point.y-3,6,6);
-                        });
-                        context.restore();
-                    }
-                });
-                for(var i = 0; i < trains.length; i++){
-                    if(collisionMatrix[i] === undefined) {
-                        collisionMatrix[i] = 0;
-                    }
-                    if(input1 != i && (trains[input1].circleFamily === null || trains[i].circleFamily === null || trains[input1].circleFamily == trains[i].circleFamily)){
-                        for(var j = -1; j < trains[i].cars.length; j++){
-                            var currentObject2 = j >= 0 ? trains[i].cars[j] : trains[i];
-                            context.save();
-                            context.translate(currentObject2.x, currentObject2.y);
-                            context.rotate(currentObject2.displayAngle);
-                            context.beginPath();
-                            context.rect(-currentObject2.width/2, -currentObject2.height/2, currentObject2.width, currentObject2.height);
-                            currentObject.points.forEach(function(point) {
-                                if (context.isPointInPath(point.x, point.y) && point.weight > collisionMatrix[i]){
-                                    collisionMatrix[i] = point.weight;
-                                }
-                            });
-                            context.restore();
-                        }
-                    }
-                }
-            });
-            context.restore();
-            return(collisionMatrix);
-        }
-
-        var collisionMatrix = [];
-        for(var i = 0; i < trains.length; i++){
-            collisionMatrix[i] = collisionWeight(i);
-        }
-        return collisionMatrix;
-    }
-    function collisionCourse(input1, input2){
-        for(var i = 0; i < trains.length; i++){
-            if(input1 != i){
-                if((trainCollisions[input1][i] >= trainParams.innerCollisionFac) || (trainCollisions[input1][i] > trainCollisions[i][input1]) || (trains[input1].endOfTrack && trains[input1].endOfTrackStandardDirection == trains[input1].standardDirection)) {
-                    if(trains[input1].move){
-                        var note = (input2) ? [{getString:["appScreenObjectHasCrashed", "."]}, {getString:[["appScreenTrainNames",input1]]}, {getString:[["appScreenTrainNames",i]]}] : null;
-                        actionSync("trains",input1, [{move:false},{accelerationSpeed:0},{accelerationSpeedCustom:1}],note);
-                        actionSync("train-crash",input1,[{move:false},{accelerationSpeed:0},{accelerationSpeedCustom:1}]);
-                        trains[input1].move = false;
-                        trains[input1].accelerationSpeed = 0;
-                        trains[input1].accelerationSpeedCustom = 1;
-                    }
-                    return true;
-                }
-            }
-        }
-        return false;
+    function collisionCourse(input1){
+        return trains[input1].crash;
     }
 
     function drawCars(input1){
@@ -815,7 +699,7 @@ function drawObjects() {
                 }
                 if ((hardware.lastInputTouch < hardware.lastInputMouse && hardware.mouse.downTime - hardware.mouse.upTime > 0 && context.isPointInPath(hardware.mouse.upX, hardware.mouse.upY) && context.isPointInPath(hardware.mouse.downX, hardware.mouse.downY) && hardware.mouse.downTime - hardware.mouse.upTime < doubleClickTime) || (hardware.lastInputTouch > hardware.lastInputMouse && context.isPointInPath(hardware.mouse.downX, hardware.mouse.downY) && Date.now()-hardware.mouse.downTime > longTouchTime)) {
                     if(typeof clickTimeOut !== "undefined"){
-                        clearTimeout(clickTimeOut);
+                        window.clearTimeout(clickTimeOut);
                         clickTimeOut = null;
                     }
                     if(hardware.lastInputTouch > hardware.lastInputMouse) {
@@ -836,10 +720,10 @@ function drawObjects() {
                     }
                 } else {
                     if(typeof clickTimeOut !== "undefined"){
-                        clearTimeout(clickTimeOut);
+                        window.clearTimeout(clickTimeOut);
                         clickTimeOut = null;
                     }
-                    clickTimeOut = setTimeout(function(){
+                    clickTimeOut = window.setTimeout(function(){
                         clickTimeOut = null;
                         if(hardware.lastInputTouch > hardware.lastInputMouse) {
                             hardware.mouse.isHold = false;
@@ -1122,9 +1006,6 @@ function drawObjects() {
 
     /////TRAINS/////
     var inTrain = false;
-    for(var i = 0; i < trains.length; i++) {
-        trainCollisions = collisionMatrix(i);
-    }
     if(!resized) {
         for(var i = 0; i < trains.length; i++) {
             drawTrains(i);
@@ -1250,7 +1131,7 @@ function drawObjects() {
         for(var i = 0; i < cCars.length; i++) {
             for(var k = 0; k < cCars.length; k++) {
                 if(i!= k && carCollisionCourse(i,false) && carCollisionCourse(k,false)){
-                    notify (getString("appScreenCarAutoModeCrash", "."), true, 5000 ,null, null, client.y);
+                    notify("#canvas-notifier", getString("appScreenCarAutoModeCrash", "."), NOTIFICATION_PRIO_HIGH, 5000, null, null, window.innerHeight);
                     carParams.autoModeOff = true;
                     carParams.autoModeRuns = false;
                 }
@@ -1263,7 +1144,7 @@ function drawObjects() {
             }
         });
         if(collStopQuantity == cars.length){
-            notify (getString("appScreenCarAutoModeCrash", "."), true, 5000 ,null, null, client.y);
+            notify("#canvas-notifier", getString("appScreenCarAutoModeCrash", "."), NOTIFICATION_PRIO_HIGH, 5000, null, null, window.innerHeight);
             carParams.autoModeOff = true;
             carParams.autoModeRuns = false;
         }
@@ -1399,7 +1280,7 @@ function drawObjects() {
         if (wasInSwitchPath || (context.isPointInPath(hardware.mouse.wheelX, hardware.mouse.wheelY) && hardware.mouse.wheelScrollY !== 0 && hardware.mouse.wheelScrolls) || context.isPointInPath(hardware.mouse.moveX, hardware.mouse.moveY)) {
             hardware.mouse.cursor = "pointer";
             if(typeof movingTimeOut !== "undefined"){
-                clearTimeout(movingTimeOut);
+                window.clearTimeout(movingTimeOut);
             }
             if((hardware.mouse.wheelScrollY !== 0 && hardware.mouse.wheelScrolls) || hardware.mouse.isHold) {
                 if(hardware.mouse.wheelScrollY !== 0 && hardware.mouse.wheelScrolls) {
@@ -1445,7 +1326,7 @@ function drawObjects() {
             context.rect(-classicUI.transformer.directionInput.width/2, -classicUI.transformer.directionInput.height/2, classicUI.transformer.directionInput.width, classicUI.transformer.directionInput.height);
             if (context.isPointInPath(hardware.mouse.moveX, hardware.mouse.moveY) && !trains[trainParams.selected].move) {
                 if(typeof movingTimeOut !== "undefined"){
-                    clearTimeout(movingTimeOut);
+                    window.clearTimeout(movingTimeOut);
                 }
                 hardware.mouse.cursor = "pointer";
                 if(hardware.mouse.isHold){
@@ -1472,11 +1353,11 @@ function drawObjects() {
             context.restore();
             context.restore();
             if(typeof movingTimeOut !== "undefined"){
-                clearTimeout(movingTimeOut);
+                window.clearTimeout(movingTimeOut);
             }
             var x = classicUI.transformer.x+classicUI.transformer.width/2+classicUI.transformer.input.diffY*Math.sin(classicUI.transformer.angle);
             var y = classicUI.transformer.y+classicUI.transformer.height/2-classicUI.transformer.input.diffY*Math.cos(classicUI.transformer.angle);
-            if(!collisionCourse(trainParams.selected, false)){
+            if(!collisionCourse(trainParams.selected)){
                 if(client.isTiny && (typeof(client.realScale) == "undefined" || client.realScale <= Math.max(1,client.realScaleMax/3))){
                     if(hardware.mouse.isHold){
                         hardware.mouse.isHold = false;
@@ -1671,6 +1552,14 @@ function drawObjects() {
     /////DEBUG/////
     if(debug) {
         context.save();
+        context.setTransform(client.realScale,0,0,client.realScale,-(client.realScale-1)*canvas.width/2+client.touchScaleX,-(client.realScale-1)*canvas.height/2+client.touchScaleY);
+        debugDrawPoints.forEach(function(point) {
+            var c = Math.max(Math.round(100*(100-100*point.weight))/100,0);
+            context.fillStyle = "rgb(" + c + "," + c + "," + c + ")";
+            context.fillRect(point.x-3,point.y-3,6,6);
+        });
+        context.restore();
+        context.save();
         context.lineWidth = 5;
         context.strokeStyle= "red";
         context.fillStyle = "blue";
@@ -1852,6 +1741,10 @@ function drawObjects() {
                 context.restore();
             }
         }
+        debugDrawPointsCrash.forEach(function(point) {
+            context.fillStyle = "rgb(" + Math.round(100+Math.random()*155) + "," + Math.round(100+Math.random()*155) + "," + Math.round(100+Math.random()*155) + ")";
+            context.fillRect(point.x-4,point.y-4,8,8);
+        });
         context.restore();
     }
 
@@ -2093,7 +1986,7 @@ function drawObjects() {
         } else {
             for(var cTrain = 0; cTrain < trains.length; cTrain++) {
                 var maxTextHeight = controlCenter.maxTextHeight/trains.length;
-                var noCollisionCTrain = !collisionCourse(cTrain, false);
+                var noCollisionCTrain = !collisionCourse(cTrain);
                 if(noCollisionCTrain && hardware.mouse.moveX > background.x+controlCenter.translateOffset+controlCenter.maxTextWidth && hardware.mouse.moveY > background.y+controlCenter.translateOffset+maxTextHeight*cTrain && hardware.mouse.moveX < background.x+controlCenter.translateOffset+1.75*controlCenter.maxTextWidth && hardware.mouse.moveY < background.y+controlCenter.translateOffset+maxTextHeight*(cTrain+1)) {
                     hardware.mouse.cursor = "pointer";
                 }
@@ -2280,10 +2173,10 @@ function drawObjects() {
 
     /////REPAINT/////
     if(drawTimeout !== undefined && drawTimeout !== null) {
-        clearTimeout(drawTimeout);
+        window.clearTimeout(drawTimeout);
     }
     var resttime = Math.max(drawInterval-(Date.now()-starttime),0);
-    drawTimeout = setTimeout(drawObjects, resttime);
+    drawTimeout = window.setTimeout(drawObjects, resttime);
 
 }
 
@@ -2291,9 +2184,6 @@ function drawObjects() {
 function actionSync (objname, index, params, notification) {
     if(onlineGame.enabled) {
         if(!onlineGame.stop) {
-            if(objname == "train-crash") {
-                animateWorker.postMessage({k: "train", i: index, params: params});
-            }
             teamplaySync ("action", objname, index, params, notification);
         }
     } else {
@@ -2364,7 +2254,6 @@ var oldbackground;
 
 var rotationPoints;
 var trains;
-var trainCollisions;
 var minTrainSpeed = 10;
 var trainParams;
 var switches = {inner2outer: {left: {turned: false, angles: {normal: 1.01*Math.PI, turned: 0.941*Math.PI}}, right: {turned: false, angles: {normal: 1.5*Math.PI, turned: 1.56*Math.PI}}}, outer2inner: {left: {turned: false, angles: {normal: 0.25*Math.PI, turned: 2.2*Math.PI}}, right: {turned: false, angles: {normal: 0.27*Math.PI, turned: 0.35*Math.PI}}}, innerWide: {left: {turned: false, angles: {normal: 1.44*Math.PI, turned: 1.37*Math.PI}}, right: {turned: false, angles: {normal: 1.02*Math.PI, turned: 1.1*Math.PI}}}, outerAltState3: {left: {turned: true, angles: {normal: 1.75*Math.PI, turned: 1.85*Math.PI}}, right: {turned: true, angles: {normal: 0.75*Math.PI, turned: 0.65*Math.PI}}}, sidings1: {left: {turned: false, angles: {normal: 1.75*Math.PI, turned: 1.7*Math.PI}}}, sidings2: {left: {turned: false, angles: {normal: 1.65*Math.PI, turned: 1.72*Math.PI}}}, sidings3: {left: {turned: false, angles: {normal: 1.65*Math.PI, turned: 1.73*Math.PI}}}};
@@ -2383,13 +2272,16 @@ var controlCenter = {showCarCenter: null, fontFamily: "sans-serif"};
 
 var hardware = {mouse: {moveX:0, moveY:0,downX:0, downY:0, downTime: 0,upX:0, upY:0, upTime: 0, isMoving: false, isHold: false, rightClick: false, cursor: "default"}};
 var client = {devicePixelRatio: 1,realScaleMax:6,realScaleMin:1.2};
-var onlineGame = {animateInterval: 40, syncInterval: 10000, excludeFromSync: {"t": ["src", "assetFlip", "fac", "speedFac", "accelerationSpeedStartFac", "accelerationSpeedFac", "lastDirectionChange", "bogieDistance", "width", "height", "speed", "endOfTrack", "endOfTrackStandardDirection", "flickerFacBack", "flickerFacBackOffset", "flickerFacFront", "flickerFacFrontOffset", "margin", "cars"], "tc": ["src", "assetFlip", "fac", "bogieDistance", "width", "height", "konamiUseTrainIcon"]}};
+var onlineGame = {animateInterval: 40, syncInterval: 10000, excludeFromSync: {"t": ["src", "assetFlip", "fac", "speedFac", "accelerationSpeedStartFac", "accelerationSpeedFac", "lastDirectionChange", "bogieDistance", "width", "height", "speed", "crash", "endOfTrack", "endOfTrackStandardDirection", "flickerFacBack", "flickerFacBackOffset", "flickerFacFront", "flickerFacFrontOffset", "margin", "cars"], "tc": ["src", "assetFlip", "fac", "bogieDistance", "width", "height", "konamiUseTrainIcon"]}};
 var onlineConnection = {serverURI: getServerLink("wss:") + "/multiplay"};
 
 var resizeTimeout;
 var resized = false;
 
 var debug = false;
+var debugDrawPoints = [];
+var debugDrawPointsCrash = [];
+var debugTrainCollisions;
 
 /******************************************
 *         Window Event Listeners          *
@@ -2907,7 +2799,7 @@ window.onload = function() {
                 }
                 window.onresize = function(){
                     if(resizeTimeout !== undefined && resizeTimeout !== null) {
-                        clearTimeout(resizeTimeout);
+                        window.clearTimeout(resizeTimeout);
                     }
                     resizeTimeout = window.setTimeout(resize, 20);
                 };
@@ -2916,13 +2808,13 @@ window.onload = function() {
                 drawObjects();
                 var timeWait = 0.5;
                 var timeLoad = 1.5;
-                setTimeout(function(){
+                window.setTimeout(function(){
                     destroy([document.querySelector("#snake"),document.querySelector("#percent")]);
                     var toHide = document.querySelector("#branding");
                     if(toHide != null && !onlineGame.enabled) {
                         toHide.style.transition = "opacity " + timeLoad + "s ease-in";
                         toHide.style.opacity = "0";
-                        setTimeout(function(){
+                        window.setTimeout(function(){
                             var localAppData = getLocalAppDataCopy();
                             if(settings.classicUI && !settings.alwaysShowSelectedTrain){
                                 notify("#canvas-notifier", formatJSString(getString("appScreenTrainSelected", "."), getString(["appScreenTrainNames",trainParams.selected]), getString("appScreenTrainSelectedAuto", " ")), NOTIFICATION_PRIO_HIGH,3000,null,null, client.y);
@@ -2960,8 +2852,7 @@ window.onload = function() {
                     trains[i].accelerationSpeed = train.accelerationSpeed;
                     trains[i].accelerationSpeedCustom = train.accelerationSpeedCustom;
                     trains[i].standardDirection = train.standardDirection;
-                    trains[i].endOfTrack = train.endOfTrack;
-                    trains[i].endOfTrackStandardDirection = train.endOfTrackStandardDirection;
+                    trains[i].crash = train.crash;
                     train.cars.forEach(function(car,j){
                         trains[i].cars[j].x = car.x;
                         trains[i].cars[j].y = car.y;
@@ -2980,6 +2871,9 @@ window.onload = function() {
                         }
                     });
                 });
+            } else if(message.data.k == "trainCrash") {
+                actionSync("trains",message.data.i, [{move:false},{accelerationSpeed:0},{accelerationSpeedCustom:1}],[{getString:["appScreenObjectHasCrashed", "."]}, {getString:[["appScreenTrainNames",message.data.i]]}, {getString:[["appScreenTrainNames",message.data.j]]}]);
+                actionSync("train-crash");
             } else if(message.data.k == "resized") {
                 resized = false;
                 if(debug){
@@ -3020,6 +2914,10 @@ window.onload = function() {
                 }
                 console.log(message.data.trains);
                 debug=true;
+            } else if(message.data.k == "debugDrawPoints") {
+                debugDrawPoints = message.data.p;
+                debugDrawPointsCrash = message.data.pC;
+                debugTrainCollisions = message.data.tC;
             }
         };
         if(settings.saveGame && !onlineGame.enabled && window.localStorage.getItem("morowayAppSavedGameTrains") != null && window.localStorage.getItem("morowayAppSavedGameSwitches") != null && window.localStorage.getItem("morowayAppSavedBg") != null && window.localStorage.getItem("morowayAppSavedWithVersion") != null) {
@@ -3043,20 +2941,6 @@ window.onload = function() {
             if(elems[i].nodeName.substr(0,1) != "#"){
                 elems[i].style.display = elems[i] == elem ? to : "none";
             }
-        }
-    }
-    
-    function hidePace() {
-        try{
-            document.styleSheets[0].insertRule(".pace, .pace-progress {display: none !important;}",0);
-        } catch (e){
-            if(debug){
-                console.log(e);
-            }
-            var elem = document.querySelector("head");
-            var elemStyle = document.createElement("style");
-            elemStyle.textContent = ".pace, .pace-progress {display: none !important;}";
-            elem.appendChild(elemStyle);
         }
     }
 
@@ -3111,9 +2995,8 @@ window.onload = function() {
         resetForElem(parent, elem);
         onlineConnection.connect = (function(host) {
             function hideLoadingAnimation(){
-                hidePace();
                 window.clearInterval(loadingAnimElemChangingFilter);
-                destroy(document.querySelector("#branding"));
+                destroy([document.querySelector("#branding"),document.querySelector("#snake"),document.querySelector("#percent")]);
             }
             function showStartGame(){
                 hideLoadingAnimation();
@@ -3312,7 +3195,11 @@ window.onload = function() {
                         var elem = parent.querySelector("#setup-start");
                         resetForElem(parent, elem);
                         elem.querySelector("#setup-start-gamelink").textContent = getShareLink(onlineGame.gameId, onlineGame.gameKey);
-                        elem.querySelector("#setup-start-button").onclick = function(){copy("#setup #setup-start #setup-start-gamelink");};
+                        elem.querySelector("#setup-start-button").onclick = function(){
+                            if(!copy("#setup #setup-start #setup-start-gamelink")) {
+                                notify("#canvas-notifier", getString("appScreenTeamplaySetupStartButtonError", "!"), NOTIFICATION_PRIO_HIGH, 6000, null, null, client.y);
+                            }
+                        };
                     } else {
                         showNewGameLink();
                         notify("#canvas-notifier", getString("appScreenTeamplayCreateError", "!"), NOTIFICATION_PRIO_HIGH, 6000, function(){followLink("error#tp-connection", "_self", LINK_STATE_INTERNAL_HTML);}, getString("appScreenFurtherInformation"), client.y);
@@ -3351,7 +3238,7 @@ window.onload = function() {
                         case "run":
                             onlineGame.syncing = false;
                             if(onlineGame.syncRequest !== undefined && onlineGame.syncRequest !== null) {
-                                clearTimeout(onlineGame.syncRequest);
+                                window.clearTimeout(onlineGame.syncRequest);
                             }
                             if(onlineGame.locomotive){
                                 onlineGame.syncRequest = window.setTimeout(sendSyncRequest, onlineGame.syncInterval);
@@ -3400,7 +3287,7 @@ window.onload = function() {
                         break;
                     case "train-crash":
                         if(onlineGame.syncRequest !== undefined && onlineGame.syncRequest !== null) {
-                            clearTimeout(onlineGame.syncRequest);
+                            window.clearTimeout(onlineGame.syncRequest);
                         }
                         if(onlineGame.locomotive){
                             onlineGame.syncRequest = window.setTimeout(sendSyncRequest, 200);
@@ -3464,7 +3351,7 @@ window.onload = function() {
                     onlineGame.syncing = false;
                     if(!onlineGame.stop){
                         if(onlineGame.syncRequest !== undefined && onlineGame.syncRequest !== null) {
-                            clearTimeout(onlineGame.syncRequest);
+                            window.clearTimeout(onlineGame.syncRequest);
                         }
                         if(onlineGame.locomotive){
                             onlineGame.syncRequest = window.setTimeout(sendSyncRequest, onlineGame.syncInterval);
@@ -3474,7 +3361,7 @@ window.onload = function() {
                     break;
                 case "pause":
                     if(onlineGame.syncRequest !== undefined && onlineGame.syncRequest !== null) {
-                        clearTimeout(onlineGame.syncRequest);
+                        window.clearTimeout(onlineGame.syncRequest);
                     }
                     onlineGame.stop = true;
                     animateWorker.postMessage({k: "pause"});
@@ -3483,7 +3370,7 @@ window.onload = function() {
                 case "resume":
                     if(onlineGame.stop){
                         if(onlineGame.syncRequest !== undefined && onlineGame.syncRequest !== null) {
-                            clearTimeout(onlineGame.syncRequest);
+                            window.clearTimeout(onlineGame.syncRequest);
                         }
                         if(onlineGame.locomotive){
                             onlineGame.syncRequest = window.setTimeout(sendSyncRequest, onlineGame.syncInterval);
@@ -3534,18 +3421,14 @@ window.onload = function() {
         for (i = 0; i < elems.length; i++) {
             elems[i].style.display = "block";
         }
-        Pace.on("hide", function(){
-            hidePace();
-            destroy(document.querySelector("body > .pace"));
-            setTimeout(function() {
-                var toShowElems = [document.querySelector("#snake"),document.querySelector("#percent")];
-                toShowElems.forEach( function(toShow) {
-                    if(toShow != null) {
-                        toShow.style.display = "block";
-                    }
-                });
-            },2500);
-        });
+        window.setTimeout(function() {
+            var toShowElems = [document.querySelector("#percent")];
+            toShowElems.forEach( function(toShow) {
+                if(toShow != null) {
+                    toShow.style.display = "block";
+                }
+            });
+        },2500);
     }
     hardware.lastInputMouse = hardware.lastInputTouch = 0;
     canvasForeground.addEventListener("touchstart",chooseInputMethod);
@@ -3566,10 +3449,6 @@ window.onload = function() {
             document.querySelector("#percent #percent-text").textContent = cPercent + "%";
             document.querySelector("#percent #percent-progress").style.left = -100+cPercent + "%";
             if (loadNo == finalPicNo) {
-                Pace.stop();
-                hidePace();
-                destroy(document.querySelector("body > .pace"));
-                setTimeout(function(){destroy(document.querySelector("#percent"));},1000);
                 initialDisplay();
             }
         };

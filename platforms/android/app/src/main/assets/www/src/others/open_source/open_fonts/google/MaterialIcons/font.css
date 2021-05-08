@@ -19,4 +19,7 @@
   line-height: 1;
   text-transform: none;
   user-select: none;
+  overflow: hidden;
+  text-overflow: clip;
+  max-width: 1em;
 }

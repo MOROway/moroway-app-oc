@@ -1,13 +1,14 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="de.moroway.oc" version="7.1.2" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget id="de.moroway.oc" version="7.1.4" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <feature name="Notification">
         <param name="android-package" value="org.apache.cordova.dialogs.Notification" />
     </feature>
     <feature name="Insomnia">
         <param name="android-package" value="nl.xservices.plugins.Insomnia" />
     </feature>
-    <feature name="CDVOrientation">
-        <param name="android-package" value="cordova.plugins.screenorientation.CDVOrientation" />
+    <feature name="SplashScreen">
+        <param name="android-package" value="org.apache.cordova.splashscreen.SplashScreen" />
+        <param name="onload" value="true" />
     </feature>
     <feature name="Whitelist">
         <param name="android-package" value="org.apache.cordova.whitelist.WhitelistPlugin" />
@@ -16,25 +17,17 @@
     <feature name="WebIntent">
         <param name="android-package" value="com.borismus.webintent.WebIntent" />
     </feature>
-    <feature name="SplashScreen">
-        <param name="android-package" value="org.apache.cordova.splashscreen.SplashScreen" />
-        <param name="onload" value="true" />
-    </feature>
     <name>MOROway</name>
     <author>Jonathan Herrmann-Engel</author>
     <content src="html_platform/entry.html" />
     <access origin="*" />
     <allow-intent href="http:*" />
     <allow-intent href="https:*" />
-    <allow-intent href="tel:*" />
-    <allow-intent href="sms:*" />
     <allow-intent href="mailto:*" />
-    <allow-intent href="geo:*" />
     <hook src="scripts/conf.bash" type="before_build" />
     <hook src="scripts/conf.bash" type="before_run" />
     <hook src="scripts/html.bash" type="before_build" />
     <hook src="scripts/html.bash" type="before_run" />
-    <allow-intent href="market:*" />
     <resource-file src="www/icons_platform/icon.png" target="app/src/main/res/mipmap/ic_bg.png" />
     <resource-file src="www/icons_platform/fore.png" target="app/src/main/res/mipmap/ic_fg.png" />
     <resource-file src="www/icons_platform/icon.png" target="app/src/main/res/mipmap/ic_launcher.png" />
@@ -43,6 +36,9 @@
     <resource-file src="www/icons_platform/icon.xml" target="app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml" />
     <edit-config file="app/src/main/AndroidManifest.xml" mode="merge" target="/manifest/application">
         <application android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher_round" />
+    </edit-config>
+    <edit-config file="app/src/main/AndroidManifest.xml" mode="merge" target="/manifest/application/activity[@android:name='MainActivity']">
+        <activity android:screenOrientation="sensorLandscape" />
     </edit-config>
     <config-file parent="application/activity" target="AndroidManifest.xml">
         <intent-filter android:autoVerify="true" android:label="MOROway OC">

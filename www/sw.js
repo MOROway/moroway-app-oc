@@ -1,4 +1,4 @@
-var updatedSW = 87; //TO BE INCREASED ON EACH NEW VERSION
+var updatedSW = 90; //TO BE INCREASED ON EACH NEW VERSION
 
 //generate cache-name from branch and sw-version
 var locationstr = location.pathname;
@@ -73,10 +73,6 @@ var urlsToCache = [
     "src/jonathan_herrmann_engel/css_platform/styling.css",
     "src/jonathan_herrmann_engel/css_platform/settings.css",
     "src/jonathan_herrmann_engel/css_platform/whatsnew.css",
-    "src/others/open_source/open_code/hubspot/pace.js/ABOUT",
-    "src/others/open_source/open_code/hubspot/pace.js/LICENSE",
-    "src/others/open_source/open_code/hubspot/pace.js/pace.min.js",
-    "src/others/open_source/open_code/hubspot/pace.js/pace-theme-center-simple.tmpl.css",
     "src/others/open_source/open_fonts/google/MaterialIcons/ABOUT",
     "src/others/open_source/open_fonts/google/MaterialIcons/LICENSE",
     "src/others/open_source/open_fonts/google/MaterialIcons/font.css",

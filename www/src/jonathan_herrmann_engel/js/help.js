@@ -9,7 +9,6 @@ function init(){
     document.querySelector("#general-version").appendChild(elem);
     document.querySelector("#general-whatsnew").addEventListener("click", function(){followLink("whatsnew/#newest","_self", LINK_STATE_INTERNAL_HTML);}, false);
 	
-    document.querySelector("#legal-pace-license").addEventListener("click", function(){followLink("src/others/open_source/open_code/hubspot/pace.js/LICENSE","_self", LINK_STATE_INTERNAL_LICENSE_FILE);}, false);
     document.querySelector("#legal-fonts-roboto-copyright").addEventListener("click", function(){followLink("src/others/open_source/open_fonts/google/Roboto/COPYRIGHT","_self", LINK_STATE_INTERNAL_LICENSE_FILE);}, false);
     document.querySelector("#legal-fonts-roboto-license").addEventListener("click", function(){followLink("src/others/open_source/open_fonts/google/Roboto/LICENSE","_self", LINK_STATE_INTERNAL_LICENSE_FILE);}, false);
     document.querySelector("#legal-fonts-materialicons-license").addEventListener("click", function(){followLink("src/others/open_source/open_fonts/google/MaterialIcons/LICENSE","_self", LINK_STATE_INTERNAL_LICENSE_FILE);}, false);

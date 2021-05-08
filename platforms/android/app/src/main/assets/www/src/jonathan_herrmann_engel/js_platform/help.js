@@ -25,7 +25,6 @@ function init_local(){
     document.querySelector("#legal-appoc-webintent-license").addEventListener("click", function(){followLink("licenses_platform/webintent","_self", LINK_STATE_INTERNAL_LICENSE_FILE);}, false);
     document.querySelector("#legal-appoc-whitelist-license").addEventListener("click", function(){followLink("licenses_platform/whitelist","_self", LINK_STATE_INTERNAL_LICENSE_FILE);}, false);
     document.querySelector("#legal-appoc-dialogs-license").addEventListener("click", function(){followLink("licenses_platform/dialogs","_self", LINK_STATE_INTERNAL_LICENSE_FILE);}, false);
-    document.querySelector("#legal-appoc-orientation-license").addEventListener("click", function(){followLink("licenses_platform/orientation","_self", LINK_STATE_INTERNAL_LICENSE_FILE);}, false);
     document.querySelector("#legal-appoc-splashscreen-license").addEventListener("click", function(){followLink("licenses_platform/splashscreen","_self", LINK_STATE_INTERNAL_LICENSE_FILE);}, false);
     document.querySelector("#download-sourcelink").style.display = "none";
     document.querySelector("#download-sourcelink-oc").addEventListener("click", function(){followLink(getServerRedirectLink("source_code_appoc"),"_blank", LINK_STATE_NORMAL);}, false);

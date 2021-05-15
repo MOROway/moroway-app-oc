@@ -1133,7 +1133,6 @@ function animateObjects() {
     if(firstRun) {
         firstRun = false;
         postMessage({k: "ready", trains: trains, animateInterval: animateInterval});
-        saveTheGameSend();
     }
     postMessage({k: "setTrains", trains: trains});
     for(var i = 0; i < newCrash.length; i++) {
@@ -1257,6 +1256,10 @@ onmessage = function(message) {
         postMessage({k: "switches", switches: switches});
         postMessage({k: "setTrains", trains: trains});
         postMessage({k: "resized"});
+        if(saveTheGameSendTimeout !== undefined && saveTheGameSendTimeout !== null) {
+            clearTimeout(saveTheGameSendTimeout);
+        }
+        saveTheGameSend();
     } else if(message.data.k == "train") {
         message.data.params.forEach(function(param){
             trains[message.data.i][Object.keys(param)[0]] = Object.values(param)[0];

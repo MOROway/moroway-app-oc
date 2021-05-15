@@ -2987,431 +2987,6 @@ window.onload = function() {
         var loadingAnimElemChangingFilter = window.setInterval(function(){
             loadingAnimElem.style.filter = formatJSString(loadingAnimElemDefaultFilter, Math.random()*260+100);
         }, 10);
-        var parent = document.querySelector("#content");
-        var elem = parent.querySelector("#game");
-        resetForElem(parent, elem, "block");
-        var parent = document.querySelector("#game");
-        var elem = parent.querySelector("#game-gameplay");
-        resetForElem(parent, elem);
-        onlineConnection.connect = (function(host) {
-            function hideLoadingAnimation(){
-                window.clearInterval(loadingAnimElemChangingFilter);
-                destroy([document.querySelector("#branding"),document.querySelector("#snake"),document.querySelector("#percent")]);
-            }
-            function showStartGame(){
-                hideLoadingAnimation();
-                onlineGame.stop = false;
-                document.addEventListener("visibilitychange", function() {
-                    if (document.hidden) {
-                        onlineConnection.send({mode: "pause-request"});
-                    } else {
-                        onlineConnection.send({mode: "resume-request"});
-                    }
-                });
-                var parent = document.querySelector("#content");
-                var elem = parent.querySelector("#game");
-                resetForElem(parent, elem, "block");
-                var parent = document.querySelector("#game");
-                var elem = parent.querySelector("#game-start");
-                resetForElem(parent, elem);
-                elem.querySelector("#game-start-button").onclick = function(){
-                    onlineConnection.send({mode:"start"});
-                };
-            }
-            function showNewGameLink(){
-                hideLoadingAnimation();
-                var parent = document.querySelector("#content");
-                var elem = parent.querySelector("#setup");
-                resetForElem(parent, elem, "block");
-                var parent = document.querySelector("#setup-inner-content");
-                var elem = parent.querySelector("#setup-create");
-                resetForElem(parent, elem);
-                var elem = document.querySelector("#setup #setup-create #setup-create-link");
-                elem.addEventListener("click",function(){followLink("?mode=multiplay", "_self", LINK_STATE_INTERNAL_HTML);});
-                var elem = document.querySelector("#setup #setup-create #setup-create-escape");
-                elem.addEventListener("click",function(){followLink("?", "_self", LINK_STATE_INTERNAL_HTML);});
-            }
-            function getPlayerNameFromInput(){
-                var elem = document.querySelector("#setup-init-name");
-                var name = elem.value;
-                var nameCheck = name.replace(/[^a-zA-Z0-9]/g, "");
-                if(name.length > 0 && name == nameCheck){
-                    window.sessionStorage.setItem("playername", name);
-                    return name;
-                } else {
-                    elem.value = nameCheck;
-                }
-                return false;
-            }
-            function sendPlayerName(name){
-                onlineConnection.send({mode:"init", message: name});
-            }
-            function sendSyncRequest(){
-                if(!onlineGame.stop){
-                    var number = 0;
-                    number += trains.length;
-                    trains.forEach(function(train){
-                        number += train.cars.length;
-                    });
-                    number++; //Switches
-                    var obj = {"number": number};
-                    onlineConnection.send({mode: "sync-request", message: JSON.stringify(obj)});
-                }
-            }
-            function sendSyncData(){
-                var task = {};
-                task.o = "s";
-                var obj = copyJSObject(switches);
-                task.d = obj;
-                onlineConnection.send({mode:"sync-task", message: JSON.stringify(task)});
-                for(var i = 0; i < trains.length; i++){
-                    task = {};
-                    task.o = "t";
-                    task.i = i;
-                    obj = copyJSObject(trains[i]);
-                    obj.front.x = (obj.front.x-background.x) / background.width;
-                    obj.back.x = (obj.back.x-background.x) / background.width;
-                    obj.x = (obj.x-background.x) / background.width;
-                    obj.front.y = (obj.front.y - background.y) / background.height;
-                    obj.back.y = (obj.back.y-background.y) / background.height;
-                    obj.y = (obj.y-background.y) / background.height;
-                    obj.width = obj.width / background.width;
-                    obj.height = obj.height / background.height;
-                    onlineGame.excludeFromSync[task.o].forEach(function(key){
-                        delete obj[key];
-                    });
-                    if(obj.circleFamily != null){
-                        Object.keys(rotationPoints).forEach(function(key){
-                            if(trains[i].circleFamily == rotationPoints[key]) {
-                                obj.circleFamily = key;
-                            }
-                        });
-                        if(typeof obj.circleFamily == "string") {
-                            Object.keys(rotationPoints[obj.circleFamily]).forEach(function(key){
-                                if(trains[i].circle == rotationPoints[obj.circleFamily][key]) {
-                                    obj.circle = key;
-                                }
-                            });
-                        } else {
-                            delete obj.circle;
-                        }
-                    } else {
-                        delete obj.circle;
-                    }
-                    task.d = obj;
-                    onlineConnection.send({mode:"sync-task", message: JSON.stringify(task)});
-                    for(var j = 0; j < trains[i].cars.length; j++){
-                        task = {};
-                        task.o = "tc";
-                        task.i = [i,j];
-                        obj = copyJSObject(trains[i].cars[j]);
-                        obj.front.x = (obj.front.x-background.x) / background.width;
-                        obj.back.x = (obj.back.x-background.x) / background.width;
-                        obj.x = (obj.x-background.x) / background.width;
-                        obj.front.y = (obj.front.y - background.y) / background.height;
-                        obj.back.y = (obj.back.y-background.y) / background.height;
-                        obj.y = (obj.y-background.y) / background.height;
-                        obj.width = obj.width / background.width;
-                        obj.height = obj.height / background.height;
-                        onlineGame.excludeFromSync[task.o].forEach(function(key){
-                            delete obj[key];
-                        });
-                        task.d = obj;
-                        onlineConnection.send({mode:"sync-task", message: JSON.stringify(task)});
-                    }
-                }
-            }
-            onlineConnection.socket = new WebSocket(host);
-            onlineConnection.socket.onopen = function () {
-                window.addEventListener("error", function() {onlineConnection.socket.close();});
-                onlineConnection.send({mode:"hello", message: APP_DATA.version.major+APP_DATA.version.minor/10});
-            };
-            onlineConnection.socket.onclose = function () {
-                showNewGameLink();
-                notify("#canvas-notifier", getString("appScreenTeamplayConnectionError", "."), NOTIFICATION_PRIO_HIGH, 6000, function(){followLink("error#tp-connection", "_self", LINK_STATE_INTERNAL_HTML);}, getString("appScreenFurtherInformation"), client.y);
-            };
-            onlineConnection.socket.onmessage = function (message) {
-                var json = JSON.parse(message.data);
-                if(debug){
-                    console.log(json);
-                }
-                switch (json.mode) {
-                case "hello":
-                    if(json.errorLevel < 2) {
-                        if(json.errorLevel == 1){
-                            notify("#canvas-notifier", getString("appScreenTeamplayUpdateNote", "!"), NOTIFICATION_PRIO_DEFAULT, 900, null,null,client.y);
-                        }
-                        var parent = document.querySelector("#content");
-                        var elem = parent.querySelector("#setup");
-                        resetForElem(parent, elem, "block");
-                        if(window.sessionStorage.getItem("playername") != null){
-                            sendPlayerName(window.sessionStorage.getItem("playername"));
-                        } else {
-                            hideLoadingAnimation();
-                            var parent = document.querySelector("#setup-inner-content");
-                            var elem = parent.querySelector("#setup-init");
-                            resetForElem(parent, elem);
-                            elem.querySelector("#setup-init-button").addEventListener("click", function(event) {
-                                var name = getPlayerNameFromInput();
-                                if(name !== false) {
-                                    sendPlayerName(name);
-                                }
-                            });
-                            elem.querySelector("#setup-init-name").addEventListener("keyup", function(event) {
-                                if(event.key === "Enter") {
-                                    var name = getPlayerNameFromInput();
-                                    if(name !== false) {
-                                        sendPlayerName(name);
-                                    }
-                                }
-                            });
-                        }
-                    } else {
-                        document.querySelector("#content").style.display = "none";
-                        window.setTimeout(function(){followLink("error#tp-update", "_self", LINK_STATE_INTERNAL_HTML);},1000);
-                        notify("#canvas-notifier", getString("appScreenTeamplayUpdateError", "!"), NOTIFICATION_PRIO_HIGH, 6000, null,null,client.y);
-                    }
-                    break;
-                case "init":
-                    if(json.errorLevel === 0){
-                        onlineGame.sessionId = json.sessionId;
-                        if(onlineGame.gameKey == "" || onlineGame.gameId == ""){
-                            onlineConnection.send({mode:"connect"});
-                        } else {
-                            onlineConnection.send({mode:"join",gameKey:onlineGame.gameKey,gameId:onlineGame.gameId});
-                        }
-                    } else {
-                        showNewGameLink();
-                        notify("#canvas-notifier", getString("appScreenTeamplayConnectionError", "."), NOTIFICATION_PRIO_HIGH, 6000, function(){followLink("error#tp-connection", "_self", LINK_STATE_INTERNAL_HTML);}, getString("appScreenFurtherInformation"), client.y);
-                    }
-                    break;
-                case "connect":
-                    if(json.errorLevel === 0){
-                        onlineGame.locomotive = true;
-                        onlineGame.gameKey = json.gameKey;
-                        onlineGame.gameId = json.gameId;
-                        hideLoadingAnimation();
-                        var parent = document.querySelector("#setup-inner-content");
-                        var elem = parent.querySelector("#setup-start");
-                        resetForElem(parent, elem);
-                        elem.querySelector("#setup-start-gamelink").textContent = getShareLink(onlineGame.gameId, onlineGame.gameKey);
-                        elem.querySelector("#setup-start-button").onclick = function(){
-                            if(!copy("#setup #setup-start #setup-start-gamelink")) {
-                                notify("#canvas-notifier", getString("appScreenTeamplaySetupStartButtonError", "!"), NOTIFICATION_PRIO_HIGH, 6000, null, null, client.y);
-                            }
-                        };
-                    } else {
-                        showNewGameLink();
-                        notify("#canvas-notifier", getString("appScreenTeamplayCreateError", "!"), NOTIFICATION_PRIO_HIGH, 6000, function(){followLink("error#tp-connection", "_self", LINK_STATE_INTERNAL_HTML);}, getString("appScreenFurtherInformation"), client.y);
-                    }
-                    break;
-                case "join":
-                    if(json.sessionId == onlineGame.sessionId) {
-                        if(json.errorLevel === 0){
-                            onlineGame.locomotive = false;
-                            showStartGame();
-                        } else {
-                            showNewGameLink();
-                            notify("#canvas-notifier", getString("appScreenTeamplayJoinError", "!"), NOTIFICATION_PRIO_HIGH, 6000, function(){followLink("error#tp-join", "_self", LINK_STATE_INTERNAL_HTML);}, getString("appScreenFurtherInformation"), client.y);
-                        }
-                    } else {
-                        if(json.errorLevel === 0){
-                            showStartGame();
-                        } else {
-                            showNewGameLink();
-                            notify("#canvas-notifier", getString("appScreenTeamplayJoinTeammateError", "!"), NOTIFICATION_PRIO_HIGH, 6000, function(){followLink("error#tp-connection", "_self", LINK_STATE_INTERNAL_HTML);}, getString("appScreenFurtherInformation"), client.y);
-                        }
-                    }
-                    break;
-                case "start":
-                    if(json.errorLevel < 2){
-                        switch(json.message){
-                        case "wait":
-                            if(json.sessionId == onlineGame.sessionId) {
-                                var parent = document.querySelector("#game");
-                                var elem = parent.querySelector("#game-wait");
-                                resetForElem(parent, elem);
-                            } else {
-                                notify("#canvas-notifier", getString("appScreenTeamplayTeammateReady", "?"), NOTIFICATION_PRIO_DEFAULT, 1000, null,null,client.y);
-                            }
-                            break;
-                        case "run":
-                            onlineGame.syncing = false;
-                            if(onlineGame.syncRequest !== undefined && onlineGame.syncRequest !== null) {
-                                window.clearTimeout(onlineGame.syncRequest);
-                            }
-                            if(onlineGame.locomotive){
-                                onlineGame.syncRequest = window.setTimeout(sendSyncRequest, onlineGame.syncInterval);
-                            }
-                            var parent = document.querySelector("#game");
-                            var elem = parent.querySelector("#game-gameplay");
-                            resetForElem(parent, elem);
-                            break;
-                        }
-                    } else {
-                        showNewGameLink();
-                        notify("#canvas-notifier", getString("appScreenTeamplayStartError", "!"), NOTIFICATION_PRIO_HIGH, 6000, function(){followLink("error#tp-connection", "_self", LINK_STATE_INTERNAL_HTML);}, getString("appScreenFurtherInformation"), client.y);
-                    }
-                    break;
-                case "action":
-                    var json = JSON.parse(message.data);
-                    var input = JSON.parse(json.message);
-                    var notifyArr = [];
-                    if(typeof input.notification == "object" && Array.isArray(input.notification)){
-                        input.notification.forEach(function(elem){
-                            if(typeof elem == "object" && Array.isArray(elem.getString)) {
-                                notifyArr.push(getString.apply( null, elem.getString ));
-                            } else if(typeof elem == "string") {
-                                notifyArr.push( elem );
-                            }
-                        });
-                        var notifyStr = formatJSString.apply( null, notifyArr );
-                        if(onlineGame.sessionId != json.sessionId){
-                            notifyStr = json.sessionName + ": " + notifyStr;
-                        }
-                        notify("#canvas-notifier", notifyStr, NOTIFICATION_PRIO_DEFAULT, 1000, null,null,client.y);
-                    }
-                    var obj;
-                    switch (input.objname){
-                    case "trains":
-                        if(onlineGame.sessionId != json.sessionId){
-                            onlineGame.excludeFromSync["t"].forEach(function(key){
-                                input.params.forEach(function(param, paramNo){
-                                    if(Object.keys(param)[0] == key) {
-                                        delete input.params[paramNo];
-                                    }
-                                });
-                            });
-                        }
-                        animateWorker.postMessage({k: "train", i: input.index, params: input.params});
-                        break;
-                    case "train-crash":
-                        if(onlineGame.syncRequest !== undefined && onlineGame.syncRequest !== null) {
-                            window.clearTimeout(onlineGame.syncRequest);
-                        }
-                        if(onlineGame.locomotive){
-                            onlineGame.syncRequest = window.setTimeout(sendSyncRequest, 200);
-                        }
-                        break;
-                    case "switches":
-                        obj = switches[input.index[0]][input.index[1]];
-                        input.params.forEach(function(param){
-                            obj[Object.keys(param)[0]] = Object.values(param)[0];
-                        });
-                        obj.lastStateChange = frameNo;
-                        animateWorker.postMessage({k: "switches", switches: switches});
-                        break;
-                    }
-                    break;
-                case "sync-request":
-                    var json = JSON.parse(message.data);
-                    var json_message = JSON.parse(json.message);
-                    onlineGame.syncingTimeout = window.setTimeout(function(){
-                        onlineGame.syncing = false;
-                        onlineConnection.send({mode: "sync-cancel"});
-                    },3000);
-                    onlineGame.syncingCounter = 0;
-                    onlineGame.syncingCounterFinal = parseInt(json_message.number,10);
-                    onlineGame.syncing = true;
-                    animateWorker.postMessage({k: "sync-request"});
-                    break;
-                case "sync-ready":
-                    if(onlineGame.locomotive){
-                        sendSyncData();
-                    }
-                    break;
-                case "sync-task":
-                    if(onlineGame.syncing) {
-                        onlineGame.syncingCounter++;
-                        var json = JSON.parse(message.data);
-                        var task = JSON.parse(json.message);
-                        switch(task.o){
-                        case "t":
-                            animateWorker.postMessage({k: "sync-t", i: task.i, d: task.d});
-                            break;
-                        case "tc":
-                            animateWorker.postMessage({k: "sync-tc", i: task.i, d: task.d});
-                            break;
-                        case "s":
-                            Object.keys(task.d).forEach(function(key){
-                                Object.keys(switches[key]).forEach(function(currentKey){
-                                    switches[key][currentKey].turned = task["d"][key][currentKey].turned;
-                                });
-                            });
-                            animateWorker.postMessage({k: "switches", switches: switches});
-                            break;
-                        }
-                        if(onlineGame.syncingCounter == onlineGame.syncingCounterFinal){
-                            window.clearTimeout(onlineGame.syncingTimeout);
-                            onlineConnection.send({mode: "sync-done"});
-                        }
-                    }
-                    break;
-                case "sync-done":
-                    onlineGame.syncing = false;
-                    if(!onlineGame.stop){
-                        if(onlineGame.syncRequest !== undefined && onlineGame.syncRequest !== null) {
-                            window.clearTimeout(onlineGame.syncRequest);
-                        }
-                        if(onlineGame.locomotive){
-                            onlineGame.syncRequest = window.setTimeout(sendSyncRequest, onlineGame.syncInterval);
-                        }
-                        animateWorker.postMessage({k: "resume"});
-                    }
-                    break;
-                case "pause":
-                    if(onlineGame.syncRequest !== undefined && onlineGame.syncRequest !== null) {
-                        window.clearTimeout(onlineGame.syncRequest);
-                    }
-                    onlineGame.stop = true;
-                    animateWorker.postMessage({k: "pause"});
-                    notify("#canvas-notifier", getString("appScreenTeamplayGamePaused", "."), NOTIFICATION_PRIO_HIGH, 900, null, null, client.y);
-                    break;
-                case "resume":
-                    if(onlineGame.stop){
-                        if(onlineGame.syncRequest !== undefined && onlineGame.syncRequest !== null) {
-                            window.clearTimeout(onlineGame.syncRequest);
-                        }
-                        if(onlineGame.locomotive){
-                            onlineGame.syncRequest = window.setTimeout(sendSyncRequest, onlineGame.syncInterval);
-                        }
-                        onlineGame.stop = false;
-                        notify("#canvas-notifier", getString("appScreenTeamplayGameResumed", "."), NOTIFICATION_PRIO_HIGH, 900, null, null, client.y);
-                        animateWorker.postMessage({k: "resume"});
-                    }
-                    break;
-                case "leave":
-                    if(json.errorLevel == 2){
-                        showNewGameLink();
-                        notify("#canvas-notifier", getString("appScreenTeamplayTeammateLeft", "."), NOTIFICATION_PRIO_HIGH, 900, null, null, client.y);
-                    } else {
-                        notify("#canvas-notifier", json.sessionName + ": " + getString("appScreenTeamplaySomebodyLeft", "."), NOTIFICATION_PRIO_HIGH, 900, null, null, client.y);
-                    }
-                    break;
-                case "unknown":
-                    notify("#canvas-notifier", getString("appScreenTeamplayUnknownRequest", "."), NOTIFICATION_PRIO_HIGH, 2000, null, null, client.y);
-                    break;
-                }
-            };
-            onlineConnection.socket.onerror = function () {
-                showNewGameLink();
-                notify("#canvas-notifier", getString("appScreenTeamplayConnectionError", "!"), NOTIFICATION_PRIO_HIGH, 6000, function(){followLink("error#tp-connection", "_self", LINK_STATE_INTERNAL_HTML);}, getString("appScreenFurtherInformation"), client.y);
-            };
-        });
-        onlineConnection.send = (function(obj) {
-            onlineConnection.socket.send(JSON.stringify(obj));
-        });
-        onlineGame.gameKey = getQueryString("key");
-        onlineGame.gameId = getQueryString("id");
-        document.getElementById("setup").addEventListener("mousemove", function(event) {
-            document.getElementById("setup-ball").style.left = event.pageX + "px";
-            document.getElementById("setup-ball").style.top = event.pageY + "px";
-        });
-        document.getElementById("setup").addEventListener("mouseout", function(event) {
-            document.getElementById("setup-ball").style.left = "-1vw";
-            document.getElementById("setup-ball").style.top = "-1vw";
-        });
-        onlineConnection.connect(onlineConnection.serverURI);
     } else {
         var elems = document.querySelectorAll("#content > *:not(#game), #game > *:not(#game-gameplay)");
         for (var i = 0; i < elems.length; i++) {
@@ -3421,15 +2996,15 @@ window.onload = function() {
         for (i = 0; i < elems.length; i++) {
             elems[i].style.display = "block";
         }
-        window.setTimeout(function() {
-            var toShowElems = [document.querySelector("#percent")];
-            toShowElems.forEach( function(toShow) {
-                if(toShow != null) {
-                    toShow.style.display = "block";
-                }
-            });
-        },2500);
     }
+    window.setTimeout(function() {
+        var toShowElems = [document.querySelector("#percent")];
+        toShowElems.forEach( function(toShow) {
+            if(toShow != null) {
+                toShow.style.display = "block";
+            }
+        });
+    },2500);
     hardware.lastInputMouse = hardware.lastInputTouch = 0;
     canvasForeground.addEventListener("touchstart",chooseInputMethod);
     canvasForeground.addEventListener("mousemove",chooseInputMethod);
@@ -3446,10 +3021,433 @@ window.onload = function() {
         pics[pic.id].onload = function() {
             loadNo++;
             var cPercent = Math.round(100 * (loadNo / finalPicNo));
-            document.querySelector("#percent #percent-text").textContent = cPercent + "%";
-            document.querySelector("#percent #percent-progress").style.left = -100+cPercent + "%";
+            if(document.querySelector("#percent #percent-text") != null && document.querySelector("#percent #percent-progress") != null) {
+                document.querySelector("#percent #percent-text").textContent = cPercent + "%";
+                document.querySelector("#percent #percent-progress").style.left = -100+cPercent + "%";
+            }
             if (loadNo == finalPicNo) {
                 initialDisplay();
+                if(onlineGame.enabled) {
+                    onlineConnection.connect = (function(host) {
+                        function hideLoadingAnimation(){
+                            window.clearInterval(loadingAnimElemChangingFilter);
+                            destroy([document.querySelector("#branding"),document.querySelector("#snake"),document.querySelector("#percent")]);
+                        }
+                        function showStartGame(){
+                            hideLoadingAnimation();
+                            onlineGame.stop = false;
+                            document.addEventListener("visibilitychange", function() {
+                                if (document.hidden) {
+                                    onlineConnection.send({mode: "pause-request"});
+                                } else {
+                                    onlineConnection.send({mode: "resume-request"});
+                                }
+                            });
+                            var parent = document.querySelector("#content");
+                            var elem = parent.querySelector("#game");
+                            resetForElem(parent, elem, "block");
+                            var parent = document.querySelector("#game");
+                            var elem = parent.querySelector("#game-start");
+                            resetForElem(parent, elem);
+                            elem.querySelector("#game-start-button").onclick = function(){
+                                onlineConnection.send({mode:"start"});
+                            };
+                        }
+                        function showNewGameLink(){
+                            hideLoadingAnimation();
+                            var parent = document.querySelector("#content");
+                            var elem = parent.querySelector("#setup");
+                            resetForElem(parent, elem, "block");
+                            var parent = document.querySelector("#setup-inner-content");
+                            var elem = parent.querySelector("#setup-create");
+                            resetForElem(parent, elem);
+                            var elem = document.querySelector("#setup #setup-create #setup-create-link");
+                            elem.addEventListener("click",function(){followLink("?mode=multiplay", "_self", LINK_STATE_INTERNAL_HTML);});
+                            var elem = document.querySelector("#setup #setup-create #setup-create-escape");
+                            elem.addEventListener("click",function(){followLink("?", "_self", LINK_STATE_INTERNAL_HTML);});
+                        }
+                        function getPlayerNameFromInput(){
+                            var elem = document.querySelector("#setup-init-name");
+                            var name = elem.value;
+                            var nameCheck = name.replace(/[^a-zA-Z0-9]/g, "");
+                            if(name.length > 0 && name == nameCheck){
+                                window.sessionStorage.setItem("playername", name);
+                                return name;
+                            } else {
+                                elem.value = nameCheck;
+                            }
+                            return false;
+                        }
+                        function sendPlayerName(name){
+                            onlineConnection.send({mode:"init", message: name});
+                        }
+                        function sendSyncRequest(){
+                            if(!onlineGame.stop){
+                                var number = 0;
+                                number += trains.length;
+                                trains.forEach(function(train){
+                                    number += train.cars.length;
+                                });
+                                number++; //Switches
+                                var obj = {"number": number};
+                                onlineConnection.send({mode: "sync-request", message: JSON.stringify(obj)});
+                            }
+                        }
+                        function sendSyncData(){
+                            var task = {};
+                            task.o = "s";
+                            var obj = copyJSObject(switches);
+                            task.d = obj;
+                            onlineConnection.send({mode:"sync-task", message: JSON.stringify(task)});
+                            for(var i = 0; i < trains.length; i++){
+                                task = {};
+                                task.o = "t";
+                                task.i = i;
+                                obj = copyJSObject(trains[i]);
+                                obj.front.x = (obj.front.x-background.x) / background.width;
+                                obj.back.x = (obj.back.x-background.x) / background.width;
+                                obj.x = (obj.x-background.x) / background.width;
+                                obj.front.y = (obj.front.y - background.y) / background.height;
+                                obj.back.y = (obj.back.y-background.y) / background.height;
+                                obj.y = (obj.y-background.y) / background.height;
+                                obj.width = obj.width / background.width;
+                                obj.height = obj.height / background.height;
+                                onlineGame.excludeFromSync[task.o].forEach(function(key){
+                                    delete obj[key];
+                                });
+                                if(obj.circleFamily != null){
+                                    Object.keys(rotationPoints).forEach(function(key){
+                                        if(trains[i].circleFamily == rotationPoints[key]) {
+                                            obj.circleFamily = key;
+                                        }
+                                    });
+                                    if(typeof obj.circleFamily == "string") {
+                                        Object.keys(rotationPoints[obj.circleFamily]).forEach(function(key){
+                                            if(trains[i].circle == rotationPoints[obj.circleFamily][key]) {
+                                                obj.circle = key;
+                                            }
+                                        });
+                                    } else {
+                                        delete obj.circle;
+                                    }
+                                } else {
+                                    delete obj.circle;
+                                }
+                                task.d = obj;
+                                onlineConnection.send({mode:"sync-task", message: JSON.stringify(task)});
+                                for(var j = 0; j < trains[i].cars.length; j++){
+                                    task = {};
+                                    task.o = "tc";
+                                    task.i = [i,j];
+                                    obj = copyJSObject(trains[i].cars[j]);
+                                    obj.front.x = (obj.front.x-background.x) / background.width;
+                                    obj.back.x = (obj.back.x-background.x) / background.width;
+                                    obj.x = (obj.x-background.x) / background.width;
+                                    obj.front.y = (obj.front.y - background.y) / background.height;
+                                    obj.back.y = (obj.back.y-background.y) / background.height;
+                                    obj.y = (obj.y-background.y) / background.height;
+                                    obj.width = obj.width / background.width;
+                                    obj.height = obj.height / background.height;
+                                    onlineGame.excludeFromSync[task.o].forEach(function(key){
+                                        delete obj[key];
+                                    });
+                                    task.d = obj;
+                                    onlineConnection.send({mode:"sync-task", message: JSON.stringify(task)});
+                                }
+                            }
+                        }
+                        onlineConnection.socket = new WebSocket(host);
+                        onlineConnection.socket.onopen = function () {
+                            window.addEventListener("error", function() {onlineConnection.socket.close();});
+                            onlineConnection.send({mode:"hello", message: APP_DATA.version.major+APP_DATA.version.minor/10});
+                        };
+                        onlineConnection.socket.onclose = function () {
+                            showNewGameLink();
+                            notify("#canvas-notifier", getString("appScreenTeamplayConnectionError", "."), NOTIFICATION_PRIO_HIGH, 6000, function(){followLink("error#tp-connection", "_self", LINK_STATE_INTERNAL_HTML);}, getString("appScreenFurtherInformation"), client.y);
+                        };
+                        onlineConnection.socket.onmessage = function (message) {
+                            var json = JSON.parse(message.data);
+                            if(debug){
+                                console.log(json);
+                            }
+                            switch (json.mode) {
+                            case "hello":
+                                if(json.errorLevel < 2) {
+                                    if(json.errorLevel == 1){
+                                        notify("#canvas-notifier", getString("appScreenTeamplayUpdateNote", "!"), NOTIFICATION_PRIO_DEFAULT, 900, null,null,client.y);
+                                    }
+                                    var parent = document.querySelector("#content");
+                                    var elem = parent.querySelector("#setup");
+                                    resetForElem(parent, elem, "block");
+                                    if(window.sessionStorage.getItem("playername") != null){
+                                        sendPlayerName(window.sessionStorage.getItem("playername"));
+                                    } else {
+                                        hideLoadingAnimation();
+                                        var parent = document.querySelector("#setup-inner-content");
+                                        var elem = parent.querySelector("#setup-init");
+                                        resetForElem(parent, elem);
+                                        elem.querySelector("#setup-init-button").addEventListener("click", function(event) {
+                                            var name = getPlayerNameFromInput();
+                                            if(name !== false) {
+                                                sendPlayerName(name);
+                                            }
+                                        });
+                                        elem.querySelector("#setup-init-name").addEventListener("keyup", function(event) {
+                                            if(event.key === "Enter") {
+                                                var name = getPlayerNameFromInput();
+                                                if(name !== false) {
+                                                    sendPlayerName(name);
+                                                }
+                                            }
+                                        });
+                                    }
+                                } else {
+                                    document.querySelector("#content").style.display = "none";
+                                    window.setTimeout(function(){followLink("error#tp-update", "_self", LINK_STATE_INTERNAL_HTML);},1000);
+                                    notify("#canvas-notifier", getString("appScreenTeamplayUpdateError", "!"), NOTIFICATION_PRIO_HIGH, 6000, null,null,client.y);
+                                }
+                                break;
+                            case "init":
+                                if(json.errorLevel === 0){
+                                    onlineGame.sessionId = json.sessionId;
+                                    if(onlineGame.gameKey == "" || onlineGame.gameId == ""){
+                                        onlineConnection.send({mode:"connect"});
+                                    } else {
+                                        onlineConnection.send({mode:"join",gameKey:onlineGame.gameKey,gameId:onlineGame.gameId});
+                                    }
+                                } else {
+                                    showNewGameLink();
+                                    notify("#canvas-notifier", getString("appScreenTeamplayConnectionError", "."), NOTIFICATION_PRIO_HIGH, 6000, function(){followLink("error#tp-connection", "_self", LINK_STATE_INTERNAL_HTML);}, getString("appScreenFurtherInformation"), client.y);
+                                }
+                                break;
+                            case "connect":
+                                if(json.errorLevel === 0){
+                                    onlineGame.locomotive = true;
+                                    onlineGame.gameKey = json.gameKey;
+                                    onlineGame.gameId = json.gameId;
+                                    hideLoadingAnimation();
+                                    var parent = document.querySelector("#setup-inner-content");
+                                    var elem = parent.querySelector("#setup-start");
+                                    resetForElem(parent, elem);
+                                    elem.querySelector("#setup-start-gamelink").textContent = getShareLink(onlineGame.gameId, onlineGame.gameKey);
+                                    elem.querySelector("#setup-start-button").onclick = function(){
+                                        if(!copy("#setup #setup-start #setup-start-gamelink")) {
+                                            notify("#canvas-notifier", getString("appScreenTeamplaySetupStartButtonError", "!"), NOTIFICATION_PRIO_HIGH, 6000, null, null, client.y);
+                                        }
+                                    };
+                                } else {
+                                    showNewGameLink();
+                                    notify("#canvas-notifier", getString("appScreenTeamplayCreateError", "!"), NOTIFICATION_PRIO_HIGH, 6000, function(){followLink("error#tp-connection", "_self", LINK_STATE_INTERNAL_HTML);}, getString("appScreenFurtherInformation"), client.y);
+                                }
+                                break;
+                            case "join":
+                                if(json.sessionId == onlineGame.sessionId) {
+                                    if(json.errorLevel === 0){
+                                        onlineGame.locomotive = false;
+                                        showStartGame();
+                                    } else {
+                                        showNewGameLink();
+                                        notify("#canvas-notifier", getString("appScreenTeamplayJoinError", "!"), NOTIFICATION_PRIO_HIGH, 6000, function(){followLink("error#tp-join", "_self", LINK_STATE_INTERNAL_HTML);}, getString("appScreenFurtherInformation"), client.y);
+                                    }
+                                } else {
+                                    if(json.errorLevel === 0){
+                                        showStartGame();
+                                    } else {
+                                        showNewGameLink();
+                                        notify("#canvas-notifier", getString("appScreenTeamplayJoinTeammateError", "!"), NOTIFICATION_PRIO_HIGH, 6000, function(){followLink("error#tp-connection", "_self", LINK_STATE_INTERNAL_HTML);}, getString("appScreenFurtherInformation"), client.y);
+                                    }
+                                }
+                                break;
+                            case "start":
+                                if(json.errorLevel < 2){
+                                    switch(json.message){
+                                    case "wait":
+                                        if(json.sessionId == onlineGame.sessionId) {
+                                            var parent = document.querySelector("#game");
+                                            var elem = parent.querySelector("#game-wait");
+                                            resetForElem(parent, elem);
+                                        } else {
+                                            notify("#canvas-notifier", getString("appScreenTeamplayTeammateReady", "?"), NOTIFICATION_PRIO_DEFAULT, 1000, null,null,client.y);
+                                        }
+                                        break;
+                                    case "run":
+                                        onlineGame.syncing = false;
+                                        if(onlineGame.syncRequest !== undefined && onlineGame.syncRequest !== null) {
+                                            window.clearTimeout(onlineGame.syncRequest);
+                                        }
+                                        if(onlineGame.locomotive){
+                                            onlineGame.syncRequest = window.setTimeout(sendSyncRequest, onlineGame.syncInterval);
+                                        }
+                                        var parent = document.querySelector("#game");
+                                        var elem = parent.querySelector("#game-gameplay");
+                                        resetForElem(parent, elem);
+                                        break;
+                                    }
+                                } else {
+                                    showNewGameLink();
+                                    notify("#canvas-notifier", getString("appScreenTeamplayStartError", "!"), NOTIFICATION_PRIO_HIGH, 6000, function(){followLink("error#tp-connection", "_self", LINK_STATE_INTERNAL_HTML);}, getString("appScreenFurtherInformation"), client.y);
+                                }
+                                break;
+                            case "action":
+                                var json = JSON.parse(message.data);
+                                var input = JSON.parse(json.message);
+                                var notifyArr = [];
+                                if(typeof input.notification == "object" && Array.isArray(input.notification)){
+                                    input.notification.forEach(function(elem){
+                                        if(typeof elem == "object" && Array.isArray(elem.getString)) {
+                                            notifyArr.push(getString.apply( null, elem.getString ));
+                                        } else if(typeof elem == "string") {
+                                            notifyArr.push( elem );
+                                        }
+                                    });
+                                    var notifyStr = formatJSString.apply( null, notifyArr );
+                                    if(onlineGame.sessionId != json.sessionId){
+                                        notifyStr = json.sessionName + ": " + notifyStr;
+                                    }
+                                    notify("#canvas-notifier", notifyStr, NOTIFICATION_PRIO_DEFAULT, 1000, null,null,client.y);
+                                }
+                                var obj;
+                                switch (input.objname){
+                                case "trains":
+                                    if(onlineGame.sessionId != json.sessionId){
+                                        onlineGame.excludeFromSync["t"].forEach(function(key){
+                                            input.params.forEach(function(param, paramNo){
+                                                if(Object.keys(param)[0] == key) {
+                                                    delete input.params[paramNo];
+                                                }
+                                            });
+                                        });
+                                    }
+                                    animateWorker.postMessage({k: "train", i: input.index, params: input.params});
+                                    break;
+                                case "train-crash":
+                                    if(onlineGame.syncRequest !== undefined && onlineGame.syncRequest !== null) {
+                                        window.clearTimeout(onlineGame.syncRequest);
+                                    }
+                                    if(onlineGame.locomotive){
+                                        onlineGame.syncRequest = window.setTimeout(sendSyncRequest, 200);
+                                    }
+                                    break;
+                                case "switches":
+                                    obj = switches[input.index[0]][input.index[1]];
+                                    input.params.forEach(function(param){
+                                        obj[Object.keys(param)[0]] = Object.values(param)[0];
+                                    });
+                                    obj.lastStateChange = frameNo;
+                                    animateWorker.postMessage({k: "switches", switches: switches});
+                                    break;
+                                }
+                                break;
+                            case "sync-request":
+                                var json = JSON.parse(message.data);
+                                var json_message = JSON.parse(json.message);
+                                onlineGame.syncingTimeout = window.setTimeout(function(){
+                                    onlineGame.syncing = false;
+                                    onlineConnection.send({mode: "sync-cancel"});
+                                },3000);
+                                onlineGame.syncingCounter = 0;
+                                onlineGame.syncingCounterFinal = parseInt(json_message.number,10);
+                                onlineGame.syncing = true;
+                                animateWorker.postMessage({k: "sync-request"});
+                                break;
+                            case "sync-ready":
+                                if(onlineGame.locomotive){
+                                    sendSyncData();
+                                }
+                                break;
+                            case "sync-task":
+                                if(onlineGame.syncing) {
+                                    onlineGame.syncingCounter++;
+                                    var json = JSON.parse(message.data);
+                                    var task = JSON.parse(json.message);
+                                    switch(task.o){
+                                    case "t":
+                                        animateWorker.postMessage({k: "sync-t", i: task.i, d: task.d});
+                                        break;
+                                    case "tc":
+                                        animateWorker.postMessage({k: "sync-tc", i: task.i, d: task.d});
+                                        break;
+                                    case "s":
+                                        Object.keys(task.d).forEach(function(key){
+                                            Object.keys(switches[key]).forEach(function(currentKey){
+                                                switches[key][currentKey].turned = task["d"][key][currentKey].turned;
+                                            });
+                                        });
+                                        animateWorker.postMessage({k: "switches", switches: switches});
+                                        break;
+                                    }
+                                    if(onlineGame.syncingCounter == onlineGame.syncingCounterFinal){
+                                        window.clearTimeout(onlineGame.syncingTimeout);
+                                        onlineConnection.send({mode: "sync-done"});
+                                    }
+                                }
+                                break;
+                            case "sync-done":
+                                onlineGame.syncing = false;
+                                if(!onlineGame.stop){
+                                    if(onlineGame.syncRequest !== undefined && onlineGame.syncRequest !== null) {
+                                        window.clearTimeout(onlineGame.syncRequest);
+                                    }
+                                    if(onlineGame.locomotive){
+                                        onlineGame.syncRequest = window.setTimeout(sendSyncRequest, onlineGame.syncInterval);
+                                    }
+                                    animateWorker.postMessage({k: "resume"});
+                                }
+                                break;
+                            case "pause":
+                                if(onlineGame.syncRequest !== undefined && onlineGame.syncRequest !== null) {
+                                    window.clearTimeout(onlineGame.syncRequest);
+                                }
+                                onlineGame.stop = true;
+                                animateWorker.postMessage({k: "pause"});
+                                notify("#canvas-notifier", getString("appScreenTeamplayGamePaused", "."), NOTIFICATION_PRIO_HIGH, 900, null, null, client.y);
+                                break;
+                            case "resume":
+                                if(onlineGame.stop){
+                                    if(onlineGame.syncRequest !== undefined && onlineGame.syncRequest !== null) {
+                                        window.clearTimeout(onlineGame.syncRequest);
+                                    }
+                                    if(onlineGame.locomotive){
+                                        onlineGame.syncRequest = window.setTimeout(sendSyncRequest, onlineGame.syncInterval);
+                                    }
+                                    onlineGame.stop = false;
+                                    notify("#canvas-notifier", getString("appScreenTeamplayGameResumed", "."), NOTIFICATION_PRIO_HIGH, 900, null, null, client.y);
+                                    animateWorker.postMessage({k: "resume"});
+                                }
+                                break;
+                            case "leave":
+                                if(json.errorLevel == 2){
+                                    showNewGameLink();
+                                    notify("#canvas-notifier", getString("appScreenTeamplayTeammateLeft", "."), NOTIFICATION_PRIO_HIGH, 900, null, null, client.y);
+                                } else {
+                                    notify("#canvas-notifier", json.sessionName + ": " + getString("appScreenTeamplaySomebodyLeft", "."), NOTIFICATION_PRIO_HIGH, 900, null, null, client.y);
+                                }
+                                break;
+                            case "unknown":
+                                notify("#canvas-notifier", getString("appScreenTeamplayUnknownRequest", "."), NOTIFICATION_PRIO_HIGH, 2000, null, null, client.y);
+                                break;
+                            }
+                        };
+                        onlineConnection.socket.onerror = function () {
+                            showNewGameLink();
+                            notify("#canvas-notifier", getString("appScreenTeamplayConnectionError", "!"), NOTIFICATION_PRIO_HIGH, 6000, function(){followLink("error#tp-connection", "_self", LINK_STATE_INTERNAL_HTML);}, getString("appScreenFurtherInformation"), client.y);
+                        };
+                    });
+                    onlineConnection.send = (function(obj) {
+                        onlineConnection.socket.send(JSON.stringify(obj));
+                    });
+                    onlineGame.gameKey = getQueryString("key");
+                    onlineGame.gameId = getQueryString("id");
+                    document.getElementById("setup").addEventListener("mousemove", function(event) {
+                        document.getElementById("setup-ball").style.left = event.pageX + "px";
+                        document.getElementById("setup-ball").style.top = event.pageY + "px";
+                    });
+                    document.getElementById("setup").addEventListener("mouseout", function(event) {
+                        document.getElementById("setup-ball").style.left = "-1vw";
+                        document.getElementById("setup-ball").style.top = "-1vw";
+                    });
+                    onlineConnection.connect(onlineConnection.serverURI);
+                }
             }
         };
         pics[pic.id].onerror = function() {

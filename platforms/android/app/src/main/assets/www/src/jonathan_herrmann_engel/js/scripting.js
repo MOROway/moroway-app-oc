@@ -227,7 +227,6 @@ function getTouchMove(event) {
         getGesture({type: "pinch", scale:hypot/client.PinchOHypot, deltaX:client.PinchX,deltaY:client.PinchY});
     }
 }
-
 function getTouchStart(event) {
     event.preventDefault();
     delete client.hasPinched;
@@ -537,6 +536,13 @@ function calcControlCenter() {
     contextForeground.font = controlCenter.fontSizes.carSizes.auto.backToRoot +"px "+controlCenter.fontFamily;
     controlCenter.fontSizes.carSizes.auto.backToRootLength = contextForeground.measureText(cText).width;
     contextForeground.restore();
+}
+
+function showConfirmLeaveMultiplayerMode(){
+    var tpLeave = document.querySelector("#tp-leave");
+    if(onlineGame.enabled && tpLeave.style.display == "") {
+        tpLeave.style.display = "block";
+    }
 }
 
 /******************************************
@@ -2180,7 +2186,6 @@ function drawObjects() {
 
 }
 
-
 function actionSync (objname, index, params, notification) {
     if(onlineGame.enabled) {
         if(!onlineGame.stop) {
@@ -2272,7 +2277,7 @@ var controlCenter = {showCarCenter: null, fontFamily: "sans-serif"};
 
 var hardware = {mouse: {moveX:0, moveY:0,downX:0, downY:0, downTime: 0,upX:0, upY:0, upTime: 0, isMoving: false, isHold: false, rightClick: false, cursor: "default"}};
 var client = {devicePixelRatio: 1,realScaleMax:6,realScaleMin:1.2};
-var onlineGame = {animateInterval: 40, syncInterval: 10000, excludeFromSync: {"t": ["src", "assetFlip", "fac", "speedFac", "accelerationSpeedStartFac", "accelerationSpeedFac", "lastDirectionChange", "bogieDistance", "width", "height", "speed", "crash", "endOfTrack", "endOfTrackStandardDirection", "flickerFacBack", "flickerFacBackOffset", "flickerFacFront", "flickerFacFrontOffset", "margin", "cars"], "tc": ["src", "assetFlip", "fac", "bogieDistance", "width", "height", "konamiUseTrainIcon"]}};
+var onlineGame = {animateInterval: 40, syncInterval: 10000, excludeFromSync: {"t": ["src", "assetFlip", "fac", "speedFac", "accelerationSpeedStartFac", "accelerationSpeedFac", "lastDirectionChange", "bogieDistance", "width", "height", "speed", "crash", "flickerFacBack", "flickerFacBackOffset", "flickerFacFront", "flickerFacFrontOffset", "margin", "cars"], "tc": ["src", "assetFlip", "fac", "bogieDistance", "width", "height", "konamiUseTrainIcon"]}, chatSticker: 7, resized: false};
 var onlineConnection = {serverURI: getServerLink("wss:") + "/multiplay"};
 
 var resizeTimeout;
@@ -2297,6 +2302,12 @@ function resizeCars(oldBg) {
 }
 function resize() {
     resized = true;
+    if(onlineGame.enabled) {
+        if(onlineGame.resizedTimeout != undefined && onlineGame.resizedTimeout != null) {
+            window.clearTimeout(onlineGame.resizedTimeout);
+        }
+        onlineGame.resized = true;
+    }
     client.realScale = client.touchScale = client.lastTouchScale = 1;
     client.touchScaleX = client.touchScaleY = client.touchScaleXKeyFake = client.touchScaleYKeyFake = 0;
     oldbackground = copyJSObject(background);
@@ -2788,6 +2799,19 @@ window.onload = function() {
                 } else {
                     animateWorker.postMessage({k: "setTrainPics", trainPics: trainPics});
                 }
+                if(onlineGame.enabled) {
+                    var chatTrainContainer = document.querySelector("#chat #chat-msg-trains-inner");
+                    for(var stickerTrain = 0; stickerTrain < trains.length; stickerTrain++){
+                        var elem = document.createElement("img");
+                        elem.title=getString(["appScreenTrainNames", stickerTrain]);
+                        elem.src="./assets/chat_train_" + stickerTrain + ".png";
+                        elem.dataset.stickerNumber = stickerTrain;
+                        elem.addEventListener("click", function(event){
+                            onlineConnection.send({mode:"chat-msg", message: "{{stickerTrain=" + event.target.dataset.stickerNumber + "}}"});
+                        });
+                        chatTrainContainer.appendChild(elem);
+                    }
+                }
             } else if(message.data.k == "setTrainParams") {
                 trainParams = message.data.trainParams;
             } else if(message.data.k == "ready") {
@@ -2797,12 +2821,12 @@ window.onload = function() {
                 if(typeof placeOptions == "function") {
                     placeOptions("load");
                 }
-                window.onresize = function(){
+                window.addEventListener("resize", function(){
                     if(resizeTimeout !== undefined && resizeTimeout !== null) {
                         window.clearTimeout(resizeTimeout);
                     }
                     resizeTimeout = window.setTimeout(resize, 20);
-                };
+                });
                 resize();
                 drawInterval = message.data.animateInterval;
                 drawObjects();
@@ -2876,6 +2900,14 @@ window.onload = function() {
                 actionSync("train-crash");
             } else if(message.data.k == "resized") {
                 resized = false;
+                if(onlineGame.enabled) {
+                    if(onlineGame.resizedTimeout != undefined && onlineGame.resizedTimeout != null) {
+                        window.clearTimeout(onlineGame.resizedTimeout);
+                    }
+                    onlineGame.resizedTimeout = window.setTimeout(function() {
+                        onlineGame.resized = false;
+                    }, 3000);
+                }
                 if(debug){
                     animateWorker.postMessage({k:"debug"});
                 }
@@ -2956,6 +2988,16 @@ window.onload = function() {
             });
         }
     }
+    function clearChat(){
+        var chat2Clear = document.querySelectorAll(".chat-inner-container");
+        if(chat2Clear.length != 0) {
+            for(var clearNo = 0; clearNo < chat2Clear.length; clearNo++) {
+                destroy(chat2Clear[clearNo]);
+            }
+        }
+        document.querySelector("#chat #chat-no-messages").style.display = "";
+        document.querySelector("#chat #chat-msg-reactions").style.display = "none";
+    }
 
     settings = getSettings();
     canvas = document.querySelector("canvas#game-gameplay-main");
@@ -3028,12 +3070,126 @@ window.onload = function() {
             if (loadNo == finalPicNo) {
                 initialDisplay();
                 if(onlineGame.enabled) {
+                    var chatNotify = document.querySelector("#tp-chat-notifier");
+                    var chat = document.querySelector("#chat");
+                    var chatClose = document.querySelector("#chat #chat-close");
+                    var chatControls = document.querySelector("#chat #chat-controls");
+                    var chatInnerContainer = document.querySelector("#chat #chat-inner");
+                    var chatInner = document.querySelector("#chat #chat-inner-messages");
+                    var chatScrollToBottom = document.querySelector("#chat #chat-scroll-to-bottom");
+                    var chatSend = document.querySelector("#chat #chat-msg-send-button");
+                    var chatMsg = document.querySelector("#chat #chat-msg-send-text");
+                    var chatSmileyContainer = document.querySelector("#chat #chat-msg-smileys-inner");
+                    var smileyElems = chatSmileyContainer.querySelectorAll("button");
+                    var chatStickerContainer = document.querySelector("#chat #chat-msg-stickers-inner");
+                    var chatClear = document.querySelector("#chat #chat-clear");
+                    chatScrollToBottom.toggleDisplay = function() {
+                        chatScrollToBottom.style.display = chatInnerContainer.scrollHeight > chatInnerContainer.offsetHeight && 
+chatInnerContainer.scrollHeight - chatInnerContainer.scrollTop > chatInnerContainer.offsetHeight + chatInner.lastChild.offsetHeight ? "flex" : "";
+                        chatScrollToBottom.style.top = Math.max(0,(chatInnerContainer.offsetHeight - chatScrollToBottom.offsetHeight - 50)) + "px";
+                    }
+                    chat.resizeChat = function () {
+                        chatInnerContainer.style.maxHeight =  Math.max(0,(Math.min(window.innerHeight,chat.offsetHeight) - chatControls.offsetHeight)) + "px";
+                    }
+                    window.addEventListener("resize", chat.resizeChat);
+                    window.addEventListener("resize", chatScrollToBottom.toggleDisplay);
+                    chat.openChat = function () {
+                        if(typeof(chatNotify.hide) == "function") {
+                            chatNotify.hide(chatNotify, true);
+                        }
+                        chat.style.display = "block";
+                        if(typeof placeOptions == "function") {
+                            placeOptions("invisible");
+                        }
+                        chat.resizeChat();
+                        chatScrollToBottom.toggleDisplay();
+                    }
+                    chat.closeChat = function () {
+                       chat.style.display = "";
+                       if(typeof placeOptions == "function") {
+                           placeOptions("visible");
+                       }
+                    }
+                    window.addEventListener("keyup", function(){
+                       if (event.key === "Escape") {
+                           chat.closeChat();
+                       }
+                    });
+                    chatInner.parentNode.addEventListener("scroll", function(){
+                        chat.resizeChat();
+                        chatScrollToBottom.toggleDisplay();
+                    });
+                    chatNotify.addEventListener("click", chat.openChat);
+                    chatClose.addEventListener("click", chat.closeChat);
+                    chatSend.addEventListener("click", function(){
+                        if(chatMsg.value != "") {
+                            onlineConnection.send({mode:"chat-msg", message: chatMsg.value});
+                            chatMsg.value = "";
+                        }
+                    });
+                    chatMsg.addEventListener("keyup", function(event) {
+                        if(chatMsg.value != "") {
+                            if (event.key === "Enter") {
+                                onlineConnection.send({mode:"chat-msg", message: chatMsg.value});
+                                chatMsg.value = "";
+                            }
+                        }
+                    });
+                    var chatSendInner = document.querySelectorAll("#chat #chat-send > *");
+                    for(var cSI = 0; cSI < chatSendInner.length; cSI++){
+                        chatSendInner[cSI].querySelector(".chat-send-toggle").addEventListener("click", function(event){
+                            var elem = event.target.parentNode.querySelector(".chat-send-inner");
+                            var display = window.getComputedStyle(elem).getPropertyValue("display");
+                            for(var cSI = 0; cSI < chatSendInner.length; cSI++){
+                                chatSendInner[cSI].querySelector(".chat-send-inner").style.display = "none";
+                            }
+                            elem.style.display = display == "none" ? "block" : "none";
+                            chat.resizeChat();
+                            var smileySupport = true;
+                            for(var smiley = 1; smiley < smileyElems.length; smiley++){
+                                if(smileyElems[smiley].offsetWidth != smileyElems[smiley-1].offsetWidth) {
+                                    smileySupport = false;
+                                    break;
+                                }
+                            }
+                            if(!smileySupport) {
+                                notify("#canvas-notifier", getString("appScreenTeamplayChatNoEmojis"), NOTIFICATION_PRIO_HIGH, 6000, null, null, client.y);
+                            }
+                        });
+                    }
+                    for(var smiley = 0; smiley < smileyElems.length; smiley++){
+                        smileyElems[smiley].addEventListener("click", function(event){
+                            onlineConnection.send({mode:"chat-msg", message: event.target.textContent});
+                        });
+                    }
+                    for(var sticker = 0; sticker < onlineGame.chatSticker; sticker++){
+                        var elem = document.createElement("img");
+                        elem.src="./assets/chat_sticker_" + sticker + ".png";
+                        elem.dataset.stickerNumber = sticker;
+                        elem.addEventListener("click", function(event){
+                            onlineConnection.send({mode:"chat-msg", message: "{{sticker=" + event.target.dataset.stickerNumber + "}}"});
+                        });
+                        chatStickerContainer.appendChild(elem);
+                    }
+                    chatClear.addEventListener("click", clearChat);
+                    chatClear.addEventListener("click", chatScrollToBottom.toggleDisplay);
+                    chatScrollToBottom.addEventListener("click", function() {
+                        chatInner.lastChild.scrollIntoView();
+                        chat.resizeChat();
+                        chatScrollToBottom.toggleDisplay();
+                    });
+                    var tpLeaveYes = document.querySelector("#tp-leave #tp-leave-yes");
+                    var tpLeaveNo = document.querySelector("#tp-leave #tp-leave-no");
+                    tpLeaveYes.addEventListener("click", function(){ followLink("?", "_self", LINK_STATE_INTERNAL_HTML); });
+                    tpLeaveNo.addEventListener("click", function(){ document.querySelector("#tp-leave").style.display = ""; });
                     onlineConnection.connect = (function(host) {
                         function hideLoadingAnimation(){
                             window.clearInterval(loadingAnimElemChangingFilter);
                             destroy([document.querySelector("#branding"),document.querySelector("#snake"),document.querySelector("#percent")]);
+                            chat.closeChat();
+                            clearChat();
                         }
-                        function showStartGame(){
+                        function showStartGame(teamNum){
                             hideLoadingAnimation();
                             onlineGame.stop = false;
                             document.addEventListener("visibilitychange", function() {
@@ -3048,6 +3204,7 @@ window.onload = function() {
                             resetForElem(parent, elem, "block");
                             var parent = document.querySelector("#game");
                             var elem = parent.querySelector("#game-start");
+                            elem.querySelector("#game-start-text").textContent = formatJSString(getString("appScreenTeamplayGameStart"), teamNum);
                             resetForElem(parent, elem);
                             elem.querySelector("#game-start-button").onclick = function(){
                                 onlineConnection.send({mode:"start"});
@@ -3082,15 +3239,24 @@ window.onload = function() {
                             onlineConnection.send({mode:"init", message: name});
                         }
                         function sendSyncRequest(){
-                            if(!onlineGame.stop){
-                                var number = 0;
-                                number += trains.length;
-                                trains.forEach(function(train){
-                                    number += train.cars.length;
-                                });
-                                number++; //Switches
-                                var obj = {"number": number};
-                                onlineConnection.send({mode: "sync-request", message: JSON.stringify(obj)});
+                            if(!onlineGame.syncing) {
+                                if(onlineGame.resized) {
+                                    if(onlineGame.syncRequest !== undefined && onlineGame.syncRequest !== null) {
+                                        window.clearTimeout(onlineGame.syncRequest);
+                                    }
+                                    if(onlineGame.locomotive){
+                                        onlineGame.syncRequest = window.setTimeout(sendSyncRequest, onlineGame.syncInterval);
+                                    }
+                                } else if(!onlineGame.stop){
+                                    var number = 0;
+                                    number += trains.length;
+                                    trains.forEach(function(train){
+                                        number += train.cars.length;
+                                    });
+                                    number++; //Switches
+                                    var obj = {"number": number};
+                                    onlineConnection.send({mode: "sync-request", message: JSON.stringify(obj)});
+                                }
                             }
                         }
                         function sendSyncData(){
@@ -3098,7 +3264,9 @@ window.onload = function() {
                             task.o = "s";
                             var obj = copyJSObject(switches);
                             task.d = obj;
-                            onlineConnection.send({mode:"sync-task", message: JSON.stringify(task)});
+                            if(!onlineGame.resized) {
+                                onlineConnection.send({mode:"sync-task", message: JSON.stringify(task)});
+                            }
                             for(var i = 0; i < trains.length; i++){
                                 task = {};
                                 task.o = "t";
@@ -3134,7 +3302,9 @@ window.onload = function() {
                                     delete obj.circle;
                                 }
                                 task.d = obj;
-                                onlineConnection.send({mode:"sync-task", message: JSON.stringify(task)});
+                                if(!onlineGame.resized) {
+                                    onlineConnection.send({mode:"sync-task", message: JSON.stringify(task)});
+                                }
                                 for(var j = 0; j < trains[i].cars.length; j++){
                                     task = {};
                                     task.o = "tc";
@@ -3152,7 +3322,9 @@ window.onload = function() {
                                         delete obj[key];
                                     });
                                     task.d = obj;
-                                    onlineConnection.send({mode:"sync-task", message: JSON.stringify(task)});
+                                    if(!onlineGame.resized) {
+                                        onlineConnection.send({mode:"sync-task", message: JSON.stringify(task)});
+                                    }
                                 }
                             }
                         }
@@ -3200,6 +3372,7 @@ window.onload = function() {
                                                 }
                                             }
                                         });
+                                        elem.querySelector("#setup-init-name").focus();
                                     }
                                 } else {
                                     document.querySelector("#content").style.display = "none";
@@ -3244,14 +3417,14 @@ window.onload = function() {
                                 if(json.sessionId == onlineGame.sessionId) {
                                     if(json.errorLevel === 0){
                                         onlineGame.locomotive = false;
-                                        showStartGame();
+                                        showStartGame(json.message);
                                     } else {
                                         showNewGameLink();
                                         notify("#canvas-notifier", getString("appScreenTeamplayJoinError", "!"), NOTIFICATION_PRIO_HIGH, 6000, function(){followLink("error#tp-join", "_self", LINK_STATE_INTERNAL_HTML);}, getString("appScreenFurtherInformation"), client.y);
                                     }
                                 } else {
                                     if(json.errorLevel === 0){
-                                        showStartGame();
+                                        showStartGame(json.message);
                                     } else {
                                         showNewGameLink();
                                         notify("#canvas-notifier", getString("appScreenTeamplayJoinTeammateError", "!"), NOTIFICATION_PRIO_HIGH, 6000, function(){followLink("error#tp-connection", "_self", LINK_STATE_INTERNAL_HTML);}, getString("appScreenFurtherInformation"), client.y);
@@ -3281,6 +3454,9 @@ window.onload = function() {
                                         var parent = document.querySelector("#game");
                                         var elem = parent.querySelector("#game-gameplay");
                                         resetForElem(parent, elem);
+                                        if(typeof placeOptions == "function") {
+                                            placeOptions("resize");
+                                        }
                                         break;
                                     }
                                 } else {
@@ -3341,10 +3517,6 @@ window.onload = function() {
                             case "sync-request":
                                 var json = JSON.parse(message.data);
                                 var json_message = JSON.parse(json.message);
-                                onlineGame.syncingTimeout = window.setTimeout(function(){
-                                    onlineGame.syncing = false;
-                                    onlineConnection.send({mode: "sync-cancel"});
-                                },3000);
                                 onlineGame.syncingCounter = 0;
                                 onlineGame.syncingCounterFinal = parseInt(json_message.number,10);
                                 onlineGame.syncing = true;
@@ -3377,13 +3549,15 @@ window.onload = function() {
                                         break;
                                     }
                                     if(onlineGame.syncingCounter == onlineGame.syncingCounterFinal){
-                                        window.clearTimeout(onlineGame.syncingTimeout);
                                         onlineConnection.send({mode: "sync-done"});
                                     }
                                 }
                                 break;
                             case "sync-done":
                                 onlineGame.syncing = false;
+                                if(json.message == "sync-cancel") {
+                                    notify("#canvas-notifier", getString("appScreenTeamplaySyncError", "."), NOTIFICATION_PRIO_HIGH, 900, null, null, client.y);
+                                }
                                 if(!onlineGame.stop){
                                     if(onlineGame.syncRequest !== undefined && onlineGame.syncRequest !== null) {
                                         window.clearTimeout(onlineGame.syncRequest);
@@ -3422,6 +3596,44 @@ window.onload = function() {
                                 } else {
                                     notify("#canvas-notifier", json.sessionName + ": " + getString("appScreenTeamplaySomebodyLeft", "."), NOTIFICATION_PRIO_HIGH, 900, null, null, client.y);
                                 }
+                                break;
+                            case "chat-msg":
+                                document.querySelector("#chat #chat-no-messages").style.display = "none";
+                                document.querySelector("#chat #chat-msg-reactions").style.display = "";
+                                var chatInnerContainer = document.createElement("div");
+                                var chatInnerPlayerName = document.createElement(onlineGame.sessionId != json.sessionId ? "i" : "b");
+                                var isSticker = json.message.match(/^\{\{sticker=[0-9]+\}\}$/);
+                                var isTrainSticker = json.message.match(/^\{\{stickerTrain=[0-9]+\}\}$/);
+                                var chatInnerMessageImg = document.createElement("img");
+                                var chatInnerMessage = document.createElement("p");
+                                var chatInnerSeperator = document.createElement("br");
+                                chatInnerContainer.className = "chat-inner-container";
+                                chatInnerPlayerName.textContent = (onlineGame.sessionId != json.sessionId ? json.sessionName : json.sessionName + " (" + getString("appScreenTeamplayChatMe") + ")") + " - " + (new Date()).toLocaleTimeString();
+                                if(isSticker || isTrainSticker) {
+                                    var stickerNumber = json.message.replace(/[^0-9]/g, "");
+                                    if((isSticker && stickerNumber < onlineGame.chatSticker) || (isTrainSticker && stickerNumber < trains.length)) {
+                                        chatInnerMessageImg.src = "./assets/chat_" + (isTrainSticker ? "train_" : "sticker_") + stickerNumber + ".png";
+                                        chatInnerMessageImg.className = isTrainSticker ? "train-sticker" : "sticker";
+                                        json.message = isTrainSticker ? getString(["appScreenTrainIcons", parseInt(stickerNumber,10)]) + " " + getString(["appScreenTrainNames", parseInt(stickerNumber,10)]) : formatJSString(getString("appScreenTeamplayChatStickerNote"),getString(["appScreenTeamplayChatStickerEmojis", parseInt(stickerNumber,10)]));
+                                    } else {
+                                        isSticker = isTrainSticker = false;
+                                    }
+                                }
+                                chatInnerMessage.textContent = json.message;
+                                chatInnerContainer.appendChild(chatInnerPlayerName);
+                                chatInnerContainer.appendChild(chatInnerSeperator);
+                                if(isSticker || isTrainSticker) {
+                                    chatInnerContainer.appendChild(chatInnerMessageImg);
+                                }
+                                if(!isSticker) {
+                                    chatInnerContainer.appendChild(chatInnerMessage);
+                                }
+                                chatInner.appendChild(chatInnerContainer);
+                                if(onlineGame.sessionId != json.sessionId && chat.style.display == "") {
+                                    notify("#tp-chat-notifier", json.sessionName + ": " + json.message, NOTIFICATION_PRIO_DEFAULT, 4000, null, null, window.innerHeight, NOTIFICATION_CHANNEL_TEAMPLAY_CHAT+json.sessionId);
+                                }
+                                chat.resizeChat();
+                                chatScrollToBottom.toggleDisplay();
                                 break;
                             case "unknown":
                                 notify("#canvas-notifier", getString("appScreenTeamplayUnknownRequest", "."), NOTIFICATION_PRIO_HIGH, 2000, null, null, client.y);

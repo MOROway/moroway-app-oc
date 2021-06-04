@@ -112,6 +112,9 @@
                         <button id="canvas-car-control-center" class="canvas-options-button" data-stringid-title="appScreenCarControlCenterTitle">
                             <i class="material-icons">directions_car</i>
                         </button>
+                        <button id="canvas-chat-open" class="canvas-options-button" data-stringid-title="appScreenTeamplayChatTitle">
+                            <i class="material-icons">chat</i>
+                        </button>
                     </div>
 
                 </div>
@@ -131,6 +134,10 @@
             <span></span>
             <button></button>
         </div>
+        <div id="tp-chat-notifier" class="notify tp-notify">
+            <span></span>
+            <button></button>
+        </div>
 
         <!-- settings -->
         <div id="settings">
@@ -139,6 +146,71 @@
                 <button id="settings-apply" class="nav-button" data-stringid-content="appScreenSettingsApplyAndClose"></button>
                 <br>
                 <button id="settings-help" class="internal-link nav-button" data-stringid-content="generalTitleHelpScreen"></button>
+            </div>
+        </div>
+
+        <!-- chat -->
+        <div id="chat">
+            <div id="chat-inner">
+                <p id="chat-no-messages" data-stringid-content="appScreenTeamplayChatNone"></p>
+                <div id="chat-inner-messages"></div>
+                <div id="chat-scroll-to-bottom"><i class="material-icons">arrow_downward</i></div>
+            </div>
+            <div id="chat-controls">
+                <div id="chat-send">
+                    <div id="chat-msg-reactions" class="chat-msg-send-container">
+                        <div id="chat-msg-reactions-toggle" class="chat-send-toggle chat-msg-send-container-title" data-stringid-content="appScreenTeamplayChatSendReaction"></div>
+                        <div id="chat-msg-reactions-inner" class="chat-send-inner">
+                            <div id="chat-msg-smileys">
+                                <div class="chat-msg-send-container-title chat-msg-send-container-subtitle" data-stringid-content="appScreenTeamplayChatSendReactionSmiley"></div>
+                                <div id="chat-msg-smileys-inner">
+                                    <button class="nav-button" data-stringid-content="appScreenTeamplayChatSendReactionSmileyThumbsUp"></button>
+                                    <button class="nav-button" data-stringid-content="appScreenTeamplayChatSendReactionSmileyThumbsDown"></button>
+                                    <button class="nav-button" data-stringid-content="appScreenTeamplayChatSendReactionSmileySmile"></button>
+                                    <button class="nav-button" data-stringid-content="appScreenTeamplayChatSendReactionSmileyUnhappy"></button>
+                                    <button class="nav-button" data-stringid-content="appScreenTeamplayChatSendReactionSmileyLaugh"></button>
+                                    <button class="nav-button" data-stringid-content="appScreenTeamplayChatSendReactionSmileyHeart"></button>
+                                </div>
+                            </div>
+                            <div id="chat-msg-stickers">
+                                <div class="chat-msg-send-container-title chat-msg-send-container-subtitle" data-stringid-content="appScreenTeamplayChatSendReactionSticker"></div>
+                                <div id="chat-msg-stickers-inner"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="chat-msg-actions" class="chat-msg-send-container">
+                        <div id="chat-msg-actions-toggle" class="chat-send-toggle chat-msg-send-container-title" data-stringid-content="appScreenTeamplayChatSendAction"></div>
+                        <div id="chat-msg-actions-inner" class="chat-send-inner">
+                            <div id="chat-msg-trains">
+                                <div id="chat-msg-trains-inner"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="chat-msg-send" class="chat-msg-send-container">
+                        <div id="chat-msg-send-toggle" class="chat-send-toggle chat-msg-send-container-title" data-stringid-content="appScreenTeamplayChatSendTitle"></div>
+                        <div id="chat-msg-send-inner" class="chat-send-inner">
+                            <div>
+                                <input id="chat-msg-send-text" type="text" maxlength="500" autocomplete="off">
+                                <button id="chat-msg-send-button" class="nav-button" data-stringid-content="appScreenTeamplayChatSend"></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="chat-nav" class="nav-wrapper">
+                <div id="chat-nav-buttons">
+                    <button id="chat-close" class="nav-button" data-stringid-content="appScreenTeamplayChatClose"></button>
+                    <button id="chat-clear" class="nav-button" data-stringid-content="appScreenTeamplayChatClear"></button>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <!-- teamplay: leave dialog -->
+        <div id="tp-leave">
+            <div data-stringid-content="appScreenTeamplayLeaveDialog"></div>
+            <div class="buttons-wrapper">
+                <button id="tp-leave-yes" data-stringid-content="appScreenTeamplayLeaveDialogYes"></button>
+                <button id="tp-leave-no" data-stringid-content="appScreenTeamplayLeaveDialogNo"></button>
             </div>
         </div>
 

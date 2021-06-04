@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="de.moroway.oc" version="7.1.7" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget id="de.moroway.oc" version="7.2.0" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>MOROway</name>
     <author>Jonathan Herrmann-Engel</author>
     <content src="html_platform/entry.html" />
@@ -7,10 +7,12 @@
     <allow-intent href="http:*" />
     <allow-intent href="https:*" />
     <allow-intent href="mailto:*" />
-    <hook src="scripts/conf.bash" type="before_build" />
-    <hook src="scripts/conf.bash" type="before_run" />
     <hook src="scripts/html.bash" type="before_build" />
     <hook src="scripts/html.bash" type="before_run" />
+    <hook src="scripts/conf.bash" type="before_build" />
+    <hook src="scripts/conf.bash" type="before_run" />
+    <hook src="scripts/cleanup.bash" type="after_build" />
+    <hook src="scripts/cleanup.bash" type="after_run" />
     <preference name="SplashScreen" value="screen" />
     <preference name="SplashScreenDelay" value="3000" />
     <preference name="ShowSplashScreenSpinner" value="false" />
@@ -28,6 +30,24 @@
         <edit-config file="app/src/main/AndroidManifest.xml" mode="merge" target="/manifest/application">
             <application android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher_round" />
         </edit-config>
+        <icon src="res/icon/android/ldpi.png" background="res/icon/android/ldpi.png" density="ldpi" foreground="res/icon/android/ldpi_foreground.png" />
+        <icon src="res/icon/android/mdpi.png" background="res/icon/android/mdpi.png" density="mdpi" foreground="res/icon/android/mdpi_foreground.png" />
+        <icon src="res/icon/android/hdpi.png" background="res/icon/android/hdpi.png" density="hdpi" foreground="res/icon/android/hdpi_foreground.png" />
+        <icon src="res/icon/android/xhdpi.png" background="res/icon/android/xhdpi.png" density="xhdpi" foreground="res/icon/android/xhdpi_foreground.png" />
+        <icon src="res/icon/android/xxhdpi.png" background="res/icon/android/xxhdpi.png" density="xxhdpi" foreground="res/icon/android/xxhdpi_foreground.png" />
+        <icon src="res/icon/android/xxxhdpi.png" background="res/icon/android/xxxhdpi.png" density="xxxhdpi" foreground="res/icon/android/xxxhdpi_foreground.png" />
+        <splash src="res/screen/android/drawable-land-hdpi.png" density="land-hdpi" />
+        <splash src="res/screen/android/drawable-land-ldpi.png" density="land-ldpi" />
+        <splash src="res/screen/android/drawable-land-mdpi.png" density="land-mdpi" />
+        <splash src="res/screen/android/drawable-land-xhdpi.png" density="land-xhdpi" />
+        <splash src="res/screen/android/drawable-land-xxhdpi.png" density="land-xxhdpi" />
+        <splash src="res/screen/android/drawable-land-xxxhdpi.png" density="land-xxxhdpi" />
+        <splash src="res/screen/android/drawable-port-hdpi.png" density="port-hdpi" />
+        <splash src="res/screen/android/drawable-port-ldpi.png" density="port-ldpi" />
+        <splash src="res/screen/android/drawable-port-mdpi.png" density="port-mdpi" />
+        <splash src="res/screen/android/drawable-port-xhdpi.png" density="port-xhdpi" />
+        <splash src="res/screen/android/drawable-port-xxhdpi.png" density="port-xxhdpi" />
+        <splash src="res/screen/android/drawable-port-xxxhdpi.png" density="port-xxxhdpi" />
         <edit-config file="app/src/main/AndroidManifest.xml" mode="merge" target="/manifest/application/activity[@android:name='MainActivity']">
             <activity android:screenOrientation="sensorLandscape" />
         </edit-config>

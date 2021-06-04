@@ -29,5 +29,8 @@ function loop () {
 	done
 }
 
+odir=$( dirname "$0" )"/../moroway-app-oc"
 dir=$( dirname "$0" )"/../www"
+rm -r "$dir"/*
+cp -pr "$odir"/* "$dir"
 $( loop "$dir" )

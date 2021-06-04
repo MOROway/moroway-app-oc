@@ -125,7 +125,31 @@ canvas {
     font-size: 24px;
 }
 
-#settings {
+.tp-notify {
+    padding: 10px;
+    border: 2px solid rgb(210, 120, 27);
+    border-radius: 30px;
+    margin: 0;
+    z-index: 101;
+    position: fixed;
+    background: rgb(48, 48, 48);
+    transform: translateX(-50%);
+    left: 50%;
+    bottom: 2vh;
+    max-width: 50vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    visibility: hidden;
+    font-size: 95%;
+}
+
+.tp-notify span {
+    padding-right: 0px;
+    white-space: nowrap;
+}
+
+#settings,
+#chat {
     text-align: left;
     display: none;
     position: fixed;
@@ -139,7 +163,26 @@ canvas {
     width: 450px;
     max-width: calc(100vw - 5px);
     border-left: 5px solid black;
+    z-index: 2;
     overflow-y: auto;
+}
+#chat > * {
+    position: fixed;
+    max-height: 100%;
+    width: inherit;
+    max-width: inherit;
+    right: inherit;
+    background: inherit;
+    overflow-y: auto;
+    border: 0;
+    padding: 0;
+    margin: 0;
+}
+#chat #chat-inner {
+    top: 0;
+}
+#chat #chat-controls {
+    bottom: 0;
 }
 .settings {
     background: transparent;
@@ -151,15 +194,103 @@ canvas {
     margin: 10px;
     padding-bottom: 100px;
 }
-#settings .nav-button {
+#chat .nav-wrapper {
+    min-height: 40px;
+}
+#settings .nav-button,
+#chat .nav-button,
+#chat #chat-msg-send-text {
     border: 1px solid black;
     border-radius: 6px;
     padding: 6px;
     margin: 3px;
+}    
+#settings .nav-button,
+#chat .nav-button {
     font-weight: bold;
     text-transform: uppercase;
     background: transparent;
     cursor: pointer;
+}
+#chat #chat-no-messages {
+    font-style: italic;
+    margin: 20px;
+}
+#chat .chat-inner-container {
+    margin: 20px 10px;
+    word-break: break-word;
+    border-bottom: 1px solid black;
+}
+#chat .chat-inner-container img {
+    margin: 10px;
+}
+#chat .chat-inner-container img.train-sticker {
+    border-radius: 30%;
+}
+#chat .chat-inner-container img.sticker {
+    max-width: 50px;
+}
+#chat #chat-scroll-to-bottom {
+    position: fixed;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    right: 50px;
+    font-size: 24px;
+    background: floralWhite;
+    border: 0.5px solid black;
+    width: 30px;
+    height: 30px;
+    overflow: hidden;
+    border-radius: 30px;
+}
+#chat .chat-msg-send-container {
+    margin: 5px;
+    padding: 5px;
+    border: 2px solid black;
+}
+#chat .chat-msg-send-container > div {
+    border-bottom: 0.2px solid black;
+}
+#chat .chat-msg-send-container-title {
+    text-transform: uppercase;
+    font-size: 0.9em;
+    font-weight: 1000;
+}
+#chat .chat-msg-send-container-subtitle {
+    font-size: 0.8em;
+}
+#chat .chat-send-inner {
+    display: none;
+}
+#chat #chat-msg-smileys button {
+    background: rgba(0,0,0,0.35) !important;
+}
+#chat #chat-msg-trains img {
+    border: 2px solid black;
+    width: 55px;
+    height: 55px;
+    margin: 5px;
+    border-radius: 25%;
+}
+#chat #chat-msg-stickers img {
+    width: 45px;
+    height: 45px;
+    padding: 5px;
+    border-radius: 5px;
+}
+#chat #chat-msg-send-inner {
+    display: block;
+}
+#chat #chat-msg-send-inner div,
+#chat #chat-nav-buttons {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
+#chat #chat-msg-send-text,
+#chat #chat-nav-buttons .nav-button {
+    flex-grow: 1;
 }
 
 #content > * {
@@ -174,7 +305,6 @@ canvas {
     text-decoration: none;
     color: inherit;
 }
-
 
 #setup {
     overflow: hidden;
@@ -323,7 +453,7 @@ canvas {
 }
 
 #game, #game #game-start {
-     display: flex;
+    display: flex;
     flex-direction: column;
     align-content: center;
     align-items: center;
@@ -337,11 +467,11 @@ canvas {
 }
 
 #game #game-start #game-start-text {
-     font-style: italic;
+    font-style: italic;
 }
 
 #game #game-start #game-start-button {
-     padding: 5px;
+    padding: 5px;
     font-size: 120%;
     border: none;
     background: inherit;
@@ -350,4 +480,26 @@ canvas {
 
 #game #game-start #game-start-button:hover {
     color: rgb(139,0,0);
+}
+
+#tp-leave {
+    display: none;
+    border-radius: 50px;
+    color: floralWhite;
+    background: #444;
+    z-index: 102;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%,-50%);
+    padding: 20px;
+}
+#tp-leave button {
+    border: 2px solid rgb(210, 120, 27);
+    border-radius: 20px;
+    color: inherit;
+    background: inherit;
+    padding: 5px;
+    margin: 5px;
+    text-transform: uppercase;
 }

@@ -24,4 +24,4 @@ plugins/**
 !scripts
 !scripts/**
 !www
-!www/**
+!www/README.md

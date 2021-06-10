@@ -1,1 +1,1 @@
-﻿Multiplayer: Text chat.
+Multiplayer: Text chat.

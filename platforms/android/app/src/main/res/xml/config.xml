@@ -10,10 +10,6 @@
         <param name="android-package" value="org.apache.cordova.splashscreen.SplashScreen" />
         <param name="onload" value="true" />
     </feature>
-    <feature name="Whitelist">
-        <param name="android-package" value="org.apache.cordova.whitelist.WhitelistPlugin" />
-        <param name="onload" value="true" />
-    </feature>
     <feature name="WebIntent">
         <param name="android-package" value="com.borismus.webintent.WebIntent" />
     </feature>
@@ -30,33 +26,18 @@
     <hook src="scripts/conf.bash" type="before_run" />
     <hook src="scripts/cleanup.bash" type="after_build" />
     <hook src="scripts/cleanup.bash" type="after_run" />
-    <resource-file src="www/icons_platform/icon.png" target="app/src/main/res/mipmap/ic_bg.png" />
-    <resource-file src="www/icons_platform/fore.png" target="app/src/main/res/mipmap/ic_fg.png" />
-    <resource-file src="www/icons_platform/icon.png" target="app/src/main/res/mipmap/ic_launcher.png" />
-    <resource-file src="www/icons/favicon-512x512.png" target="app/src/main/res/mipmap/ic_launcher_round.png" />
-    <resource-file src="www/icons_platform/icon.xml" target="app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" />
-    <resource-file src="www/icons_platform/icon.xml" target="app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml" />
-    <edit-config file="app/src/main/AndroidManifest.xml" mode="merge" target="/manifest/application">
-        <application android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher_round" />
-    </edit-config>
     <icon background="res/icon/android/ldpi.png" density="ldpi" foreground="res/icon/android/ldpi_foreground.png" src="res/icon/android/ldpi.png" />
     <icon background="res/icon/android/mdpi.png" density="mdpi" foreground="res/icon/android/mdpi_foreground.png" src="res/icon/android/mdpi.png" />
     <icon background="res/icon/android/hdpi.png" density="hdpi" foreground="res/icon/android/hdpi_foreground.png" src="res/icon/android/hdpi.png" />
     <icon background="res/icon/android/xhdpi.png" density="xhdpi" foreground="res/icon/android/xhdpi_foreground.png" src="res/icon/android/xhdpi.png" />
     <icon background="res/icon/android/xxhdpi.png" density="xxhdpi" foreground="res/icon/android/xxhdpi_foreground.png" src="res/icon/android/xxhdpi.png" />
     <icon background="res/icon/android/xxxhdpi.png" density="xxxhdpi" foreground="res/icon/android/xxxhdpi_foreground.png" src="res/icon/android/xxxhdpi.png" />
-    <splash density="land-hdpi" src="res/screen/android/drawable-land-hdpi.png" />
-    <splash density="land-ldpi" src="res/screen/android/drawable-land-ldpi.png" />
-    <splash density="land-mdpi" src="res/screen/android/drawable-land-mdpi.png" />
-    <splash density="land-xhdpi" src="res/screen/android/drawable-land-xhdpi.png" />
-    <splash density="land-xxhdpi" src="res/screen/android/drawable-land-xxhdpi.png" />
-    <splash density="land-xxxhdpi" src="res/screen/android/drawable-land-xxxhdpi.png" />
-    <splash density="port-hdpi" src="res/screen/android/drawable-port-hdpi.png" />
-    <splash density="port-ldpi" src="res/screen/android/drawable-port-ldpi.png" />
-    <splash density="port-mdpi" src="res/screen/android/drawable-port-mdpi.png" />
-    <splash density="port-xhdpi" src="res/screen/android/drawable-port-xhdpi.png" />
-    <splash density="port-xxhdpi" src="res/screen/android/drawable-port-xxhdpi.png" />
-    <splash density="port-xxxhdpi" src="res/screen/android/drawable-port-xxxhdpi.png" />
+    <splash density="hdpi" src="res/screen/android/drawable-hdpi.png" />
+    <splash density="ldpi" src="res/screen/android/drawable-ldpi.png" />
+    <splash density="mdpi" src="res/screen/android/drawable-mdpi.png" />
+    <splash density="xhdpi" src="res/screen/android/drawable-xhdpi.png" />
+    <splash density="xxhdpi" src="res/screen/android/drawable-xxhdpi.png" />
+    <splash density="xxxhdpi" src="res/screen/android/drawable-xxxhdpi.png" />
     <edit-config file="app/src/main/AndroidManifest.xml" mode="merge" target="/manifest/application/activity[@android:name='MainActivity']">
         <activity android:screenOrientation="sensorLandscape" />
     </edit-config>

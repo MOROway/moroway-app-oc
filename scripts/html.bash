@@ -10,12 +10,21 @@ function loop () {
 			$( echo "$content" | grep '<!-- Cordova Scripts 1 -->' > /dev/null )
 			if (( $? != 0 ))
 			then
-				content=$(echo "$content" | sed 's/\(<base[^>]*>\)/\1\n\n<!-- Cordova Scripts 1 -->\n<script src="cordova.js"><\/script>\n\n/' )
+				content=$(echo "$content" | sed 's/\(<base[^>]*>\)/\1\n<!-- Cordova Scripts 1 -->\n<script src="cordova.js"><\/script>\n/' )
 			fi
 			$( echo "$content" | grep '<!-- Cordova Scripts 2 -->' > /dev/null )
 			if (( $? != 0 ))
 			then
-				content=$(echo "$content" | sed 's/\(<\/body>\)/\n\n<!-- Cordova Scripts 2 -->\n<script>document.addEventListener("deviceready", function() {if(typeof localDR == "function"){localDR();}if(typeof globalDR == "function"){globalDR();}});<\/script>\n\n\1/')
+				script='<!-- Cordova Scripts 2 --><script>document.addEventListener("deviceready", function() {if(typeof localDR == "function"){localDR();}if(typeof globalDR == "function"){globalDR();}});</script>'
+				if [[ ! -z $( echo "$content" | grep "</body>") ]]
+				then
+					content=$(echo "$content" | sed "s#\(</body>\)#\n$script\n\1#")
+				elif [[ ! -z $( echo "$content" | grep "</html>") ]]
+				then
+					content=$(echo "$content" | sed "s#\(</html>\)#\n$script\n\1#")
+				else
+					content="$content"$(printf '\n%s' "$script")
+				fi
 			fi
 			while [[ "$content" =~ '<iframe' ]]
 			do

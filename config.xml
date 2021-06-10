@@ -21,33 +21,18 @@
     <platform name="android">
         <preference name="Fullscreen" value="true" />
         <preference name="AndroidLaunchMode" value="singleTask" />
-        <resource-file src="www/icons_platform/icon.png" target="app/src/main/res/mipmap/ic_bg.png" />
-        <resource-file src="www/icons_platform/fore.png" target="app/src/main/res/mipmap/ic_fg.png" />
-        <resource-file src="www/icons_platform/icon.png" target="app/src/main/res/mipmap/ic_launcher.png" />
-        <resource-file src="www/icons/favicon-512x512.png" target="app/src/main/res/mipmap/ic_launcher_round.png" />
-        <resource-file src="www/icons_platform/icon.xml" target="app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" />
-        <resource-file src="www/icons_platform/icon.xml" target="app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml" />
-        <edit-config file="app/src/main/AndroidManifest.xml" mode="merge" target="/manifest/application">
-            <application android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher_round" />
-        </edit-config>
-        <icon src="res/icon/android/ldpi.png" background="res/icon/android/ldpi.png" density="ldpi" foreground="res/icon/android/ldpi_foreground.png" />
-        <icon src="res/icon/android/mdpi.png" background="res/icon/android/mdpi.png" density="mdpi" foreground="res/icon/android/mdpi_foreground.png" />
-        <icon src="res/icon/android/hdpi.png" background="res/icon/android/hdpi.png" density="hdpi" foreground="res/icon/android/hdpi_foreground.png" />
-        <icon src="res/icon/android/xhdpi.png" background="res/icon/android/xhdpi.png" density="xhdpi" foreground="res/icon/android/xhdpi_foreground.png" />
-        <icon src="res/icon/android/xxhdpi.png" background="res/icon/android/xxhdpi.png" density="xxhdpi" foreground="res/icon/android/xxhdpi_foreground.png" />
-        <icon src="res/icon/android/xxxhdpi.png" background="res/icon/android/xxxhdpi.png" density="xxxhdpi" foreground="res/icon/android/xxxhdpi_foreground.png" />
-        <splash src="res/screen/android/drawable-land-hdpi.png" density="land-hdpi" />
-        <splash src="res/screen/android/drawable-land-ldpi.png" density="land-ldpi" />
-        <splash src="res/screen/android/drawable-land-mdpi.png" density="land-mdpi" />
-        <splash src="res/screen/android/drawable-land-xhdpi.png" density="land-xhdpi" />
-        <splash src="res/screen/android/drawable-land-xxhdpi.png" density="land-xxhdpi" />
-        <splash src="res/screen/android/drawable-land-xxxhdpi.png" density="land-xxxhdpi" />
-        <splash src="res/screen/android/drawable-port-hdpi.png" density="port-hdpi" />
-        <splash src="res/screen/android/drawable-port-ldpi.png" density="port-ldpi" />
-        <splash src="res/screen/android/drawable-port-mdpi.png" density="port-mdpi" />
-        <splash src="res/screen/android/drawable-port-xhdpi.png" density="port-xhdpi" />
-        <splash src="res/screen/android/drawable-port-xxhdpi.png" density="port-xxhdpi" />
-        <splash src="res/screen/android/drawable-port-xxxhdpi.png" density="port-xxxhdpi" />
+        <icon background="res/icon/android/ldpi.png" density="ldpi" foreground="res/icon/android/ldpi_foreground.png" src="res/icon/android/ldpi.png" />
+        <icon background="res/icon/android/mdpi.png" density="mdpi" foreground="res/icon/android/mdpi_foreground.png" src="res/icon/android/mdpi.png" />
+        <icon background="res/icon/android/hdpi.png" density="hdpi" foreground="res/icon/android/hdpi_foreground.png" src="res/icon/android/hdpi.png" />
+        <icon background="res/icon/android/xhdpi.png" density="xhdpi" foreground="res/icon/android/xhdpi_foreground.png" src="res/icon/android/xhdpi.png" />
+        <icon background="res/icon/android/xxhdpi.png" density="xxhdpi" foreground="res/icon/android/xxhdpi_foreground.png" src="res/icon/android/xxhdpi.png" />
+        <icon background="res/icon/android/xxxhdpi.png" density="xxxhdpi" foreground="res/icon/android/xxxhdpi_foreground.png" src="res/icon/android/xxxhdpi.png" />
+        <splash density="hdpi" src="res/screen/android/drawable-hdpi.png" />
+        <splash density="ldpi" src="res/screen/android/drawable-ldpi.png" />
+        <splash density="mdpi" src="res/screen/android/drawable-mdpi.png" />
+        <splash density="xhdpi" src="res/screen/android/drawable-xhdpi.png" />
+        <splash density="xxhdpi" src="res/screen/android/drawable-xxhdpi.png" />
+        <splash density="xxxhdpi" src="res/screen/android/drawable-xxxhdpi.png" />
         <edit-config file="app/src/main/AndroidManifest.xml" mode="merge" target="/manifest/application/activity[@android:name='MainActivity']">
             <activity android:screenOrientation="sensorLandscape" />
         </edit-config>
@@ -61,7 +46,6 @@
             </intent-filter>
         </config-file>
     </platform>
-    <plugin name="cordova-plugin-whitelist" spec="1" />
     <plugin name="cordova-webintent" spec="~2.0.0" />
     <plugin name="cordova-plugin-insomnia" spec="~4.3.0" />
     <plugin name="cordova-plugin-dialogs" spec="~2.0.2" />

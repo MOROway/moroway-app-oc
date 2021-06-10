@@ -2,44 +2,37 @@
 <html>
     <head>
         <base href="../">
-
 <!-- Cordova Scripts 1 -->
 <script src="cordova.js"></script>
-
 
         <meta charset="UTF-8">
         <meta name="theme-color" content="#000" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title data-stringid-content="generalTitleHelpScreen"></title>
-        <link rel="manifest" href="manifest.webmanifest">
         <link rel="icon" type="image/x-icon" sizes="32x32" href="favicon.ico">
 
         <!-- Open Source Libraries And Fonts -->
         <!-- Fonts -->
-        <link rel="stylesheet" type="text/css" href="src/others/open_source/open_fonts/google/MaterialIcons/font.css">
-        <link rel="stylesheet" type="text/css" href="src/others/open_source/open_fonts/google/Roboto/font.css">
+        <link rel="stylesheet" type="text/css" href="src/lib/open_fonts/google/MaterialIcons/font.css">
+        <link rel="stylesheet" type="text/css" href="src/lib/open_fonts/google/Roboto/font.css">
 
         <!-- General Scripts -->
-        <script src="src/jonathan_herrmann_engel/js/error_handler.js"></script>
-        <script src="src/jonathan_herrmann_engel/js_platform/error_handler.js"></script>
-        <script src="src/jonathan_herrmann_engel/js/appdata.js"></script>
-        <script src="src/jonathan_herrmann_engel/js_platform/appdata.js"></script>
-        <script src="src/jonathan_herrmann_engel/js/general.js"></script>
-        <script src="src/jonathan_herrmann_engel/js_platform/general.js"></script>
+        <script src="src/js/error_handler.js"></script>
+        <script src="src/js/appdata.js"></script>
+        <script src="src/js/general.js"></script>
+        <script src="src/js_platform/general.js"></script>
         <!-- Help Scripts -->
-        <script src="src/jonathan_herrmann_engel/js/help.js"></script>
-        <script src="src/jonathan_herrmann_engel/js_platform/help.js"></script>
+        <script src="src/js/help.js"></script>
+        <script src="src/js_platform/help.js"></script>
 
         <!-- General Styles -->
-        <link rel="stylesheet" type="text/css" href="src/jonathan_herrmann_engel/css/general.css">
-        <link rel="stylesheet" type="text/css" href="src/jonathan_herrmann_engel/css_platform/general.css">
+        <link rel="stylesheet" type="text/css" href="src/css/general.css">
         <!-- Help Styles -->
-        <link rel="stylesheet" type="text/css" href="src/jonathan_herrmann_engel/css/help.css">
-        <link rel="stylesheet" type="text/css" href="src/jonathan_herrmann_engel/css_platform/help.css">
+        <link rel="stylesheet" type="text/css" href="src/css/help.css">
+        <link rel="stylesheet" type="text/css" href="src/css_platform/help.css">
     </head>
 
     <body>
-        
         <header class="page-header">
             <i id="backOption" class="internal-link material-icons">arrow_back</i>
             <h1 data-stringid-content="generalTitleHelpScreen"></h1>
@@ -161,11 +154,6 @@
                                 <button id="legal-appoc-webintent-license"><span data-stringid-content="helpScreenLegalStrLicense"></span></button>
                             </section>
                             <section>
-                                <h3 data-stringid-content="helpScreenLegalAppOCWhitelist"></h3>
-                                <div class="content" data-stringid-content="helpScreenLegalAppOCWhitelistPs"></div>
-                                <button id="legal-appoc-whitelist-license"><span data-stringid-content="helpScreenLegalStrLicense"></span></button>
-                            </section>
-                            <section>
                                 <h3 data-stringid-content="helpScreenLegalAppOCDialogs"></h3>
                                 <div class="content" data-stringid-content="helpScreenLegalAppOCDialogsPs"></div>
                                 <button id="legal-appoc-dialogs-license"><span data-stringid-content="helpScreenLegalStrLicense"></span></button>
@@ -260,16 +248,12 @@
             <span></span>
             <button></button>
         </div>
-        
         <!-- load strings -->
         <script>
             init();
             if(typeof(init_local) == "function") { init_local(); }
         </script>
     
-
-<!-- Cordova Scripts 2 -->
-<script>document.addEventListener("deviceready", function() {if(typeof localDR == "function"){localDR();}if(typeof globalDR == "function"){globalDR();}});</script>
-
+<!-- Cordova Scripts 2 --><script>document.addEventListener("deviceready", function() {if(typeof localDR == "function"){localDR();}if(typeof globalDR == "function"){globalDR();}});</script>
 </body>
 </html>

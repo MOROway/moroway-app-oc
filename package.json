@@ -9,12 +9,10 @@
     "cordova-webintent": "github:cordova-misc/cordova-webintent"
   },
   "devDependencies": {
-    "cordova-android": "^9.1.0",
-    "cordova-plugin-whitelist": "^1.3.4"
+    "cordova-android": "^9.1.0"
   },
   "cordova": {
     "plugins": {
-      "cordova-plugin-whitelist": {},
       "cordova-webintent": {},
       "cordova-plugin-insomnia": {},
       "cordova-plugin-dialogs": {},

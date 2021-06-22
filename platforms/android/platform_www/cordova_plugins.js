@@ -45,7 +45,7 @@ cordova.define('cordova/plugin_list', function(require, exports, module) {
     "cordova-plugin-dialogs": "2.0.2",
     "cordova-plugin-insomnia": "4.3.0",
     "cordova-plugin-splashscreen": "6.0.0",
-    "cordova-plugin-whitelist": "1.3.4",
-    "cordova-webintent": "2.0.0"
+    "cordova-webintent": "2.0.0",
+    "cordova-plugin-whitelist": "1.3.4"
   };
 });

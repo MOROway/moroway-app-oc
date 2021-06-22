@@ -18,6 +18,9 @@
     },
     "cordova-webintent": {
       "PACKAGE_NAME": "de.moroway.oc"
+    },
+    "cordova-plugin-whitelist": {
+      "PACKAGE_NAME": "de.moroway.oc"
     }
   },
   "dependent_plugins": {}

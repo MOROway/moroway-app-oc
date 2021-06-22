@@ -2181,8 +2181,14 @@ function drawObjects() {
     if(drawTimeout !== undefined && drawTimeout !== null) {
         window.clearTimeout(drawTimeout);
     }
-    var resttime = Math.max(drawInterval-(Date.now()-starttime),0);
-    drawTimeout = window.setTimeout(drawObjects, resttime);
+    var resttime = drawInterval-(Date.now()-starttime);
+    if(resttime <= 0) {
+        window.requestAnimationFrame(drawObjects);
+    } else {
+        drawTimeout = window.setTimeout(function(){
+            window.requestAnimationFrame(drawObjects);
+        }, resttime);
+    }
 
 }
 

@@ -247,8 +247,8 @@ h1, h2 {
 #server-note {
     font-family: Roboto;
     position: fixed;
-    background: darkslategray;
-    color: salmon;
+    background: rgb(48, 48, 48);
+    color: rgb(210, 120, 27);
     width: 80vw;
     height: 80vh;
     height: calc(80vh - calc( 100vh - 100% ));
@@ -266,9 +266,9 @@ h1, h2 {
     font-size: 600%;
     padding: 20px;
     line-height: 150%;
-    border-bottom: 3px double lightyellow;
-    background: lightsalmon;
-    color: darkslategray;
+    border-bottom: 3px double rgb(207, 207, 207);
+    background: rgb(210, 120, 27);
+    color: rgb(48, 48, 48);
 }
 #server-note-text {
     font-size: 300%;
@@ -288,7 +288,7 @@ h1, h2 {
 }
 #server-note-buttons {
     font-size: 150%;
-    color: lightblue;
+    color: rgb(207, 207, 207);
     display: flex;
     justify-content: center;
 }
@@ -297,7 +297,7 @@ h1, h2 {
     margin: 10px;
     cursor: pointer;
     border-radius: 3px;
-    border: 1px solid lightslategray;
+    border: 1px solid rgb(207, 207, 207);
     display: flex;
     align-items: center;
 }

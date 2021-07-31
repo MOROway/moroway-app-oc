@@ -1,0 +1,3 @@
+Ersetzen des Geburtstaglogos
+Vorbereitung auf Apache Cordova-Android 10.1.0
+HINWEIS: Sie müssen diese Version der MOROway App (v7.2.2) einmal öffnen, um die automatische Datenübertragung in die kommende Version zu initialisieren. Die kommende Version wird auf Apache Cordova-Android 10.1.0 basieren und den neuen WebViewAssetLoader nutzen.

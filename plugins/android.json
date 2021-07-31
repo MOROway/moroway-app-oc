@@ -21,6 +21,9 @@
     },
     "cordova-plugin-whitelist": {
       "PACKAGE_NAME": "de.moroway.oc"
+    },
+    "cordova-plugin-nativestorage": {
+      "PACKAGE_NAME": "de.moroway.oc"
     }
   },
   "dependent_plugins": {}

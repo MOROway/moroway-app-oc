@@ -31,7 +31,7 @@
           "application/activity": [
             {
               "xml": "<intent-filter android:autoVerify=\"true\" android:label=\"MOROway OC\"><action android:name=\"android.intent.action.VIEW\" /><category android:name=\"android.intent.category.DEFAULT\" /><category android:name=\"android.intent.category.BROWSABLE\" /><data android:host=\"app.moroway.de\" android:scheme=\"https\" /><data android:host=\"app.moroway.de\" android:scheme=\"http\" /></intent-filter>",
-              "count": 53
+              "count": 100
             }
           ],
           "/manifest/application": [
@@ -64,6 +64,10 @@
             {
               "xml": "<feature name=\"Whitelist\"><param name=\"android-package\" value=\"org.apache.cordova.whitelist.WhitelistPlugin\" /><param name=\"onload\" value=\"true\" /></feature>",
               "count": 1
+            },
+            {
+              "xml": "<feature name=\"NativeStorage\"><param name=\"android-package\" value=\"NativeStorage\" /></feature>",
+              "count": 1
             }
           ]
         }
@@ -84,6 +88,9 @@
       "PACKAGE_NAME": "de.moroway.oc"
     },
     "cordova-plugin-whitelist": {
+      "PACKAGE_NAME": "de.moroway.oc"
+    },
+    "cordova-plugin-nativestorage": {
       "PACKAGE_NAME": "de.moroway.oc"
     }
   },
@@ -128,6 +135,24 @@
       "clobbers": [
         "WebIntent"
       ]
+    },
+    {
+      "id": "cordova-plugin-nativestorage.mainHandle",
+      "file": "plugins/cordova-plugin-nativestorage/www/mainHandle.js",
+      "pluginId": "cordova-plugin-nativestorage",
+      "clobbers": [
+        "NativeStorage"
+      ]
+    },
+    {
+      "id": "cordova-plugin-nativestorage.LocalStorageHandle",
+      "file": "plugins/cordova-plugin-nativestorage/www/LocalStorageHandle.js",
+      "pluginId": "cordova-plugin-nativestorage"
+    },
+    {
+      "id": "cordova-plugin-nativestorage.NativeStorageError",
+      "file": "plugins/cordova-plugin-nativestorage/www/NativeStorageError.js",
+      "pluginId": "cordova-plugin-nativestorage"
     }
   ],
   "plugin_metadata": {
@@ -135,6 +160,7 @@
     "cordova-plugin-insomnia": "4.3.0",
     "cordova-plugin-splashscreen": "6.0.0",
     "cordova-webintent": "2.0.0",
-    "cordova-plugin-whitelist": "1.3.4"
+    "cordova-plugin-whitelist": "1.3.4",
+    "cordova-plugin-nativestorage": "2.3.2"
   }
 }

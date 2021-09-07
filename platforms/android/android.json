@@ -64,6 +64,10 @@
             {
               "xml": "<feature name=\"WebIntent\"><param name=\"android-package\" value=\"com.borismus.webintent.WebIntent\" /></feature>",
               "count": 1
+            },
+            {
+              "xml": "<feature name=\"NativeStorage\"><param name=\"android-package\" value=\"NativeStorage\" /></feature>",
+              "count": 1
             }
           ]
         }
@@ -84,6 +88,9 @@
       "PACKAGE_NAME": "de.moroway.oc"
     },
     "cordova-webintent": {
+      "PACKAGE_NAME": "de.moroway.oc"
+    },
+    "cordova-plugin-nativestorage": {
       "PACKAGE_NAME": "de.moroway.oc"
     }
   },
@@ -146,6 +153,24 @@
       "clobbers": [
         "WebIntent"
       ]
+    },
+    {
+      "id": "cordova-plugin-nativestorage.mainHandle",
+      "file": "plugins/cordova-plugin-nativestorage/www/mainHandle.js",
+      "pluginId": "cordova-plugin-nativestorage",
+      "clobbers": [
+        "NativeStorage"
+      ]
+    },
+    {
+      "id": "cordova-plugin-nativestorage.LocalStorageHandle",
+      "file": "plugins/cordova-plugin-nativestorage/www/LocalStorageHandle.js",
+      "pluginId": "cordova-plugin-nativestorage"
+    },
+    {
+      "id": "cordova-plugin-nativestorage.NativeStorageError",
+      "file": "plugins/cordova-plugin-nativestorage/www/NativeStorageError.js",
+      "pluginId": "cordova-plugin-nativestorage"
     }
   ],
   "plugin_metadata": {

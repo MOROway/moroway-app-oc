@@ -7,7 +7,7 @@ const APP_DATA = {
         "date": {
             "year": 2021,
             "month": 9,
-            "day": 1
+            "day": 7
         }
     },
     "platform": "oc"

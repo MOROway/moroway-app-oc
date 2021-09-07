@@ -1,0 +1,3 @@
+Replace birthday logo
+Prepare for Apache Cordova-Android 10.1.0
+NOTE: You will need to open this version of the app (v7.2.2) once to auto prepare data transition to the upcomming next version which will be based on Apache Cordova-Android 10.1.0 and use the newly introduced WebViewAssetLoader.

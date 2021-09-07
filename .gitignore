@@ -1,6 +1,5 @@
 *
-!.gitignore
-!.gitmodules
+!.git*
 !LICENSE
 !README.md
 !config.xml

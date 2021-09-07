@@ -13,13 +13,13 @@
     "cordova-plugin-insomnia": {
       "PACKAGE_NAME": "de.moroway.oc"
     },
+    "cordova-plugin-nativestorage": {
+      "PACKAGE_NAME": "de.moroway.oc"
+    },
     "cordova-plugin-splashscreen": {
       "PACKAGE_NAME": "de.moroway.oc"
     },
     "cordova-webintent": {
-      "PACKAGE_NAME": "de.moroway.oc"
-    },
-    "cordova-plugin-whitelist": {
       "PACKAGE_NAME": "de.moroway.oc"
     }
   },

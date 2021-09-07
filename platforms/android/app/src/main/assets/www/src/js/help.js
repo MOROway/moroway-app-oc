@@ -1,20 +1,20 @@
 var settings;
 
 function init(){
-	
+
     settings = getSettings ();
-	
+
     var elem = document.createElement("p");
     elem.textContent = formatJSString(getString("helpScreenGeneralWelcomeVersion", "."), APP_DATA.version.major, APP_DATA.version.minor, APP_DATA.version.patch, APP_DATA.version.date.year, (APP_DATA.version.date.month < 10 ? "0" + APP_DATA.version.date.month : APP_DATA.version.date.month), (APP_DATA.version.date.day < 10 ? "0" + APP_DATA.version.date.day : APP_DATA.version.date.day));
     document.querySelector("#general-version").appendChild(elem);
     document.querySelector("#general-whatsnew").addEventListener("click", function(){followLink("whatsnew/#newest","_self", LINK_STATE_INTERNAL_HTML);}, false);
-	
+
     document.querySelector("#legal-fonts-roboto-copyright").addEventListener("click", function(){followLink("src/lib/open_fonts/google/Roboto/COPYRIGHT","_self", LINK_STATE_INTERNAL_LICENSE_FILE);}, false);
     document.querySelector("#legal-fonts-roboto-license").addEventListener("click", function(){followLink("src/lib/open_fonts/google/Roboto/LICENSE","_self", LINK_STATE_INTERNAL_LICENSE_FILE);}, false);
     document.querySelector("#legal-fonts-materialicons-license").addEventListener("click", function(){followLink("src/lib/open_fonts/google/MaterialIcons/LICENSE","_self", LINK_STATE_INTERNAL_LICENSE_FILE);}, false);
     document.querySelector("#legal-self-code-license").addEventListener("click", function(){followLink("LICENSE","_self", LINK_STATE_INTERNAL_LICENSE_FILE);}, false);
-    document.querySelector("#legal-self-assets-license").addEventListener("click", function(){followLink("LICENSE_ASSETS","_self", LINK_STATE_INTERNAL_LICENSE_FILE);}, false);	
-	
+    document.querySelector("#legal-self-assets-license").addEventListener("click", function(){followLink("LICENSE_ASSETS","_self", LINK_STATE_INTERNAL_LICENSE_FILE);}, false);
+
     document.querySelector("#contact-imprintlink").addEventListener("click", function(){notify("#help-notifier", getString("helpScreenContactBackupLinkNotification", "."), NOTIFICATION_PRIO_DEFAULT, 900, null, null, window.innerHeight); followLink( getServerHTMLLink("imprint"),"_blank", LINK_STATE_NORMAL);}, false);
     handleServerJSONValues("imprint", function(res){
         var imprint = document.querySelector("#contact-imprint");
@@ -27,13 +27,13 @@ function init(){
         });
     });
     document.querySelector("#contact-feedbacklink").addEventListener("click", function(){notify("#help-notifier", getString("helpScreenContactFeedbackSendNotification", "."), NOTIFICATION_PRIO_DEFAULT, 900, null, null, window.innerHeight); followLink( getServerHTMLLink("feedback") ,"_blank", LINK_STATE_NORMAL);}, false);
-	
+
     document.querySelector("#download-sourcelink").addEventListener("click", function(){followLink(getServerRedirectLink("source_code"),"_blank", LINK_STATE_NORMAL);}, false);
-	
+
     document.querySelector("#website-link").addEventListener("click", function(){followLink(getServerRedirectLink("moroweb"),"_blank", LINK_STATE_NORMAL);}, false);
 
-    document.querySelector("#backOption").addEventListener("click", function(){try {window.close();}catch(err) {} followLink("./","_self", LINK_STATE_INTERNAL_HTML);}, false);	
-	
+    document.querySelector("#backOption").addEventListener("click", function(){try {window.close();}catch(err) {} followLink("./","_self", LINK_STATE_INTERNAL_HTML);}, false);
+
     var elems = document.querySelectorAll(".content");
     for (var i = 0; i < elems.length; i++) {
         var elemString = elems[i].dataset.stringidContent;
@@ -51,5 +51,5 @@ function init(){
         } while (j > 0);
         elems[i].removeAttribute("data-stringid-content");
     }
-    setHTMLStrings();	
+    setHTMLStrings();
 }

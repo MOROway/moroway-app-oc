@@ -17,11 +17,11 @@ function placeOptions(state){
             if (container !== null) {
                 container.parentNode.removeChild(container);
             }
-            menu.items.controlCenter.addEventListener("click", function(){hardware.mouse.rightClick = !hardware.mouse.rightClick || controlCenter.showCarCenter; controlCenter.showCarCenter = false;}, false);
-            menu.items.carControlCenter.addEventListener("click", function(){hardware.mouse.rightClick = !hardware.mouse.rightClick || !controlCenter.showCarCenter; controlCenter.showCarCenter = true;}, false);
+            menu.items.controlCenter.addEventListener("click", function(){hardware.mouse.rightClick = !hardware.mouse.rightClick || controlCenter.showCarCenter; controlCenter.showCarCenter = false;});
+            menu.items.carControlCenter.addEventListener("click", function(){hardware.mouse.rightClick = !hardware.mouse.rightClick || !controlCenter.showCarCenter; controlCenter.showCarCenter = true;});
             menu.items.chat.addEventListener("click", function(){
                 document.querySelector("#chat").openChat();
-            }, false);
+            });
         }
         for (var item in menu.items) {
             menu.items[item].style.display = "none";

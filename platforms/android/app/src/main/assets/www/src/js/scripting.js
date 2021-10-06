@@ -2284,7 +2284,7 @@ var controlCenter = {showCarCenter: null, fontFamily: "sans-serif"};
 var hardware = {mouse: {moveX:0, moveY:0,downX:0, downY:0, downTime: 0,upX:0, upY:0, upTime: 0, isMoving: false, isHold: false, rightClick: false, cursor: "default"}};
 var client = {devicePixelRatio: 1,realScaleMax:6,realScaleMin:1.2};
 var onlineGame = {animateInterval: 40, syncInterval: 10000, excludeFromSync: {"t": ["src", "assetFlip", "fac", "speedFac", "accelerationSpeedStartFac", "accelerationSpeedFac", "lastDirectionChange", "bogieDistance", "width", "height", "speed", "crash", "flickerFacBack", "flickerFacBackOffset", "flickerFacFront", "flickerFacFrontOffset", "margin", "cars"], "tc": ["src", "assetFlip", "fac", "bogieDistance", "width", "height", "konamiUseTrainIcon"]}, chatSticker: 7, resized: false};
-var onlineConnection = {serverURI: getServerLink("wss:") + "/multiplay"};
+var onlineConnection = {serverURI: getServerLink(PROTOCOL_WS) + "/multiplay"};
 
 var resizeTimeout;
 var resized = false;
@@ -2914,7 +2914,7 @@ window.onload = function() {
                         onlineGame.resized = false;
                     }, 3000);
                 }
-                if(debug){
+                if(debug || APP_DATA.debug){
                     animateWorker.postMessage({k:"debug"});
                 }
             } else if(message.data.k == "switches") {

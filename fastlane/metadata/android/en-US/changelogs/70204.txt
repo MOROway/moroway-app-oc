@@ -1,0 +1,2 @@
+Start logo: small improvements
+Update Apache Cordova-Android to 10.1.1

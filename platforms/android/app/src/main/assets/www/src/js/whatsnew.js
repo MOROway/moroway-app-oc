@@ -1,6 +1,6 @@
 function init(){
 
-    document.querySelector("#backOption").addEventListener("click", function(){try {window.close();}catch(err) {} followLink("./help","_self", LINK_STATE_INTERNAL_HTML);}, false);
+    document.querySelector("#backOption").addEventListener("click", function(){try {window.close();}catch(err) {} followLink("./help","_self", LINK_STATE_INTERNAL_HTML);});
 
     var i = 0;
     var versions = [];

@@ -10,10 +10,6 @@
 !fastlane/**
 !moroway-app-oc
 !moroway-app-oc/**
-!platforms
-!platforms/android
-!platforms/android/**
-platforms/android/release-signing.properties
 !plugins
 plugins/**
 !plugins/android.json

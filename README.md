@@ -31,5 +31,4 @@ Apache Cordova: [Apache License 2.0](https://github.com/apache/cordova-android/b
 
 ## Build
 
-* Use Cordova-generated files located at platforms/android/ and build with gradle or
-* Install Cordova, add platform Android and build with Cordova (requires Linux-based OS and Bash)
+Install Cordova, add platform Android and build with Cordova (requires Linux-based OS and Bash)

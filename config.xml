@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="de.moroway.oc" version="7.2.5" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget id="de.moroway.oc" version="7.3.0" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>MOROway</name>
     <author>Jonathan Herrmann-Engel</author>
     <content src="html_platform/entry.html" />
@@ -11,8 +11,6 @@
     <allow-intent href="mailto:*" />
     <hook src="scripts/html.bash" type="before_build" />
     <hook src="scripts/html.bash" type="before_run" />
-    <hook src="scripts/conf.bash" type="before_build" />
-    <hook src="scripts/conf.bash" type="before_run" />
     <hook src="scripts/cleanup.bash" type="after_build" />
     <hook src="scripts/cleanup.bash" type="after_run" />
     <preference name="SplashScreen" value="screen" />

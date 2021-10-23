@@ -2,7 +2,9 @@
 !.git*
 !LICENSE
 !README.md
+!build.sh
 !config.xml
+!fdroid_version.txt
 !package.json
 !docs
 !docs/**
@@ -10,10 +12,6 @@
 !fastlane/**
 !moroway-app-oc
 !moroway-app-oc/**
-!plugins
-plugins/**
-!plugins/android.json
-!plugins/fetch.json
 !res
 !res/**
 !scripts

@@ -32,16 +32,19 @@
 
         <!-- Server side notifications -->
         <div id="server-note">
-            <div id="server-note-title"></div>
-            <div id="server-note-text"></div>
-            <div id="server-note-later">
-                <input id="server-note-later-box" type="checkbox">
-                <label for="server-note-later-box" data-stringid-content="generalServerNoteButtonLater"></label>
-            </div>
-            <div id="server-note-later-info" data-stringid-content="generalServerNoteInfoLater"></div>
-            <div id="server-note-buttons">
-                <div id="server-note-button-go" data-stringid-content="generalServerNoteButtonGo" data-stringid-content-case="upper"></div>
-                <div id="server-note-button-no" data-stringid-content="generalServerNoteButtonNo" data-stringid-content-case="upper"></div>
+            <div id="server-note-main">
+                <div id="server-note-title"></div>
+                <div id="server-note-text"></div>
+                <div id="server-note-img"><img></div>
+                <div id="server-note-later">
+                    <input id="server-note-later-box" type="checkbox">
+                    <label for="server-note-later-box" data-stringid-content="generalServerNoteButtonLater"></label>
+                </div>
+                <div id="server-note-later-info" data-stringid-content="generalServerNoteInfoLater"></div>
+                <div id="server-note-buttons">
+                    <div id="server-note-button-go" data-stringid-content="generalServerNoteButtonGo" data-stringid-content-case="upper"></div>
+                    <div id="server-note-button-no" data-stringid-content="generalServerNoteButtonNo" data-stringid-content-case="upper"></div>
+                </div>
             </div>
         </div>
 
@@ -69,6 +72,9 @@
                 <div id="setup-colorbottom"> </div>
                 <div id="setup-ball">
                     <div id="setup-ballin"></div>
+                </div>
+                <div id="setup-exit" data-stringid-title="appScreenTeamplayUnsetTitle">
+                    <div class="internal-link material-icons">close</div>
                 </div>
             </div>
             <div id="game">
@@ -188,11 +194,11 @@
                     </div>
                 </div>
                 <div id="chat-nav" class="nav-wrapper">
-                <div id="chat-nav-buttons">
-                    <button id="chat-close" class="nav-button" data-stringid-content="appScreenTeamplayChatClose"></button>
-                    <button id="chat-clear" class="nav-button" data-stringid-content="appScreenTeamplayChatClear"></button>
+                    <div id="chat-nav-buttons">
+                        <button id="chat-close" class="nav-button" data-stringid-content="appScreenTeamplayChatClose"></button>
+                        <button id="chat-clear" class="nav-button" data-stringid-content="appScreenTeamplayChatClear"></button>
+                    </div>
                 </div>
-            </div>
             </div>
         </div>
 

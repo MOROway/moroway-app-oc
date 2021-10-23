@@ -257,7 +257,16 @@ h1, h2 {
     border: 10vw solid rgba(50, 50, 50,0.5);
     border-top-width: 10vh;
     border-bottom-width: 10vh;
+    background-size: cover;
+    background-position: center;
     background-clip: padding-box;
+    overflow: hidden;
+}
+#server-note-main {
+    display: flex;
+    background: rgba(48, 48, 48, 0.75);
+    width: 100%;
+    height: 100%;
     flex-direction: column;
     justify-content: center;
     overflow: hidden;
@@ -281,6 +290,16 @@ h1, h2 {
     display: flex;
     justify-content: center;
     align-items: center;
+}
+#server-note-img {
+    display: none;
+    max-height: 25%;
+    justify-content: center;
+    align-items: center;
+}
+#server-note-img img {
+    height: 95%;
+    object-fit: contain;
 }
 #server-note-later-info {
     font-size: 80%;

@@ -121,7 +121,6 @@ canvas {
     background: rgb(210, 120, 27);
 }
 .canvas-options-button i {
-    vertical-align: middle;
     font-size: 24px;
 }
 
@@ -383,6 +382,15 @@ canvas {
     40% {background: rgba(139,0,0,0.2);}
     60% {background: rgba(139,0,0,0.3);}
     80% {background: rgba(139,0,0,0.5);}
+}
+
+#setup #setup-exit {
+    display: none;
+    position: fixed;
+    cursor: pointer;
+    z-index: 2;
+    right: 20px;
+    top: 20px;
 }
 
 #setup #setup-inner-content {

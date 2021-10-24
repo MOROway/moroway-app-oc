@@ -40,7 +40,7 @@ for lang in "$working_dir_build/changelogs"/* ; do
 done
 
 # Set F-Droid Version
-echo -n "$version,$version_long" > fdroid_version.txt
+echo "$version,$version_long" > fdroid_version.txt
 
 # Set App Version
 content=$(cat config.xml | sed "s/version=\"[0-9]\+\.[0-9]\+\.[0-9]\+\"/version=\"$version\"/")

@@ -4,7 +4,7 @@ The MOROway App OC ("Open Cordova") wrapper app brings the MOROway App to Androi
 
 ## Download
 
-Available at [F-Droid](https://f-droid.org/de/packages/de.moroway.oc/).
+[<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" height="90">](https://f-droid.org/de/packages/de.moroway.oc/)
 
 ## Licenses
 

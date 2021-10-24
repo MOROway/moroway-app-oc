@@ -1,15 +1,12 @@
 {
   "license": "Apache-2.0",
-  "dependencies": {
-    "cordova": "^10.0.0",
-    "cordova-plugin-dialogs": "^2.0.2",
-    "cordova-plugin-insomnia": "git+https://github.com/EddyVerbruggen/Insomnia-PhoneGap-Plugin.git",
-    "cordova-plugin-splashscreen": "^6.0.0",
-    "cordova-webintent": "github:cordova-misc/cordova-webintent"
-  },
   "devDependencies": {
     "cordova-android": "^10.1.1",
-    "cordova-plugin-nativestorage": "^2.3.2"
+    "cordova-plugin-dialogs": "^2.0.2",
+    "cordova-plugin-insomnia": "github:EddyVerbruggen/Insomnia-PhoneGap-Plugin",
+    "cordova-plugin-nativestorage": "^2.3.2",
+    "cordova-plugin-splashscreen": "^6.0.0",
+    "cordova-webintent": "github:cordova-misc/cordova-webintent"
   },
   "cordova": {
     "plugins": {

@@ -1,6 +1,3 @@
-////Required code (needs to be set on each platform)
-
-////Optional code (app works without it)
 window.addEventListener("load",function(){
     var elem = document.getElementById("backOption"),
         elemClone = elem.cloneNode(true);

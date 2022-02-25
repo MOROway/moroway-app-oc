@@ -9,11 +9,11 @@ function init(){
     document.querySelector("#general-version").appendChild(elem);
     document.querySelector("#general-whatsnew").addEventListener("click", function(){followLink("whatsnew/#newest","_self", LINK_STATE_INTERNAL_HTML);});
 
-    document.querySelector("#legal-fonts-roboto-copyright").addEventListener("click", function(){followLink("src/lib/open_fonts/google/Roboto/COPYRIGHT","_self", LINK_STATE_INTERNAL_LICENSE_FILE);});
-    document.querySelector("#legal-fonts-roboto-license").addEventListener("click", function(){followLink("src/lib/open_fonts/google/Roboto/LICENSE","_self", LINK_STATE_INTERNAL_LICENSE_FILE);});
-    document.querySelector("#legal-fonts-materialicons-license").addEventListener("click", function(){followLink("src/lib/open_fonts/google/MaterialIcons/LICENSE","_self", LINK_STATE_INTERNAL_LICENSE_FILE);});
-    document.querySelector("#legal-self-code-license").addEventListener("click", function(){followLink("LICENSE","_self", LINK_STATE_INTERNAL_LICENSE_FILE);});
-    document.querySelector("#legal-self-assets-license").addEventListener("click", function(){followLink("LICENSE_ASSETS","_self", LINK_STATE_INTERNAL_LICENSE_FILE);});
+    document.querySelector("#legal-fonts-roboto-copyright").addEventListener("click", function(){followLink("src/lib/open_fonts/google/Roboto/COPYRIGHT.txt","_self", LINK_STATE_INTERNAL_LICENSE_FILE);});
+    document.querySelector("#legal-fonts-roboto-license").addEventListener("click", function(){followLink("src/lib/open_fonts/google/Roboto/LICENSE.txt","_self", LINK_STATE_INTERNAL_LICENSE_FILE);});
+    document.querySelector("#legal-fonts-materialicons-license").addEventListener("click", function(){followLink("src/lib/open_fonts/google/MaterialIcons/LICENSE.txt","_self", LINK_STATE_INTERNAL_LICENSE_FILE);});
+    document.querySelector("#legal-self-code-license").addEventListener("click", function(){followLink("LICENSE.txt","_self", LINK_STATE_INTERNAL_LICENSE_FILE);});
+    document.querySelector("#legal-self-assets-license").addEventListener("click", function(){followLink("LICENSE_ASSETS.txt","_self", LINK_STATE_INTERNAL_LICENSE_FILE);});
 
     document.querySelector("#contact-imprintlink").addEventListener("click", function(){notify("#help-notifier", getString("helpScreenContactBackupLinkNotification", "."), NOTIFICATION_PRIO_DEFAULT, 900, null, null, window.innerHeight); followLink( getServerHTMLLink("imprint"),"_blank", LINK_STATE_NORMAL);});
     handleServerJSONValues("imprint", function(res){
@@ -29,6 +29,7 @@ function init(){
     document.querySelector("#contact-feedbacklink").addEventListener("click", function(){notify("#help-notifier", getString("helpScreenContactFeedbackSendNotification", "."), NOTIFICATION_PRIO_DEFAULT, 900, null, null, window.innerHeight); followLink( getServerHTMLLink("feedback") ,"_blank", LINK_STATE_NORMAL);});
 
     document.querySelector("#download-sourcelink").addEventListener("click", function(){followLink(getServerRedirectLink("source_code"),"_blank", LINK_STATE_NORMAL);});
+    document.querySelector("#download-translations").addEventListener("click", function(){followLink(getServerRedirectLink("translations"),"_blank", LINK_STATE_NORMAL);});
 
     document.querySelector("#website-link").addEventListener("click", function(){followLink(getServerRedirectLink("moroweb"),"_blank", LINK_STATE_NORMAL);});
 

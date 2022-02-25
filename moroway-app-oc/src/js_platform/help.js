@@ -1,6 +1,3 @@
-////Required code (needs to be set on each platform)
-
-////Optional code (app works without it)
 function init_local(){
     var pics = document.querySelector("#website-pics");
     pics.style.display = "none";

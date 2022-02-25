@@ -1,8 +1,8 @@
-﻿Copyright (c) 2016-2021 Jonathan Herrmann-Engel.
+﻿Copyright (c) 2016-2022 Jonathan Herrmann-Engel.
 
-All MOROway App files are subject to the "Apache License Version 2.0" (file: 'LICENSE').
+All MOROway App files are subject to the "Apache License Version 2.0" (file: 'LICENSE.txt').
 
-In addition all MOROway App media files like images are also subject to the "Creative Commons Attribution 4.0 International" License (file: 'LICENSE_ASSETS').
+In addition all MOROway App media files like images are also subject to the "Creative Commons Attribution 4.0 International" License (file: 'LICENSE_ASSETS.txt').
 For these media files you may choose between these two licenses.
 
 For included open source files (e.g. [App-Root]/src/lib/) the copyright and license files are located in the specific directory.

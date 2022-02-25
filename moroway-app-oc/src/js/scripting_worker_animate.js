@@ -564,6 +564,7 @@ function placeTrainsAtInitialPositions() {
     trains.forEach(function(train, i){
         train.standardDirection = train.standardDirectionStartValue;
         delete train.standardDirectionStartValue;
+        train.endOfTrack = false;
 
         train.width = train.fac * background.width;
         train.height = train.fac *(trainPics[i].height * (background.width / trainPics[i].width));
@@ -1247,12 +1248,12 @@ var animateInterval = 22;
 
 var rotationPoints = {inner:{narrow:{x:[],y:[]}, wide:{x:[],y:[]}, sidings:{first: {x:[],y:[]}, firstS1: {x:[],y:[]}, firstS2: {x:[],y:[]}, second: {x:[],y:[]}, secondS1: {x:[],y:[]}, secondS2: {x:[],y:[]}, third: {x:[],y:[]}, thirdS1: {x:[],y:[]}, thirdS2: {x:[],y:[]}}},outer:{narrow:{x:[],y:[]}, altState3:{x:[],y:[]} },inner2outer:{left:{x:[],y:[]}, right:{x:[],y:[]}}};
 var trains =  [
-    {src: 1, fac: 0.051, speedFac: (1/500), accelerationSpeedStartFac: 0.02, accelerationSpeedFac: 1.008, circle: rotationPoints.inner.wide, circleFamily: rotationPoints.inner, standardDirectionStartValue: true, bogieDistance: 0.15, state: 1, flickerFacFront: 2.5, cars:[{src: 2, fac: 0.060, bogieDistance: 0.15},{src: 2, fac: 0.060, bogieDistance: 0.15},{src: 2, fac: 0.060, bogieDistance: 0.15},{src: 3, fac: 0.044, bogieDistance: 0.15}]},
-    {src: 4,fac: 0.093, speedFac: (1/250), accelerationSpeedStartFac: 0.035, accelerationSpeedFac: 1.013, circle: rotationPoints.outer.narrow, circleFamily: rotationPoints.outer, standardDirectionStartValue: true, bogieDistance: 0.15, state: 3, flickerFacFront: 2.1, flickerFacBack: 2.1, cars:[{src: 5, fac: 0.11, bogieDistance: 0.15},{src: 5, fac: 0.11, bogieDistance: 0.15, assetFlip: true}, {src: 4, fac: 0.093, bogieDistance: 0.15, assetFlip: true,konamiUseTrainIcon: true}]},
-    {src: 8, fac: 0.068, speedFac: (1/375), accelerationSpeedStartFac: 0.04, accelerationSpeedFac: 1.01, circle: rotationPoints.inner.wide, circleFamily: rotationPoints.inner, circleStartPosDiv: 0.8, standardDirectionStartValue: true, bogieDistance: 0.15, state: 121, flickerFacFront: 2.4, flickerFacBack: 2.3, flickerFacFrontOffset: 2.82, flickerFacBackOffset: 2.75, cars:[]},
-    {src: 7,fac: 0.1, speedFac: (1/250), accelerationSpeedStartFac: 0.034, accelerationSpeedFac: 1.014, circle: rotationPoints.inner.narrow, circleFamily: rotationPoints.inner, circleStartPosDiv: 0.865, standardDirectionStartValue: true, bogieDistance: 0.15, state: 111, margin: 500, flickerFacFront: 2.1, flickerFacBack: 2.1, cars:[{src: 6, fac: 0.1, bogieDistance: 0.15},{src: 6, fac: 0.1, bogieDistance: 0.15, assetFlip: true}, {src: 7, fac: 0.1, bogieDistance: 0.15, assetFlip: true,konamiUseTrainIcon: true}]},
-    {src: 20,fac: 0.0534, speedFac: (1/410), accelerationSpeedStartFac: 0.034, accelerationSpeedFac: 1.03, circle: rotationPoints.inner.narrow, circleFamily: rotationPoints.inner, circleStartPosDiv: 0.65, standardDirectionStartValue: true, bogieDistance: 0.15, state: 121, margin: 500, flickerFacFront: 2.1, flickerFacBack: 2.1, cars:[{src: 21, fac: 0.043, bogieDistance: 0.15},{src: 22, fac: 0.055, bogieDistance: 0.15}]},
-    {src: 18,fac: 0.093, speedFac: (1/360), accelerationSpeedStartFac: 0.034, accelerationSpeedFac: 1.025, circle: rotationPoints.inner.narrow, circleFamily: rotationPoints.inner, circleStartPosDiv: 0.99, standardDirectionStartValue: true, bogieDistance: 0.16, state: 131, margin: 500, cars:[{src: 19, fac: 0.08, bogieDistance: 0.15},{src: 18, fac: 0.093, bogieDistance: 0.19, assetFlip: true,konamiUseTrainIcon: true}]}
+    {src: 1, fac: 0.051, speedFac: (1/500), accelerationSpeedStartFac: 0.02, accelerationSpeedFac: 1.008, circle: rotationPoints.inner.wide, circleFamily: rotationPoints.inner, standardDirectionStartValue: true, bogieDistance: 0.15, state: 1, flickerFacFront: 2.5, trainSwitchSrc: 25, cars:[{src: 2, fac: 0.060, bogieDistance: 0.15},{src: 2, fac: 0.060, bogieDistance: 0.15},{src: 2, fac: 0.060, bogieDistance: 0.15},{src: 3, fac: 0.044, bogieDistance: 0.15}]},
+    {src: 4,fac: 0.093, speedFac: (1/250), accelerationSpeedStartFac: 0.035, accelerationSpeedFac: 1.013, circle: rotationPoints.outer.narrow, circleFamily: rotationPoints.outer, standardDirectionStartValue: true, bogieDistance: 0.15, state: 3, flickerFacFront: 2.1, flickerFacBack: 2.1, trainSwitchSrc: 26, cars:[{src: 5, fac: 0.11, bogieDistance: 0.15},{src: 5, fac: 0.11, bogieDistance: 0.15, assetFlip: true}, {src: 4, fac: 0.093, bogieDistance: 0.15, assetFlip: true,konamiUseTrainIcon: true}]},
+    {src: 8, fac: 0.068, speedFac: (1/375), accelerationSpeedStartFac: 0.04, accelerationSpeedFac: 1.01, circle: rotationPoints.inner.wide, circleFamily: rotationPoints.inner, circleStartPosDiv: 0.8, standardDirectionStartValue: true, bogieDistance: 0.15, state: 121, flickerFacFront: 2.4, flickerFacBack: 2.3, flickerFacFrontOffset: 2.82, flickerFacBackOffset: 2.75, trainSwitchSrc: 27, cars:[]},
+    {src: 7,fac: 0.1, speedFac: (1/250), accelerationSpeedStartFac: 0.034, accelerationSpeedFac: 1.014, circle: rotationPoints.inner.narrow, circleFamily: rotationPoints.inner, circleStartPosDiv: 0.865, standardDirectionStartValue: true, bogieDistance: 0.15, state: 111, margin: 500, flickerFacFront: 2.1, flickerFacBack: 2.1, trainSwitchSrc: 28, cars:[{src: 6, fac: 0.1, bogieDistance: 0.15},{src: 6, fac: 0.1, bogieDistance: 0.15, assetFlip: true}, {src: 7, fac: 0.1, bogieDistance: 0.15, assetFlip: true,konamiUseTrainIcon: true}]},
+    {src: 20,fac: 0.0534, speedFac: (1/410), accelerationSpeedStartFac: 0.034, accelerationSpeedFac: 1.03, circle: rotationPoints.inner.narrow, circleFamily: rotationPoints.inner, circleStartPosDiv: 0.65, standardDirectionStartValue: true, bogieDistance: 0.15, state: 121, margin: 500, flickerFacFront: 2.1, flickerFacBack: 2.1, trainSwitchSrc: 29, cars:[{src: 21, fac: 0.043, bogieDistance: 0.15},{src: 22, fac: 0.055, bogieDistance: 0.15}]},
+    {src: 18,fac: 0.093, speedFac: (1/360), accelerationSpeedStartFac: 0.034, accelerationSpeedFac: 1.025, circle: rotationPoints.inner.narrow, circleFamily: rotationPoints.inner, circleStartPosDiv: 0.99, standardDirectionStartValue: true, bogieDistance: 0.16, state: 131, margin: 500, trainSwitchSrc: 30, cars:[{src: 19, fac: 0.08, bogieDistance: 0.15},{src: 18, fac: 0.093, bogieDistance: 0.19, assetFlip: true,konamiUseTrainIcon: true}]}
 ];
 var trainParams = {selected: Math.floor(Math.random()*trains.length), margin: 25, innerCollisionFac: 0.5};
 var trainPics;
@@ -1320,6 +1321,13 @@ onmessage = function(message) {
         trainPics = message.data.trainPics;
         defineTrainParams();
         if(typeof message.data.savedTrains == "object") {
+            /* UPDATE: v7.4.0 */
+            for(var t = 0; t < trains.length && t < message.data.savedTrains.length; t++) {
+                if(message.data.savedTrains[t].trainSwitchSrc == undefined) {
+                    message.data.savedTrains[t].trainSwitchSrc = trains[t].trainSwitchSrc;
+                }
+            }
+            /* END UPDATE: v7.4.0 */
             trains = JSON.parse(JSON.stringify(message.data.savedTrains));
             for(var t = 0; t < trains.length; t++) {
                 if(message.data.savedTrains[t].circleFamily != null) {

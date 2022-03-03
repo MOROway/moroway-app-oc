@@ -25,7 +25,6 @@ Apache Cordova: [Apache License 2.0](https://github.com/apache/cordova-android/b
 
 * cordova-plugin-dialogs: [Apache License 2.0](https://github.com/apache/cordova-plugin-dialogs/blob/master/LICENSE)
 * cordova-plugin-insomnia: [MIT License](https://github.com/EddyVerbruggen/Insomnia-PhoneGap-Plugin/blob/master/README.md)
-* cordova-plugin-nativestorage: [Apache License 2.0](https://github.com/TheCocoaProject/cordova-plugin-nativestorage/blob/master/LICENSE.md)
 * cordova-plugin-splashscreen: [Apache License 2.0](https://github.com/apache/cordova-plugin-splashscreen/blob/master/LICENSE)
 * cordova-webintent: [MIT License](https://github.com/cordova-misc/cordova-webintent/blob/master/README.md)
 

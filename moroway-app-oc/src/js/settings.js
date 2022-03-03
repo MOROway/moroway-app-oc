@@ -1,19 +1,17 @@
 "use strict";
 
 function chooseInputMethod (event){
-    var type = event.type;
-    document.querySelector("body").removeEventListener("touchstart",chooseInputMethod);
-    document.querySelector("body").removeEventListener("mousemove",chooseInputMethod);
-    if(type == "touchstart"){
-        type = "touch";
+    if(event.type == "touchstart"){
+        document.querySelector("body").removeEventListener("touchstart",chooseInputMethod);
+        setCurrentHardwareConfig("touch",true);
     } else {
-        type = "mouse";
+        document.querySelector("body").removeEventListener("mousemove",chooseInputMethod);
+        setCurrentHardwareConfig("mouse",true);
     }
-    setCurrentHardwareConfig("input",type);
+    setSettingsHTML(document.querySelector("main"),true);
 }
 
 window.addEventListener("load", function(){
-
     if(typeof(window.localStorage) != "undefined") {
 
         setSettingsHTML(document.querySelector("main"),true);
@@ -21,10 +19,13 @@ window.addEventListener("load", function(){
         document.querySelector("body").addEventListener("touchstart",chooseInputMethod);
         document.querySelector("body").addEventListener("mousemove",chooseInputMethod);
 
-        document.querySelector("#backOption").addEventListener("click", function(){try {window.close();}catch(err) {} followLink("./","_self", LINK_STATE_INTERNAL_HTML);});
-
+        document.querySelector("#backOption").addEventListener("click", function(){
+            try {
+                window.close();
+            } catch(err) {}
+            followLink("./","_self", LINK_STATE_INTERNAL_HTML);
+        });
     } else {
         document.querySelector("body").innerHTML = getString("generalNoDOMStorageSupport");
     }
-
 });

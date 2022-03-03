@@ -1,0 +1,1 @@
+Doubletap prevents normal touch action.

@@ -4,7 +4,6 @@
     "cordova-android": "^10.1.1",
     "cordova-plugin-dialogs": "^2.0.2",
     "cordova-plugin-insomnia": "github:EddyVerbruggen/Insomnia-PhoneGap-Plugin",
-    "cordova-plugin-nativestorage": "^2.3.2",
     "cordova-plugin-splashscreen": "^6.0.0",
     "cordova-webintent": "github:cordova-misc/cordova-webintent"
   },
@@ -13,8 +12,7 @@
       "cordova-webintent": {},
       "cordova-plugin-insomnia": {},
       "cordova-plugin-dialogs": {},
-      "cordova-plugin-splashscreen": {},
-      "cordova-plugin-nativestorage": {}
+      "cordova-plugin-splashscreen": {}
     },
     "platforms": [
       "android"

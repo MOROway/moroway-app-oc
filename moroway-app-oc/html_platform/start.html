@@ -1,38 +1,43 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <base href="../">
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <base href="../" />
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="theme-color" content="#000" />
         <title data-stringid-content="generalTitle"></title>
-        <link rel="icon" type="image/x-icon" sizes="32x32" href="favicon.ico">
+        <link rel="icon" type="image/x-icon" sizes="32x32" href="favicon.ico" />
         <script>
-        function localDR(){
-            window.plugins.insomnia.keepAwake();
-            document.addEventListener("backbutton", function(){
-                navigator.app.exitApp();
-            });
-            navigator.splashscreen.hide();
+            function localDR() {
+                window.plugins.insomnia.keepAwake();
+                document.addEventListener("backbutton", function () {
+                    navigator.app.exitApp();
+                });
+                navigator.splashscreen.hide();
 
-            var localAppData = getLocalAppDataCopy();
-            if(localAppData !== null && (localAppData.version.major != APP_DATA.version.major || localAppData.version.minor != APP_DATA.version.minor)) {
-                navigator.notification.confirm(getString("platformOcAppUpdate"), function(button) {
-                    if (button == 1){
-                        followLink("whatsnew/#newest", "_blank", LINK_STATE_INTERNAL_HTML);
-                    }
-                }, getString("platformOcAppUpdateTitel"), [getString("platformOcAppUpdateYes"),getString("platformOcAppUpdateNo")]);
-            } else {
-                showServerNote();
+                var localAppData = getLocalAppDataCopy();
+                if (localAppData !== null && (localAppData.version.major != APP_DATA.version.major || localAppData.version.minor != APP_DATA.version.minor)) {
+                    navigator.notification.confirm(
+                        getString("platformOcAppUpdate"),
+                        function (button) {
+                            if (button == 1) {
+                                followLink("whatsnew/#newest", "_blank", LINK_STATE_INTERNAL_HTML);
+                            }
+                        },
+                        getString("platformOcAppUpdateTitel"),
+                        [getString("platformOcAppUpdateYes"), getString("platformOcAppUpdateNo")]
+                    );
+                } else {
+                    showServerNote();
+                }
+                setLocalAppDataCopy();
             }
-            setLocalAppDataCopy();
-        }
         </script>
 
         <!-- Open Source Libraries And Fonts -->
         <!-- Fonts -->
-        <link rel="stylesheet" type="text/css" href="src/lib/open_fonts/google/MaterialIcons/font.css">
-        <link rel="stylesheet" type="text/css" href="src/lib/open_fonts/google/Roboto/font.css">
+        <link rel="stylesheet" type="text/css" href="src/lib/open_fonts/google/MaterialIcons/font.css" />
+        <link rel="stylesheet" type="text/css" href="src/lib/open_fonts/google/Roboto/font.css" />
 
         <!-- General Scripts -->
         <script src="src/js/error_handler.js"></script>
@@ -41,11 +46,11 @@
         <script src="src/js_platform/general.js"></script>
 
         <!-- General Styles -->
-        <link rel="stylesheet" type="text/css" href="src/css/general.css">
+        <link rel="stylesheet" type="text/css" href="src/css/general.css" />
 
         <style>
             body {
-                background-image: url('assets_platform/background.jpg');
+                background-image: url("assets_platform/background.jpg");
                 background-size: cover;
                 background-position: center;
                 background-repeat: no-repeat;
@@ -64,7 +69,7 @@
             }
 
             #content {
-                background: rgba(255,180,230,0.05);
+                background: rgba(255, 180, 230, 0.05);
                 color: black;
                 font-weight: bold;
                 text-align: center;
@@ -78,9 +83,9 @@
                 height: 85vh;
                 width: 90vw;
                 border-radius: 3vh;
-                border: 2vw solid rgba(0,0,0,0.2);
-                border-top: 1vh solid rgba(0,0,0,0.2);
-                border-bottom: 3vh solid rgba(0,0,0,0.2);
+                border: 2vw solid rgba(0, 0, 0, 0.2);
+                border-top: 1vh solid rgba(0, 0, 0, 0.2);
+                border-bottom: 3vh solid rgba(0, 0, 0, 0.2);
                 display: flex;
                 flex-direction: column;
                 align-items: center;
@@ -90,7 +95,7 @@
                 user-select: none;
             }
             #content:hover {
-                background: rgba(255,180,230,0.1);
+                background: rgba(255, 180, 230, 0.1);
             }
             #content div {
                 display: inline-block;
@@ -120,7 +125,6 @@
                 }
             }
             @media (orientation: landscape) and (min-width: 500px) {
-
                 #content {
                     font-size: 1.5em;
                     flex-direction: row;
@@ -185,27 +189,22 @@
                 }
             }
             @media (orientation: landscape) and (min-width: 1000px) {
-
                 #content .content-text {
                     font-size: inherit;
                 }
-
             }
-
         </style>
-
     </head>
 
     <body>
-
         <!-- Server side notifications -->
         <div id="server-note">
             <div id="server-note-main">
                 <div id="server-note-title"></div>
                 <div id="server-note-text"></div>
-                <div id="server-note-img"><img></div>
+                <div id="server-note-img"><img /></div>
                 <div id="server-note-later">
-                    <input id="server-note-later-box" type="checkbox">
+                    <input id="server-note-later-box" type="checkbox" />
                     <label for="server-note-later-box" data-stringid-content="generalServerNoteButtonLater"></label>
                 </div>
                 <div id="server-note-later-info" data-stringid-content="generalServerNoteInfoLater"></div>
@@ -227,8 +226,7 @@
                         <i class="material-icons">person</i>
                     </div>
                 </div>
-                <div class="content-text" data-stringid-content="platformOcStartGame">
-                </div>
+                <div class="content-text" data-stringid-content="platformOcStartGame"></div>
             </div>
             <div id="link_multiplayer">
                 <div class="text-icons">
@@ -239,8 +237,7 @@
                         <i class="material-icons">people</i>
                     </div>
                 </div>
-                <div class="content-text" data-stringid-content="platformOcStartGameOnline">
-                </div>
+                <div class="content-text" data-stringid-content="platformOcStartGameOnline"></div>
             </div>
             <div id="link_help">
                 <div class="text-icons">
@@ -248,8 +245,7 @@
                         <i class="material-icons">help_outline</i>
                     </div>
                 </div>
-                <div class="content-text" data-stringid-content="platformOcStartHelp">
-                </div>
+                <div class="content-text" data-stringid-content="platformOcStartHelp"></div>
             </div>
             <div id="link_settings">
                 <div class="text-icons">
@@ -257,49 +253,54 @@
                         <i class="material-icons">settings</i>
                     </div>
                 </div>
-                <div class="content-text" data-stringid-content="platformOcStartSettings">
-                </div>
+                <div class="content-text" data-stringid-content="platformOcStartSettings"></div>
             </div>
         </main>
 
         <script>
-            function styleContent(){
+            function styleContent() {
                 var content = document.getElementById("content");
                 content.style.display = "";
-                if(window.innerHeight < content.scrollHeight){
+                if (window.innerHeight < content.scrollHeight) {
                     content.style.display = "block";
                 }
                 var icons = document.querySelectorAll("#content .text-icon-big .material-icons");
                 var iconSize;
-                for(var iC = 0; iC < icons.length; iC++) {
-                    icons[iC].style.fontSize = '';
+                for (var iC = 0; iC < icons.length; iC++) {
+                    icons[iC].style.fontSize = "";
                     iconSize = icons[iC].offsetWidth;
-                    icons[iC].style.fontSize = iconSize + 'px';
+                    icons[iC].style.fontSize = iconSize + "px";
                 }
                 icons = document.querySelectorAll("#content .text-icon-small");
-                for(var iC = 0; iC < icons.length; iC++) {
-                    var iconSizeSmall = (iconSize/4*window.getComputedStyle(icons[iC].parentNode.parentNode).getPropertyValue("flex-grow"));
-                    icons[iC].style.width = iconSizeSmall + 'px';
-                    icons[iC].style.height = iconSizeSmall + 'px';
-                    icons[iC].querySelector(".material-icons").style.fontSize = iconSizeSmall + 'px';
-                    icons[iC].style.left = (icons[iC].parentNode.offsetLeft + icons[iC].parentNode.offsetWidth / 2 + icons[iC].offsetWidth / 2) + 'px';
-                    icons[iC].style.top = (icons[iC].parentNode.offsetTop + icons[iC].parentNode.offsetHeight*0.9 - icons[iC].offsetHeight) + 'px';
+                for (var iC = 0; iC < icons.length; iC++) {
+                    var iconSizeSmall = (iconSize / 4) * window.getComputedStyle(icons[iC].parentNode.parentNode).getPropertyValue("flex-grow");
+                    icons[iC].style.width = iconSizeSmall + "px";
+                    icons[iC].style.height = iconSizeSmall + "px";
+                    icons[iC].querySelector(".material-icons").style.fontSize = iconSizeSmall + "px";
+                    icons[iC].style.left = icons[iC].parentNode.offsetLeft + icons[iC].parentNode.offsetWidth / 2 + icons[iC].offsetWidth / 2 + "px";
+                    icons[iC].style.top = icons[iC].parentNode.offsetTop + icons[iC].parentNode.offsetHeight * 0.9 - icons[iC].offsetHeight + "px";
                 }
             }
 
-            window.addEventListener("load", function(){styleContent(); window.setTimeout(styleContent,50);});
-            window.addEventListener("resize", function(){styleContent(); window.setTimeout(styleContent,50);});
+            window.addEventListener("load", function () {
+                styleContent();
+                window.setTimeout(styleContent, 50);
+            });
+            window.addEventListener("resize", function () {
+                styleContent();
+                window.setTimeout(styleContent, 50);
+            });
 
-            document.getElementById("link_game").addEventListener("click", function(){
+            document.getElementById("link_game").addEventListener("click", function () {
                 followLink("./", "_self", LINK_STATE_INTERNAL_HTML);
             });
-            document.getElementById("link_multiplayer").addEventListener("click", function(){
+            document.getElementById("link_multiplayer").addEventListener("click", function () {
                 followLink("./?mode=multiplay", "_self", LINK_STATE_INTERNAL_HTML);
             });
-            document.getElementById("link_help").addEventListener("click", function(){
+            document.getElementById("link_help").addEventListener("click", function () {
                 followLink("help", "_self", LINK_STATE_INTERNAL_HTML);
             });
-            document.getElementById("link_settings").addEventListener("click", function(){
+            document.getElementById("link_settings").addEventListener("click", function () {
                 followLink("settings", "_self", LINK_STATE_INTERNAL_HTML);
             });
 

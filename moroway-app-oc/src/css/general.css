@@ -23,7 +23,8 @@ a {
     color: rgb(79, 79, 79);
 }
 
-h1, h2 {
+h1,
+h2 {
     color: rgb(207, 207, 207);
 }
 
@@ -35,7 +36,7 @@ h1, h2 {
 }
 
 .hidden {
-    display: none !important
+    display: none !important;
 }
 
 /* Info Cards */
@@ -101,7 +102,7 @@ h1, h2 {
 .card button {
     margin: 0;
     padding: 5px 10px;
-    border : none;
+    border: none;
     background: none;
     color: black;
     text-transform: uppercase;
@@ -184,7 +185,7 @@ h1, h2 {
 }
 
 .settings-opts-wrapper {
-    color: rgba(0,0,0,.87);
+    color: rgba(0, 0, 0, 0.87);
     font-size: 110%;
     display: flex;
     align-items: center;
@@ -203,7 +204,7 @@ h1, h2 {
 }
 
 .settings-hints-wrapper {
-    color: rgba(0,0,0,.54);
+    color: rgba(0, 0, 0, 0.54);
     margin-top: 2px;
     margin-left: 16px;
     font-size: 90%;
@@ -228,11 +229,12 @@ h1, h2 {
     border: 1px grey solid;
 }
 
-#langoption .langvalue, .settings-button {
+#langoption .langvalue,
+.settings-button {
     color: black;
     margin: 3px;
     margin-left: 16px;
-    padding: 0.3%;
+    padding: 5px;
     background: none;
     border: 1px black solid;
     border-radius: 2px;
@@ -251,10 +253,10 @@ h1, h2 {
     color: rgb(210, 120, 27);
     width: 80vw;
     height: 80vh;
-    height: calc(80vh - calc( 100vh - 100% ));
+    height: calc(80vh - calc(100vh - 100%));
     z-index: 2000;
     display: none;
-    border: 10vw solid rgba(50, 50, 50,0.5);
+    border: 10vw solid rgba(50, 50, 50, 0.5);
     border-top-width: 10vh;
     border-bottom-width: 10vh;
     background-size: cover;
@@ -320,15 +322,15 @@ h1, h2 {
     display: flex;
     align-items: center;
 }
-#server-note-buttons div#server-note-button-go  {
+#server-note-buttons div#server-note-button-go {
     display: none;
 }
 @media (max-height: 500px), (max-width: 750px) {
     #server-note {
         width: 90vw;
         height: 90vh;
-        height: calc(90vh - calc( 100vh - 100% ));
-        border: 5vw solid rgba(50, 50, 50,0.5);
+        height: calc(90vh - calc(100vh - 100%));
+        border: 5vw solid rgba(50, 50, 50, 0.5);
         border-top-width: 5vh;
         border-bottom-width: 5vh;
     }

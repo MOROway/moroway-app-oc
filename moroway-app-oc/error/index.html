@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <base href="../">
-        <meta charset="UTF-8">
+        <base href="../" />
+        <meta charset="UTF-8" />
         <meta name="theme-color" content="#000" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title data-stringid-content="generalTitleErrorScreen"></title>
-        <link rel="icon" type="image/x-icon" sizes="32x32" href="favicon.ico">
+        <link rel="icon" type="image/x-icon" sizes="32x32" href="favicon.ico" />
 
         <!-- Open Source Libraries And Fonts -->
         <!-- Fonts -->
-        <link rel="stylesheet" type="text/css" href="src/lib/open_fonts/google/MaterialIcons/font.css">
-        <link rel="stylesheet" type="text/css" href="src/lib/open_fonts/google/Roboto/font.css">
+        <link rel="stylesheet" type="text/css" href="src/lib/open_fonts/google/MaterialIcons/font.css" />
+        <link rel="stylesheet" type="text/css" href="src/lib/open_fonts/google/Roboto/font.css" />
 
         <!-- General Scripts -->
         <script src="src/js/error_handler.js"></script>
@@ -23,12 +23,11 @@
         <script src="src/js_platform/error.js"></script>
 
         <!-- General Styles -->
-        <link rel="stylesheet" type="text/css" href="src/css/general.css">
+        <link rel="stylesheet" type="text/css" href="src/css/general.css" />
         <!-- Error Styles -->
     </head>
 
     <body>
-
         <header class="page-header">
             <i id="backOption" class="internal-link material-icons">arrow_back</i>
             <h1 data-stringid-content="generalTitleErrorScreen"></h1>
@@ -95,8 +94,9 @@
         <!-- load strings -->
         <script>
             init();
-            if(typeof(init_local) == "function") { init_local(); }
+            if (typeof init_local == "function") {
+                init_local();
+            }
         </script>
-
     </body>
 </html>

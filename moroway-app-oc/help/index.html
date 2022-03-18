@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <base href="../">
-        <meta charset="UTF-8">
+        <base href="../" />
+        <meta charset="UTF-8" />
         <meta name="theme-color" content="#000" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title data-stringid-content="generalTitleHelpScreen"></title>
-        <link rel="icon" type="image/x-icon" sizes="32x32" href="favicon.ico">
+        <link rel="icon" type="image/x-icon" sizes="32x32" href="favicon.ico" />
 
         <!-- Open Source Libraries And Fonts -->
         <!-- Fonts -->
-        <link rel="stylesheet" type="text/css" href="src/lib/open_fonts/google/MaterialIcons/font.css">
-        <link rel="stylesheet" type="text/css" href="src/lib/open_fonts/google/Roboto/font.css">
+        <link rel="stylesheet" type="text/css" href="src/lib/open_fonts/google/MaterialIcons/font.css" />
+        <link rel="stylesheet" type="text/css" href="src/lib/open_fonts/google/Roboto/font.css" />
 
         <!-- General Scripts -->
         <script src="src/js/error_handler.js"></script>
@@ -23,14 +23,13 @@
         <script src="src/js_platform/help.js"></script>
 
         <!-- General Styles -->
-        <link rel="stylesheet" type="text/css" href="src/css/general.css">
+        <link rel="stylesheet" type="text/css" href="src/css/general.css" />
         <!-- Help Styles -->
-        <link rel="stylesheet" type="text/css" href="src/css/help.css">
-        <link rel="stylesheet" type="text/css" href="src/css_platform/help.css">
+        <link rel="stylesheet" type="text/css" href="src/css/help.css" />
+        <link rel="stylesheet" type="text/css" href="src/css_platform/help.css" />
     </head>
 
     <body>
-
         <header class="page-header">
             <i id="backOption" class="internal-link material-icons">arrow_back</i>
             <h1 data-stringid-content="generalTitleHelpScreen"></h1>
@@ -84,7 +83,7 @@
                             <h2 data-stringid-content="helpScreenGraphicalDescription" data-stringid-content-arg1="helpScreenGraphicalDescriptionIcon" data-stringid-content-argisstringref1="1"></h2>
                         </div>
                         <p>
-                            <img style="width: 100%;" src="assets/helpasset2_desc.jpg" data-stringid-alt="helpScreenGraphicalDescriptionPic"/>
+                            <img style="width: 100%" src="assets/helpasset2_desc.jpg" data-stringid-alt="helpScreenGraphicalDescriptionPic" />
                         </p>
                         <div class="card-content">
                             <div class="content" data-stringid-content="helpScreenGraphicalDescriptionPs"></div>
@@ -201,7 +200,7 @@
                         </div>
                         <div class="card-content">
                             <p>
-                                <img style="width: 100%;" src="assets/helpasset1_bug_report.png" data-stringid-alt="helpScreenContactFeedbackBugs"/>
+                                <img style="width: 100%" src="assets/helpasset1_bug_report.png" data-stringid-alt="helpScreenContactFeedbackBugs" />
                             </p>
                             <div class="content" data-stringid-content="helpScreenContactFeedbackPs"></div>
                             <div id="contact-imprint"><button id="contact-imprintlink" data-stringid-content="helpScreenContactBackupLink"></button></div>
@@ -236,14 +235,13 @@
                                 <button id="download-snaplink" data-stringid-content="helpScreenDownloadAppsSnapButton"></button>
                             </section>
                         </div>
-
                     </div>
                     <div class="card">
                         <div class="card-title">
                             <h2 data-stringid-content="helpScreenDownloadViewSource" data-stringid-content-arg1="helpScreenDownloadViewSourceIcon" data-stringid-content-argisstringref1="1"></h2>
                         </div>
                         <p>
-                            <img style="width: 100%;" src="assets/helpasset3_source.png" data-stringid-alt="helpScreenDownloadViewSourceCodePic"/>
+                            <img style="width: 100%" src="assets/helpasset3_source.png" data-stringid-alt="helpScreenDownloadViewSourceCodePic" />
                         </p>
                         <div class="card-content">
                             <div class="content" data-stringid-content="helpScreenDownloadViewSourcePs"></div>
@@ -255,6 +253,9 @@
                         <div class="card-title">
                             <h2 data-stringid-content="helpScreenDownloadTranslations" data-stringid-content-arg1="helpScreenDownloadTranslationsIcon" data-stringid-content-argisstringref1="1"></h2>
                         </div>
+                        <p>
+                            <img style="width: 100%" src="assets/helpasset4_translate.jpg" data-stringid-alt="helpScreenDownloadTranslationsPic" />
+                        </p>
                         <div class="card-content">
                             <div class="content" data-stringid-content="helpScreenDownloadTranslationsPs"></div>
                             <button id="download-translations" data-stringid-content="helpScreenDownloadTranslationsButtonTranslations"></button>
@@ -278,7 +279,7 @@
                         <div class="card-title">
                             <h2 data-stringid-content="helpScreenMOROmoreWebsite" data-stringid-content-arg1="helpScreenMOROmoreWebsiteIcon" data-stringid-content-argisstringref1="1"></h2>
                         </div>
-                        <div><div id="website-pics"> </div></div>
+                        <div><div id="website-pics"></div></div>
                         <div class="card-content">
                             <div class="content" data-stringid-content="helpScreenMOROmoreWebsitePs"></div>
                             <button id="website-link" data-stringid-content="helpScreenMOROmoreWebsiteButtonLink"></button>
@@ -286,7 +287,6 @@
                     </div>
                 </div>
             </article>
-
         </main>
 
         <!-- notify -->
@@ -298,7 +298,9 @@
         <!-- load strings -->
         <script>
             init();
-            if(typeof(init_local) == "function") { init_local(); }
+            if (typeof init_local == "function") {
+                init_local();
+            }
         </script>
     </body>
 </html>

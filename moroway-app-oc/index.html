@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <base href="./">
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+        <base href="./" />
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
         <meta name="theme-color" content="#000" />
         <title data-stringid-content="generalTitle"></title>
-        <link rel="icon" type="image/x-icon" sizes="32x32" href="favicon.ico">
+        <link rel="icon" type="image/x-icon" sizes="32x32" href="favicon.ico" />
 
         <!-- Open Source Libraries And Fonts -->
         <!-- Fonts -->
-        <link rel="stylesheet" type="text/css" href="src/lib/open_fonts/google/MaterialIcons/font.css">
-        <link rel="stylesheet" type="text/css" href="src/lib/open_fonts/google/Roboto/font.css">
+        <link rel="stylesheet" type="text/css" href="src/lib/open_fonts/google/MaterialIcons/font.css" />
+        <link rel="stylesheet" type="text/css" href="src/lib/open_fonts/google/Roboto/font.css" />
 
         <!-- General Scripts -->
         <script src="src/js/error_handler.js"></script>
@@ -23,21 +23,21 @@
         <script src="src/js_platform/scripting.js"></script>
 
         <!-- General Styles -->
-        <link rel="stylesheet" type="text/css" href="src/css/general.css">
+        <link rel="stylesheet" type="text/css" href="src/css/general.css" />
         <!-- Animation Styles -->
-        <link rel="stylesheet" type="text/css" href="src/css/styling.css">
+        <link rel="stylesheet" type="text/css" href="src/css/styling.css" />
+        <link rel="stylesheet" type="text/css" href="src/css_platform/styling.css" />
     </head>
 
     <body>
-
         <!-- Server side notifications -->
         <div id="server-note">
             <div id="server-note-main">
                 <div id="server-note-title"></div>
                 <div id="server-note-text"></div>
-                <div id="server-note-img"><img></div>
+                <div id="server-note-img"><img /></div>
                 <div id="server-note-later">
-                    <input id="server-note-later-box" type="checkbox">
+                    <input id="server-note-later-box" type="checkbox" />
                     <label for="server-note-later-box" data-stringid-content="generalServerNoteButtonLater"></label>
                 </div>
                 <div id="server-note-later-info" data-stringid-content="generalServerNoteInfoLater"></div>
@@ -51,17 +51,17 @@
         <main id="content">
             <!-- tags for ready app -->
             <div id="setup">
-                <div id="setup-colorframe"> </div>
+                <div id="setup-colorframe"></div>
                 <div id="setup-inner-content">
                     <div id="setup-init">
                         <span id="setup-init-info" data-stringid-content="appScreenTeamplaySetupInit" data-stringid-content-punctuation=":"></span>
                         <span id="setup-init-detail" data-stringid-content="appScreenTeamplaySetupInitDetail"></span>
-                        <input id="setup-init-name" type="text" autocomplete="off">
+                        <input id="setup-init-name" type="text" autocomplete="off" />
                         <button id="setup-init-button" data-stringid-content="appScreenTeamplaySetupInitButton" data-stringid-content-punctuation="!" data-stringid-content-case="upper"></button>
                     </div>
                     <div id="setup-create">
                         <button id="setup-create-link" data-stringid-content="appScreenTeamplaySetupCreateLink"></button>
-                        <button id="setup-create-escape"  data-stringid-content="appScreenTeamplayUnsetTitle"></button>
+                        <button id="setup-create-escape" data-stringid-content="appScreenTeamplayUnsetTitle"></button>
                     </div>
                     <div id="setup-start">
                         <span id="setup-start-message" data-stringid-content="appScreenTeamplaySetupStart" data-stringid-content-punctuation=":"></span>
@@ -69,12 +69,12 @@
                         <button id="setup-start-button" data-stringid-content="appScreenTeamplaySetupStartButton" data-stringid-content-case="upper"></button>
                     </div>
                 </div>
-                <div id="setup-colorbottom"> </div>
+                <div id="setup-colorbottom"></div>
                 <div id="setup-ball">
                     <div id="setup-ballin"></div>
                 </div>
                 <div id="setup-exit" data-stringid-title="appScreenTeamplayUnsetTitle">
-                    <div class="internal-link material-icons">close</div>
+                    <div class="material-icons">close</div>
                 </div>
             </div>
             <div id="game">
@@ -121,7 +121,7 @@
         </main>
 
         <!-- loading animation -->
-        <div id="branding"><img src="assets/asset_background_train.png" alt=""></div>
+        <div id="branding"><img src="assets/asset_background_train.png" alt="" /></div>
         <div id="snake"><div></div></div>
         <div id="percent">
             <div id="percent-progress"></div>
@@ -187,7 +187,7 @@
                         <div id="chat-msg-send-toggle" class="chat-send-toggle chat-msg-send-container-title" data-stringid-content="appScreenTeamplayChatSendTitle"></div>
                         <div id="chat-msg-send-inner" class="chat-send-inner">
                             <div>
-                                <input id="chat-msg-send-text" type="text" maxlength="500" autocomplete="off">
+                                <input id="chat-msg-send-text" type="text" maxlength="500" autocomplete="off" />
                                 <button id="chat-msg-send-button" class="nav-button" data-stringid-content="appScreenTeamplayChatSend"></button>
                             </div>
                         </div>
@@ -215,6 +215,5 @@
         <script>
             setHTMLStrings();
         </script>
-
     </body>
 </html>

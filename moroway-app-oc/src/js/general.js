@@ -488,7 +488,7 @@ function setSettingsHTML(elem, standalone, storageArea, showLang) {
             if (btnSaveGameDeleteGame == undefined || btnSaveGameDeleteGame == null) {
                 return false;
             }
-            if (settings.saveGame || window.localStorage.getItem("morowayAppSavedWithVersion") == null || !standalone) {
+            if (settings.saveGame || !isGameSaved() || !standalone) {
                 btnSaveGameDeleteGame.style.display = "";
             } else {
                 btnSaveGameDeleteGame.style.display = "inline";
@@ -633,14 +633,64 @@ function setSettingsHTML(elem, standalone, storageArea, showLang) {
 }
 
 //SAVED GAME
+function getVersionCode() {
+    return APP_DATA.version.major * 10000 + APP_DATA.version.minor * 100 + APP_DATA.version.patch;
+}
+
+function isGameSaved() {
+    Object.keys(window.localStorage).forEach(function (key) {
+        if (key.indexOf("morowayAppSaved") === 0) {
+            return true;
+        }
+    });
+    return false;
+}
+function updateSavedGame() {
+    function updateSavedGameElem(regexOld, old, newItem) {
+        var elemKeys = savedGameKeys.filter(function (elem) {
+            return elem.search(regexOld) === 0 || elem == old;
+        });
+        elemKeys.sort(function (elem1, elem2) {
+            if (elem1 == old) {
+                return 1;
+            } else if (elem2 == old) {
+                return -1;
+            } else {
+                return parseInt(elem2.replace(regexOld, "$1"), 10) - parseInt(elem1.replace(regexOld, "$1"), 10);
+            }
+        });
+        if (elemKeys.length > 0 && (elemKeys[0] == old || getVersionCode() >= parseInt(elemKeys[0].replace(regexOld, "$1"), 10))) {
+            var newVal = window.localStorage.getItem(elemKeys[0]);
+            elemKeys.forEach(function (key) {
+                window.localStorage.removeItem(key);
+            });
+            window.localStorage.setItem(newItem, newVal);
+        }
+    }
+    if (typeof window.localStorage != "undefined") {
+        var localStorageKeys = Object.keys(window.localStorage);
+        var savedGameKeys = localStorageKeys.filter(function (elem) {
+            return elem.indexOf("morowayAppSaved") === 0;
+        });
+        updateSavedGameElem(/^morowayAppSavedGame_v-([0-9]+)_Bg$/, "morowayAppSavedBg", "morowayAppSavedGame_v-" + getVersionCode() + "_Bg");
+        updateSavedGameElem(/^morowayAppSavedGame_v-([0-9]+)_Trains$/, "morowayAppSavedGameTrains", "morowayAppSavedGame_v-" + getVersionCode() + "_Trains");
+        updateSavedGameElem(/^morowayAppSavedGame_v-([0-9]+)_Switches$/, "morowayAppSavedGameSwitches", "morowayAppSavedGame_v-" + getVersionCode() + "_Switches");
+        updateSavedGameElem(/^morowayAppSavedGame_v-([0-9]+)_Cars$/, "morowayAppSavedCars", "morowayAppSavedGame_v-" + getVersionCode() + "_Cars");
+        updateSavedGameElem(/^morowayAppSavedGame_v-([0-9]+)_CarParams$/, "morowayAppSavedCarParams", "morowayAppSavedGame_v-" + getVersionCode() + "_CarParams");
+        savedGameKeys.forEach(function (key) {
+            if (key == "morowayAppSavedWithVersion") {
+                window.localStorage.removeItem(key);
+            }
+        });
+    }
+}
 function removeSavedGame() {
-    if (typeof window.localStorage != "undefined" && window.localStorage.getItem("morowayAppSavedWithVersion") !== null) {
-        window.localStorage.removeItem("morowayAppSavedGameTrains");
-        window.localStorage.removeItem("morowayAppSavedGameSwitches");
-        window.localStorage.removeItem("morowayAppSavedCars");
-        window.localStorage.removeItem("morowayAppSavedCarParams");
-        window.localStorage.removeItem("morowayAppSavedBg");
-        window.localStorage.removeItem("morowayAppSavedWithVersion");
+    if (typeof window.localStorage != "undefined") {
+        Object.keys(window.localStorage).forEach(function (key) {
+            if (key.indexOf("morowayAppSaved") === 0) {
+                window.localStorage.removeItem(key);
+            }
+        });
     }
 }
 

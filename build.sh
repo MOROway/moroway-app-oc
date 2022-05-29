@@ -34,6 +34,9 @@ for lang in "$working_dir_build/changelogs"/* ; do
 	if [[ -f "$working_dir_build/changelogs/$lang/$version-oc" ]]; then
 		changelog="$changelog"$(cat "$working_dir_build/changelogs/$lang/$version-oc" | sed 's/{{[0-9]\+}}\s\?//g')$'\n'
 	fi
+	if [[ $(cat "$working_dir_build/changelogs/meta/fixes/bool/$version") == 1 ]]; then
+		changelog="$changelog"$(cat "$working_dir_build/changelogs/meta/fixes/locale/$lang")"."$'\n'
+	fi
 	if [[ ! -z "$changelog" ]] && [[ -d fastlane/metadata/android/"$lang"/changelogs/ ]]; then
 		printf '%s' "$changelog" > fastlane/metadata/android/"$lang"/changelogs/"$version_long".txt
 	fi

@@ -1274,15 +1274,10 @@ function animateObjects() {
     if (debug) {
         postMessage({k: "debugDrawPoints", p: debugDrawPoints, pC: debugDrawPointsCrash, tC: trainCollisions});
     }
-    if (online) {
-        if (syncing) {
-            postMessage({k: "sync-ready", trains: trains, rotationPoints: rotationPoints});
-            syncing = false;
-        } else if (!pause) {
-            var teamplayResttime = Math.max(animateInterval - (Date.now() - starttime), 0);
-            animateTimeout = setTimeout(animateObjects, teamplayResttime);
-        }
-    } else {
+    if (online && syncing) {
+        postMessage({k: "sync-ready", trains: trains, rotationPoints: rotationPoints});
+        syncing = false;
+    } else if (!pause) {
         var resttime = Math.max(animateInterval - (Date.now() - starttime), 0);
         animateTimeout = setTimeout(animateObjects, resttime);
     }

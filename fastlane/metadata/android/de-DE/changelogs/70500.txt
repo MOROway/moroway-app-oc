@@ -1,0 +1,3 @@
+Audioeffekte für die Züge.
+Audioeffekte funktionieren eventuell nicht mit älteren Android-Versionen.
+Fehlerkorrekturen.

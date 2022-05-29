@@ -44,6 +44,92 @@ function getFontSize(font, unit) {
     return parseInt(font.substr(0, font.length - (font.length - font.indexOf(unit))), 10);
 }
 
+function playAndPauseAudio() {
+    if (typeof audio.context == "object") {
+        var play = audio.active && !client.hidden && !onlineGame.stop;
+        if (play && audio.context.state == "suspended") {
+            audio.context.resume();
+        } else if (!play && audio.context.state == "running") {
+            audio.context.suspend();
+        }
+        return true;
+    }
+    return false;
+}
+function existsAudio(destinationName, destinationIndex) {
+    if (typeof audio.context == "object") {
+        if (typeof destinationIndex == "number") {
+            if (typeof audio.source[destinationName][destinationIndex] == "object") {
+                return true;
+            }
+        } else {
+            if (typeof audio.source[destinationName] == "object") {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+function startAudio(destinationName, destinationIndex, loop) {
+    if (typeof audio.context == "object") {
+        var source = audio.context.createBufferSource();
+        source.loop = loop;
+        if (typeof destinationIndex == "number") {
+            if (typeof audio.buffer[destinationName][destinationIndex] == "object" && typeof audio.gainNode[destinationName][destinationIndex] == "object") {
+                source.buffer = audio.buffer[destinationName][destinationIndex];
+                source.connect(audio.gainNode[destinationName][destinationIndex]);
+                audio.source[destinationName][destinationIndex] = source;
+            } else {
+                return false;
+            }
+        } else {
+            if (typeof audio.buffer[destinationName] == "object" && typeof audio.gainNode[destinationName] == "object") {
+                source.buffer = audio.buffer[destinationName];
+                source.connect(audio.gainNode[destinationName]);
+                audio.source[destinationName] = source;
+            } else {
+                return false;
+            }
+        }
+        source.start();
+        return true;
+    }
+    return false;
+}
+function setAudioVolume(destinationName, destinationIndex, volume) {
+    if (typeof audio.context == "object") {
+        var gainNode;
+        if (typeof destinationIndex == "number") {
+            gainNode = audio.gainNode[destinationName][destinationIndex];
+        } else {
+            gainNode = audio.gainNode[destinationName];
+        }
+        if (typeof gainNode == "object") {
+            gainNode.gain.value = Math.round(volume) / 100;
+            return true;
+        }
+    }
+    return false;
+}
+function stopAudio(destinationName, destinationIndex) {
+    if (typeof audio.context == "object") {
+        if (typeof destinationIndex == "number") {
+            if (typeof audio.source[destinationName][destinationIndex] == "object") {
+                audio.source[destinationName][destinationIndex].stop();
+                delete audio.source[destinationName][destinationIndex];
+                return true;
+            }
+        } else {
+            if (typeof audio.source[destinationName] == "object") {
+                audio.source[destinationName].stop();
+                delete audio.source[destinationName];
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 function showConfirmLeaveMultiplayerMode() {
     var tpLeave = document.querySelector("#tp-leave");
     if (onlineGame.enabled && tpLeave.style.display == "") {
@@ -456,6 +542,7 @@ function onVisibilityChange() {
     client.hidden = document.visibilityState == "hidden";
     hardware.mouse.isHold = hardware.mouse.isDrag = hardware.mouse.rightClickHold = false;
     hardware.keyboard.keysHold = [];
+    playAndPauseAudio();
 }
 
 /*******************************************
@@ -583,6 +670,40 @@ function drawOptionsMenu(state) {
 }
 
 function calcOptionsMenuAndBackground(state) {
+    function createAudio(destinationName, destinationIndex, buffer, volume) {
+        var gainNode = audio.context.createGain();
+        gainNode.gain.value = volume;
+        gainNode.connect(audio.context.destination);
+        if (typeof destinationIndex == "number") {
+            audio.gainNode[destinationName][destinationIndex] = gainNode;
+            audio.buffer[destinationName][destinationIndex] = buffer;
+        } else {
+            audio.gainNode[destinationName] = gainNode;
+            audio.buffer[destinationName] = buffer;
+        }
+    }
+    function createTrainAudio(cTrainNumber) {
+        try {
+            fetch("./assets/audio_asset_" + cTrainNumber + ".ogg")
+                .then(function (response) {
+                    return response.arrayBuffer();
+                })
+                .catch(function (error) {
+                    if (APP_DATA.debug) {
+                        console.log("Fetch-Error:", error);
+                    }
+                })
+                .then(function (response) {
+                    audio.context.decodeAudioData(response, function (buffer) {
+                        createAudio("train", cTrainNumber, buffer, 0);
+                    });
+                });
+        } catch (e) {
+            if (APP_DATA.debug) {
+                console.log(e);
+            }
+        }
+    }
     function calcBackground(simulate) {
         var additionalHeight;
         if (simulate === true) {
@@ -622,6 +743,54 @@ function calcOptionsMenuAndBackground(state) {
             },
             {passive: false}
         );
+        if (typeof fetch == "function" && typeof AudioContext == "function") {
+            document.querySelector("#canvas-sound-toggle").title = formatJSString(getString("appScreenSoundToggle"), getString("appScreenSound"), getString("generalOff"));
+            document.querySelector("#canvas-sound-toggle").addEventListener("click", function () {
+                if (audio.context == undefined) {
+                    audio.context = new AudioContext();
+                    audio.buffer = {};
+                    audio.buffer.train = [];
+                    audio.gainNode = {};
+                    audio.gainNode.train = [];
+                    audio.source = {};
+                    audio.source.train = [];
+                    try {
+                        fetch("./assets/audio_asset_crash.ogg")
+                            .then(function (response) {
+                                return response.arrayBuffer();
+                            })
+                            .catch(function (error) {
+                                if (APP_DATA.debug) {
+                                    console.log("Fetch-Error:", error);
+                                }
+                            })
+                            .then(function (response) {
+                                audio.context.decodeAudioData(response, function (buffer) {
+                                    createAudio("trainCrash", null, buffer, 1);
+                                });
+                            });
+                    } catch (e) {
+                        if (APP_DATA.debug) {
+                            console.log(e);
+                        }
+                    }
+                    for (var i = 0; i < trains.length; i++) {
+                        createTrainAudio(i);
+                    }
+                }
+                audio.active = !audio.active;
+                playAndPauseAudio();
+                if (audio.active) {
+                    document.querySelector("#canvas-sound-toggle").querySelector("i").textContent = "volume_up";
+                    document.querySelector("#canvas-sound-toggle").title = formatJSString(getString("appScreenSoundToggle"), getString("appScreenSound"), getString("generalOn"));
+                } else {
+                    document.querySelector("#canvas-sound-toggle").querySelector("i").textContent = "volume_off";
+                    document.querySelector("#canvas-sound-toggle").title = formatJSString(getString("appScreenSoundToggle"), getString("appScreenSound"), getString("generalOff"));
+                }
+            });
+        } else {
+            document.querySelector("#canvas-sound-toggle").classList.add("hidden");
+        }
         if (onlineGame.enabled) {
             document.querySelector("#canvas-team").classList.add("hidden");
             document.querySelector("#canvas-chat-open").addEventListener("click", function () {
@@ -1017,12 +1186,12 @@ function drawObjects() {
                             }
                             if (!collisionCourse(input1)) {
                                 if (trains[input1].move && trains[input1].accelerationSpeed > 0) {
-                                    actionSync("trains", input1, [{accelerationSpeed: (trains[input1].accelerationSpeed *= -1)}], [{getString: ["appScreenObjectStops", "."]}, {getString: [["appScreenTrainNames", input1]]}]);
+                                    actionSync("trains", input1, [{accelerationSpeed: (trains[input1].accelerationSpeed *= -1)}, {accelerationSpeedCustom: 1}], [{getString: ["appScreenObjectStops", "."]}, {getString: [["appScreenTrainNames", input1]]}]);
                                 } else {
                                     if (trains[input1].move) {
-                                        actionSync("trains", input1, [{accelerationSpeed: (trains[input1].accelerationSpeed *= -1)}, {speedInPercent: 50}], [{getString: ["appScreenObjectStarts", "."]}, {getString: [["appScreenTrainNames", input1]]}]);
+                                        actionSync("trains", input1, [{accelerationSpeed: (trains[input1].accelerationSpeed *= -1)}, {speedInPercent: 50}, {accelerationSpeedCustom: 1}], [{getString: ["appScreenObjectStarts", "."]}, {getString: [["appScreenTrainNames", input1]]}]);
                                     } else {
-                                        actionSync("trains", input1, [{move: true}, {speedInPercent: 50}], [{getString: ["appScreenObjectStarts", "."]}, {getString: [["appScreenTrainNames", input1]]}]);
+                                        actionSync("trains", input1, [{move: true}, {speedInPercent: 50}, {accelerationSpeedCustom: 1}], [{getString: ["appScreenObjectStarts", "."]}, {getString: [["appScreenTrainNames", input1]]}]);
                                     }
                                 }
                             }
@@ -1812,12 +1981,12 @@ function drawObjects() {
                     if (hardware.mouse.isHold) {
                         hardware.mouse.isHold = false;
                         if (trains[trainParams.selected].move && trains[trainParams.selected].accelerationSpeed > 0) {
-                            actionSync("trains", trainParams.selected, [{accelerationSpeed: (trains[trainParams.selected].accelerationSpeed *= -1)}], [{getString: ["appScreenObjectStops", "."]}, {getString: [["appScreenTrainNames", trainParams.selected]]}]);
+                            actionSync("trains", trainParams.selected, [{accelerationSpeed: (trains[trainParams.selected].accelerationSpeed *= -1)}, {accelerationSpeedCustom: 1}], [{getString: ["appScreenObjectStops", "."]}, {getString: [["appScreenTrainNames", trainParams.selected]]}]);
                         } else {
                             if (trains[trainParams.selected].move) {
-                                actionSync("trains", trainParams.selected, [{speedInPercent: 50}, {accelerationSpeed: (trains[trainParams.selected].accelerationSpeed *= -1)}], [{getString: ["appScreenObjectStarts", "."]}, {getString: [["appScreenTrainNames", trainParams.selected]]}]);
+                                actionSync("trains", trainParams.selected, [{speedInPercent: 50}, {accelerationSpeed: (trains[trainParams.selected].accelerationSpeed *= -1)}, {accelerationSpeedCustom: 1}], [{getString: ["appScreenObjectStarts", "."]}, {getString: [["appScreenTrainNames", trainParams.selected]]}]);
                             } else {
-                                actionSync("trains", trainParams.selected, [{speedInPercent: 50}, {move: true}], [{getString: ["appScreenObjectStarts", "."]}, {getString: [["appScreenTrainNames", trainParams.selected]]}]);
+                                actionSync("trains", trainParams.selected, [{speedInPercent: 50}, {move: true}, {accelerationSpeedCustom: 1}], [{getString: ["appScreenObjectStarts", "."]}, {getString: [["appScreenTrainNames", trainParams.selected]]}]);
                             }
                         }
                     }
@@ -1840,19 +2009,18 @@ function drawObjects() {
                         cAngle = classicUI.transformer.input.minAngle;
                         classicUI.transformer.input.angle = (cAngle * classicUI.transformer.input.maxAngle) / 100;
                     }
-                    if (cAngle >= classicUI.transformer.input.minAngle && trains[trainParams.selected].accelerationSpeed > 0 && trains[trainParams.selected].speedInPercent != cAngle) {
-                        var accSpeed = trains[trainParams.selected].currentSpeedInPercent / cAngle;
-                        actionSync("trains", trainParams.selected, [{accelerationSpeedCustom: accSpeed}], null);
-                    }
-                    if (cAngle >= classicUI.transformer.input.minAngle) {
-                        actionSync("trains", trainParams.selected, [{speedInPercent: cAngle}], null);
-                    }
                     if (cAngle < classicUI.transformer.input.minAngle && trains[trainParams.selected].accelerationSpeed > 0) {
-                        actionSync("trains", trainParams.selected, [{accelerationSpeed: (trains[trainParams.selected].accelerationSpeed *= -1)}], [{getString: ["appScreenObjectStops", "."]}, {getString: [["appScreenTrainNames", trainParams.selected]]}]);
+                        actionSync("trains", trainParams.selected, [{accelerationSpeed: (trains[trainParams.selected].accelerationSpeed *= -1)}, {accelerationSpeedCustom: 1}], [{getString: ["appScreenObjectStops", "."]}, {getString: [["appScreenTrainNames", trainParams.selected]]}]);
                     } else if (cAngle >= classicUI.transformer.input.minAngle && !trains[trainParams.selected].move) {
-                        actionSync("trains", trainParams.selected, [{move: true}], [{getString: ["appScreenObjectStarts", "."]}, {getString: [["appScreenTrainNames", trainParams.selected]]}]);
+                        actionSync("trains", trainParams.selected, [{move: true}, {speedInPercent: cAngle}, {accelerationSpeedCustom: 1}], [{getString: ["appScreenObjectStarts", "."]}, {getString: [["appScreenTrainNames", trainParams.selected]]}]);
                     } else if (cAngle >= classicUI.transformer.input.minAngle && trains[trainParams.selected].accelerationSpeed < 0) {
-                        actionSync("trains", trainParams.selected, [{accelerationSpeed: (trains[trainParams.selected].accelerationSpeed *= -1)}], [{getString: ["appScreenObjectStarts", "."]}, {getString: [["appScreenTrainNames", trainParams.selected]]}]);
+                        actionSync("trains", trainParams.selected, [{accelerationSpeed: (trains[trainParams.selected].accelerationSpeed *= -1)}, {speedInPercent: cAngle}, {accelerationSpeedCustom: 1}], [{getString: ["appScreenObjectStarts", "."]}, {getString: [["appScreenTrainNames", trainParams.selected]]}]);
+                    } else if (cAngle >= classicUI.transformer.input.minAngle) {
+                        if (trains[trainParams.selected].accelerationSpeed > 0 && trains[trainParams.selected].speedInPercent != cAngle) {
+                            var accSpeed = trains[trainParams.selected].currentSpeedInPercent / cAngle;
+                            actionSync("trains", trainParams.selected, [{accelerationSpeedCustom: accSpeed}], null);
+                        }
+                        actionSync("trains", trainParams.selected, [{speedInPercent: cAngle}], null);
                     }
                     if (cAngle == 0) {
                         hardware.mouse.isHold = false;
@@ -2489,19 +2657,21 @@ function drawObjects() {
                     }
                     if (newSpeed < minTrainSpeed) {
                         newSpeed = 0;
-                    } else if (newSpeed > 100) {
+                    } else if (newSpeed > 95) {
                         newSpeed = 100;
                     }
                     if (trains[cTrain].accelerationSpeed > 0 && newSpeed == 0) {
-                        actionSync("trains", cTrain, [{accelerationSpeed: (trains[cTrain].accelerationSpeed *= -1)}], [{getString: ["appScreenObjectStops", "."]}, {getString: [["appScreenTrainNames", cTrain]]}], true);
-                    } else if (trains[cTrain].accelerationSpeed > 0) {
-                        var accSpeed = trains[cTrain].currentSpeedInPercent / newSpeed;
-                        actionSync("trains", cTrain, [{accelerationSpeedCustom: accSpeed}], null);
-                        actionSync("trains", cTrain, [{speedInPercent: newSpeed}], null);
+                        actionSync("trains", cTrain, [{accelerationSpeed: (trains[cTrain].accelerationSpeed *= -1)}, {accelerationSpeedCustom: 1}], [{getString: ["appScreenObjectStops", "."]}, {getString: [["appScreenTrainNames", cTrain]]}], true);
                     } else if (!trains[cTrain].move && newSpeed > 0) {
-                        actionSync("trains", cTrain, [{move: true}, {speedInPercent: newSpeed}], [{getString: ["appScreenObjectStarts", "."]}, {getString: [["appScreenTrainNames", cTrain]]}], true);
+                        actionSync("trains", cTrain, [{move: true}, {speedInPercent: newSpeed}, {accelerationSpeedCustom: 1}], [{getString: ["appScreenObjectStarts", "."]}, {getString: [["appScreenTrainNames", cTrain]]}], true);
                     } else if (trains[cTrain].accelerationSpeed < 0 && newSpeed > 0) {
-                        actionSync("trains", cTrain, [{accelerationSpeed: (trains[cTrain].accelerationSpeed *= -1)}, {speedInPercent: newSpeed}], [{getString: ["appScreenObjectStarts", "."]}, {getString: [["appScreenTrainNames", cTrain]]}], true);
+                        actionSync("trains", cTrain, [{accelerationSpeed: (trains[cTrain].accelerationSpeed *= -1)}, {speedInPercent: newSpeed}, {accelerationSpeedCustom: 1}], [{getString: ["appScreenObjectStarts", "."]}, {getString: [["appScreenTrainNames", cTrain]]}], true);
+                    } else if (newSpeed > 0) {
+                        if (trains[cTrain].accelerationSpeed > 0 && trains[cTrain].speedInPercent != newSpeed) {
+                            var accSpeed = trains[cTrain].currentSpeedInPercent / newSpeed;
+                            actionSync("trains", cTrain, [{accelerationSpeedCustom: accSpeed}], null);
+                        }
+                        actionSync("trains", cTrain, [{speedInPercent: newSpeed}], null);
                     }
                     if (newSpeed > 0 && newSpeed < 100) {
                         hardware.mouse.cursor = "grabbing";
@@ -2510,11 +2680,11 @@ function drawObjects() {
                 contextForeground.strokeRect(controlCenter.maxTextWidth, maxTextHeight * cTrain, controlCenter.maxTextWidth * 0.5, maxTextHeight);
                 if (noCollisionCTrain && contextClick && hardware.mouse.upX - background.x - controlCenter.translateOffset > controlCenter.maxTextWidth * 1.5 && hardware.mouse.upX - background.x - controlCenter.translateOffset < controlCenter.maxTextWidth * 1.75 && hardware.mouse.upY - background.y - controlCenter.translateOffset > maxTextHeight * cTrain && hardware.mouse.upY - background.y - controlCenter.translateOffset < maxTextHeight * cTrain + maxTextHeight) {
                     if (trains[cTrain].accelerationSpeed > 0) {
-                        actionSync("trains", cTrain, [{accelerationSpeed: (trains[cTrain].accelerationSpeed *= -1)}], [{getString: ["appScreenObjectStops", "."]}, {getString: [["appScreenTrainNames", cTrain]]}], true);
+                        actionSync("trains", cTrain, [{accelerationSpeed: (trains[cTrain].accelerationSpeed *= -1)}, {accelerationSpeedCustom: 1}], [{getString: ["appScreenObjectStops", "."]}, {getString: [["appScreenTrainNames", cTrain]]}], true);
                     } else if (!trains[cTrain].move) {
-                        actionSync("trains", cTrain, [{move: true}, {speedInPercent: 50}], [{getString: ["appScreenObjectStarts", "."]}, {getString: [["appScreenTrainNames", cTrain]]}], true);
+                        actionSync("trains", cTrain, [{move: true}, {speedInPercent: 50}, {accelerationSpeedCustom: 1}], [{getString: ["appScreenObjectStarts", "."]}, {getString: [["appScreenTrainNames", cTrain]]}], true);
                     } else if (trains[cTrain].accelerationSpeed < 0) {
-                        actionSync("trains", cTrain, [{accelerationSpeed: (trains[cTrain].accelerationSpeed *= -1)}, {speedInPercent: 50}], [{getString: ["appScreenObjectStarts", "."]}, {getString: [["appScreenTrainNames", cTrain]]}], true);
+                        actionSync("trains", cTrain, [{accelerationSpeed: (trains[cTrain].accelerationSpeed *= -1)}, {speedInPercent: 50}, {accelerationSpeedCustom: 1}], [{getString: ["appScreenObjectStarts", "."]}, {getString: [["appScreenTrainNames", cTrain]]}], true);
                     }
                 }
                 contextForeground.save();
@@ -2625,13 +2795,15 @@ function drawObjects() {
     if (drawTimeout !== undefined && drawTimeout !== null) {
         window.clearTimeout(drawTimeout);
     }
-    var resttime = drawInterval - (Date.now() - starttime);
-    if (resttime <= 0) {
-        window.requestAnimationFrame(drawObjects);
-    } else {
-        drawTimeout = window.setTimeout(function () {
+    if (!client.hidden) {
+        var resttime = drawInterval - (Date.now() - starttime);
+        if (resttime <= 0) {
             window.requestAnimationFrame(drawObjects);
-        }, resttime);
+        } else {
+            drawTimeout = window.setTimeout(function () {
+                window.requestAnimationFrame(drawObjects);
+            }, resttime);
+        }
     }
 }
 
@@ -2743,6 +2915,8 @@ var pics = [
 
 var background = {src: 9, secondLayer: 10};
 var oldbackground;
+
+var audio = {};
 
 var rotationPoints;
 var trains;
@@ -3301,7 +3475,6 @@ window.onload = function () {
                     trainPics[i].height = pics[trains[i].src].height;
                     trainPics[i].width = pics[trains[i].src].width;
                     trainPics[i].cars = [];
-
                     for (var j = 0; j < trains[i].cars.length; j++) {
                         trainPics[i].cars[j] = {};
                         trainPics[i].cars[j].height = pics[trains[i].cars[j].src].height;
@@ -3344,6 +3517,14 @@ window.onload = function () {
                 client.realScale = client.touchScale = client.lastTouchScale = 1;
                 client.touchScaleX = client.touchScaleY = 0;
                 drawObjects();
+                document.addEventListener("visibilitychange", function () {
+                    if (document.visibilityState != "hidden") {
+                        if (drawTimeout !== undefined && drawTimeout !== null) {
+                            window.clearTimeout(drawTimeout);
+                        }
+                        drawObjects();
+                    }
+                });
                 canvasForeground.addEventListener("touchmove", getTouchMove, {passive: false});
                 canvasForeground.addEventListener("touchstart", getTouchStart, {passive: false});
                 canvasForeground.addEventListener("touchend", getTouchEnd, {passive: false});
@@ -3424,10 +3605,25 @@ window.onload = function () {
                             trains[i].cars[j].back.angle = car.back.angle;
                         }
                     });
+                    if (train.move) {
+                        if (!existsAudio("train", i)) {
+                            startAudio("train", i, true);
+                        }
+                        if (train.currentSpeedInPercent == undefined) {
+                            train.currentSpeedInPercent = 0;
+                        }
+                        setAudioVolume("train", i, Math.abs(train.accelerationSpeed) * train.currentSpeedInPercent);
+                    } else if (!train.move && existsAudio("train", i)) {
+                        stopAudio("train", i);
+                    }
                 });
             } else if (message.data.k == "trainCrash") {
                 actionSync("trains", message.data.i, [{move: false}, {accelerationSpeed: 0}, {accelerationSpeedCustom: 1}], [{getString: ["appScreenObjectHasCrashed", "."]}, {getString: [["appScreenTrainNames", message.data.i]]}, {getString: [["appScreenTrainNames", message.data.j]]}]);
                 actionSync("train-crash");
+                if (existsAudio("trainCrash")) {
+                    stopAudio("trainCrash");
+                }
+                startAudio("trainCrash", null, false);
             } else if (message.data.k == "resized") {
                 resized = false;
                 if (onlineGame.enabled) {
@@ -3749,7 +3945,7 @@ window.onload = function () {
                             hideLoadingAnimation();
                             onlineGame.stop = false;
                             document.addEventListener("visibilitychange", function () {
-                                if (document.hidden) {
+                                if (document.visibilityState == "hidden") {
                                     onlineConnection.send({mode: "pause-request"});
                                 } else {
                                     onlineConnection.send({mode: "resume-request"});
@@ -4197,6 +4393,7 @@ window.onload = function () {
                                         window.clearTimeout(onlineGame.syncRequest);
                                     }
                                     onlineGame.stop = true;
+                                    playAndPauseAudio();
                                     animateWorker.postMessage({k: "pause"});
                                     notify("#canvas-notifier", getString("appScreenTeamplayGamePaused", "."), NOTIFICATION_PRIO_HIGH, 900, null, null, client.y + optMenu.container.height);
                                     break;
@@ -4209,6 +4406,7 @@ window.onload = function () {
                                             onlineGame.syncRequest = window.setTimeout(sendSyncRequest, onlineGame.syncInterval);
                                         }
                                         onlineGame.stop = false;
+                                        playAndPauseAudio();
                                         notify("#canvas-notifier", getString("appScreenTeamplayGameResumed", "."), NOTIFICATION_PRIO_HIGH, 900, null, null, client.y + optMenu.container.height);
                                         animateWorker.postMessage({k: "resume"});
                                     }
@@ -4292,6 +4490,14 @@ window.onload = function () {
                         document.getElementById("setup-ball").style.top = "-1vw";
                     });
                     onlineConnection.connect(onlineConnection.serverURI);
+                } else {
+                    document.addEventListener("visibilitychange", function () {
+                        if (document.visibilityState == "hidden") {
+                            animateWorker.postMessage({k: "pause"});
+                        } else {
+                            animateWorker.postMessage({k: "resume"});
+                        }
+                    });
                 }
             }
         };

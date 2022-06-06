@@ -108,7 +108,7 @@ function changeCOSection(cO, isFront, input1, i, reverse) {
                 trains[input1].switchCircles = false;
             }
             cO.stateChange = true;
-            cO.state = (trains[input1].circleFamily == rotationPoints.outer && switches.outerAltState3.left.turned && ((trains[input1].cars.length === 0 && trains[input1].back.state == -3) || (trains[input1].cars.length === 0 && !isFront) || (trains[input1].cars.length > 0 && !isFront && i == trains[input1].cars.length - 1))) || (trains[input1].cars.length > 0 && trains[input1].cars[trains[input1].cars.length - 1].back.state == -3) ? -3 : 3;
+            cO.state = (trains[input1].circleFamily == rotationPoints.outer && switches.outerAltState3.left.turned && ((trains[input1].cars.length === 0 && !isFront) || (trains[input1].cars.length > 0 && !isFront && i == trains[input1].cars.length - 1))) || (trains[input1].cars.length == 0 && trains[input1].back.state == -3) || (trains[input1].cars.length > 0 && trains[input1].cars[trains[input1].cars.length - 1].back.state == -3) ? -3 : 3;
             var lastObj = trains[input1].cars.length == 0 ? trains[input1] : trains[input1].cars[trains[input1].cars.length - 1];
             if ((trains[input1].circleFamily == null || trains[input1].circleFamily == rotationPoints.inner) && ((!isFront && i == trains[input1].cars.length - 1 && switches.sidings1.left.turned) || lastObj.back.state > 100)) {
                 if ((trains[input1].circleFamily == null || trains[input1].circleFamily == rotationPoints.inner) && ((!isFront && i == trains[input1].cars.length - 1 && switches.sidings2.left.turned) || (lastObj.back.state >= 110 && lastObj.back.state < 120))) {

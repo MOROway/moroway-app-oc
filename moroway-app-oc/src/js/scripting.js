@@ -142,41 +142,43 @@ function showConfirmLeaveMultiplayerMode() {
  ******************************************/
 
 function getGesture(gesture) {
-    switch (gesture.type) {
-        case "doubletap":
-            if (client.realScale != 1) {
-                client.realScale = 1;
-            } else {
-                client.lastTouchScale = client.realScale = client.realScaleMax / 2;
+    if (!gui.controlCenter) {
+        switch (gesture.type) {
+            case "doubletap":
+                if (client.realScale != 1) {
+                    client.realScale = 1;
+                } else {
+                    client.lastTouchScale = client.realScale = client.realScaleMax / 2;
+                    client.PinchX = gesture.deltaX;
+                    client.PinchY = gesture.deltaY;
+                }
+                break;
+            case "pinch":
+                client.touchScale = gesture.scale;
+                client.realScale = Math.max(Math.min(client.lastTouchScale * client.touchScale, client.realScaleMax), 1);
                 client.PinchX = gesture.deltaX;
                 client.PinchY = gesture.deltaY;
-            }
-            break;
-        case "pinch":
-            client.touchScale = gesture.scale;
-            client.realScale = Math.max(Math.min(client.lastTouchScale * client.touchScale, client.realScaleMax), 1);
-            client.PinchX = gesture.deltaX;
-            client.PinchY = gesture.deltaY;
-            break;
-        case "pinchoffset":
-            client.touchScaleX += canvas.width / 2 - gesture.deltaX;
-            client.touchScaleY += canvas.height / 2 - gesture.deltaY;
-            client.PinchX = canvas.width / 2 - client.touchScaleX / client.realScale;
-            client.PinchY = canvas.height / 2 - client.touchScaleY / client.realScale;
-            break;
-        case "pinchend":
-            client.lastTouchScale = client.realScale;
-            client.touchScale = 1;
-            delete client.PinchOHypot;
-            break;
-        case "swipe":
-            client.PinchX -= gesture.deltaX / client.realScale;
-            client.PinchY -= gesture.deltaY / client.realScale;
-            break;
-    }
+                break;
+            case "pinchoffset":
+                client.touchScaleX += canvas.width / 2 - gesture.deltaX;
+                client.touchScaleY += canvas.height / 2 - gesture.deltaY;
+                client.PinchX = canvas.width / 2 - client.touchScaleX / client.realScale;
+                client.PinchY = canvas.height / 2 - client.touchScaleY / client.realScale;
+                break;
+            case "pinchend":
+                client.lastTouchScale = client.realScale;
+                client.touchScale = 1;
+                delete client.PinchOHypot;
+                break;
+            case "swipe":
+                client.PinchX -= gesture.deltaX / client.realScale;
+                client.PinchY -= gesture.deltaY / client.realScale;
+                break;
+        }
 
-    client.touchScaleX = (canvas.width / 2 - client.PinchX) * client.realScale;
-    client.touchScaleY = (canvas.height / 2 - client.PinchY) * client.realScale;
+        client.touchScaleX = (canvas.width / 2 - client.PinchX) * client.realScale;
+        client.touchScaleY = (canvas.height / 2 - client.PinchY) * client.realScale;
+    }
 
     if (client.realScale < client.realScaleMin) {
         client.realScale = 1;
@@ -219,7 +221,7 @@ function getGesture(gesture) {
 }
 
 function notInTransformerInput(x, y) {
-    if (!settings.classicUI || (client.realScale == 1 && hardware.mouse.rightClick) || canvasGesture == undefined || contextGesture == undefined) {
+    if (!settings.classicUI || gui.controlCenter || canvasGesture == undefined || contextGesture == undefined) {
         return true;
     }
     contextGesture.setTransform(client.realScale, 0, 0, client.realScale, (-(client.realScale - 1) * canvasGesture.width) / 2 + client.touchScaleX, (-(client.realScale - 1) * canvasGesture.height) / 2 + client.touchScaleY);
@@ -241,7 +243,7 @@ function notInTransformerInput(x, y) {
 }
 
 function notInTransformerTrainSwitch(x, y) {
-    if (!settings.classicUI || (client.realScale == 1 && hardware.mouse.rightClick) || canvasGesture == undefined || contextGesture == undefined) {
+    if (!settings.classicUI || gui.controlCenter || canvasGesture == undefined || contextGesture == undefined) {
         return true;
     }
     contextGesture.setTransform(client.realScale, 0, 0, client.realScale, (-(client.realScale - 1) * canvasGesture.width) / 2 + client.touchScaleX, (-(client.realScale - 1) * canvasGesture.height) / 2 + client.touchScaleY);
@@ -297,8 +299,8 @@ function onMouseDown(event) {
     event.preventDefault();
     client.chosenInputMethod = "mouse";
     hardware.lastInputMouse = hardware.mouse.downTime = Date.now();
-    hardware.mouse.isHold = (event.which == undefined || event.which == 1) && !hardware.mouse.rightClick;
-    hardware.mouse.rightClickHold = (event.which == undefined || event.which == 1) && hardware.mouse.rightClick;
+    hardware.mouse.isHold = (event.which == undefined || event.which == 1) && !gui.controlCenter && !gui.konamiOverlay;
+    controlCenter.mouse.hold = (event.which == undefined || event.which == 1) && gui.controlCenter && !gui.konamiOverlay;
     hardware.mouse.moveX = hardware.mouse.downX = event.clientX * client.devicePixelRatio;
     hardware.mouse.moveY = hardware.mouse.downY = event.clientY * client.devicePixelRatio;
 }
@@ -308,8 +310,8 @@ function onMouseUp(event) {
     hardware.mouse.upX = event.clientX * client.devicePixelRatio;
     hardware.mouse.upY = event.clientY * client.devicePixelRatio;
     hardware.mouse.upTime = Date.now();
-    hardware.mouse.isHold = hardware.mouse.isDrag = hardware.mouse.rightClickHold = false;
-    hardware.mouse.rightClickEvent = event.which == 1 && hardware.mouse.rightClick;
+    hardware.mouse.isHold = hardware.mouse.isDrag = controlCenter.mouse.hold = false;
+    controlCenter.mouse.clickEvent = event.which == 1 && gui.controlCenter && !gui.konamiOverlay;
 }
 function onMouseEnter(event) {
     client.chosenInputMethod = "mouse";
@@ -319,7 +321,7 @@ function onMouseOut(event) {
     event.preventDefault();
     client.chosenInputMethod = null;
     hardware.mouse.out = true;
-    hardware.mouse.isHold = hardware.mouse.isDrag = hardware.mouse.rightClickHold = false;
+    hardware.mouse.isHold = hardware.mouse.isDrag = controlCenter.mouse.hold = false;
     hardware.keyboard.keysHold = [];
 }
 function onMouseWheel(event) {
@@ -347,9 +349,9 @@ function onMouseWheel(event) {
             getGesture({type: "pinch", scale: hypot / client.PinchOHypot, deltaX: client.PinchX, deltaY: client.PinchY});
         }
     } else {
-        hardware.mouse.wheelScrolls = !hardware.mouse.rightClick;
-        hardware.mouse.rightClickWheelScrolls = hardware.mouse.rightClick;
-        hardware.mouse.isHold = hardware.mouse.isDrag = hardware.mouse.rightClickHold = false;
+        hardware.mouse.wheelScrolls = !gui.controlCenter && !gui.konamiOverlay;
+        controlCenter.mouse.wheelScrolls = gui.controlCenter && !gui.konamiOverlay;
+        hardware.mouse.isHold = hardware.mouse.isDrag = controlCenter.mouse.hold = false;
         hardware.mouse.wheelX = event.clientX * client.devicePixelRatio;
         hardware.mouse.wheelY = event.clientY * client.devicePixelRatio;
         hardware.mouse.wheelScrollX = event.deltaX;
@@ -360,16 +362,16 @@ function onMouseWheel(event) {
 function onMouseRight(event) {
     event.preventDefault();
     client.chosenInputMethod = "mouse";
-    if (controlCenter.showCarCenter === null && hardware.mouse.rightClick && client.realScale == 1) {
+    if (!controlCenter.showCarCenter && gui.controlCenter && !gui.konamiOverlay && client.realScale == 1) {
         controlCenter.showCarCenter = true;
         notify("#canvas-notifier", getString("appScreenCarControlCenterTitle"), NOTIFICATION_PRIO_LOW, 1000, null, null, client.y + optMenu.container.height, false);
     } else {
-        hardware.mouse.rightClick = !hardware.mouse.rightClick;
-        if (hardware.mouse.rightClick && client.realScale == 1) {
+        gui.controlCenter = !gui.controlCenter && !gui.konamiOverlay && client.realScale == 1;
+        if (gui.controlCenter) {
             notify("#canvas-notifier", getString("appScreenControlCenterTitle"), NOTIFICATION_PRIO_LOW, 1000, null, null, client.y + optMenu.container.height, false);
         }
-        hardware.mouse.rightClickEvent = false;
-        hardware.mouse.rightClickWheelScrolls = false;
+        controlCenter.mouse.clickEvent = false;
+        controlCenter.mouse.wheelScrolls = false;
     }
 }
 function preventMouseZoomDuringLoad(event) {
@@ -425,7 +427,7 @@ function getTouchStart(event) {
             window.clearTimeout(clickTimeOut);
             clickTimeOut = null;
         }
-        hardware.mouse.rightClickPrepare = true;
+        controlCenter.mouse.prepare = true;
         hardware.mouse.isHold = hardware.mouse.isDrag = false;
     } else {
         hardware.lastInputTouch = hardware.mouse.downTime = Date.now();
@@ -435,8 +437,8 @@ function getTouchStart(event) {
             window.clearTimeout(hardware.mouse.isHoldTimeout);
         }
         hardware.mouse.isDrag = false;
-        hardware.mouse.isHold = !hardware.mouse.rightClick;
-        hardware.mouse.rightClickHold = hardware.mouse.rightClick;
+        hardware.mouse.isHold = !gui.controlCenter && !gui.konamiOverlay;
+        controlCenter.mouse.hold = gui.controlCenter && !gui.konamiOverlay;
     }
 }
 function getTouchEnd(event) {
@@ -446,25 +448,25 @@ function getTouchEnd(event) {
     hardware.mouse.upX = event.changedTouches[0].clientX * client.devicePixelRatio;
     hardware.mouse.upY = event.changedTouches[0].clientY * client.devicePixelRatio;
     hardware.mouse.upTime = Date.now();
-    hardware.mouse.isHold = hardware.mouse.isDrag = hardware.mouse.rightClickHold = false;
-    hardware.mouse.rightClickEvent = hardware.mouse.rightClick;
-    if (hardware.mouse.rightClickPrepare != undefined && hardware.mouse.rightClickPrepare) {
-        if (controlCenter.showCarCenter === null && hardware.mouse.rightClick && client.realScale == 1) {
+    hardware.mouse.isHold = hardware.mouse.isDrag = controlCenter.mouse.hold = false;
+    controlCenter.mouse.clickEvent = gui.controlCenter && !gui.konamiOverlay;
+    if (controlCenter.mouse.prepare) {
+        if (!controlCenter.showCarCenter && gui.controlCenter && !gui.konamiOverlay && client.realScale == 1) {
             controlCenter.showCarCenter = true;
             notify("#canvas-notifier", getString("appScreenCarControlCenterTitle"), NOTIFICATION_PRIO_LOW, 1000, null, null, client.y + optMenu.container.height, false);
-            hardware.mouse.rightClickPrepare = false;
+            controlCenter.mouse.prepare = false;
         } else {
-            hardware.mouse.rightClick = !hardware.mouse.rightClick;
-            if (hardware.mouse.rightClick && client.realScale == 1) {
+            gui.controlCenter = !gui.controlCenter && !gui.konamiOverlay && client.realScale == 1;
+            if (gui.controlCenter) {
                 notify("#canvas-notifier", getString("appScreenControlCenterTitle"), NOTIFICATION_PRIO_LOW, 1000, null, null, client.y + optMenu.container.height, false);
             }
-            hardware.mouse.rightClickEvent = hardware.mouse.rightClickHold = hardware.mouse.rightClickPrepare = false;
+            controlCenter.mouse.clickEvent = controlCenter.mouse.hold = controlCenter.mouse.prepare = false;
         }
     }
 }
 function getTouchCancel(event) {
     client.chosenInputMethod = "touch";
-    hardware.mouse.isHold = hardware.mouse.isDrag = hardware.mouse.rightClickHold = false;
+    hardware.mouse.isHold = hardware.mouse.isDrag = controlCenter.mouse.hold = false;
     hardware.keyboard.keysHold = [];
 }
 
@@ -513,9 +515,11 @@ function onKeyDown(event) {
             window.clearTimeout(konamiTimeOut);
         }
         konamistate = -1;
+        gui.konamiOverlay = true;
         drawBackground();
     } else if (konamistate < 0 && (event.key == "Enter" || event.key == " " || event.key == "a" || event.key == "b")) {
         konamistate = konamistate > -2 ? --konamistate : 0;
+        gui.konamiOverlay = false;
         if (konamistate == 0) {
             drawBackground();
         }
@@ -540,7 +544,7 @@ function preventKeyZoomDuringLoad(event) {
 
 function onVisibilityChange() {
     client.hidden = document.visibilityState == "hidden";
-    hardware.mouse.isHold = hardware.mouse.isDrag = hardware.mouse.rightClickHold = false;
+    hardware.mouse.isHold = hardware.mouse.isDrag = controlCenter.mouse.hold = false;
     hardware.keyboard.keysHold = [];
     playAndPauseAudio();
 }
@@ -823,11 +827,11 @@ function calcOptionsMenuAndBackground(state) {
             followLink("help", "_blank", LINK_STATE_INTERNAL_HTML);
         });
         document.querySelector("#canvas-control-center").addEventListener("click", function () {
-            hardware.mouse.rightClick = !hardware.mouse.rightClick || controlCenter.showCarCenter;
+            gui.controlCenter = (!gui.controlCenter || controlCenter.showCarCenter) && !gui.konamiOverlay;
             controlCenter.showCarCenter = false;
         });
         document.querySelector("#canvas-car-control-center").addEventListener("click", function () {
-            hardware.mouse.rightClick = !hardware.mouse.rightClick || !controlCenter.showCarCenter;
+            gui.controlCenter = (!gui.controlCenter || !controlCenter.showCarCenter) && !gui.konamiOverlay;
             controlCenter.showCarCenter = true;
         });
         optMenu.items = document.querySelectorAll("#canvas-options-inner > *:not(.hidden)");
@@ -1822,7 +1826,7 @@ function drawObjects() {
     }
 
     /////CLASSIC UI/////
-    if (settings.classicUI && !(client.realScale == 1 && hardware.mouse.rightClick)) {
+    if (settings.classicUI && !gui.controlCenter) {
         var step = Math.PI / 30;
         if (trains[trainParams.selected].accelerationSpeed > 0) {
             if (classicUI.transformer.input.angle < (trains[trainParams.selected].speedInPercent / 100) * classicUI.transformer.input.maxAngle) {
@@ -2076,7 +2080,7 @@ function drawObjects() {
     }
 
     /////SWITCHES/////
-    var wasPointer = hardware.mouse.cursor != "default" || hardware.mouse.rightClick;
+    var wasPointer = hardware.mouse.cursor != "default" || gui.controlCenter;
     Object.keys(switches).forEach(function (key) {
         Object.keys(switches[key]).forEach(function (side) {
             contextForeground.save();
@@ -2388,12 +2392,12 @@ function drawObjects() {
     }
 
     /////CONTROL CENTER/////
-    if (client.realScale == 1 && hardware.mouse.rightClick) {
+    if (client.realScale == 1 && gui.controlCenter) {
         var colorLight = "floralwhite";
         var colorDark = "rgb(120,120,120)";
         var colorBorder = "rgba(255,255,255,0.7)";
-        var contextClick = hardware.mouse.rightClickEvent && Math.abs(hardware.mouse.downX - hardware.mouse.upX) < canvas.width / 100 && Math.abs(hardware.mouse.downY - hardware.mouse.upY) < canvas.width / 100;
-        hardware.mouse.rightClickEvent = false;
+        var contextClick = controlCenter.mouse.clickEvent && Math.abs(hardware.mouse.downX - hardware.mouse.upX) < canvas.width / 100 && Math.abs(hardware.mouse.downY - hardware.mouse.upY) < canvas.width / 100;
+        controlCenter.mouse.clickEvent = false;
         hardware.mouse.cursor = "default";
         contextForeground.save();
         contextForeground.textBaseline = "middle";
@@ -2413,8 +2417,8 @@ function drawObjects() {
         contextForeground.fillText(getString("appScreenControlCenterClose", null, "upper"), -controlCenter.maxTextHeight / 2 + (controlCenter.maxTextHeight / 2 - contextForeground.measureText(getString("appScreenControlCenterClose", null, "upper")).width / 2), controlCenter.fontSizes.closeTextHeight / 6);
         contextForeground.restore();
         if (contextClick && hardware.mouse.upX - background.x - controlCenter.translateOffset > 0 && hardware.mouse.upX - background.x - controlCenter.translateOffset < controlCenter.maxTextWidth / 8 && hardware.mouse.upY - background.y - controlCenter.translateOffset > 0 && hardware.mouse.upY - background.y - controlCenter.translateOffset < controlCenter.maxTextHeight * trains.length) {
-            hardware.mouse.rightClick = false;
-            hardware.mouse.rightClickWheelScrolls = false;
+            gui.controlCenter = false;
+            controlCenter.mouse.wheelScrolls = false;
         }
         /////CONTROL CENTER/Cars/////
         if (controlCenter.showCarCenter) {
@@ -2644,8 +2648,8 @@ function drawObjects() {
                     contextForeground.fillText(cTrainPercent + "%", controlCenter.maxTextWidth + (controlCenter.maxTextWidth * 0.5) / 2 - contextForeground.measureText(cTrainPercent + "%").width / 2, maxTextHeight * cTrain + maxTextHeight / 2);
                 }
                 var isClick = contextClick && hardware.mouse.upX - background.x - controlCenter.translateOffset > controlCenter.maxTextWidth && hardware.mouse.upX - background.x - controlCenter.translateOffset < controlCenter.maxTextWidth * 1.5 && hardware.mouse.upY - background.y - controlCenter.translateOffset > maxTextHeight * cTrain && hardware.mouse.upY - background.y - controlCenter.translateOffset < maxTextHeight * cTrain + maxTextHeight;
-                var isHold = hardware.mouse.rightClickHold && hardware.mouse.downX - background.x - controlCenter.translateOffset > controlCenter.maxTextWidth && hardware.mouse.downX - background.x - controlCenter.translateOffset < controlCenter.maxTextWidth * 1.5 && hardware.mouse.downY - background.y - controlCenter.translateOffset > maxTextHeight * cTrain && hardware.mouse.downY - background.y - controlCenter.translateOffset < maxTextHeight * cTrain + maxTextHeight && hardware.mouse.moveX - background.x - controlCenter.translateOffset > controlCenter.maxTextWidth && hardware.mouse.moveX - background.x - controlCenter.translateOffset < controlCenter.maxTextWidth * 1.5 && hardware.mouse.moveY - background.y - controlCenter.translateOffset > maxTextHeight * cTrain && hardware.mouse.moveY - background.y - controlCenter.translateOffset < maxTextHeight * cTrain + maxTextHeight;
-                if (noCollisionCTrain && (isClick || isHold || (hardware.mouse.rightClickWheelScrolls && hardware.mouse.wheelScrollY != 0 && hardware.mouse.wheelX - background.x - controlCenter.translateOffset > controlCenter.maxTextWidth && hardware.mouse.wheelX - background.x - controlCenter.translateOffset < controlCenter.maxTextWidth * 1.5 && hardware.mouse.wheelY - background.y - controlCenter.translateOffset > maxTextHeight * cTrain && hardware.mouse.wheelY - background.y - controlCenter.translateOffset < maxTextHeight * cTrain + maxTextHeight))) {
+                var isHold = controlCenter.mouse.hold && hardware.mouse.downX - background.x - controlCenter.translateOffset > controlCenter.maxTextWidth && hardware.mouse.downX - background.x - controlCenter.translateOffset < controlCenter.maxTextWidth * 1.5 && hardware.mouse.downY - background.y - controlCenter.translateOffset > maxTextHeight * cTrain && hardware.mouse.downY - background.y - controlCenter.translateOffset < maxTextHeight * cTrain + maxTextHeight && hardware.mouse.moveX - background.x - controlCenter.translateOffset > controlCenter.maxTextWidth && hardware.mouse.moveX - background.x - controlCenter.translateOffset < controlCenter.maxTextWidth * 1.5 && hardware.mouse.moveY - background.y - controlCenter.translateOffset > maxTextHeight * cTrain && hardware.mouse.moveY - background.y - controlCenter.translateOffset < maxTextHeight * cTrain + maxTextHeight;
+                if (noCollisionCTrain && (isClick || isHold || (controlCenter.mouse.wheelScrolls && hardware.mouse.wheelScrollY != 0 && hardware.mouse.wheelX - background.x - controlCenter.translateOffset > controlCenter.maxTextWidth && hardware.mouse.wheelX - background.x - controlCenter.translateOffset < controlCenter.maxTextWidth * 1.5 && hardware.mouse.wheelY - background.y - controlCenter.translateOffset > maxTextHeight * cTrain && hardware.mouse.wheelY - background.y - controlCenter.translateOffset < maxTextHeight * cTrain + maxTextHeight))) {
                     var newSpeed;
                     if (isClick || isHold) {
                         newSpeed = Math.round((((isClick ? hardware.mouse.upX : hardware.mouse.moveX) - background.x - controlCenter.translateOffset - controlCenter.maxTextWidth) / controlCenter.maxTextWidth / 0.5) * 100);
@@ -2736,10 +2740,10 @@ function drawObjects() {
             }
         }
         contextForeground.restore();
-        hardware.mouse.rightClickWheelScrolls = false;
+        controlCenter.mouse.wheelScrolls = false;
     } else {
-        controlCenter.showCarCenter = null;
-        hardware.mouse.rightClick = false;
+        controlCenter.showCarCenter = false;
+        gui.controlCenter = false;
     }
 
     /////BACKGROUND/Margins-2////
@@ -2753,6 +2757,7 @@ function drawObjects() {
         bgGradient.addColorStop(0.8, "blue");
         bgGradient.addColorStop(1, "violet");
         if (konamistate == -1) {
+            hardware.mouse.cursor = "default";
             contextForeground.save();
             contextForeground.fillStyle = "black";
             contextForeground.fillRect(background.x, background.y, background.width, background.height);
@@ -2877,6 +2882,8 @@ var doubleClickWaitTime = doubleClickTime * 2;
 
 var konamistate = 0;
 var konamiTimeOut;
+
+var gui = {};
 
 var pics = [
     {id: 0, extension: "png"},
@@ -3025,9 +3032,9 @@ var taxOffice = {
 
 var classicUI = {trainSwitch: {src: 11, srcFill: 31, selectedTrainDisplay: {}}, transformer: {src: 12, onSrc: 13, readySrc: 23, angle: Math.PI / 5, input: {src: 14, angle: 0, minAngle: minTrainSpeed, maxAngle: 1.5 * Math.PI}, directionInput: {srcStandardDirection: 24, srcNotStandardDirection: 15}}, switches: {showDuration: 11, showDurationFade: 33, showDurationEnd: 44}};
 
-var controlCenter = {showCarCenter: null, fontFamily: "sans-serif"};
+var controlCenter = {showCarCenter: false, fontFamily: "sans-serif", mouse: {}};
 
-var hardware = {mouse: {moveX: 0, moveY: 0, downX: 0, downY: 0, downTime: 0, upX: 0, upY: 0, upTime: 0, isMoving: false, isHold: false, rightClick: false, cursor: "default"}, keyboard: {keysHold: []}};
+var hardware = {mouse: {moveX: 0, moveY: 0, downX: 0, downY: 0, downTime: 0, upX: 0, upY: 0, upTime: 0, isMoving: false, isHold: false, cursor: "default"}, keyboard: {keysHold: []}};
 var client = {devicePixelRatio: 1, realScaleMax: 6, realScaleMin: 1.2};
 var optMenu = {};
 

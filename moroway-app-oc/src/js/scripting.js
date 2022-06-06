@@ -159,11 +159,17 @@ function getGesture(gesture) {
                 client.PinchX = gesture.deltaX;
                 client.PinchY = gesture.deltaY;
                 break;
+            case "pinchinit":
+                client.PinchX = gesture.deltaX;
+                client.PinchY = gesture.deltaY;
+                client.PinchOHypot = gesture.pinchOHypot;
+                break;
             case "pinchoffset":
                 client.touchScaleX += canvas.width / 2 - gesture.deltaX;
                 client.touchScaleY += canvas.height / 2 - gesture.deltaY;
                 client.PinchX = canvas.width / 2 - client.touchScaleX / client.realScale;
                 client.PinchY = canvas.height / 2 - client.touchScaleY / client.realScale;
+                client.PinchOHypot = gesture.pinchOHypot;
                 break;
             case "pinchend":
                 client.lastTouchScale = client.realScale;
@@ -333,12 +339,10 @@ function onMouseWheel(event) {
                 var deltaX = hardware.mouse.moveX;
                 var deltaY = hardware.mouse.moveY;
                 if (client.realScale == 1) {
-                    client.PinchX = deltaX;
-                    client.PinchY = deltaY;
+                    getGesture({type: "pinchinit", deltaX: deltaX, deltaY: deltaY, pinchOHypot: client.realScale});
                 } else {
-                    getGesture({type: "pinchoffset", deltaX: deltaX, deltaY: deltaY});
+                    getGesture({type: "pinchoffset", deltaX: deltaX, deltaY: deltaY, pinchOHypot: client.realScale});
                 }
-                client.PinchOHypot = client.realScale;
             }
             var hypot = client.realScale;
             if (event.deltaY < 0) {
@@ -395,14 +399,12 @@ function getTouchMove(event) {
         hardware.mouse.isHold = hardware.mouse.isDrag = false;
         var hypot = Math.hypot(event.touches[0].clientX - event.touches[1].clientX, event.touches[0].clientY - event.touches[1].clientY);
         if (typeof client.PinchOHypot == "undefined") {
-            client.PinchOHypot = hypot;
             var deltaX = ((event.touches[0].clientX + event.touches[1].clientX) / 2) * client.devicePixelRatio;
             var deltaY = ((event.touches[0].clientY + event.touches[1].clientY) / 2) * client.devicePixelRatio;
             if (client.realScale == 1) {
-                client.PinchX = deltaX;
-                client.PinchY = deltaY;
+                getGesture({type: "pinchinit", deltaX: deltaX, deltaY: deltaY, pinchOHypot: hypot});
             } else {
-                getGesture({type: "pinchoffset", deltaX: deltaX, deltaY: deltaY});
+                getGesture({type: "pinchoffset", deltaX: deltaX, deltaY: deltaY, pinchOHypot: hypot});
             }
         }
         getGesture({type: "pinch", scale: hypot / client.PinchOHypot, deltaX: client.PinchX, deltaY: client.PinchY});
@@ -418,9 +420,7 @@ function getTouchStart(event) {
             window.clearTimeout(clickTimeOut);
             clickTimeOut = null;
         }
-        client.PinchX = xTS;
-        client.PinchY = yTS;
-        getGesture({type: "doubletap", deltaX: client.PinchX, deltaY: client.PinchY});
+        getGesture({type: "doubletap", deltaX: xTS, deltaY: yTS});
         hardware.mouse.isHold = hardware.mouse.isDrag = false;
     } else if (event.touches.length == 3) {
         if (typeof clickTimeOut !== "undefined") {
@@ -487,12 +487,10 @@ function onKeyDown(event) {
                 var deltaX = hardware.mouse.moveX;
                 var deltaY = hardware.mouse.moveY;
                 if (client.realScale == 1) {
-                    client.PinchX = deltaX;
-                    client.PinchY = deltaY;
+                    getGesture({type: "pinchinit", deltaX: deltaX, deltaY: deltaY, pinchOHypot: client.realScale});
                 } else {
-                    getGesture({type: "pinchoffset", deltaX: deltaX, deltaY: deltaY});
+                    getGesture({type: "pinchoffset", deltaX: deltaX, deltaY: deltaY, pinchOHypot: client.realScale});
                 }
-                client.PinchOHypot = client.realScale;
             }
             var hypot = client.realScale;
             if (event.key == "+") {

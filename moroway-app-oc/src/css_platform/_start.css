@@ -1,0 +1,144 @@
+body {
+    background-image: url("/assets_platform/background.jpg");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    display: flex;
+    align-items: center;
+    justify-items: center;
+    align-content: center;
+    justify-content: center;
+    padding: 0;
+    margin: 0;
+    border: 0;
+}
+
+.material-icons {
+    max-width: none;
+}
+
+#content {
+    background: rgba(255, 180, 230, 0.05);
+    color: black;
+    font-weight: bold;
+    text-align: center;
+    padding: 5vh 2vw;
+    margin: 0;
+    font-size: 2.5em;
+    line-height: 2em;
+    overflow-y: auto;
+    max-height: 85vh;
+    min-height: 85vh;
+    height: 85vh;
+    width: 90vw;
+    border-radius: 3vh;
+    border: 2vw solid rgba(0, 0, 0, 0.2);
+    border-top: 1vh solid rgba(0, 0, 0, 0.2);
+    border-bottom: 3vh solid rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-items: center;
+    align-content: center;
+    justify-content: center;
+    user-select: none;
+}
+#content:hover {
+    background: rgba(255, 180, 230, 0.1);
+}
+#content div {
+    display: inline-block;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+    max-height: 100%;
+}
+#content div:hover {
+    color: #ac5076;
+}
+#content .text-icon-small {
+    display: none;
+}
+@media (max-width: 300px) {
+    #content {
+        text-align: left;
+    }
+}
+@media (max-width: 400px) {
+    #content div {
+        width: 100%;
+        overflow: hidden;
+    }
+    #content .text-icons {
+        display: none;
+    }
+}
+@media (orientation: landscape) and (min-width: 500px) {
+    #content {
+        font-size: 1.5em;
+        flex-direction: row;
+        max-width: 100%;
+        max-height: 100%;
+        overflow: hidden;
+    }
+
+    #content > div {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-items: center;
+        align-content: center;
+        justify-content: center;
+        height: 100;
+        flex-grow: 1;
+        flex-basis: 0;
+    }
+
+    #content > div#link_game {
+        order: 2;
+        flex-grow: 3;
+    }
+
+    #content > div#link_multiplayer {
+        order: 3;
+        flex-grow: 3;
+    }
+
+    #content > div#link_help {
+        order: 4;
+        flex-grow: 1.5;
+    }
+
+    #content > div#link_settings {
+        order: 1;
+        flex-grow: 1.5;
+    }
+
+    #content div {
+        width: 100%;
+        overflow: hidden;
+    }
+
+    #content .content-text {
+        font-size: 0.75em;
+        white-space: normal;
+        line-height: normal;
+    }
+
+    #content .text-icon-big .material-icons {
+        width: 50%;
+    }
+
+    #content .text-icon-small {
+        width: unset;
+        display: block;
+        position: absolute;
+        left: 0;
+        top: 0;
+    }
+}
+@media (orientation: landscape) and (min-width: 1000px) {
+    #content .content-text {
+        font-size: inherit;
+    }
+}

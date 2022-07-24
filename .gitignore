@@ -2,3 +2,7 @@ node_modules/
 /plugins/
 /platforms/
 git-publish.sh
+# VS CODE
+/typings/
+.vscode/
+jsconfig.json

@@ -2,19 +2,16 @@
 <html>
     <base href="../" />
     <meta charset="UTF-8" />
-
-    <script>
-        function localDR() {
-            window.plugins.webintent.getUri(function (url) {
-                followIntent(url);
-            }, false);
-        }
-    </script>
-
     <!-- General Scripts -->
     <script src="src/js/error_handler.js"></script>
     <script src="src/js/appdata.js"></script>
     <script src="src/js/general.js"></script>
     <script src="src/js_platform/general.js"></script>
-    <body></body>
+    <!-- Entry Scripts -->
+    <script src="src/js_platform/_entry.js"></script>
+    <body>
+        <!-- initialize -->
+        <script src="src/js/init.js"></script>
+        <script src="src/js_platform/init.js"></script>
+    </body>
 </html>

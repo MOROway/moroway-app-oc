@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="de.moroway.oc" version="7.5.3" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget id="de.moroway.oc" version="8.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>MOROway</name>
     <author>Jonathan Herrmann-Engel</author>
     <content src="html_platform/entry.html" />
@@ -12,12 +12,9 @@
     <hook src="scripts/html.bash" type="before_run" />
     <hook src="scripts/cleanup.bash" type="after_build" />
     <hook src="scripts/cleanup.bash" type="after_run" />
-    <preference name="SplashScreen" value="screen" />
-    <preference name="SplashScreenDelay" value="3000" />
-    <preference name="ShowSplashScreenSpinner" value="false" />
-    <preference name="SplashMaintainAspectRatio" value="true" />
-    <preference name="SplashShowOnlyFirstTime" value="true" />
     <platform name="android">
+        <preference name="AndroidWindowSplashScreenAnimatedIcon" value="res/screen/android/splashscreen.png" />
+        <preference name="AndroidWindowSplashScreenBackground" value="#303030" />
         <preference name="Fullscreen" value="true" />
         <preference name="AndroidLaunchMode" value="singleTask" />
         <icon background="res/icon/android/ldpi.png" density="ldpi" foreground="res/icon/android/ldpi_foreground.png" src="res/icon/android/ldpi.png" />
@@ -26,17 +23,11 @@
         <icon background="res/icon/android/xhdpi.png" density="xhdpi" foreground="res/icon/android/xhdpi_foreground.png" src="res/icon/android/xhdpi.png" />
         <icon background="res/icon/android/xxhdpi.png" density="xxhdpi" foreground="res/icon/android/xxhdpi_foreground.png" src="res/icon/android/xxhdpi.png" />
         <icon background="res/icon/android/xxxhdpi.png" density="xxxhdpi" foreground="res/icon/android/xxxhdpi_foreground.png" src="res/icon/android/xxxhdpi.png" />
-        <splash density="hdpi" src="res/screen/android/drawable-hdpi.png" />
-        <splash density="ldpi" src="res/screen/android/drawable-ldpi.png" />
-        <splash density="mdpi" src="res/screen/android/drawable-mdpi.png" />
-        <splash density="xhdpi" src="res/screen/android/drawable-xhdpi.png" />
-        <splash density="xxhdpi" src="res/screen/android/drawable-xxhdpi.png" />
-        <splash density="xxxhdpi" src="res/screen/android/drawable-xxxhdpi.png" />
         <edit-config file="app/src/main/AndroidManifest.xml" mode="merge" target="/manifest/application/activity[@android:name='MainActivity']">
             <activity android:screenOrientation="sensorLandscape" />
         </edit-config>
         <config-file parent="application/activity" target="AndroidManifest.xml">
-            <intent-filter android:autoVerify="true" android:label="MOROway OC">
+            <intent-filter android:label="MOROway OC">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />

@@ -75,23 +75,6 @@
                 </div>
             </article>
 
-            <article id="graphical">
-                <h2 data-stringid-content="helpScreenGraphical"></h2>
-                <div class="card-container">
-                    <div class="card card-big">
-                        <div class="card-title">
-                            <h2 data-stringid-content="helpScreenGraphicalDescription" data-stringid-content-arg1="helpScreenGraphicalDescriptionIcon" data-stringid-content-argisstringref1="1"></h2>
-                        </div>
-                        <p>
-                            <img style="width: 100%" src="assets/helpasset2_desc.jpg" data-stringid-alt="helpScreenGraphicalDescriptionPic" />
-                        </p>
-                        <div class="card-content">
-                            <div class="content" data-stringid-content="helpScreenGraphicalDescriptionPs"></div>
-                        </div>
-                    </div>
-                </div>
-            </article>
-
             <article id="legal">
                 <h2 data-stringid-content="helpScreenLegal"></h2>
                 <div class="card-container">
@@ -155,11 +138,6 @@
                                 <div class="content" data-stringid-content="helpScreenLegalAppOCDialogsPs"></div>
                                 <button id="legal-appoc-dialogs-license"><span data-stringid-content="helpScreenLegalStrLicense"></span></button>
                             </section>
-                            <section>
-                                <h3 data-stringid-content="helpScreenLegalAppOCSplashscreen"></h3>
-                                <div class="content" data-stringid-content="helpScreenLegalAppOCSplashscreenPs"></div>
-                                <button id="legal-appoc-splashscreen-license"><span data-stringid-content="helpScreenLegalStrLicense"></span></button>
-                            </section>
                         </div>
                     </div>
                     <div id="legal-appsnap-licenses" class="card hidden">
@@ -171,6 +149,25 @@
                                 <h3 data-stringid-content="helpScreenLegalAppSnapCordova"></h3>
                                 <div class="content" data-stringid-content="helpScreenLegalAppSnapCordovaPs"></div>
                                 <button id="legal-appsnap-cordova-license"><span data-stringid-content="helpScreenLegalStrLicense"></span></button>
+                            </section>
+                        </div>
+                    </div>
+                    <div id="legal-appandroid-licenses" class="card hidden">
+                        <div class="card-title">
+                            <h2 data-stringid-content="helpScreenLegalAppAndroid" data-stringid-content-arg1="helpScreenLegalAppAndroidIcon" data-stringid-content-argisstringref1="1"></h2>
+                        </div>
+                        <div class="card-content">
+                            <section>
+                                <h3 data-stringid-content="helpScreenLegalAppAndroidAndroidXWebkit"></h3>
+                                <div class="content" data-stringid-content="helpScreenLegalAppAndroidAndroidXWebkitPs"></div>
+                                <button id="legal-appandroid-android-x-webkit-license"><span data-stringid-content="helpScreenLegalStrLicense"></span></button>
+                            </section>
+                        </div>
+                        <div class="card-content">
+                            <section>
+                                <h3 data-stringid-content="helpScreenLegalAppAndroidPicasso"></h3>
+                                <div class="content" data-stringid-content="helpScreenLegalAppAndroidPicassoPs"></div>
+                                <button id="legal-appandroid-picasso-license"><span data-stringid-content="helpScreenLegalStrLicense"></span></button>
                             </section>
                         </div>
                     </div>
@@ -200,7 +197,7 @@
                         </div>
                         <div class="card-content">
                             <p>
-                                <img style="width: 100%" src="assets/helpasset1_bug_report.png" data-stringid-alt="helpScreenContactFeedbackBugs" />
+                                <img class="decorative-image" src="assets/helpasset1_bug_report.png" data-stringid-alt="helpScreenContactFeedbackBugs" />
                             </p>
                             <div class="content" data-stringid-content="helpScreenContactFeedbackPs"></div>
                             <div id="contact-imprint"><button id="contact-imprintlink" data-stringid-content="helpScreenContactBackupLink"></button></div>
@@ -241,7 +238,7 @@
                             <h2 data-stringid-content="helpScreenDownloadViewSource" data-stringid-content-arg1="helpScreenDownloadViewSourceIcon" data-stringid-content-argisstringref1="1"></h2>
                         </div>
                         <p>
-                            <img style="width: 100%" src="assets/helpasset3_source.png" data-stringid-alt="helpScreenDownloadViewSourceCodePic" />
+                            <img class="decorative-image" src="assets/helpasset3_source.png" data-stringid-alt="helpScreenDownloadViewSourceCodePic" />
                         </p>
                         <div class="card-content">
                             <div class="content" data-stringid-content="helpScreenDownloadViewSourcePs"></div>
@@ -254,7 +251,7 @@
                             <h2 data-stringid-content="helpScreenDownloadTranslations" data-stringid-content-arg1="helpScreenDownloadTranslationsIcon" data-stringid-content-argisstringref1="1"></h2>
                         </div>
                         <p>
-                            <img style="width: 100%" src="assets/helpasset4_translate.jpg" data-stringid-alt="helpScreenDownloadTranslationsPic" />
+                            <img class="decorative-image" src="assets/helpasset4_translate.jpg" data-stringid-alt="helpScreenDownloadTranslationsPic" />
                         </p>
                         <div class="card-content">
                             <div class="content" data-stringid-content="helpScreenDownloadTranslationsPs"></div>
@@ -295,12 +292,8 @@
             <button></button>
         </div>
 
-        <!-- load strings -->
-        <script>
-            init();
-            if (typeof init_local == "function") {
-                init_local();
-            }
-        </script>
+        <!-- initialize -->
+        <script src="src/js/init.js"></script>
+        <script src="src/js_platform/init.js"></script>
     </body>
 </html>

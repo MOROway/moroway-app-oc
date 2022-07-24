@@ -39,6 +39,24 @@ h2 {
     display: none !important;
 }
 
+#error-element {
+    margin-top: 1em;
+    text-align: center;
+}
+#error-element > * {
+    line-height: 1.75em;
+}
+#error-element-heading {
+    color: #ff0033;
+    font-size: 3em;
+}
+#error-element-message {
+    color: #ff77dd;
+}
+#error-element-action {
+    color: #ffccee;
+}
+
 /* Info Cards */
 .card-container {
     display: flex;
@@ -176,12 +194,19 @@ h2 {
 
 .settings-list {
     list-style-type: none;
-    margin: 16px 0px;
     padding: 0;
 }
 
 .settings-list > li {
-    margin: 20px 0px;
+    padding: 10px 0px;
+    transition: opacity 0.2s;
+    overflow: hidden;
+}
+.settings-list > li:first-of-type {
+    padding-top: 0px;
+}
+.settings-list > li:last-of-type {
+    padding-bottom: 0px;
 }
 
 .settings-opts-wrapper {
@@ -191,7 +216,6 @@ h2 {
     align-items: center;
     overflow: hidden;
 }
-
 .settings-opts-left-button {
     padding: 1px;
     margin: 10px;
@@ -204,19 +228,21 @@ h2 {
 }
 
 .settings-hints-wrapper {
-    color: rgba(0, 0, 0, 0.54);
-    margin-top: 2px;
+    color: rgba(0, 0, 0, 0.6);
+    margin: 2px;
     margin-left: 16px;
     font-size: 90%;
 }
-
 .settings-hints-wrapper > * {
-    padding-top: 2px;
+    margin: 2px 0;
+}
+.settings-hints-wrapper > i {
+    color: rgba(0, 0, 0, 0.56);
 }
 
 #langoption {
-    margin-top: 44px;
-    margin-bottom: 44px;
+    margin-top: 24px;
+    margin-bottom: 24px;
 }
 
 #langoption #langoptioninfo {
@@ -227,6 +253,7 @@ h2 {
 #langoption #clang {
     color: grey;
     border: 1px grey solid;
+    cursor: default;
 }
 
 #langoption .langvalue,
@@ -238,6 +265,7 @@ h2 {
     background: none;
     border: 1px black solid;
     border-radius: 2px;
+    cursor: pointer;
 }
 
 .settings-button {
@@ -270,23 +298,31 @@ h2 {
     width: 100%;
     height: 100%;
     flex-direction: column;
-    justify-content: center;
     overflow: hidden;
 }
 #server-note-title {
-    font-size: 600%;
+    font-size: 400%;
     padding: 20px;
     line-height: 150%;
     border-bottom: 3px double rgb(207, 207, 207);
     background: rgb(210, 120, 27);
     color: rgb(48, 48, 48);
+    white-space: nowrap;
+    overflow-x: auto;
+    flex-shrink: 0;
+}
+#server-note-inner {
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+    overflow-y: auto;
+    flex-grow: 1;
 }
 #server-note-text {
     font-size: 300%;
     margin: auto;
     padding: 30px;
     line-height: 150%;
-    overflow: auto;
 }
 #server-note-later {
     display: flex;
@@ -295,6 +331,7 @@ h2 {
 }
 #server-note-img {
     display: none;
+    margin: auto;
     max-height: 25%;
     justify-content: center;
     align-items: center;
@@ -335,7 +372,8 @@ h2 {
         border-bottom-width: 5vh;
     }
     #server-note-title {
-        font-size: 300%;
+        font-size: 175%;
+        padding: 0px;
     }
     #server-note-text {
         font-size: 150%;

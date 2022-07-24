@@ -1,0 +1,6 @@
+New train: Boston and Maine (American freight train).
+New – mostly invisible – track.
+Turn trains around using the new track.
+Replace graphical help image with interactive graphical info.
+Allow some options menu items to be hidden using a new setting.
+Update to Apache Cordova Android 11.0.0

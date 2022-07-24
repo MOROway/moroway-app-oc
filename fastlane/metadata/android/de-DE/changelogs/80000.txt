@@ -1,0 +1,6 @@
+Neuer Zug: Boston and Maine (Amerikanischer Güterzug).
+Neues – größtenteils nicht sichtbares – Gleis.
+Züge wenden mittels des neues Gleises.
+Ersetzen des Bildes zur grafischen Hilfe durch einen interaktiven Modus.
+Einige Optionsmenü-Einträge können mittels einer neuen Einstellung versteckt werden.
+Update auf Apache Cordova Android 11.0.0

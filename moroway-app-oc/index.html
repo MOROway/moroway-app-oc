@@ -34,16 +34,18 @@
         <div id="server-note">
             <div id="server-note-main">
                 <div id="server-note-title"></div>
-                <div id="server-note-text"></div>
-                <div id="server-note-img"><img /></div>
-                <div id="server-note-later">
-                    <input id="server-note-later-box" type="checkbox" />
-                    <label for="server-note-later-box" data-stringid-content="generalServerNoteButtonLater"></label>
-                </div>
-                <div id="server-note-later-info" data-stringid-content="generalServerNoteInfoLater"></div>
-                <div id="server-note-buttons">
-                    <div id="server-note-button-go" data-stringid-content="generalServerNoteButtonGo" data-stringid-content-case="upper"></div>
-                    <div id="server-note-button-no" data-stringid-content="generalServerNoteButtonNo" data-stringid-content-case="upper"></div>
+                <div id="server-note-inner">
+                    <div id="server-note-text"></div>
+                    <div id="server-note-img"><img /></div>
+                    <div id="server-note-later">
+                        <input id="server-note-later-box" type="checkbox" />
+                        <label for="server-note-later-box" data-stringid-content="generalServerNoteButtonLater"></label>
+                    </div>
+                    <div id="server-note-later-info" data-stringid-content="generalServerNoteInfoLater"></div>
+                    <div id="server-note-buttons">
+                        <div id="server-note-button-go" data-stringid-content="generalServerNoteButtonGo" data-stringid-content-case="upper"></div>
+                        <div id="server-note-button-no" data-stringid-content="generalServerNoteButtonNo" data-stringid-content-case="upper"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -88,7 +90,7 @@
                 <div id="game-gameplay">
                     <canvas id="game-gameplay-gesture" data-stringid-content="appScreenNoCanvas">JavaScript required</canvas>
                     <canvas id="game-gameplay-bg" data-stringid-content="appScreenNoCanvas">JavaScript required</canvas>
-                    <div id="canvas-options">
+                    <div id="canvas-menus">
                         <div id="canvas-options-inner">
                             <button id="canvas-team" class="canvas-options-button" data-stringid-title="appScreenTeamplayTitle">
                                 <i class="material-icons">people</i>
@@ -101,6 +103,9 @@
                             </button>
                             <button id="canvas-help" class="canvas-options-button" data-stringid-title="generalTitleHelpScreen">
                                 <i class="material-icons">help</i>
+                            </button>
+                            <button id="canvas-info-toggle" class="canvas-options-button" data-stringid-title="appScreenGraphicalInfo">
+                                <i class="material-icons">info</i>
                             </button>
                             <button id="canvas-control-center" class="canvas-options-button" data-stringid-title="appScreenControlCenterTitle">
                                 <i class="material-icons">train</i>
@@ -115,10 +120,16 @@
                                 <i class="material-icons">volume_off</i>
                             </button>
                         </div>
+                        <div id="canvas-info-inner">
+                            <button id="canvas-info-exit" class="canvas-info-button" data-stringid-title="generalClose">
+                                <i class="material-icons">close</i>
+                            </button>
+                        </div>
                     </div>
                     <canvas id="game-gameplay-main" data-stringid-content="appScreenNoCanvas">JavaScript required</canvas>
                     <canvas id="game-gameplay-sfg" data-stringid-content="appScreenNoCanvas">JavaScript required</canvas>
                     <canvas id="game-gameplay-fg" data-stringid-content="appScreenNoCanvas">JavaScript required</canvas>
+                    <div id="info-overlay-text"></div>
                 </div>
             </div>
         </main>
@@ -214,9 +225,8 @@
             </div>
         </div>
 
-        <!-- load strings -->
-        <script>
-            setHTMLStrings();
-        </script>
+        <!-- initialize -->
+        <script src="src/js/init.js"></script>
+        <script src="src/js_platform/init.js"></script>
     </body>
 </html>

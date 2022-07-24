@@ -1,18 +1,16 @@
 {
   "license": "Apache-2.0",
   "devDependencies": {
-    "cordova-android": "^10.1.2",
+    "cordova-android": "^11.0.0",
     "cordova-plugin-dialogs": "^2.0.2",
     "cordova-plugin-insomnia": "github:EddyVerbruggen/Insomnia-PhoneGap-Plugin",
-    "cordova-plugin-splashscreen": "^6.0.0",
     "cordova-webintent": "github:cordova-misc/cordova-webintent"
   },
   "cordova": {
     "plugins": {
       "cordova-webintent": {},
       "cordova-plugin-insomnia": {},
-      "cordova-plugin-dialogs": {},
-      "cordova-plugin-splashscreen": {}
+      "cordova-plugin-dialogs": {}
     },
     "platforms": [
       "android"

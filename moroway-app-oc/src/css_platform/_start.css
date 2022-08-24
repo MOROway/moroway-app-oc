@@ -95,17 +95,22 @@ body {
     }
 
     #content > div#link_game {
-        order: 2;
-        flex-grow: 3;
+        order: 3;
+        flex-grow: 4;
     }
 
     #content > div#link_multiplayer {
-        order: 3;
-        flex-grow: 3;
+        order: 4;
+        flex-grow: 2;
+    }
+
+    #content > div#link_demo {
+        order: 2;
+        flex-grow: 2;
     }
 
     #content > div#link_help {
-        order: 4;
+        order: 5;
         flex-grow: 1.5;
     }
 
@@ -135,6 +140,10 @@ body {
         position: absolute;
         left: 0;
         top: 0;
+    }
+
+    #content .text-icon-small .material-icons {
+        vertical-align: top;
     }
 }
 @media (orientation: landscape) and (min-width: 1000px) {

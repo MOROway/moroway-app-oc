@@ -135,10 +135,34 @@ function stopAudio(destinationName, destinationIndex) {
 }
 
 function showConfirmLeaveMultiplayerMode() {
-    var tpLeave = document.querySelector("#tp-leave");
-    if (onlineGame.enabled && tpLeave.style.display == "") {
-        tpLeave.style.display = "block";
+    var confirmDialog = document.querySelector("#confirm-dialog");
+    if (confirmDialog != null) {
+        confirmDialog.querySelector("#confirm-dialog-title").textContent = getString("appScreenTeamplayLeaveDialogTitle");
+        confirmDialog.querySelector("#confirm-dialog-text").style.display = "none";
+        confirmDialog.querySelector("#confirm-dialog-text").textContent = "";
+        if (onlineGame.enabled && confirmDialog.style.display == "") {
+            confirmDialog.style.display = "block";
+        }
     }
+}
+
+function showConfirmEnterDemoMode() {
+    var confirmDialog = document.querySelector("#confirm-dialog");
+    if (confirmDialog != null) {
+        confirmDialog.querySelector("#confirm-dialog-title").textContent = getString("appScreenDemoModeEnterDialogTitle");
+        confirmDialog.querySelector("#confirm-dialog-text").style.display = "";
+        confirmDialog.querySelector("#confirm-dialog-text").textContent = getString("appScreenDemoModeEnterDialogText");
+        if (!gui.demo && confirmDialog.style.display == "") {
+            confirmDialog.style.display = "block";
+        }
+    }
+}
+
+function switchMode(mode) {
+    if (!mode) {
+        mode = "normal";
+    }
+    followLink("?mode=" + mode, "_self", LINK_STATE_INTERNAL_HTML);
 }
 
 /*******************************************
@@ -231,7 +255,7 @@ function getGesture(gesture) {
 }
 
 function notInTransformerImage(x, y) {
-    if (!settings.classicUI || gui.controlCenter || canvasGesture == undefined || contextGesture == undefined) {
+    if (!getSetting("classicUI") || gui.controlCenter || canvasGesture == undefined || contextGesture == undefined) {
         return true;
     }
     contextGesture.setTransform(client.realScale, 0, 0, client.realScale, (-(client.realScale - 1) * canvasGesture.width) / 2 + client.touchScaleX, (-(client.realScale - 1) * canvasGesture.height) / 2 + client.touchScaleY);
@@ -251,7 +275,7 @@ function notInTransformerImage(x, y) {
 }
 
 function notInTransformerInput(x, y) {
-    if (!settings.classicUI || gui.controlCenter || canvasGesture == undefined || contextGesture == undefined) {
+    if (!getSetting("classicUI") || gui.controlCenter || canvasGesture == undefined || contextGesture == undefined) {
         return true;
     }
     contextGesture.setTransform(client.realScale, 0, 0, client.realScale, (-(client.realScale - 1) * canvasGesture.width) / 2 + client.touchScaleX, (-(client.realScale - 1) * canvasGesture.height) / 2 + client.touchScaleY);
@@ -286,7 +310,7 @@ function notInTransformerInput(x, y) {
 }
 
 function notInTransformerTrainSwitch(x, y) {
-    if (!settings.classicUI || gui.controlCenter || canvasGesture == undefined || contextGesture == undefined) {
+    if (!getSetting("classicUI") || gui.controlCenter || canvasGesture == undefined || contextGesture == undefined) {
         return true;
     }
     contextGesture.setTransform(client.realScale, 0, 0, client.realScale, (-(client.realScale - 1) * canvasGesture.width) / 2 + client.touchScaleX, (-(client.realScale - 1) * canvasGesture.height) / 2 + client.touchScaleY);
@@ -725,10 +749,10 @@ function drawInfoOverlayMenu(state) {
     menus.infoOverlay.scaleFac = 1;
     menus.infoOverlay.scaleFacGrow = true;
     menus.infoOverlay.items = [1, 2];
-    if (settings.burnTheTaxOffice) {
+    if (getSetting("burnTheTaxOffice")) {
         menus.infoOverlay.items[menus.infoOverlay.items.length] = 3;
     }
-    if (settings.classicUI && !gui.controlCenter) {
+    if (getSetting("classicUI") && !gui.controlCenter) {
         menus.infoOverlay.items[menus.infoOverlay.items.length] = 4;
         if (classicUI.trainSwitch.selectedTrainDisplay.visible) {
             menus.infoOverlay.items[menus.infoOverlay.items.length] = 5;
@@ -887,7 +911,7 @@ function calcMenusAndBackground(state) {
         }
     }
     if (document.querySelector("#canvas-info-toggle") != null) {
-        if (settings.reduceOptMenu && settings.reduceOptMenuHideGraphicalInfoToggle) {
+        if (getSetting("reduceOptMenuHideGraphicalInfoToggle")) {
             document.querySelector("#canvas-info-toggle").classList.add("settings-hidden");
             if (gui.infoOverlay) {
                 gui.infoOverlay = false;
@@ -899,21 +923,21 @@ function calcMenusAndBackground(state) {
         }
     }
     if (document.querySelector("#canvas-control-center") != null) {
-        if (settings.reduceOptMenu && settings.reduceOptMenuHideTrainControlCenter) {
+        if (getSetting("reduceOptMenuHideTrainControlCenter")) {
             document.querySelector("#canvas-control-center").classList.add("settings-hidden");
         } else {
             document.querySelector("#canvas-control-center").classList.remove("settings-hidden");
         }
     }
     if (document.querySelector("#canvas-car-control-center") != null) {
-        if (settings.reduceOptMenu && settings.reduceOptMenuHideCarControlCenter) {
+        if (getSetting("reduceOptMenuHideCarControlCenter")) {
             document.querySelector("#canvas-car-control-center").classList.add("settings-hidden");
         } else {
             document.querySelector("#canvas-car-control-center").classList.remove("settings-hidden");
         }
     }
     if (document.querySelector("#canvas-sound-toggle") != null) {
-        if (settings.reduceOptMenu && settings.reduceOptMenuHideAudioToggle) {
+        if (getSetting("reduceOptMenuHideAudioToggle")) {
             document.querySelector("#canvas-sound-toggle").classList.add("settings-hidden");
             audio.active = false;
             playAndPauseAudio();
@@ -921,6 +945,13 @@ function calcMenusAndBackground(state) {
             document.querySelector("#canvas-sound-toggle").title = formatJSString(getString("appScreenSoundToggle"), getString("appScreenSound"), getString("generalOff"));
         } else {
             document.querySelector("#canvas-sound-toggle").classList.remove("settings-hidden");
+        }
+    }
+    if (document.querySelector("#canvas-demo-mode") != null) {
+        if (getSetting("reduceOptMenuHideDemoMode")) {
+            document.querySelector("#canvas-demo-mode").classList.add("settings-hidden");
+        } else {
+            document.querySelector("#canvas-demo-mode").classList.remove("settings-hidden");
         }
     }
     if (state == "load") {
@@ -940,6 +971,24 @@ function calcMenusAndBackground(state) {
         menus.infoOverlay.container = {};
         menus.infoOverlay.container.elementInner = document.querySelector("#canvas-info-inner");
         menus.infoOverlay.overlayText = document.querySelector("#info-overlay-text");
+        var confirmDialogYes = document.querySelector("#confirm-dialog #confirm-dialog-yes");
+        if (confirmDialogYes != null) {
+            confirmDialogYes.addEventListener("click", function () {
+                document.querySelector("#confirm-dialog").style.display = "";
+                switchMode("demo");
+            });
+        }
+        var confirmDialogNo = document.querySelector("#confirm-dialog #confirm-dialog-no");
+        if (confirmDialogNo != null) {
+            confirmDialogNo.addEventListener("click", function () {
+                document.querySelector("#confirm-dialog").style.display = "";
+            });
+        }
+        if (onlineGame.enabled) {
+            document.querySelector("#canvas-demo-mode").classList.add("hidden");
+        } else {
+            document.querySelector("#canvas-demo-mode").addEventListener("click", showConfirmEnterDemoMode);
+        }
         if (typeof fetch == "function" && typeof AudioContext == "function") {
             document.querySelector("#canvas-sound-toggle").title = formatJSString(getString("appScreenSoundToggle"), getString("appScreenSound"), getString("generalOff"));
             document.querySelector("#canvas-sound-toggle").addEventListener("click", function () {
@@ -1018,16 +1067,17 @@ function calcMenusAndBackground(state) {
             document.querySelector("#canvas-single").classList.add("hidden");
             document.querySelector("#canvas-chat-open").classList.add("hidden");
             document.querySelector("#canvas-team").addEventListener("click", function () {
-                followLink("?mode=multiplay", "_self", LINK_STATE_INTERNAL_HTML);
+                switchMode("multiplay");
             });
         }
         var settingsElem = document.querySelector("#settings");
         document.querySelector("#canvas-settings").addEventListener("click", function () {
-            drawOptionsMenu("invisible");
+            gui.settings = true;
             settingsElem.style.display = "block";
+            drawOptionsMenu("invisible");
         });
         settingsElem.querySelector("#settings-apply").onclick = function () {
-            settings = getSettings();
+            gui.settings = false;
             if (typeof settingsElem.scrollTo == "function") {
                 settingsElem.scrollTo(0, 0);
             }
@@ -1086,7 +1136,7 @@ function calcMenusAndBackground(state) {
     calcBackground();
     menus.outerContainer.width = background.width / client.devicePixelRatio;
     menus.innerWidthRelativeToItemLength = false;
-    menus.innerWidth = (settings.classicUI || menus.floating ? 0.5 : 1) * menus.outerContainer.width;
+    menus.innerWidth = (getSetting("classicUI") || menus.floating ? 0.5 : 1) * menus.outerContainer.width;
     var availableHeight = menus.floating ? client.y : menus.outerContainer.height;
     menus.itemDefaultSize = availableHeight * 0.5;
     if (menus.small && (!menus.floating || client.width * 0.75 >= client.height)) {
@@ -1177,7 +1227,7 @@ function calcClassicUIElements() {
     var wantedWidth = ((menus.small ? 0.35 : 0.9) * background.width) / 4 / widthMultiply;
     var tempFont = measureFontSize(getString(["appScreenTrainNames", longestName]), classicUI.trainSwitch.selectedTrainDisplay.fontFamily, wantedWidth / getString(["appScreenTrainNames", longestName]).length, wantedWidth, 3, background.width * 0.004);
     var tempFontSize = menus.small ? getFontSize(tempFont, "px") : Math.min((0.9 * menus.outerContainer.height * client.devicePixelRatio) / heightMultiply, getFontSize(tempFont, "px"));
-    classicUI.trainSwitch.selectedTrainDisplay.visible = settings.alwaysShowSelectedTrain && tempFontSize >= 7;
+    classicUI.trainSwitch.selectedTrainDisplay.visible = getSetting("alwaysShowSelectedTrain") && tempFontSize >= 7;
     classicUI.trainSwitch.selectedTrainDisplay.font = tempFontSize + "px " + classicUI.trainSwitch.selectedTrainDisplay.fontFamily;
     context.font = classicUI.trainSwitch.selectedTrainDisplay.font;
     classicUI.trainSwitch.selectedTrainDisplay.width = widthMultiply * context.measureText(getString(["appScreenTrainNames", longestName])).width;
@@ -1904,13 +1954,13 @@ function drawObjects() {
     var moveInPath = context.isPointInPath(hardware.mouse.moveX, hardware.mouse.moveY);
     var wheelInPath = context.isPointInPath(hardware.mouse.wheelX, hardware.mouse.wheelY);
     context.restore();
-    if (!moveInPath || (settings.classicUI && !gui.controlCenter && !notInTransformerImage(hardware.mouse.moveX, hardware.mouse.moveY))) {
+    if (!moveInPath || (getSetting("classicUI") && !gui.controlCenter && !notInTransformerImage(hardware.mouse.moveX, hardware.mouse.moveY))) {
         classicUISavedMouseHold = hardware.mouse.isHold;
         classicUISavedMouseDrag = hardware.mouse.isDrag;
         hardware.mouse.isHold = false;
         hardware.mouse.isDrag = false;
     }
-    if (!wheelInPath || (settings.classicUI && !gui.controlCenter && !notInTransformerImage(hardware.mouse.wheelX, hardware.mouse.wheelY))) {
+    if (!wheelInPath || (getSetting("classicUI") && !gui.controlCenter && !notInTransformerImage(hardware.mouse.wheelX, hardware.mouse.wheelY))) {
         classicUISavedWheelScroll = hardware.mouse.wheelScrolls;
         hardware.mouse.wheelScrolls = false;
     }
@@ -2101,7 +2151,7 @@ function drawObjects() {
     }
 
     /////TAX OFFICE/////
-    if (settings.burnTheTaxOffice) {
+    if (getSetting("burnTheTaxOffice")) {
         //General (BEGIN)
         contextForeground.save();
         contextForeground.translate(background.x, background.y);
@@ -2189,7 +2239,7 @@ function drawObjects() {
     }
 
     /////CLASSIC UI/////
-    if (settings.classicUI && !gui.controlCenter && !gui.demo) {
+    if (getSetting("classicUI") && !gui.controlCenter && !gui.demo) {
         if (classicUISavedMouseHold != undefined && classicUISavedMouseDrag != undefined) {
             hardware.mouse.isHold = classicUISavedMouseHold;
             hardware.mouse.isDrag = classicUISavedMouseDrag;
@@ -2197,6 +2247,9 @@ function drawObjects() {
         }
         if (classicUISavedWheelScroll != undefined) {
             hardware.mouse.wheelScrolls = classicUISavedWheelScroll;
+        }
+        if (gui.settings) {
+            calcClassicUIElements();
         }
         var step = Math.PI / 30;
         if (trains[trainParams.selected].accelerationSpeed > 0) {
@@ -3376,7 +3429,7 @@ function drawObjects() {
     }
 
     /////CURSOR/////
-    if (settings.cursorascircle && isHardwareAvailable("cursorascircle") && client.chosenInputMethod == "mouse" && (hardware.mouse.isMoving || hardware.mouse.isHold || client.realScale > 1)) {
+    if (getSetting("cursorascircle") && client.chosenInputMethod == "mouse" && (hardware.mouse.isMoving || hardware.mouse.isHold || client.realScale > 1)) {
         contextForeground.save();
         contextForeground.translate(adjustScaleX(hardware.mouse.moveX), adjustScaleY(hardware.mouse.moveY));
         contextForeground.fillStyle = hardware.mouse.cursor == "move" ? "rgba(155,155,69," + (Math.random() * 0.3 + 0.6) + ")" : hardware.mouse.cursor == "grabbing" ? "rgba(65,56,65," + (Math.random() * 0.3 + 0.6) + ")" : hardware.mouse.cursor == "pointer" ? "rgba(99,118,140," + (Math.random() * 0.3 + 0.6) + ")" : hardware.mouse.isHold ? "rgba(144,64,64," + (Math.random() * 0.3 + 0.6) + ")" : "rgba(255,250,240,0.5)";
@@ -3390,7 +3443,7 @@ function drawObjects() {
         contextForeground.fill();
         contextForeground.restore();
     }
-    canvasForeground.style.cursor = client.chosenInputMethod != "mouse" || (settings.cursorascircle && isHardwareAvailable("cursorascircle")) || gui.demo ? "none" : hardware.mouse.cursor;
+    canvasForeground.style.cursor = client.chosenInputMethod != "mouse" || getSetting("cursorascircle") || gui.demo ? "none" : hardware.mouse.cursor;
     hardware.mouse.wheelScrolls = false;
 
     if (lastClickDoubleClick == hardware.mouse.lastClickDoubleClick && wasHold) {
@@ -3456,7 +3509,6 @@ function teamplaySync(mode, objectName, index, params, notification, notificatio
 Variablen-Namen
 **************/
 var animateWorker = new Worker("./src/js/scripting_worker_animate.js");
-var settings = {};
 
 var frameNo = 0;
 var canvas;
@@ -3652,6 +3704,23 @@ var onlineConnection = {serverURI: getServerLink(PROTOCOL_WS) + "/multiplay"};
 
 var resizeTimeout;
 var resized = false;
+
+var demoMode = {
+    leaveTimeMin: 1500,
+    leaveTimeoutStart: function () {
+        if (demoMode.leaveTimeout != undefined && demoMode.leaveTimeout != null) {
+            window.clearTimeout(demoMode.leaveTimeout);
+        }
+        demoMode.leaveTimeout = window.setTimeout(function () {
+            switchMode();
+        }, demoMode.leaveTimeMin);
+    },
+    leaveTimeoutEnd: function () {
+        if (demoMode.leaveTimeout != undefined && demoMode.leaveTimeout != null) {
+            window.clearTimeout(demoMode.leaveTimeout);
+        }
+    }
+};
 
 var debug = {paint: true};
 
@@ -4029,7 +4098,7 @@ window.onload = function () {
 
         //Cars
         if (defineCarParams()) {
-            if (settings.saveGame && !onlineGame.enabled && !gui.demo && window.localStorage.getItem("morowayAppSavedGame_v-" + getVersionCode() + "_Cars") != null && window.localStorage.getItem("morowayAppSavedGame_v-" + getVersionCode() + "_CarParams") != null && window.localStorage.getItem("morowayAppSavedGame_v-" + getVersionCode() + "_Bg") != null) {
+            if (getSetting("saveGame") && !onlineGame.enabled && !gui.demo && window.localStorage.getItem("morowayAppSavedGame_v-" + getVersionCode() + "_Cars") != null && window.localStorage.getItem("morowayAppSavedGame_v-" + getVersionCode() + "_CarParams") != null && window.localStorage.getItem("morowayAppSavedGame_v-" + getVersionCode() + "_Bg") != null) {
                 cars = JSON.parse(window.localStorage.getItem("morowayAppSavedGame_v-" + getVersionCode() + "_Cars"));
                 carParams = JSON.parse(window.localStorage.getItem("morowayAppSavedGame_v-" + getVersionCode() + "_CarParams"));
                 resizeCars(JSON.parse(window.localStorage.getItem("morowayAppSavedGame_v-" + getVersionCode() + "_Bg")));
@@ -4104,7 +4173,7 @@ window.onload = function () {
                         trainPics[i].cars[j].width = pics[trains[i].cars[j].src].width;
                     }
                 }
-                if (settings.saveGame && !onlineGame.enabled && !gui.demo && window.localStorage.getItem("morowayAppSavedGame_v-" + getVersionCode() + "_Trains") != null && window.localStorage.getItem("morowayAppSavedGame_v-" + getVersionCode() + "_Switches") != null && window.localStorage.getItem("morowayAppSavedGame_v-" + getVersionCode() + "_Bg") != null) {
+                if (getSetting("saveGame") && !onlineGame.enabled && !gui.demo && window.localStorage.getItem("morowayAppSavedGame_v-" + getVersionCode() + "_Trains") != null && window.localStorage.getItem("morowayAppSavedGame_v-" + getVersionCode() + "_Switches") != null && window.localStorage.getItem("morowayAppSavedGame_v-" + getVersionCode() + "_Bg") != null) {
                     animateWorker.postMessage({k: "setTrainPics", trainPics: trainPics, savedTrains: JSON.parse(window.localStorage.getItem("morowayAppSavedGame_v-" + getVersionCode() + "_Trains")), savedBg: JSON.parse(window.localStorage.getItem("morowayAppSavedGame_v-" + getVersionCode() + "_Bg"))});
                 } else {
                     animateWorker.postMessage({k: "setTrainPics", trainPics: trainPics});
@@ -4155,8 +4224,19 @@ window.onload = function () {
                             window.sessionStorage.setItem("demoCarParams", JSON.stringify(carParams));
                             window.sessionStorage.setItem("demoBg", JSON.stringify(background));
                         }
-                        window.location.reload();
+                        followLink(window.location.href, "_self", LINK_STATE_INTERNAL_HTML);
                     }, 90000);
+                    if (!demoMode.standalone) {
+                        document.addEventListener("keyup", function (event) {
+                            if (event.key == "Escape") {
+                                switchMode();
+                            }
+                        });
+                        document.addEventListener("touchstart", demoMode.leaveTimeoutStart, {passive: false});
+                        document.addEventListener("touchend", demoMode.leaveTimeoutEnd, {passive: false});
+                        document.addEventListener("mousedown", demoMode.leaveTimeoutStart, {passive: false});
+                        document.addEventListener("mouseup", demoMode.leaveTimeoutEnd, {passive: false});
+                    }
                 } else {
                     canvasForeground.addEventListener("touchmove", getTouchMove, {passive: false});
                     canvasForeground.addEventListener("touchstart", getTouchStart, {passive: false});
@@ -4188,7 +4268,7 @@ window.onload = function () {
                         toHide.style.opacity = "0";
                         window.setTimeout(function () {
                             var localAppData = getLocalAppDataCopy();
-                            if (settings.classicUI && !classicUI.trainSwitch.selectedTrainDisplay.visible && !gui.demo) {
+                            if (getSetting("classicUI") && !classicUI.trainSwitch.selectedTrainDisplay.visible && !gui.demo) {
                                 notify("#canvas-notifier", formatJSString(getString("appScreenTrainSelected", "."), getString(["appScreenTrainNames", trainParams.selected]), getString("appScreenTrainSelectedAuto", " ")), NOTIFICATION_PRIO_HIGH, 3000, null, null, client.y + menus.outerContainer.height);
                             } else if (localAppData !== null && (localAppData.version.major < APP_DATA.version.major || (localAppData.version.major == APP_DATA.version.major && localAppData.version.minor < APP_DATA.version.minor)) && typeof appUpdateNotification == "function" && !gui.demo) {
                                 appUpdateNotification();
@@ -4285,7 +4365,7 @@ window.onload = function () {
                 teamplaySync("sync-ready");
             } else if (message.data.k == "save-game") {
                 if (typeof window.localStorage != "undefined") {
-                    if (settings.saveGame && !onlineGame.enabled && !gui.demo) {
+                    if (getSetting("saveGame") && !onlineGame.enabled && !gui.demo) {
                         try {
                             window.localStorage.setItem("morowayAppSavedGame_v-" + getVersionCode() + "_Trains", JSON.stringify(message.data.saveTrains));
                             var saveSwitches = {};
@@ -4307,8 +4387,6 @@ window.onload = function () {
                             }
                             notify("#canvas-notifier", getString("appScreenSaveGameError", "."), NOTIFICATION_PRIO_HIGH, 1000, null, null, client.y + menus.outerContainer.height);
                         }
-                    } else if (!settings.saveGame) {
-                        removeSavedGame();
                     }
                     animateWorker.postMessage({k: "game-saved"});
                 }
@@ -4327,7 +4405,7 @@ window.onload = function () {
                 debug.trainReady = true;
             }
         };
-        if (settings.saveGame && !onlineGame.enabled && !gui.demo && window.localStorage.getItem("morowayAppSavedGame_v-" + getVersionCode() + "_Trains") != null && window.localStorage.getItem("morowayAppSavedGame_v-" + getVersionCode() + "_Switches") != null && window.localStorage.getItem("morowayAppSavedGame_v-" + getVersionCode() + "_Bg") != null) {
+        if (getSetting("saveGame") && !onlineGame.enabled && !gui.demo && window.localStorage.getItem("morowayAppSavedGame_v-" + getVersionCode() + "_Trains") != null && window.localStorage.getItem("morowayAppSavedGame_v-" + getVersionCode() + "_Switches") != null && window.localStorage.getItem("morowayAppSavedGame_v-" + getVersionCode() + "_Bg") != null) {
             var savedSwitches = JSON.parse(window.localStorage.getItem("morowayAppSavedGame_v-" + getVersionCode() + "_Switches"));
             Object.keys(savedSwitches).forEach(function (key) {
                 Object.keys(savedSwitches[key]).forEach(function (side) {
@@ -4340,7 +4418,7 @@ window.onload = function () {
                     if (key == "inner2outer" || key == "outer2inner") {
                         switches[key][side].turned = false;
                     } else {
-                        switches[key][side].turned = Math.random() > 0.6;
+                        switches[key][side].turned = Math.random() > 0.4;
                     }
                 });
             });
@@ -4383,7 +4461,17 @@ window.onload = function () {
         }, 10);
     }
 
-    settings = getSettings();
+    function keepScreenAlive() {
+        if (document.visibilityState == "visible") {
+            try {
+                navigator.wakeLock.request("screen");
+            } catch (error) {
+                if (APP_DATA.debug) {
+                    console.log("Wake-Lock-Error:", error);
+                }
+            }
+        }
+    }
 
     canvas = document.querySelector("canvas#game-gameplay-main");
     canvasGesture = document.querySelector("canvas#game-gameplay-gesture");
@@ -4403,10 +4491,13 @@ window.onload = function () {
     document.addEventListener("visibilitychange", onVisibilityChange);
     onVisibilityChange();
 
-    gui.demo = getQueryString("mode") == "demo";
+    gui.demo = getQueryString("mode") == "demo" || getQueryString("mode") == "demoStandalone" || (getSetting("startDemoMode") && getQueryString("mode") == "");
     if (gui.demo) {
         document.body.style.cursor = "none";
         var loadingAnimElemChangingFilter = loadingImageAnimation();
+        keepScreenAlive();
+        document.addEventListener("visibilitychange", keepScreenAlive);
+        demoMode.standalone = getQueryString("mode") == "demoStandalone";
     }
     if (getQueryString("mode") == "multiplay") {
         if ("WebSocket" in window) {
@@ -4421,6 +4512,8 @@ window.onload = function () {
 
     if (onlineGame.enabled) {
         var loadingAnimElemChangingFilter = loadingImageAnimation();
+        keepScreenAlive();
+        document.addEventListener("visibilitychange", keepScreenAlive);
     } else {
         var elements = document.querySelectorAll("#content > *:not(#game), #game > *:not(#game-gameplay)");
         for (var i = 0; i < elements.length; i++) {
@@ -4441,7 +4534,7 @@ window.onload = function () {
     }, 2500);
 
     extendedMeasureViewspace();
-    if (settings.saveGame) {
+    if (getSetting("saveGame")) {
         updateSavedGame();
     } else {
         removeSavedGame();
@@ -4582,16 +4675,21 @@ window.onload = function () {
                             chatScrollToBottom.toggleDisplay();
                         }
                     });
-                    var tpLeaveYes = document.querySelector("#tp-leave #tp-leave-yes");
-                    var tpLeaveNo = document.querySelector("#tp-leave #tp-leave-no");
-                    tpLeaveYes.addEventListener("click", function () {
-                        followLink("?", "_self", LINK_STATE_INTERNAL_HTML);
-                    });
-                    tpLeaveNo.addEventListener("click", function () {
-                        document.querySelector("#tp-leave").style.display = "";
-                    });
+                    var confirmDialogYes = document.querySelector("#confirm-dialog #confirm-dialog-yes");
+                    if (confirmDialogYes != null) {
+                        confirmDialogYes.addEventListener("click", function () {
+                            document.querySelector("#confirm-dialog").style.display = "";
+                            switchMode();
+                        });
+                    }
+                    var confirmDialogNo = document.querySelector("#confirm-dialog #confirm-dialog-no");
+                    if (confirmDialogNo != null) {
+                        confirmDialogNo.addEventListener("click", function () {
+                            document.querySelector("#confirm-dialog").style.display = "";
+                        });
+                    }
                     document.querySelector("#setup #setup-exit").addEventListener("click", function () {
-                        followLink("?", "_self", LINK_STATE_INTERNAL_HTML);
+                        switchMode();
                     });
                     onlineConnection.connect = function (host) {
                         function hideLoadingAnimation() {
@@ -4631,11 +4729,11 @@ window.onload = function () {
                             resetForElem(parent, elem);
                             var elem = document.querySelector("#setup #setup-create #setup-create-link");
                             elem.addEventListener("click", function () {
-                                followLink("?mode=multiplay", "_self", LINK_STATE_INTERNAL_HTML);
+                                switchMode("multiplay");
                             });
                             var elem = document.querySelector("#setup #setup-create #setup-create-escape");
                             elem.addEventListener("click", function () {
-                                followLink("?", "_self", LINK_STATE_INTERNAL_HTML);
+                                switchMode();
                             });
                         }
                         function getPlayerNameFromInput() {

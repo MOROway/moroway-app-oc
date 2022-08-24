@@ -13,7 +13,7 @@ function localDR() {
         "backbutton",
         function (e) {
             e.preventDefault();
-            if ((typeof settings == "object" && !settings.saveGame) || (typeof onlineGame == "object" && onlineGame.enabled)) {
+            if ((typeof settings == "object" && !getSetting("saveGame")) || (typeof onlineGame == "object" && onlineGame.enabled)) {
                 navigator.notification.confirm(
                     getString("platformOcGameLeave"),
                     function (button) {

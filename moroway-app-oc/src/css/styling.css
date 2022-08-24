@@ -557,7 +557,7 @@ canvas {
     color: rgb(139, 0, 0);
 }
 
-#tp-leave {
+#confirm-dialog {
     display: none;
     border-radius: 50px;
     color: floralWhite;
@@ -569,12 +569,25 @@ canvas {
     transform: translate(-50%, -50%);
     padding: 20px;
 }
-#tp-leave button {
+
+#confirm-dialog-title {
+    padding-bottom: 20px;
+    font-size: 1.5em;
+}
+#confirm-dialog-text {
+    border-top: 2px solid rgb(210, 120, 27);
+    padding: 20px 0;
+}
+#confirm-dialog-buttons-wrapper {
+    display: flex;
+}
+#confirm-dialog button {
+    flex-grow: 1;
     border: 2px solid rgb(210, 120, 27);
     border-radius: 20px;
     color: inherit;
     background: inherit;
     padding: 5px;
-    margin: 5px;
+    margin: 5px 20px;
     text-transform: uppercase;
 }

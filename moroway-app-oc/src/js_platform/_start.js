@@ -19,7 +19,7 @@ function init() {
             icons[iC].style.height = iconSizeSmall + "px";
             icons[iC].querySelector(".material-icons").style.fontSize = iconSizeSmall + "px";
             icons[iC].style.left = icons[iC].parentNode.offsetLeft + icons[iC].parentNode.offsetWidth / 2 + icons[iC].offsetWidth / 2 + "px";
-            icons[iC].style.top = icons[iC].parentNode.offsetTop + icons[iC].parentNode.offsetHeight * 0.9 - icons[iC].offsetHeight + "px";
+            icons[iC].style.top = icons[iC].parentNode.offsetTop + icons[iC].parentNode.offsetHeight / 2 + icons[iC].offsetHeight / 2 + "px";
         }
     }
 
@@ -37,6 +37,9 @@ function init() {
     });
     document.getElementById("link_multiplayer").addEventListener("click", function () {
         followLink("./?mode=multiplay", "_self", LINK_STATE_INTERNAL_HTML);
+    });
+    document.getElementById("link_demo").addEventListener("click", function () {
+        followLink("./?mode=demoStandalone", "_self", LINK_STATE_INTERNAL_HTML);
     });
     document.getElementById("link_help").addEventListener("click", function () {
         followLink("help", "_self", LINK_STATE_INTERNAL_HTML);

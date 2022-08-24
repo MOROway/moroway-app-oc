@@ -11,7 +11,7 @@ The MOROway App OC ("Open Cordova") wrapper app brings the MOROway App to Androi
 ### MOROway App
 
 * MOROway App OC: [Apache License 2.0](./LICENSE)
-* MOROway App: [Apache License 2.0](https://github.com/MOROway/moroway-app-dev/blob/master/LICENSE)
+* MOROway App: [Apache License 2.0](https://github.com/MOROway/moroway-app-dev/blob/main/LICENSE.txt)
 
 ### MOROway App: Included Open Source Projects
 

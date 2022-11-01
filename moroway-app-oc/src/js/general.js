@@ -378,7 +378,7 @@ function getSettings() {
     var defaults = {showNotifications: true, classicUI: true, alwaysShowSelectedTrain: true, cursorascircle: true, burnTheTaxOffice: true, saveGame: true, reduceOptMenu: false, reduceOptMenuHideGraphicalInfoToggle: false, reduceOptMenuHideTrainControlCenter: false, reduceOptMenuHideCarControlCenter: false, reduceOptMenuHideAudioToggle: false, reduceOptMenuHideDemoMode: false, startDemoMode: false};
     var dependencies = {alwaysShowSelectedTrain: ["classicUI"], reduceOptMenuHideGraphicalInfoToggle: ["reduceOptMenu"], reduceOptMenuHideTrainControlCenter: ["reduceOptMenu"], reduceOptMenuHideCarControlCenter: ["reduceOptMenu"], reduceOptMenuHideAudioToggle: ["reduceOptMenu"], reduceOptMenuHideDemoMode: ["reduceOptMenu"]};
     var hardware = {cursorascircle: ["mouse"]};
-    var platforms = {startDemoMode: ["snap", "windows"]};
+    var platforms = {reduceOptMenuHideDemoMode: ["snap", "web", "windows"], startDemoMode: ["snap", "windows"]};
 
     Object.keys(defaults).forEach(function (key) {
         if (typeof values[key] !== "boolean") {
@@ -574,13 +574,15 @@ function setSettingsHTML(elem, standalone) {
                 child.className = "settings-buttons-wrapper";
                 var kidNames = ["reduceOptMenuHideGraphicalInfoToggle", "reduceOptMenuHideTrainControlCenter", "reduceOptMenuHideCarControlCenter", "reduceOptMenuHideAudioToggle", "reduceOptMenuHideDemoMode"];
                 kidNames.forEach(function (kidName) {
-                    kid = document.createElement("button");
-                    kid.className = "settings-button reduce-opt-menu-hide-item";
-                    kid.dataset.settingsId = kidName;
-                    kid.addEventListener("click", function (event) {
-                        changeSetting(event, true);
-                    });
-                    child.appendChild(kid);
+                    if (isHardwareAvailable(kidName) && isInPlatformList(kidName)) {
+                        kid = document.createElement("button");
+                        kid.className = "settings-button reduce-opt-menu-hide-item";
+                        kid.dataset.settingsId = kidName;
+                        kid.addEventListener("click", function (event) {
+                            changeSetting(event, true);
+                        });
+                        child.appendChild(kid);
+                    }
                 });
                 optElem.appendChild(child);
             }
@@ -634,7 +636,7 @@ function getSetting(key) {
     if (!key) {
         return false;
     }
-    return getSettings().values[key] && isSettingActive() && isHardwareAvailable() && isInPlatformList();
+    return getSettings().values[key] && isSettingActive(key) && isHardwareAvailable(key) && isInPlatformList(key);
 }
 
 //SAVED GAME

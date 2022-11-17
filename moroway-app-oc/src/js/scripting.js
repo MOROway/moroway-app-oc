@@ -544,6 +544,20 @@ function onKeyDown(event) {
     if (event.key == "Tab" || event.key == "Enter") {
         event.preventDefault();
     }
+    if (event.key == "/" && event.target == document.body) {
+        event.preventDefault();
+        if (!gui.textControl) {
+            gui.textControl = true;
+            if (gui.infoOverlay) {
+                drawInfoOverlayMenu("hide-outer");
+            } else {
+                drawOptionsMenu("hide-outer");
+            }
+            textControl.elements.output.textContent = textControl.execute();
+            textControl.elements.root.style.display = "block";
+            textControl.elements.input.focus();
+        }
+    }
     if (event.ctrlKey && event.key == "0" && client.realScale > 1) {
         event.preventDefault();
         getGesture({type: "doubletap", deltaX: client.PinchX, deltaY: client.PinchY});
@@ -1396,6 +1410,58 @@ function resize() {
  *             draw  functions             *
  ******************************************/
 
+function carCollisionCourse(input1, sendNotification, fixFac) {
+    context.save();
+    context.setTransform(1, 0, 0, 1, 0, 0);
+    var collision = false;
+    var currentObject;
+    var fac;
+    if ((!carParams.autoModeOff && carParams.isBackToRoot) || (carParams.autoModeOff && (cars[input1].backToInit || cars[input1].backwardsState > 0))) {
+        fac = -1;
+    } else {
+        fac = 1;
+    }
+    if (Math.abs(fixFac) == 1) {
+        fac = fixFac;
+    }
+    currentObject = cars[input1];
+    var x1 = currentObject.x + (fac * Math.sin(Math.PI / 2 - currentObject.displayAngle) * currentObject.width) / 2 + (Math.cos(-Math.PI / 2 - currentObject.displayAngle) * currentObject.height) / 2;
+    var x2 = currentObject.x + (fac * Math.sin(Math.PI / 2 - currentObject.displayAngle) * currentObject.width) / 2 - (Math.cos(-Math.PI / 2 - currentObject.displayAngle) * currentObject.height) / 2;
+    var x3 = currentObject.x + (fac * Math.sin(Math.PI / 2 - currentObject.displayAngle) * currentObject.width) / 2;
+    var y1 = currentObject.y + (fac * Math.cos(Math.PI / 2 - currentObject.displayAngle) * currentObject.width) / 2 - (Math.sin(-Math.PI / 2 - currentObject.displayAngle) * currentObject.height) / 2;
+    var y2 = currentObject.y + (fac * Math.cos(Math.PI / 2 - currentObject.displayAngle) * currentObject.width) / 2 + (Math.sin(-Math.PI / 2 - currentObject.displayAngle) * currentObject.height) / 2;
+    var y3 = currentObject.y + (fac * Math.cos(Math.PI / 2 - currentObject.displayAngle) * currentObject.width) / 2;
+    if (APP_DATA.debug && debug.paint) {
+        context.save();
+        context.setTransform(client.realScale, 0, 0, client.realScale, (-(client.realScale - 1) * canvas.width) / 2 + client.touchScaleX, (-(client.realScale - 1) * canvas.height) / 2 + client.touchScaleY);
+        context.fillRect(background.x + x1 - 3, background.y + y1 - 3, 6, 6);
+        context.fillRect(background.x + x2 - 3, background.y + y2 - 3, 6, 6);
+        context.fillRect(background.x + x3 - 3, background.y + y3 - 3, 6, 6);
+        context.restore();
+    }
+    for (var i = 0; i < cars.length; i++) {
+        if (input1 != i) {
+            currentObject = cars[i];
+            context.save();
+            context.translate(currentObject.x, currentObject.y);
+            context.rotate(currentObject.displayAngle);
+            context.beginPath();
+            context.rect(-currentObject.width / 2, -currentObject.height / 2, currentObject.width, currentObject.height);
+            if (context.isPointInPath(x1, y1) || context.isPointInPath(x2, y2) || context.isPointInPath(x3, y3)) {
+                if (sendNotification && cars[input1].move) {
+                    notify("#canvas-notifier", formatJSString(getString("appScreenObjectHasCrashed", "."), getString(["appScreenCarNames", input1]), getString(["appScreenCarNames", i])), NOTIFICATION_PRIO_DEFAULT, 2000, null, null, client.y + menus.outerContainer.height);
+                }
+                collision = true;
+                cars[input1].move = cars[input1].backToInit = false;
+                cars[input1].backwardsState = 0;
+            }
+            context.restore();
+        }
+    }
+    context.restore();
+    return collision;
+}
+
 function drawObjects() {
     function drawTrains(input1) {
         function drawTrain(i) {
@@ -1503,7 +1569,7 @@ function drawObjects() {
                         hardware.mouse.lastClickDoubleClick = true;
                     }
                     if (trains[input1].accelerationSpeed <= 0 && Math.abs(trains[input1].accelerationSpeed) < 0.2) {
-                        actionSync("trains", input1, [{accelerationSpeed: 0}, {move: false}, {lastDirectionChange: frameNo}, {standardDirection: !trains[input1].standardDirection}], [{getString: ["appScreenObjectChangesDirection", "."]}, {getString: [["appScreenTrainNames", input1]]}]);
+                        trainActions.changeDirection(input1, true);
                     }
                 } else {
                     if (typeof clickTimeOut !== "undefined") {
@@ -1516,15 +1582,11 @@ function drawObjects() {
                             if (hardware.lastInputTouch > hardware.lastInputMouse) {
                                 hardware.mouse.isHold = false;
                             }
-                            if (!collisionCourse(input1)) {
+                            if (!trains[input1].crash) {
                                 if (trains[input1].move && trains[input1].accelerationSpeed > 0) {
-                                    actionSync("trains", input1, [{accelerationSpeed: (trains[input1].accelerationSpeed *= -1)}, {accelerationSpeedCustom: 1}], [{getString: ["appScreenObjectStops", "."]}, {getString: [["appScreenTrainNames", input1]]}]);
+                                    trainActions.stop(input1);
                                 } else {
-                                    if (trains[input1].move) {
-                                        actionSync("trains", input1, [{accelerationSpeed: (trains[input1].accelerationSpeed *= -1)}, {speedInPercent: 50}, {accelerationSpeedCustom: 1}], [{getString: ["appScreenObjectStarts", "."]}, {getString: [["appScreenTrainNames", input1]]}]);
-                                    } else {
-                                        actionSync("trains", input1, [{move: true}, {speedInPercent: 50}, {accelerationSpeedCustom: 1}], [{getString: ["appScreenObjectStarts", "."]}, {getString: [["appScreenTrainNames", input1]]}]);
-                                    }
+                                    trainActions.start(input1, 50);
                                 }
                             }
                         },
@@ -1538,10 +1600,6 @@ function drawObjects() {
         for (var i = -1; i < trains[input1].cars.length; i++) {
             drawTrain(i);
         }
-    }
-
-    function collisionCourse(input1) {
-        return trains[input1].crash;
     }
 
     function drawCars(input1) {
@@ -1586,17 +1644,9 @@ function drawObjects() {
                         hardware.mouse.lastClickDoubleClick = true;
                     }
                     if (carParams.init) {
-                        carParams.init = false;
-                        carParams.autoModeOff = false;
-                        carParams.autoModeRuns = true;
-                        carParams.autoModeInit = true;
-                        notify("#canvas-notifier", formatJSString(getString("appScreenCarAutoModeChange", "."), getString("appScreenCarAutoModeInit")), NOTIFICATION_PRIO_DEFAULT, 500, null, null, client.y + menus.outerContainer.height);
+                        carActions.auto.start();
                     } else if (carParams.autoModeOff && !currentObject.move && currentObject.backwardsState === 0) {
-                        currentObject.lastDirectionChange = frameNo;
-                        currentObject.backwardsState = 1;
-                        currentObject.backToInit = false;
-                        currentObject.move = !carCollisionCourse(input1, false);
-                        notify("#canvas-notifier", formatJSString(getString("appScreenCarStepsBack", "."), getString(["appScreenCarNames", input1])), NOTIFICATION_PRIO_DEFAULT, 750, null, null, client.y + menus.outerContainer.height);
+                        carActions.manual.backwards(input1);
                     }
                 } else {
                     if (typeof clickTimeOut !== "undefined") {
@@ -1611,25 +1661,20 @@ function drawObjects() {
                             }
                             if (!carCollisionCourse(input1, false)) {
                                 if (carParams.autoModeRuns) {
-                                    notify("#canvas-notifier", formatJSString(getString("appScreenCarAutoModeChange", "."), getString("appScreenCarAutoModePause")), NOTIFICATION_PRIO_DEFAULT, 500, null, null, client.y + menus.outerContainer.height);
-                                    carParams.autoModeRuns = false;
+                                    carActions.auto.pause();
                                 } else if (carParams.init || carParams.autoModeOff) {
                                     currentObject.parking = false;
                                     if (currentObject.move) {
-                                        currentObject.move = false;
-                                        notify("#canvas-notifier", formatJSString(getString("appScreenObjectStops", "."), getString(["appScreenCarNames", input1])), NOTIFICATION_PRIO_DEFAULT, 500, null, null, client.y + menus.outerContainer.height);
+                                        carActions.manual.stop(input1);
                                     } else {
-                                        currentObject.move = !carCollisionCourse(input1, false);
-                                        notify("#canvas-notifier", formatJSString(getString("appScreenObjectStarts", "."), getString(["appScreenCarNames", input1])), NOTIFICATION_PRIO_DEFAULT, 500, null, null, client.y + menus.outerContainer.height);
+                                        carActions.manual.start(input1);
                                     }
                                     currentObject.backwardsState = 0;
                                     currentObject.backToInit = false;
                                     carParams.init = false;
                                     carParams.autoModeOff = true;
                                 } else {
-                                    notify("#canvas-notifier", formatJSString(getString("appScreenCarAutoModeChange", "."), getString("appScreenCarAutoModeInit")), NOTIFICATION_PRIO_DEFAULT, 500, null, null, client.y + menus.outerContainer.height);
-                                    carParams.autoModeRuns = true;
-                                    carParams.autoModeInit = true;
+                                    carActions.auto.resume();
                                 }
                             }
                         },
@@ -1657,13 +1702,9 @@ function drawObjects() {
                                 clickTimeOut = null;
                                 hardware.mouse.isHold = false;
                                 if (carParams.autoModeOff) {
-                                    currentObject.move = true;
-                                    currentObject.backToInit = true;
-                                    notify("#canvas-notifier", formatJSString(getString("appScreenCarParking", "."), getString(["appScreenCarNames", input1])), NOTIFICATION_PRIO_DEFAULT, 500, null, null, client.y + menus.outerContainer.height);
+                                    carActions.manual.park(input1);
                                 } else {
-                                    carParams.autoModeRuns = true;
-                                    carParams.isBackToRoot = true;
-                                    notify("#canvas-notifier", getString("appScreenCarAutoModeParking", "."), NOTIFICATION_PRIO_DEFAULT, 750, null, null, client.y + menus.outerContainer.height);
+                                    carActions.auto.end();
                                 }
                             },
                             hardware.lastInputTouch > hardware.lastInputMouse ? doubleTouchWaitTime : 0
@@ -1711,7 +1752,7 @@ function drawObjects() {
                             allParking = false;
                         }
                     });
-                    carParams.init = allParking;
+                    carParams.autoModeOff = carParams.init = allParking;
                     carParams.autoModeRuns = carParams.isBackToRoot = !allParking;
                 }
                 currentObject.counter = currentObject.collStop || currentObject.parking ? currentObject.counter : counter;
@@ -1779,58 +1820,6 @@ function drawObjects() {
             }
             contextForeground.restore();
         }
-    }
-
-    function carCollisionCourse(input1, sendNotification, fixFac) {
-        context.save();
-        context.setTransform(1, 0, 0, 1, 0, 0);
-        var collision = false;
-        var currentObject;
-        var fac;
-        if ((!carParams.autoModeOff && carParams.isBackToRoot) || (carParams.autoModeOff && (cars[input1].backToInit || cars[input1].backwardsState > 0))) {
-            fac = -1;
-        } else {
-            fac = 1;
-        }
-        if (Math.abs(fixFac) == 1) {
-            fac = fixFac;
-        }
-        currentObject = cars[input1];
-        var x1 = currentObject.x + (fac * Math.sin(Math.PI / 2 - currentObject.displayAngle) * currentObject.width) / 2 + (Math.cos(-Math.PI / 2 - currentObject.displayAngle) * currentObject.height) / 2;
-        var x2 = currentObject.x + (fac * Math.sin(Math.PI / 2 - currentObject.displayAngle) * currentObject.width) / 2 - (Math.cos(-Math.PI / 2 - currentObject.displayAngle) * currentObject.height) / 2;
-        var x3 = currentObject.x + (fac * Math.sin(Math.PI / 2 - currentObject.displayAngle) * currentObject.width) / 2;
-        var y1 = currentObject.y + (fac * Math.cos(Math.PI / 2 - currentObject.displayAngle) * currentObject.width) / 2 - (Math.sin(-Math.PI / 2 - currentObject.displayAngle) * currentObject.height) / 2;
-        var y2 = currentObject.y + (fac * Math.cos(Math.PI / 2 - currentObject.displayAngle) * currentObject.width) / 2 + (Math.sin(-Math.PI / 2 - currentObject.displayAngle) * currentObject.height) / 2;
-        var y3 = currentObject.y + (fac * Math.cos(Math.PI / 2 - currentObject.displayAngle) * currentObject.width) / 2;
-        if (APP_DATA.debug && debug.paint) {
-            context.save();
-            context.setTransform(client.realScale, 0, 0, client.realScale, (-(client.realScale - 1) * canvas.width) / 2 + client.touchScaleX, (-(client.realScale - 1) * canvas.height) / 2 + client.touchScaleY);
-            context.fillRect(background.x + x1 - 3, background.y + y1 - 3, 6, 6);
-            context.fillRect(background.x + x2 - 3, background.y + y2 - 3, 6, 6);
-            context.fillRect(background.x + x3 - 3, background.y + y3 - 3, 6, 6);
-            context.restore();
-        }
-        for (var i = 0; i < cars.length; i++) {
-            if (input1 != i) {
-                currentObject = cars[i];
-                context.save();
-                context.translate(currentObject.x, currentObject.y);
-                context.rotate(currentObject.displayAngle);
-                context.beginPath();
-                context.rect(-currentObject.width / 2, -currentObject.height / 2, currentObject.width, currentObject.height);
-                if (context.isPointInPath(x1, y1) || context.isPointInPath(x2, y2) || context.isPointInPath(x3, y3)) {
-                    if (sendNotification && cars[input1].move) {
-                        notify("#canvas-notifier", formatJSString(getString("appScreenObjectHasCrashed", "."), getString(["appScreenCarNames", input1]), getString(["appScreenCarNames", i])), NOTIFICATION_PRIO_DEFAULT, 2000, null, null, client.y + menus.outerContainer.height);
-                    }
-                    collision = true;
-                    cars[input1].move = cars[input1].backToInit = false;
-                    cars[input1].backwardsState = 0;
-                }
-                context.restore();
-            }
-        }
-        context.restore();
-        return collision;
     }
 
     function carAutoModeIsFutureCollision(i, k, stop, j) {
@@ -2388,7 +2377,7 @@ function drawObjects() {
         contextForeground.rotate(classicUI.transformer.angle);
 
         drawImage(pics[classicUI.transformer.src], -classicUI.transformer.width / 2, -classicUI.transformer.height / 2, classicUI.transformer.width, classicUI.transformer.height, contextForeground);
-        if (!collisionCourse(trainParams.selected)) {
+        if (!trains[trainParams.selected].crash) {
             drawImage(pics[classicUI.transformer.readySrc], -classicUI.transformer.width / 2, -classicUI.transformer.height / 2, classicUI.transformer.width, classicUI.transformer.height, contextForeground);
         }
         if (trains[trainParams.selected].accelerationSpeed > 0) {
@@ -2439,7 +2428,7 @@ function drawObjects() {
                 hardware.mouse.cursor = "pointer";
                 if (hardware.mouse.isHold) {
                     hardware.mouse.isHold = false;
-                    actionSync("trains", trainParams.selected, [{standardDirection: !trains[trainParams.selected].standardDirection}], [{getString: ["appScreenObjectChangesDirection", "."]}, {getString: [["appScreenTrainNames", trainParams.selected]]}]);
+                    trainActions.changeDirection(trainParams.selected);
                 }
             }
             contextForeground.restore();
@@ -2452,7 +2441,7 @@ function drawObjects() {
         drawImage(pics[classicUI.transformer.input.src], -classicUI.transformer.input.width / 2, -classicUI.transformer.input.height / 2, classicUI.transformer.input.width, classicUI.transformer.input.height, contextForeground);
         if (gui.infoOverlay && (menus.infoOverlay.focus == undefined || menus.infoOverlay.focus == 6)) {
             contextForeground.save();
-            if (collisionCourse(trainParams.selected)) {
+            if (trains[trainParams.selected].crash) {
                 contextForeground.globalAlpha = 0.5;
             }
             contextForeground.rotate(-classicUI.transformer.angle);
@@ -2482,7 +2471,7 @@ function drawObjects() {
         }
         contextForeground.beginPath();
         contextForeground.rect(-classicUI.transformer.input.width / 2, -classicUI.transformer.input.height / 2, classicUI.transformer.input.width, classicUI.transformer.input.height);
-        if (contextForeground.isPointInPath(hardware.mouse.moveX, hardware.mouse.moveY) && !collisionCourse(trainParams.selected) && !hardware.mouse.isDrag) {
+        if (contextForeground.isPointInPath(hardware.mouse.moveX, hardware.mouse.moveY) && !trains[trainParams.selected].crash && !hardware.mouse.isDrag) {
             hardware.mouse.cursor = "pointer";
         }
         if ((contextForeground.isPointInPath(hardware.mouse.moveX, hardware.mouse.moveY) && hardware.mouse.isHold) || (contextForeground.isPointInPath(hardware.mouse.wheelX, hardware.mouse.wheelY) && hardware.mouse.wheelScrollY !== 0 && hardware.mouse.wheelScrolls)) {
@@ -2493,18 +2482,14 @@ function drawObjects() {
             }
             var x = classicUI.transformer.x + classicUI.transformer.width / 2 + classicUI.transformer.input.diffY * Math.sin(classicUI.transformer.angle);
             var y = classicUI.transformer.y + classicUI.transformer.height / 2 - classicUI.transformer.input.diffY * Math.cos(classicUI.transformer.angle);
-            if (!collisionCourse(trainParams.selected)) {
+            if (!trains[trainParams.selected].crash) {
                 if (client.isTiny && (typeof client.realScale == "undefined" || client.realScale <= Math.max(1, client.realScaleMax / 3))) {
                     if (hardware.mouse.isHold) {
                         hardware.mouse.isHold = false;
                         if (trains[trainParams.selected].move && trains[trainParams.selected].accelerationSpeed > 0) {
-                            actionSync("trains", trainParams.selected, [{accelerationSpeed: (trains[trainParams.selected].accelerationSpeed *= -1)}, {accelerationSpeedCustom: 1}], [{getString: ["appScreenObjectStops", "."]}, {getString: [["appScreenTrainNames", trainParams.selected]]}]);
+                            trainActions.stop(trainParams.selected);
                         } else {
-                            if (trains[trainParams.selected].move) {
-                                actionSync("trains", trainParams.selected, [{speedInPercent: 50}, {accelerationSpeed: (trains[trainParams.selected].accelerationSpeed *= -1)}, {accelerationSpeedCustom: 1}], [{getString: ["appScreenObjectStarts", "."]}, {getString: [["appScreenTrainNames", trainParams.selected]]}]);
-                            } else {
-                                actionSync("trains", trainParams.selected, [{speedInPercent: 50}, {move: true}, {accelerationSpeedCustom: 1}], [{getString: ["appScreenObjectStarts", "."]}, {getString: [["appScreenTrainNames", trainParams.selected]]}]);
-                            }
+                            trainActions.start(trainParams.selected, 50);
                         }
                     }
                 } else if ((hardware.mouse.wheelScrollY !== 0 && hardware.mouse.wheelScrolls && !(adjustScaleY(hardware.mouse.wheelY > y) && adjustScaleX(hardware.mouse.wheelX < x))) || !(adjustScaleY(hardware.mouse.moveY) > y && adjustScaleX(hardware.mouse.moveX) < x)) {
@@ -2522,23 +2507,11 @@ function drawObjects() {
                     }
                     classicUI.transformer.input.angle = angle >= 0 ? (angle <= classicUI.transformer.input.maxAngle ? angle : classicUI.transformer.input.maxAngle) : 0;
                     var cAngle = (classicUI.transformer.input.angle / classicUI.transformer.input.maxAngle) * 100;
-                    if (hardware.mouse.wheelScrollY < 0 && hardware.mouse.wheelScrolls && !(adjustScaleY(hardware.mouse.wheelY) > y && adjustScaleX(hardware.mouse.wheelX) < x) && cAngle == 0) {
+                    if (hardware.mouse.wheelScrollY < 0 && hardware.mouse.wheelScrolls && !(adjustScaleY(hardware.mouse.wheelY) > y && adjustScaleX(hardware.mouse.wheelX) < x) && cAngle < classicUI.transformer.input.minAngle) {
                         cAngle = classicUI.transformer.input.minAngle;
                         classicUI.transformer.input.angle = (cAngle * classicUI.transformer.input.maxAngle) / 100;
                     }
-                    if (cAngle < classicUI.transformer.input.minAngle && trains[trainParams.selected].accelerationSpeed > 0) {
-                        actionSync("trains", trainParams.selected, [{accelerationSpeed: (trains[trainParams.selected].accelerationSpeed *= -1)}, {accelerationSpeedCustom: 1}], [{getString: ["appScreenObjectStops", "."]}, {getString: [["appScreenTrainNames", trainParams.selected]]}]);
-                    } else if (cAngle >= classicUI.transformer.input.minAngle && !trains[trainParams.selected].move) {
-                        actionSync("trains", trainParams.selected, [{move: true}, {speedInPercent: cAngle}, {accelerationSpeedCustom: 1}], [{getString: ["appScreenObjectStarts", "."]}, {getString: [["appScreenTrainNames", trainParams.selected]]}]);
-                    } else if (cAngle >= classicUI.transformer.input.minAngle && trains[trainParams.selected].accelerationSpeed < 0) {
-                        actionSync("trains", trainParams.selected, [{accelerationSpeed: (trains[trainParams.selected].accelerationSpeed *= -1)}, {speedInPercent: cAngle}, {accelerationSpeedCustom: 1}], [{getString: ["appScreenObjectStarts", "."]}, {getString: [["appScreenTrainNames", trainParams.selected]]}]);
-                    } else if (cAngle >= classicUI.transformer.input.minAngle) {
-                        if (trains[trainParams.selected].accelerationSpeed > 0 && trains[trainParams.selected].speedInPercent != cAngle) {
-                            var accSpeed = trains[trainParams.selected].currentSpeedInPercent / cAngle;
-                            actionSync("trains", trainParams.selected, [{accelerationSpeedCustom: accSpeed}], null);
-                        }
-                        actionSync("trains", trainParams.selected, [{speedInPercent: cAngle}], null);
-                    }
+                    trainActions.setSpeed(trainParams.selected, cAngle);
                     if (cAngle == 0) {
                         hardware.mouse.isHold = false;
                     }
@@ -3027,19 +3000,9 @@ function drawObjects() {
                     if (hardware.mouse.moveX > background.x + controlCenter.translateOffset + controlCenter.maxTextWidth / 8 && hardware.mouse.moveY > background.y + controlCenter.translateOffset + maxTextHeight * (cCar + 1) && hardware.mouse.moveX < background.x + controlCenter.translateOffset + 2 * controlCenter.maxTextWidth && hardware.mouse.moveY < background.y + controlCenter.translateOffset + maxTextHeight * (cCar + 2)) {
                         hardware.mouse.cursor = "pointer";
                         if (contextClick && cCar == -1) {
-                            carParams.init = false;
-                            carParams.autoModeOff = false;
-                            carParams.autoModeRuns = true;
-                            carParams.autoModeInit = true;
-                            notify("#canvas-notifier", formatJSString(getString("appScreenCarAutoModeChange", "."), getString("appScreenCarAutoModeInit")), NOTIFICATION_PRIO_DEFAULT, 500, null, null, client.y + menus.outerContainer.height);
+                            carActions.auto.start();
                         } else if (contextClick) {
-                            cars[cCar].move = !carCollisionCourse(cCar, false);
-                            cars[cCar].parking = false;
-                            cars[cCar].backwardsState = 0;
-                            cars[cCar].backToInit = false;
-                            carParams.init = false;
-                            carParams.autoModeOff = true;
-                            notify("#canvas-notifier", formatJSString(getString("appScreenObjectStarts", "."), getString(["appScreenCarNames", cCar])), NOTIFICATION_PRIO_DEFAULT, 500, null, null, client.y + menus.outerContainer.height);
+                            carActions.manual.start(cCar);
                         }
                     }
                 }
@@ -3079,11 +3042,9 @@ function drawObjects() {
                                 cars[cCar].backwardsState = 0;
                                 cars[cCar].backToInit = false;
                                 if (cars[cCar].move) {
-                                    cars[cCar].move = false;
-                                    notify("#canvas-notifier", formatJSString(getString("appScreenObjectStops", "."), getString(["appScreenCarNames", cCar])), NOTIFICATION_PRIO_DEFAULT, 500, null, null, client.y + menus.outerContainer.height);
+                                    carActions.manual.stop(cCar);
                                 } else {
-                                    cars[cCar].move = noCollisionCCar;
-                                    notify("#canvas-notifier", formatJSString(getString("appScreenObjectStarts", "."), getString(["appScreenCarNames", cCar])), NOTIFICATION_PRIO_DEFAULT, 500, null, null, client.y + menus.outerContainer.height);
+                                    carActions.manual.start(cCar);
                                 }
                             }
                         }
@@ -3111,11 +3072,7 @@ function drawObjects() {
                         if (hardware.mouse.moveX > background.x + controlCenter.translateOffset + controlCenter.maxTextWidth * 1.5 && hardware.mouse.moveY > background.y + controlCenter.translateOffset + maxTextHeight * cCar && hardware.mouse.moveX < background.x + controlCenter.translateOffset + 1.75 * controlCenter.maxTextWidth && hardware.mouse.moveY < background.y + controlCenter.translateOffset + maxTextHeight * (cCar + 1)) {
                             hardware.mouse.cursor = "pointer";
                             if (contextClick) {
-                                cars[cCar].lastDirectionChange = frameNo;
-                                cars[cCar].backwardsState = 1;
-                                cars[cCar].backToInit = false;
-                                cars[cCar].move = !carCollisionCourse(cCar, false);
-                                notify("#canvas-notifier", formatJSString(getString("appScreenCarStepsBack", "."), getString(["appScreenCarNames", cCar])), NOTIFICATION_PRIO_DEFAULT, 750, null, null, client.y + menus.outerContainer.height);
+                                carParams.manual.backwards(cCar);
                             }
                         }
                     }
@@ -3150,9 +3107,7 @@ function drawObjects() {
                         if (hardware.mouse.moveX > background.x + controlCenter.translateOffset + controlCenter.maxTextWidth * 1.75 && hardware.mouse.moveY > background.y + controlCenter.translateOffset + maxTextHeight * cCar && hardware.mouse.moveX < background.x + controlCenter.translateOffset + 2 * controlCenter.maxTextWidth && hardware.mouse.moveY < background.y + controlCenter.translateOffset + maxTextHeight * (cCar + 1)) {
                             hardware.mouse.cursor = "pointer";
                             if (contextClick) {
-                                cars[cCar].move = true;
-                                cars[cCar].backToInit = true;
-                                notify("#canvas-notifier", formatJSString(getString("appScreenCarParking", "."), getString(["appScreenCarNames", cCar])), NOTIFICATION_PRIO_DEFAULT, 500, null, null, client.y + menus.outerContainer.height);
+                                carActions.manual.park(cCar);
                             }
                         }
                     }
@@ -3180,20 +3135,15 @@ function drawObjects() {
                         if (cCar == 0) {
                             hardware.mouse.cursor = "pointer";
                             if (contextClick && carParams.autoModeRuns) {
-                                notify("#canvas-notifier", formatJSString(getString("appScreenCarAutoModeChange", "."), getString("appScreenCarAutoModePause")), NOTIFICATION_PRIO_DEFAULT, 500, null, null, client.y + menus.outerContainer.height);
-                                carParams.autoModeRuns = false;
+                                carActions.auto.pause();
                             } else if (contextClick) {
-                                notify("#canvas-notifier", formatJSString(getString("appScreenCarAutoModeChange", "."), getString("appScreenCarAutoModeInit")), NOTIFICATION_PRIO_DEFAULT, 500, null, null, client.y + menus.outerContainer.height);
-                                carParams.autoModeRuns = true;
-                                carParams.autoModeInit = true;
+                                carActions.auto.resume();
                             }
                         } else if (cCar == 1) {
                             if (!carParams.autoModeRuns && !carParams.isBackToRoot) {
                                 hardware.mouse.cursor = "pointer";
                                 if (contextClick) {
-                                    carParams.autoModeRuns = true;
-                                    carParams.isBackToRoot = true;
-                                    notify("#canvas-notifier", getString("appScreenCarAutoModeParking", "."), NOTIFICATION_PRIO_DEFAULT, 750, null, null, client.y + menus.outerContainer.height);
+                                    carActions.auto.end();
                                 }
                             }
                         }
@@ -3210,7 +3160,7 @@ function drawObjects() {
         } else {
             for (var cTrain = 0; cTrain < trains.length; cTrain++) {
                 var maxTextHeight = controlCenter.maxTextHeight / trains.length;
-                var noCollisionCTrain = !collisionCourse(cTrain);
+                var noCollisionCTrain = !trains[cTrain].crash;
                 if (noCollisionCTrain && hardware.mouse.moveX > background.x + controlCenter.translateOffset + controlCenter.maxTextWidth && hardware.mouse.moveY > background.y + controlCenter.translateOffset + maxTextHeight * cTrain && hardware.mouse.moveX < background.x + controlCenter.translateOffset + 1.75 * controlCenter.maxTextWidth && hardware.mouse.moveY < background.y + controlCenter.translateOffset + maxTextHeight * (cTrain + 1)) {
                     hardware.mouse.cursor = "pointer";
                 }
@@ -3238,29 +3188,16 @@ function drawObjects() {
                     if (isClick || isHold) {
                         newSpeed = Math.round((((isClick ? hardware.mouse.upX : hardware.mouse.moveX) - background.x - controlCenter.translateOffset - controlCenter.maxTextWidth) / controlCenter.maxTextWidth / 0.5) * 100);
                     } else {
-                        if (trains[cTrain].speedInPercent == undefined || trains[cTrain].speedInPercent == 0) {
-                            trains[cTrain].speedInPercent = minTrainSpeed;
+                        if (trains[cTrain].speedInPercent == undefined || trains[cTrain].speedInPercent < minTrainSpeed) {
+                            newSpeed = minTrainSpeed;
+                        } else {
+                            newSpeed = Math.round(trains[cTrain].speedInPercent * (hardware.mouse.wheelScrollY < 0 ? 1.1 : 0.9));
                         }
-                        newSpeed = Math.round(trains[cTrain].speedInPercent * (hardware.mouse.wheelScrollY < 0 ? 1.1 : 0.9));
                     }
-                    if (newSpeed < minTrainSpeed) {
-                        newSpeed = 0;
-                    } else if (newSpeed > 95) {
+                    if (newSpeed > 95) {
                         newSpeed = 100;
                     }
-                    if (trains[cTrain].accelerationSpeed > 0 && newSpeed == 0) {
-                        actionSync("trains", cTrain, [{accelerationSpeed: (trains[cTrain].accelerationSpeed *= -1)}, {accelerationSpeedCustom: 1}], [{getString: ["appScreenObjectStops", "."]}, {getString: [["appScreenTrainNames", cTrain]]}], true);
-                    } else if (!trains[cTrain].move && newSpeed > 0) {
-                        actionSync("trains", cTrain, [{move: true}, {speedInPercent: newSpeed}, {accelerationSpeedCustom: 1}], [{getString: ["appScreenObjectStarts", "."]}, {getString: [["appScreenTrainNames", cTrain]]}], true);
-                    } else if (trains[cTrain].accelerationSpeed < 0 && newSpeed > 0) {
-                        actionSync("trains", cTrain, [{accelerationSpeed: (trains[cTrain].accelerationSpeed *= -1)}, {speedInPercent: newSpeed}, {accelerationSpeedCustom: 1}], [{getString: ["appScreenObjectStarts", "."]}, {getString: [["appScreenTrainNames", cTrain]]}], true);
-                    } else if (newSpeed > 0) {
-                        if (trains[cTrain].accelerationSpeed > 0 && trains[cTrain].speedInPercent != newSpeed) {
-                            var accSpeed = trains[cTrain].currentSpeedInPercent / newSpeed;
-                            actionSync("trains", cTrain, [{accelerationSpeedCustom: accSpeed}], null);
-                        }
-                        actionSync("trains", cTrain, [{speedInPercent: newSpeed}], null);
-                    }
+                    trainActions.setSpeed(cTrain, newSpeed, true);
                     if (newSpeed > 0 && newSpeed < 100) {
                         hardware.mouse.cursor = "grabbing";
                     }
@@ -3290,11 +3227,9 @@ function drawObjects() {
                 }
                 if (noCollisionCTrain && contextClick && hardware.mouse.upX - background.x - controlCenter.translateOffset > controlCenter.maxTextWidth * 1.5 && hardware.mouse.upX - background.x - controlCenter.translateOffset < controlCenter.maxTextWidth * 1.75 && hardware.mouse.upY - background.y - controlCenter.translateOffset > maxTextHeight * cTrain && hardware.mouse.upY - background.y - controlCenter.translateOffset < maxTextHeight * cTrain + maxTextHeight) {
                     if (trains[cTrain].accelerationSpeed > 0) {
-                        actionSync("trains", cTrain, [{accelerationSpeed: (trains[cTrain].accelerationSpeed *= -1)}, {accelerationSpeedCustom: 1}], [{getString: ["appScreenObjectStops", "."]}, {getString: [["appScreenTrainNames", cTrain]]}], true);
-                    } else if (!trains[cTrain].move) {
-                        actionSync("trains", cTrain, [{move: true}, {speedInPercent: 50}, {accelerationSpeedCustom: 1}], [{getString: ["appScreenObjectStarts", "."]}, {getString: [["appScreenTrainNames", cTrain]]}], true);
-                    } else if (trains[cTrain].accelerationSpeed < 0) {
-                        actionSync("trains", cTrain, [{accelerationSpeed: (trains[cTrain].accelerationSpeed *= -1)}, {speedInPercent: 50}, {accelerationSpeedCustom: 1}], [{getString: ["appScreenObjectStarts", "."]}, {getString: [["appScreenTrainNames", cTrain]]}], true);
+                        trainActions.stop(cTrain, true);
+                    } else {
+                        trainActions.start(cTrain, 50, true);
                     }
                 }
                 contextForeground.save();
@@ -3336,7 +3271,7 @@ function drawObjects() {
                     contextForeground.restore();
                 }
                 if (contextClick && !trains[cTrain].move && hardware.mouse.upX - background.x - controlCenter.translateOffset > controlCenter.maxTextWidth * 1.7 && hardware.mouse.upX - background.x - controlCenter.translateOffset < controlCenter.maxTextWidth * 2 && hardware.mouse.upY - background.y - controlCenter.translateOffset > maxTextHeight * cTrain && hardware.mouse.upY - background.y - controlCenter.translateOffset < maxTextHeight * cTrain + maxTextHeight) {
-                    actionSync("trains", cTrain, [{standardDirection: !trains[cTrain].standardDirection}], [{getString: ["appScreenObjectChangesDirection", "."]}, {getString: [["appScreenTrainNames", cTrain]]}], true);
+                    trainActions.changeDirection(cTrain, false, true);
                 }
                 contextForeground.save();
                 contextForeground.translate(controlCenter.maxTextWidth * 1.875, maxTextHeight / 2 + maxTextHeight * cTrain);
@@ -3586,6 +3521,56 @@ var audio = {};
 
 var rotationPoints;
 var trains;
+var trainActions = {
+    checkRange: function (i) {
+        return i >= 0 && i < trains.length;
+    },
+    start: function (i, speed, notificationOnlyForOthers) {
+        if (!this.checkRange(i) || trains[i].crash || trains[i].accelerationSpeed > 0 || speed <= 0 || speed > 100) {
+            return false;
+        }
+        if (trains[i].move) {
+            actionSync("trains", i, [{accelerationSpeed: (trains[i].accelerationSpeed *= -1)}, {speedInPercent: speed}, {accelerationSpeedCustom: 1}], [{getString: ["appScreenObjectStarts", "."]}, {getString: [["appScreenTrainNames", i]]}], notificationOnlyForOthers);
+        } else {
+            actionSync("trains", i, [{move: true}, {speedInPercent: speed}, {accelerationSpeedCustom: 1}], [{getString: ["appScreenObjectStarts", "."]}, {getString: [["appScreenTrainNames", i]]}], notificationOnlyForOthers);
+        }
+        return true;
+    },
+    stop: function (i, notificationOnlyForOthers) {
+        if (!this.checkRange(i) || trains[i].accelerationSpeed <= 0) {
+            return false;
+        }
+        actionSync("trains", i, [{accelerationSpeed: (trains[i].accelerationSpeed *= -1)}, {accelerationSpeedCustom: 1}], [{getString: ["appScreenObjectStops", "."]}, {getString: [["appScreenTrainNames", i]]}], notificationOnlyForOthers);
+        return true;
+    },
+    changeDirection: function (i, highlight, notificationOnlyForOthers) {
+        if (!this.checkRange(i) || trains[i].accelerationSpeed > 0 || Math.abs(trains[i].accelerationSpeed) >= 0.2) {
+            return false;
+        }
+        if (highlight) {
+            actionSync("trains", i, [{accelerationSpeed: 0}, {move: false}, {standardDirection: !trains[i].standardDirection}, {lastDirectionChange: frameNo}], [{getString: ["appScreenObjectChangesDirection", "."]}, {getString: [["appScreenTrainNames", i]]}], notificationOnlyForOthers);
+        } else {
+            actionSync("trains", i, [{accelerationSpeed: 0}, {move: false}, {standardDirection: !trains[i].standardDirection}], [{getString: ["appScreenObjectChangesDirection", "."]}, {getString: [["appScreenTrainNames", i]]}], notificationOnlyForOthers);
+        }
+        return true;
+    },
+    setSpeed: function (i, speed, notificationOnlyForOthers) {
+        if (!this.checkRange(i) || speed < 0 || speed > 100) {
+            return false;
+        }
+        if (speed < minTrainSpeed) {
+            return this.stop(i, notificationOnlyForOthers);
+        }
+        if (trains[i].accelerationSpeed <= 0) {
+            return this.start(i, speed, notificationOnlyForOthers);
+        }
+        if (trains[i].speedInPercent != speed) {
+            var accSpeed = trains[i].currentSpeedInPercent / speed;
+            actionSync("trains", i, [{accelerationSpeedCustom: accSpeed}, {speedInPercent: speed}], null);
+        }
+        return true;
+    }
+};
 var minTrainSpeed = 10;
 var trainParams;
 var switches = {
@@ -3672,6 +3657,96 @@ var carPaths = [
 ];
 var carWays = [];
 var carParams = {init: true, wayNo: 7};
+var carActions = {
+    auto: {
+        start: function () {
+            if (carParams.init) {
+                carParams.init = false;
+                carParams.autoModeOff = false;
+                carParams.autoModeRuns = true;
+                carParams.autoModeInit = true;
+                notify("#canvas-notifier", formatJSString(getString("appScreenCarAutoModeChange", "."), getString("appScreenCarAutoModeInit")), NOTIFICATION_PRIO_DEFAULT, 500, null, null, client.y + menus.outerContainer.height);
+                return true;
+            }
+            return false;
+        },
+        end: function () {
+            if (!carParams.autoModeOff && !carParams.isBackToRoot) {
+                carParams.autoModeRuns = true;
+                carParams.isBackToRoot = true;
+                notify("#canvas-notifier", getString("appScreenCarAutoModeParking", "."), NOTIFICATION_PRIO_DEFAULT, 750, null, null, client.y + menus.outerContainer.height);
+                return true;
+            }
+            return false;
+        },
+        pause: function () {
+            if (!carParams.autoModeRuns) {
+                return false;
+            }
+            carParams.autoModeRuns = false;
+            notify("#canvas-notifier", formatJSString(getString("appScreenCarAutoModeChange", "."), getString("appScreenCarAutoModePause")), NOTIFICATION_PRIO_DEFAULT, 500, null, null, client.y + menus.outerContainer.height);
+            return true;
+        },
+        resume: function () {
+            if (carParams.autoModeRuns || carParams.autoModeOff) {
+                return false;
+            }
+            carParams.autoModeRuns = true;
+            carParams.autoModeInit = true;
+            notify("#canvas-notifier", formatJSString(getString("appScreenCarAutoModeChange", "."), getString("appScreenCarAutoModeInit")), NOTIFICATION_PRIO_DEFAULT, 500, null, null, client.y + menus.outerContainer.height);
+            return true;
+        }
+    },
+    manual: {
+        checkRange: function (car) {
+            return car >= 0 && car < cars.length;
+        },
+        start: function (car) {
+            if (!this.checkRange(car) || carCollisionCourse(car, false) || !carParams.autoModeOff || cars[car].move) {
+                return false;
+            }
+            cars[car].move = true;
+            cars[car].parking = false;
+            cars[car].backwardsState = 0;
+            cars[car].backToInit = false;
+            carParams.init = false;
+            carParams.autoModeOff = true;
+            notify("#canvas-notifier", formatJSString(getString("appScreenObjectStarts", "."), getString(["appScreenCarNames", car])), NOTIFICATION_PRIO_DEFAULT, 500, null, null, client.y + menus.outerContainer.height);
+            return true;
+        },
+        stop: function (car) {
+            if (!this.checkRange(car) || !carParams.autoModeOff || !cars[car].move) {
+                return false;
+            }
+            cars[car].move = false;
+            notify("#canvas-notifier", formatJSString(getString("appScreenObjectStops", "."), getString(["appScreenCarNames", car])), NOTIFICATION_PRIO_DEFAULT, 500, null, null, client.y + menus.outerContainer.height);
+            return true;
+        },
+        backwards: function (car) {
+            if (!this.checkRange(car) || !carParams.autoModeOff || cars[car].move || cars[car].backwardsState !== 0 || cars[car].parking) {
+                return false;
+            }
+            cars[car].lastDirectionChange = frameNo;
+            cars[car].backwardsState = 1;
+            cars[car].backToInit = false;
+            if (carCollisionCourse(car, false)) {
+                return false;
+            }
+            cars[car].move = true;
+            notify("#canvas-notifier", formatJSString(getString("appScreenCarStepsBack", "."), getString(["appScreenCarNames", car])), NOTIFICATION_PRIO_DEFAULT, 750, null, null, client.y + menus.outerContainer.height);
+            return true;
+        },
+        park: function (car) {
+            if (!this.checkRange(car) || carCollisionCourse(car, false, -1) || !carParams.autoModeOff || cars[car].move || cars[car].parking) {
+                return false;
+            }
+            cars[car].move = true;
+            cars[car].backToInit = true;
+            notify("#canvas-notifier", formatJSString(getString("appScreenCarParking", "."), getString(["appScreenCarNames", car])), NOTIFICATION_PRIO_DEFAULT, 500, null, null, client.y + menus.outerContainer.height);
+            return true;
+        }
+    }
+};
 
 var taxOffice = {
     params: {
@@ -3698,6 +3773,240 @@ var controlCenter = {showCarCenter: false, fontFamily: "sans-serif", mouse: {}};
 var hardware = {mouse: {moveX: 0, moveY: 0, downX: 0, downY: 0, downTime: 0, upX: 0, upY: 0, upTime: 0, isMoving: false, isHold: false, cursor: "default"}, keyboard: {keysHold: []}};
 var client = {devicePixelRatio: 1, realScaleMax: 6, realScaleMin: 1.2};
 var menus = {};
+
+var textControl = {
+    elements: {},
+    validateSubcommand: function (command, args) {
+        if (args.length - 1 < this.commands[command].subcommands[args[0]].args.min || args.length - 1 > this.commands[command].subcommands[args[0]].args.max) {
+            return false;
+        }
+        for (var i = 1; i < args.length; i++) {
+            if (typeof this.commands[command].subcommands[args[0]].args.patterns == "object") {
+                var pattern = this.commands[command].subcommands[args[0]].args.patterns[i - 1];
+                if (pattern instanceof RegExp) {
+                    if (!pattern.test(args[i])) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+    },
+    getSubcommandNames: function (command) {
+        return Object.keys(this.commands[command].subcommands);
+    },
+    execute: function (command, args) {
+        var commandNames = Object.keys(this.commands);
+        if (commandNames.indexOf(command) == -1) {
+            commandNames.shift();
+            return formatJSString(getString("appScreenTextCommandsGeneralCommands"), "", commandNames.join(", "));
+        }
+        if (typeof args == "object" && args.length > 0 && this.getSubcommandNames(command).indexOf(args[0]) != -1) {
+            if (this.validateSubcommand(command, args)) {
+                return this.commands[command].subcommands[args[0]].execute(args);
+            }
+            return formatJSString(getString("appScreenTextCommandsGeneralUsage"), [command, args[0], this.commands[command].subcommands[args[0]].usage].join(" "));
+        }
+        return formatJSString(getString("appScreenTextCommandsGeneralCommands"), getString(this.commands[command].nameIdentifier, "-"), textControl.getSubcommandNames(command).join(", "));
+    },
+    commands: {
+        "/": {
+            action: function () {
+                return textControl.execute();
+            }
+        },
+        trains: {
+            subcommands: {
+                list: {
+                    args: {min: 0, max: 0},
+                    execute: function () {
+                        var trainNames = [];
+                        for (var i = 0; i < trains.length; i++) {
+                            trainNames[i] = i + ": " + getString(["appScreenTrainNames", i]);
+                        }
+                        return trainNames.join(", ");
+                    },
+                    usage: ""
+                },
+                status: {
+                    args: {min: 1, max: 1, patterns: [/^[0-9]+$/]},
+                    execute: function (args) {
+                        var train = parseInt(args[1], 10);
+                        if (trainActions.checkRange(train)) {
+                            var statusPrefix = getString(["appScreenTrainNames", train]);
+                            var status = [];
+                            status[status.length] = formatJSString(getString("appScreenTextCommandsTrainsMoving"), getString(trains[train].move ? "generalYes" : "generalNo"));
+                            if (trains[train].move) {
+                                status[status.length] = formatJSString(getString("appScreenTextCommandsTrainsStopping"), getString(trains[train].accelerationSpeed < 0 && trains[train].accelerationSpeed > -1 ? "generalYes" : "generalNo"));
+                                status[status.length] = formatJSString(getString("appScreenTextCommandsTrainsStarting"), getString(trains[train].accelerationSpeed > 0 && trains[train].accelerationSpeed < 1 ? "generalYes" : "generalNo"));
+                                status[status.length] = formatJSString(getString("appScreenTextCommandsTrainsSpeedInPercent"), Math.round(trains[train].speedInPercent));
+                            } else {
+                                status[status.length] = formatJSString(getString("appScreenTextCommandsTrainsCrash"), getString(trains[train].crash ? "generalYes" : "generalNo"));
+                            }
+                            return formatJSString("{{0}}: {{1}}", statusPrefix, status.join(", "));
+                        }
+                        return getString("appScreenTextCommandsGeneralFailure", "!", "upper");
+                    },
+                    usage: "{number}"
+                },
+                start: {
+                    args: {min: 1, max: 1, patterns: [/^[0-9]+$/]},
+                    execute: function (args) {
+                        var train = parseInt(args[1], 10);
+                        if (trainActions.start(train, 50)) {
+                            return getString("appScreenTextCommandsGeneralSuccess", "!", "upper");
+                        }
+                        return getString("appScreenTextCommandsGeneralFailure", "!", "upper");
+                    },
+                    usage: "{number}"
+                },
+                stop: {
+                    args: {min: 1, max: 1, patterns: [/^[0-9]+|all$/]},
+                    execute: function (args) {
+                        if (args[1] == "all") {
+                            for (var i = 0; i < trains.length; i++) {
+                                this.execute([args[0], i]);
+                            }
+                            return getString("appScreenTextCommandsGeneralSuccess", "!", "upper");
+                        }
+                        var train = parseInt(args[1], 10);
+                        if (trainActions.stop(train)) {
+                            return getString("appScreenTextCommandsGeneralSuccess", "!", "upper");
+                        }
+                        return getString("appScreenTextCommandsGeneralFailure", "!", "upper");
+                    },
+                    usage: "{number}|all"
+                },
+                turn: {
+                    args: {min: 1, max: 1, patterns: [/^[0-9]+$/]},
+                    execute: function (args) {
+                        var train = parseInt(args[1], 10);
+                        if (trainActions.changeDirection(train, true)) {
+                            return getString("appScreenTextCommandsGeneralSuccess", "!", "upper");
+                        }
+                        return getString("appScreenTextCommandsGeneralFailure", "!", "upper");
+                    },
+                    usage: "{number}"
+                },
+                speed: {
+                    args: {min: 1, max: 2, patterns: [/^[0-9]+$/, /^[+-]?[0-9]+$/]},
+                    execute: function (args) {
+                        var train = parseInt(args[1], 10);
+                        if (!trainActions.checkRange(train)) {
+                            return getString("appScreenTextCommandsGeneralFailure", "!", "upper");
+                        }
+                        if (args.length == 3) {
+                            var speed = args[2];
+                            if (speed.match(/^[+][0-9]+$/)) {
+                                if (trains[train].accelerationSpeed <= 0) {
+                                    speed = parseInt(speed, 10);
+                                } else {
+                                    speed = trains[train].speedInPercent + parseInt(speed.replace(/[^0-9]/g, ""), 10);
+                                }
+                            } else if (speed.match(/^[-][0-9]+$/)) {
+                                if (trains[train].accelerationSpeed <= 0) {
+                                    return getString("appScreenTextCommandsGeneralFailure", "!", "upper");
+                                }
+                                speed = trains[train].speedInPercent - parseInt(speed.replace(/[^0-9]/g, ""), 10);
+                            } else if (speed.match(/^[0-9]+$/)) {
+                                speed = parseInt(speed, 10);
+                            } else {
+                                return getString("appScreenTextCommandsGeneralFailure", "!", "upper");
+                            }
+                            if (trainActions.setSpeed(train, speed)) {
+                                return getString("appScreenTextCommandsGeneralSuccess", "!", "upper");
+                            }
+                        } else if (trains[train].accelerationSpeed > 0) {
+                            return formatJSString(getString("appScreenTextCommandsTrainsSpeedInPercent"), Math.round(trains[train].speedInPercent));
+                        }
+                        return getString("appScreenTextCommandsGeneralFailure", "!", "upper");
+                    },
+                    usage: "{number} [[+/-]{speed}]"
+                }
+            },
+            nameIdentifier: "appScreenTextCommandsTrainsName",
+            action: function (args) {
+                return textControl.execute("trains", args);
+            }
+        },
+        cars: {
+            subcommands: {
+                list: {
+                    args: {min: 0, max: 0},
+                    execute: function () {
+                        var carNames = [];
+                        for (var i = 0; i < cars.length; i++) {
+                            carNames[i] = i + ": " + getString(["appScreenCarNames", i]);
+                        }
+                        return carNames.join(", ");
+                    },
+                    usage: ""
+                },
+                mode: {
+                    args: {min: 0, max: 0},
+                    execute: function () {
+                        if (carParams.init) {
+                            return formatJSString(getString("appScreenTextCommandsCarsMode"), getString("appScreenTextCommandsCarsModeStop"));
+                        } else if (carParams.autoModeOff) {
+                            return formatJSString(getString("appScreenTextCommandsCarsMode"), getString("appScreenTextCommandsCarsModeManual"));
+                        }
+                        return formatJSString(getString("appScreenTextCommandsCarsMode"), getString("appScreenTextCommandsCarsModeAuto"));
+                    },
+                    usage: ""
+                },
+                auto: {
+                    args: {min: 1, max: 1, patterns: [/^start|end|pause|resume$/]},
+                    execute: function (args) {
+                        if (args[1] == "start" && carActions.auto.start()) {
+                            return getString("appScreenTextCommandsGeneralSuccess", "!", "upper");
+                        } else if (args[1] == "end" && carActions.auto.end()) {
+                            return getString("appScreenTextCommandsGeneralSuccess", "!", "upper");
+                        } else if (args[1] == "pause" && carActions.auto.pause()) {
+                            return getString("appScreenTextCommandsGeneralSuccess", "!", "upper");
+                        } else if (args[1] == "resume" && carActions.auto.resume()) {
+                            return getString("appScreenTextCommandsGeneralSuccess", "!", "upper");
+                        }
+                        return getString("appScreenTextCommandsGeneralFailure", "!", "upper");
+                    },
+                    usage: "start|end|pause|resume"
+                },
+                manual: {
+                    args: {min: 2, max: 2, patterns: [/^start|stop|back|park$/, /^[0-9]+$/]},
+                    execute: function (args) {
+                        var car = parseInt(args[2], 10);
+                        if (args[1] == "start" && carActions.manual.start(car)) {
+                            return getString("appScreenTextCommandsGeneralSuccess", "!", "upper");
+                        } else if (args[1] == "stop" && carActions.manual.stop(car)) {
+                            return getString("appScreenTextCommandsGeneralSuccess", "!", "upper");
+                        } else if (args[1] == "back" && carActions.manual.backwards(car)) {
+                            return getString("appScreenTextCommandsGeneralSuccess", "!", "upper");
+                        } else if (args[1] == "park" && carActions.manual.park(car)) {
+                            return getString("appScreenTextCommandsGeneralSuccess", "!", "upper");
+                        }
+                        return getString("appScreenTextCommandsGeneralFailure", "!", "upper");
+                    },
+                    usage: "start|stop|back|park {number}"
+                }
+            },
+            nameIdentifier: "appScreenTextCommandsCarsName",
+            action: function (args) {
+                return textControl.execute("cars", args);
+            }
+        },
+        exit: {
+            action: function () {
+                textControl.elements.root.style.display = "";
+                if (gui.infoOverlay && client.realScale == 1) {
+                    drawInfoOverlayMenu("show");
+                } else if (client.realScale == 1) {
+                    drawOptionsMenu("show");
+                }
+                gui.textControl = false;
+                return "";
+            }
+        }
+    }
+};
 
 var onlineGame = {animateInterval: 40, syncInterval: 10000, excludeFromSync: {t: ["src", "trainSwitchSrc", "assetFlip", "fac", "speedFac", "accelerationSpeedStartFac", "accelerationSpeedFac", "lastDirectionChange", "bogieDistance", "width", "height", "speed", "crash", "flickerFacBack", "flickerFacBackOffset", "flickerFacFront", "flickerFacFrontOffset", "margin", "cars"], tc: ["src", "assetFlip", "fac", "bogieDistance", "width", "height", "konamiUseTrainIcon"]}, chatSticker: 7, resized: false};
 var onlineConnection = {serverURI: getServerLink(PROTOCOL_WS) + "/multiplay"};
@@ -4151,6 +4460,23 @@ window.onload = function () {
             taxOffice.params.blueLights.cars[i].y[1] *= background.height;
             taxOffice.params.blueLights.cars[i].size *= background.width;
         }
+
+        //Text Control
+        textControl.elements.root = document.querySelector("#text-control");
+        textControl.elements.input = textControl.elements.root.querySelector("#text-control-input input");
+        textControl.elements.output = textControl.elements.root.querySelector("#text-control-output");
+        textControl.elements.input.addEventListener("keydown", function (event) {
+            if (event.key == "Enter") {
+                var commandsInput = textControl.elements.input.value.replace(/\s+/g, " ").replace(/\s+$/, "").replace(/^\s+/, "");
+                var commands = commandsInput.split(" ");
+                var command = commands.shift();
+                textControl.elements.input.value = "";
+                if (Object.keys(textControl.commands).indexOf(command) == -1) {
+                    command = "/";
+                }
+                textControl.elements.output.textContent = textControl.commands[command].action(commands);
+            }
+        });
 
         animateWorker.onerror = function () {
             notify("#canvas-notifier", getString("appScreenIsFail", "!", "upper"), NOTIFICATION_PRIO_HIGH, 950, null, null, client.height);

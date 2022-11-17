@@ -1,0 +1,2 @@
+Text commands (press "/" to activate)
+Text commands require a physical keyboard.

@@ -591,3 +591,31 @@ canvas {
     margin: 5px 20px;
     text-transform: uppercase;
 }
+
+#text-control {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    z-index: 1;
+    width: 100%;
+    padding-bottom: 10px;
+    background-color: rgba(0, 0, 0, 0.5);
+    font-family: monospace;
+}
+#text-control > * {
+    margin: 10px;
+}
+#text-control #text-control-output {
+    font-weight: bold;
+}
+#text-control #text-control-input input {
+    color: rgb(210, 120, 27);
+    background: transparent;
+    border: 1px solid rgb(210, 120, 27);
+    padding: 5px;
+}
+#text-control #text-control-input input:focus-within {
+    outline-color: rgb(255, 120, 27);
+    outline-style: solid;
+    outline-offset: 2px;
+}

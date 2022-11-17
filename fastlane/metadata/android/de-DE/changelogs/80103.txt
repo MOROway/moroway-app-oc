@@ -1,0 +1,2 @@
+Text Kommandos (Aktivierung mit "/"-Taste)
+Text Kommandos erfordern eine physische Tastatur.

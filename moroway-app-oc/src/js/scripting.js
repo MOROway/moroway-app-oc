@@ -1895,9 +1895,9 @@ function drawObjects() {
             drawInfoOverlayMenu("hide-outer");
         } else if (client.realScale != 1) {
             drawOptionsMenu("hide-outer");
-        } else if (gui.infoOverlay) {
+        } else if (gui.infoOverlay && !gui.textControl) {
             drawInfoOverlayMenu("show");
-        } else {
+        } else if (!gui.textControl) {
             drawOptionsMenu("show");
         }
     }

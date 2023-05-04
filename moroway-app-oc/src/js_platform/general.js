@@ -33,7 +33,7 @@ function followIntent(url) {
         url = url.replace(/^[a-z]*:[/][/]/, "");
     }
     var server = getShareLinkServerName() + "/";
-    if (url !== null && url.indexOf(server) === 0) {
+    if (url !== null && url.toLowerCase().indexOf(server) === 0) {
         url = url.replace(server, "");
         var id = url.replace(/[/].*$/, "");
         var key = url.replace(/.*[/]([^/]+)([/])?$/, "$1");

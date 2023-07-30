@@ -34,11 +34,19 @@ for lang in "$working_dir_build/changelogs"/*; do
 	if [[ -f "$working_dir_build/changelogs/$lang/$version" ]]; then
 		changelog="$changelog"$(cat "$working_dir_build/changelogs/$lang/$version" | sed 's/{{[0-9]\+}}\s\?//g')$'\n'
 	fi
-	if [[ -f "$working_dir_build/changelogs/$lang/$version-oc" ]]; then
-		changelog="$changelog"$(cat "$working_dir_build/changelogs/$lang/$version-oc" | sed 's/{{[0-9]\+}}\s\?//g')$'\n'
+	if [[ -f "$working_dir_build/changelogs/$lang/$version-oc" ]] || [[ -f "$working_dir_build/changelogs/default/$version-oc" ]]; then
+		changelogfile_platform="$working_dir_build/changelogs/default/$version-oc"
+		if [[ -f "$working_dir_build/changelogs/$lang/$version-oc" ]]; then
+			changelogfile_platform="$working_dir_build/changelogs/$lang/$version-oc"
+		fi
+		changelog="$changelog"$(cat "$changelogfile_platform" | sed 's/{{[0-9]\+}}\s\?//g')$'\n'
 	fi
 	if [[ $(cat "$working_dir_build/changelogs/meta/fixes/bool/$version") == 1 ]]; then
-		changelog="$changelog"$(cat "$working_dir_build/changelogs/meta/fixes/locale/$lang")"."$'\n'
+		changelogfile_bool="$working_dir_build/changelogs/meta/fixes/locale/default"
+		if [[ -f "$working_dir_build/changelogs/meta/fixes/locale/$lang" ]]; then
+			changelogfile_bool="$working_dir_build/changelogs/meta/fixes/locale/$lang"
+		fi
+		changelog="$changelog"$(cat "$changelogfile_bool")"."$'\n'
 	fi
 	if [[ ! -z "$changelog" ]] && [[ -d fastlane/metadata/android/"$lang"/changelogs/ ]]; then
 		printf '%s' "$changelog" >fastlane/metadata/android/"$lang"/changelogs/"$version_long".txt

@@ -2077,8 +2077,7 @@ onmessage = function (message) {
             switchesBeforeAddSidings[i] *= background.width / message.data.oldBackground.width;
         }
         postMessage({k: "switches", switches: switches});
-        postMessage({k: "setTrains", trains: trains});
-        postMessage({k: "resized"});
+        postMessage({k: "setTrains", trains: trains, resized: true});
         if (saveTheGameSendTimeout !== undefined && saveTheGameSendTimeout !== null) {
             clearTimeout(saveTheGameSendTimeout);
         }

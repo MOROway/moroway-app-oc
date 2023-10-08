@@ -25,7 +25,8 @@ canvas {
     -webkit-tap-highlight-color: transparent;
 }
 
-.settings-hidden {
+.settings-hidden,
+.gui-hidden {
     display: none !important;
 }
 

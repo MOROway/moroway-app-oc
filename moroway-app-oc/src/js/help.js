@@ -13,6 +13,9 @@ function init() {
         followLink("whatsnew/#newest", "_self", LINK_STATE_INTERNAL_HTML);
     });
 
+    document.querySelector("#legal-libraries-threejs-license").addEventListener("click", function () {
+        followLink("src/lib/open_code/three.js/LICENSE.txt", "_self", LINK_STATE_INTERNAL_LICENSE_FILE);
+    });
     document.querySelector("#legal-fonts-roboto-copyright").addEventListener("click", function () {
         followLink("src/lib/open_fonts/google/Roboto/COPYRIGHT.txt", "_self", LINK_STATE_INTERNAL_LICENSE_FILE);
     });

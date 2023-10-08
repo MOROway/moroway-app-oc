@@ -6,6 +6,8 @@ They are needed for MOROway App to work. The authors and the licenses are visibl
 
 Links to original projects' source code:
 
--   https://github.com/google/material-design-icons (icon font; by Google)
+- <https://github.com/mrdoob/three.js/> (3d library; by mrdoob)
 
--   https://github.com/google/fonts/tree/master/apache/roboto (text font; by Google)
+- <https://github.com/google/material-design-icons> (icon font; by Google)
+
+- <https://github.com/google/fonts/tree/master/apache/roboto> (text font; by Google)

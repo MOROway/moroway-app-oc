@@ -1,5 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="de.moroway.oc" version="8.1.8" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget id="de.moroway.oc" version="8.1.8" xmlns="http://www.w3.org/ns/widgets"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>MOROway</name>
     <author>Jonathan Herrmann-Engel</author>
     <content src="html_platform/entry.html" />
@@ -13,17 +15,31 @@
     <hook src="scripts/cleanup.bash" type="after_build" />
     <hook src="scripts/cleanup.bash" type="after_run" />
     <platform name="android">
-        <preference name="AndroidWindowSplashScreenAnimatedIcon" value="res/screen/android/splashscreen.png" />
+        <preference name="AndroidWindowSplashScreenAnimatedIcon"
+            value="res/screen/android/splashscreen.png" />
         <preference name="AndroidWindowSplashScreenBackground" value="#303030" />
         <preference name="Fullscreen" value="true" />
         <preference name="AndroidLaunchMode" value="singleTask" />
-        <icon background="res/icon/android/ldpi.png" density="ldpi" foreground="res/icon/android/ldpi_foreground.png" src="res/icon/android/ldpi.png" />
-        <icon background="res/icon/android/mdpi.png" density="mdpi" foreground="res/icon/android/mdpi_foreground.png" src="res/icon/android/mdpi.png" />
-        <icon background="res/icon/android/hdpi.png" density="hdpi" foreground="res/icon/android/hdpi_foreground.png" src="res/icon/android/hdpi.png" />
-        <icon background="res/icon/android/xhdpi.png" density="xhdpi" foreground="res/icon/android/xhdpi_foreground.png" src="res/icon/android/xhdpi.png" />
-        <icon background="res/icon/android/xxhdpi.png" density="xxhdpi" foreground="res/icon/android/xxhdpi_foreground.png" src="res/icon/android/xxhdpi.png" />
-        <icon background="res/icon/android/xxxhdpi.png" density="xxxhdpi" foreground="res/icon/android/xxxhdpi_foreground.png" src="res/icon/android/xxxhdpi.png" />
-        <edit-config file="app/src/main/AndroidManifest.xml" mode="merge" target="/manifest/application/activity[@android:name='MainActivity']">
+        <icon monochrome="res/icon/android/ldpi_monochrome.png"
+            background="res/icon/android/ldpi.png" density="ldpi"
+            foreground="res/icon/android/ldpi_foreground.png" src="res/icon/android/ldpi.png" />
+        <icon monochrome="res/icon/android/mdpi_monochrome.png"
+            background="res/icon/android/mdpi.png" density="mdpi"
+            foreground="res/icon/android/mdpi_foreground.png" src="res/icon/android/mdpi.png" />
+        <icon monochrome="res/icon/android/hdpi_monochrome.png"
+            background="res/icon/android/hdpi.png" density="hdpi"
+            foreground="res/icon/android/hdpi_foreground.png" src="res/icon/android/hdpi.png" />
+        <icon monochrome="res/icon/android/xhdpi_monochrome.png"
+            background="res/icon/android/xhdpi.png" density="xhdpi"
+            foreground="res/icon/android/xhdpi_foreground.png" src="res/icon/android/xhdpi.png" />
+        <icon monochrome="res/icon/android/xxhdpi_monochrome.png"
+            background="res/icon/android/xxhdpi.png" density="xxhdpi"
+            foreground="res/icon/android/xxhdpi_foreground.png" src="res/icon/android/xxhdpi.png" />
+        <icon monochrome="res/icon/android/xxxhdpi_monochrome.png"
+            background="res/icon/android/xxxhdpi.png" density="xxxhdpi"
+            foreground="res/icon/android/xxxhdpi_foreground.png" src="res/icon/android/xxxhdpi.png" />
+        <edit-config file="app/src/main/AndroidManifest.xml" mode="merge"
+            target="/manifest/application/activity[@android:name='MainActivity']">
             <activity android:screenOrientation="sensorLandscape" />
         </edit-config>
         <config-file parent="application/activity" target="AndroidManifest.xml">

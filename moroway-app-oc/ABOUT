@@ -1,4 +1,4 @@
-﻿Copyright (c) 2016-2022 Jonathan Herrmann-Engel.
+﻿Copyright (c) 2016-2023 Jonathan Herrmann-Engel.
 
 All MOROway App files are subject to the "Apache License Version 2.0" (file: 'LICENSE.txt').
 
@@ -13,3 +13,7 @@ The following media files are CC0-licensed files taken from freesound.org:
 [App-Root]/assets/audio_asset_4.ogg (https://freesound.org/people/bretbernhoft/sounds/131174/, modified)
 [App-Root]/assets/audio_asset_5.ogg (https://freesound.org/people/C-V/sounds/528427/, modified)
 [App-Root]/assets/audio_asset_crash.ogg (https://freesound.org/people/ludvique/sounds/71853/, modified)
+
+The following 3D-models are taken from sketchfab.com and integrated in MOROway App:
+"Wrecking Tractor" (https://skfb.ly/6RDvC) by Animated Fox 3D is licensed under Creative Commons Attribution (http://creativecommons.org/licenses/by/4.0/).
+"Chevrolet Jumbo Truck" (https://skfb.ly/6WVRC) by Medhatelo is licensed under Creative Commons Attribution (http://creativecommons.org/licenses/by/4.0/). 

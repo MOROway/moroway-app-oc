@@ -25,6 +25,12 @@ function init() {
     document.querySelector("#legal-fonts-materialicons-license").addEventListener("click", function () {
         followLink("src/lib/open_fonts/google/MaterialIcons/LICENSE.txt", "_self", LINK_STATE_INTERNAL_LICENSE_FILE);
     });
+    document.querySelector("#legal-media-sound-license-cc0").addEventListener("click", function () {
+        followLink("assets/CC0-1.0.txt", "_self", LINK_STATE_INTERNAL_LICENSE_FILE);
+    });
+    document.querySelector("#legal-media-3d-models-license-cc-by").addEventListener("click", function () {
+        followLink("assets/CC-BY-4.0.txt", "_self", LINK_STATE_INTERNAL_LICENSE_FILE);
+    });
     document.querySelector("#legal-self-code-license").addEventListener("click", function () {
         followLink("LICENSE.txt", "_self", LINK_STATE_INTERNAL_LICENSE_FILE);
     });

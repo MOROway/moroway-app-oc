@@ -1,0 +1,3 @@
+3D view.
+Upgrade Apache Cordova Android to version 12.0.1.
+Bugfixes.

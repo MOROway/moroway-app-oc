@@ -31,8 +31,12 @@ version_long=$(echo "$version" | sed 's/\.\([0-9]\)/.0\1/g' | sed 's/\.0\([0-9]\
 for lang in "$working_dir_build/changelogs"/*; do
 	lang=$(basename "$lang")
 	changelog=""
-	if [[ -f "$working_dir_build/changelogs/$lang/$version" ]]; then
-		changelog="$changelog"$(cat "$working_dir_build/changelogs/$lang/$version" | sed 's/{{[0-9]\+}}\s\?//g')$'\n'
+	if [[ -f "$working_dir_build/changelogs/$lang/$version" ]] || [[ -f "$working_dir_build/changelogs/default/$version" ]]; then
+		changelogfile="$working_dir_build/changelogs/default/$version"
+		if [[ -f "$working_dir_build/changelogs/$lang/$version" ]]; then
+			changelogfile="$working_dir_build/changelogs/$lang/$version"
+		fi
+		changelog="$changelog"$(cat "$changelogfile" | sed 's/{{[0-9]\+}}\s\?//g')$'\n'
 	fi
 	if [[ -f "$working_dir_build/changelogs/$lang/$version-oc" ]] || [[ -f "$working_dir_build/changelogs/default/$version-oc" ]]; then
 		changelogfile_platform="$working_dir_build/changelogs/default/$version-oc"

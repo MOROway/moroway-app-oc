@@ -1080,10 +1080,17 @@ function calcMenusAndBackground(state) {
         }
     }
     if (document.querySelector("#canvas-3d-view-toggle") != null) {
-        if (getSetting("reduceOptMenuHide3DView")) {
+        if (getSetting("reduceOptMenuHide3DViewToggle")) {
             document.querySelector("#canvas-3d-view-toggle").classList.add("settings-hidden");
         } else {
             document.querySelector("#canvas-3d-view-toggle").classList.remove("settings-hidden");
+        }
+    }
+    if (document.querySelector("#canvas-3d-view-day-night") != null) {
+        if (getSetting("reduceOptMenuHide3DViewNightToggle")) {
+            document.querySelector("#canvas-3d-view-day-night").classList.add("settings-hidden");
+        } else {
+            document.querySelector("#canvas-3d-view-day-night").classList.remove("settings-hidden");
         }
     }
     if (state == "load") {
@@ -1375,7 +1382,13 @@ function calcClassicUIElements() {
     var wantedWidth = ((menus.small ? 0.35 : 0.9) * background.width) / 4 / widthMultiply;
     var tempFont = measureFontSize(getString(["appScreenTrainNames", longestName]), classicUI.trainSwitch.selectedTrainDisplay.fontFamily, wantedWidth / getString(["appScreenTrainNames", longestName]).length, wantedWidth, 3, background.width * 0.004);
     var tempFontSize = menus.small ? getFontSize(tempFont, "px") : Math.min((0.9 * menus.outerContainer.height * client.devicePixelRatio) / heightMultiply, getFontSize(tempFont, "px"));
-    classicUI.trainSwitch.selectedTrainDisplay.visible = getSetting("alwaysShowSelectedTrain") && tempFontSize >= 7;
+    var currentSelectedTrainDisplayVisible = getSetting("alwaysShowSelectedTrain") && tempFontSize >= 7;
+    if (classicUI.trainSwitch.selectedTrainDisplay.visible != currentSelectedTrainDisplayVisible) {
+        classicUI.trainSwitch.selectedTrainDisplay.visible = currentSelectedTrainDisplayVisible;
+        if (gui.infoOverlay) {
+            drawInfoOverlayMenu("items-change");
+        }
+    }
     classicUI.trainSwitch.selectedTrainDisplay.font = tempFontSize + "px " + classicUI.trainSwitch.selectedTrainDisplay.fontFamily;
     context.font = classicUI.trainSwitch.selectedTrainDisplay.font;
     classicUI.trainSwitch.selectedTrainDisplay.width = widthMultiply * context.measureText(getString(["appScreenTrainNames", longestName])).width;
@@ -2312,7 +2325,7 @@ function drawObjects() {
         });
 
         if (gui.demo) {
-            var rotation = Math.random() / 1000;
+            var rotation = (Math.random() / 500) * (three.demoRotationSpeedFac / 100);
             three.scene.rotation.x += three.demoRotationFacX * rotation;
             three.scene.rotation.y += three.demoRotationFacY * rotation;
         } else {
@@ -2325,21 +2338,38 @@ function drawObjects() {
                         }
                         return hex;
                     }
+                    function getAngle(fadeProgress, newAngle, oldAngle) {
+                        return fadeProgress * newAngle + (1 - fadeProgress) * oldAngle;
+                    }
                     var hex = switches[key][currentKey].turned ? "0x00ff00" : "0xff0000";
+                    var hexSquare = switches[key][currentKey].turned ? "0x005500" : "0x550000";
+                    var angle = switches[key][currentKey].turned ? switches[key][currentKey].angles.turned : switches[key][currentKey].angles.normal;
                     var transparent = true;
                     if (switches[key][currentKey].lastStateChange != undefined && frameNo - switches[key][currentKey].lastStateChange < classicUI.switches.showDuration) {
                         var fadeProgress = (frameNo - switches[key][currentKey].lastStateChange) / classicUI.switches.showDuration;
                         if (switches[key][currentKey].turned) {
                             hex = "0x" + getFadeColor(1 - fadeProgress) + getFadeColor(fadeProgress) + "00";
+                            angle = getAngle(fadeProgress, switches[key][currentKey].angles.turned, switches[key][currentKey].angles.normal);
                         } else {
                             hex = "0x" + getFadeColor(fadeProgress) + getFadeColor(1 - fadeProgress) + "00";
+                            angle = getAngle(fadeProgress, switches[key][currentKey].angles.normal, switches[key][currentKey].angles.turned);
                         }
                     }
                     if (switches[key][currentKey].lastStateChange != undefined && frameNo - switches[key][currentKey].lastStateChange < classicUI.switches.showDuration) {
                         transparent = false;
                     }
-                    switches3D[key][currentKey].mesh.material.color.setHex(hex);
-                    switches3D[key][currentKey].mesh.material.transparent = transparent;
+                    switches3D[key][currentKey].circleMesh.material.color.setHex(hex);
+                    switches3D[key][currentKey].circleMesh.material.transparent = transparent;
+
+                    switches3D[key][currentKey].squareMeshHighlight.material.color.setHex(hexSquare);
+                    switches3D[key][currentKey].squareMeshHighlight.rotation.y = -angle - Math.PI / 4;
+                    switches3D[key][currentKey].squareMeshHighlight.position.set((switches[key][currentKey].x - background.width / 2) / background.width + (switches3D[key][currentKey].squareMeshHighlight.geometry.parameters.width / 2) * Math.cos(switches3D[key][currentKey].squareMeshHighlight.rotation.y), -(switches[key][currentKey].y - background.height / 2) / background.width + (switches3D[key][currentKey].squareMeshHighlight.geometry.parameters.width / 2) * Math.sin(switches3D[key][currentKey].squareMeshHighlight.rotation.y), switches3D[key][currentKey].squareMeshHighlight.geometry.parameters.depth / 2);
+
+                    switches3D[key][currentKey].squareMeshNormal.rotation.y = -switches[key][currentKey].angles.normal - Math.PI / 4;
+                    switches3D[key][currentKey].squareMeshNormal.position.set((switches[key][currentKey].x - background.width / 2) / background.width + (switches3D[key][currentKey].squareMeshNormal.geometry.parameters.width / 2) * Math.cos(switches3D[key][currentKey].squareMeshNormal.rotation.y), -(switches[key][currentKey].y - background.height / 2) / background.width + (switches3D[key][currentKey].squareMeshNormal.geometry.parameters.width / 2) * Math.sin(switches3D[key][currentKey].squareMeshNormal.rotation.y), switches3D[key][currentKey].squareMeshNormal.geometry.parameters.depth / 2);
+
+                    switches3D[key][currentKey].squareMeshTurned.rotation.y = -switches[key][currentKey].angles.turned - Math.PI / 4;
+                    switches3D[key][currentKey].squareMeshTurned.position.set((switches[key][currentKey].x - background.width / 2) / background.width + (switches3D[key][currentKey].squareMeshTurned.geometry.parameters.width / 2) * Math.cos(switches3D[key][currentKey].squareMeshTurned.rotation.y), -(switches[key][currentKey].y - background.height / 2) / background.width + (switches3D[key][currentKey].squareMeshTurned.geometry.parameters.width / 2) * Math.sin(switches3D[key][currentKey].squareMeshTurned.rotation.y), switches3D[key][currentKey].squareMeshTurned.geometry.parameters.depth / 2);
                 });
             });
             if (hardware.mouse.isHold && !gui.controlCenter) {
@@ -2685,7 +2715,12 @@ function drawObjects() {
                 drawImage(pics[classicUI.transformer.onSrc], -classicUI.transformer.width / 2, -classicUI.transformer.height / 2, classicUI.transformer.width, classicUI.transformer.height, contextForeground);
             }
             if (!client.isTiny || !(typeof client.zoomAndTilt.realScale == "undefined" || client.zoomAndTilt.realScale <= Math.max(1, client.zoomAndTilt.maxScale / 3))) {
-                classicUI.transformer.directionInput.visible = true;
+                if (!classicUI.transformer.directionInput.visible) {
+                    classicUI.transformer.directionInput.visible = true;
+                    if (gui.infoOverlay) {
+                        drawInfoOverlayMenu("items-change");
+                    }
+                }
                 contextForeground.save();
                 contextForeground.translate(classicUI.transformer.directionInput.diffX, classicUI.transformer.directionInput.diffY);
                 if (trains[trainParams.selected].move) {
@@ -2734,7 +2769,12 @@ function drawObjects() {
                 }
                 contextForeground.restore();
             } else {
-                classicUI.transformer.directionInput.visible = false;
+                if (classicUI.transformer.directionInput.visible) {
+                    classicUI.transformer.directionInput.visible = false;
+                    if (gui.infoOverlay) {
+                        drawInfoOverlayMenu("items-change");
+                    }
+                }
             }
             contextForeground.save();
             contextForeground.translate(0, -classicUI.transformer.input.diffY);
@@ -3806,7 +3846,7 @@ var pics = [
 
 var background = {src: 9, secondLayer: 10};
 var oldBackground;
-var background3D = {flat: {src: "assets/3d/background-flat.jpg"}, three: {src: "background-3d.glb"}};
+var background3D = {flat: {src: "assets/3d/background-flat.jpg"}, three: {src: "background-3d.gltf"}};
 
 var audio = {};
 
@@ -3868,7 +3908,7 @@ var trainParams;
 
 var switches = {
     inner2outer: {left: {turned: false, angles: {normal: 1.01 * Math.PI, turned: 0.941 * Math.PI}}, right: {turned: false, angles: {normal: 1.5 * Math.PI, turned: 1.56 * Math.PI}}},
-    outer2inner: {left: {turned: false, angles: {normal: 0.25 * Math.PI, turned: 2.2 * Math.PI}}, right: {turned: false, angles: {normal: 0.27 * Math.PI, turned: 0.35 * Math.PI}}},
+    outer2inner: {left: {turned: false, angles: {normal: 0.25 * Math.PI, turned: 0.2 * Math.PI}}, right: {turned: false, angles: {normal: 0.27 * Math.PI, turned: 0.35 * Math.PI}}},
     innerWide: {left: {turned: false, angles: {normal: 1.44 * Math.PI, turned: 1.37 * Math.PI}}, right: {turned: false, angles: {normal: 1.02 * Math.PI, turned: 1.1 * Math.PI}}},
     outerAltState3: {left: {turned: true, angles: {normal: 1.75 * Math.PI, turned: 1.85 * Math.PI}}, right: {turned: true, angles: {normal: 0.75 * Math.PI, turned: 0.65 * Math.PI}}},
     sidings1: {left: {turned: false, angles: {normal: 1.75 * Math.PI, turned: 1.7 * Math.PI}}},
@@ -5077,12 +5117,12 @@ window.onload = function () {
                             switches3D[key] = {};
                             Object.keys(switches[key]).forEach(function (currentKey) {
                                 switches3D[key][currentKey] = {};
-                                var radius = 0.01;
-                                var height3D = 0.0005;
-                                switches3D[key][currentKey].mesh = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, height3D, 48), new THREE.MeshBasicMaterial({color: 0xffffff, opacity: 0.55, transparent: true}));
-                                switches3D[key][currentKey].mesh.rotation.x = Math.PI / 2;
-                                switches3D[key][currentKey].mesh.position.set((switches[key][currentKey].x - background.width / 2) / background.width, -(switches[key][currentKey].y - background.height / 2) / background.width, height3D / 2);
-                                switches3D[key][currentKey].mesh.callback = function () {
+
+                                const radius = 0.01;
+                                const length = radius * 1.25;
+                                const height3D = 0.0005;
+
+                                const meshCallback = function () {
                                     if (typeof clickTimeOut !== "undefined") {
                                         window.clearTimeout(clickTimeOut);
                                         clickTimeOut = null;
@@ -5096,7 +5136,24 @@ window.onload = function () {
                                         hardware.lastInputTouch > hardware.lastInputMouse ? doubleTouchWaitTime : 0
                                     );
                                 };
-                                three.scene.add(switches3D[key][currentKey].mesh);
+
+                                switches3D[key][currentKey].circleMesh = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, height3D, 48), new THREE.MeshBasicMaterial({color: 0xffffff, opacity: 0.25, transparent: true}));
+                                switches3D[key][currentKey].circleMesh.rotation.x = Math.PI / 2;
+                                switches3D[key][currentKey].circleMesh.position.set((switches[key][currentKey].x - background.width / 2) / background.width, -(switches[key][currentKey].y - background.height / 2) / background.width, height3D / 2);
+                                switches3D[key][currentKey].circleMesh.callback = meshCallback;
+                                three.scene.add(switches3D[key][currentKey].circleMesh);
+                                switches3D[key][currentKey].squareMeshHighlight = new THREE.Mesh(new THREE.BoxGeometry(length * 1.25, radius / 4, radius / 4), new THREE.MeshBasicMaterial({color: 0xffffff}));
+                                switches3D[key][currentKey].squareMeshHighlight.rotation.x = Math.PI / 2;
+                                switches3D[key][currentKey].squareMeshHighlight.callback = meshCallback;
+                                three.scene.add(switches3D[key][currentKey].squareMeshHighlight);
+                                switches3D[key][currentKey].squareMeshNormal = new THREE.Mesh(new THREE.BoxGeometry(length, radius / 6, radius / 6), new THREE.MeshBasicMaterial({color: 0xffffff, opacity: 0.45, transparent: true}));
+                                switches3D[key][currentKey].squareMeshNormal.rotation.x = Math.PI / 2;
+                                switches3D[key][currentKey].squareMeshNormal.callback = meshCallback;
+                                three.scene.add(switches3D[key][currentKey].squareMeshNormal);
+                                switches3D[key][currentKey].squareMeshTurned = new THREE.Mesh(new THREE.BoxGeometry(length, radius / 6, radius / 6), new THREE.MeshBasicMaterial({color: 0xffffff, opacity: 0.45, transparent: true}));
+                                switches3D[key][currentKey].squareMeshTurned.rotation.x = Math.PI / 2;
+                                switches3D[key][currentKey].squareMeshTurned.callback = meshCallback;
+                                three.scene.add(switches3D[key][currentKey].squareMeshTurned);
                             });
                         });
                     }
@@ -5430,6 +5487,12 @@ window.onload = function () {
             three.night = queryString3DNight == "1";
         } else {
             three.night = getGuiState("3d-night");
+        }
+        var queryStringDemoRotationSpeedFac = parseInt(getQueryString("gui-demo-3d-rotation-speed-percent"), 10);
+        if (!Number.isNaN(queryStringDemoRotationSpeedFac) && queryStringDemoRotationSpeedFac >= 0 && queryStringDemoRotationSpeedFac <= 100) {
+            three.demoRotationSpeedFac = queryStringDemoRotationSpeedFac;
+        } else {
+            three.demoRotationSpeedFac = 50;
         }
     }
 
@@ -6246,18 +6309,20 @@ window.onload = function () {
                     };
 
                     var loaderTexture = new THREE.TextureLoader();
-                    var material = new THREE.MeshStandardMaterial({
-                        map: loaderTexture.load(background3D.flat.src),
-                        roughness: 0.85,
-                        metalness: 0.15
+                    loaderTexture.load(background3D.flat.src, function (texture) {
+                        var material = new THREE.MeshStandardMaterial({
+                            map: texture,
+                            roughness: 0.85,
+                            metalness: 0.15
+                        });
+                        var geometry = new THREE.PlaneGeometry(1, background.height / background.width);
+                        background3D.flat.mesh = new THREE.Mesh(geometry, material);
+                        background3D.flat.mesh.position.set(0, 0, 0);
+                        three.scene.add(background3D.flat.mesh);
                     });
-                    var geometry = new THREE.PlaneGeometry(1, background.height / background.width);
-                    background3D.flat.mesh = new THREE.Mesh(geometry, material);
-                    background3D.flat.mesh.position.set(0, 0, 0);
-                    three.scene.add(background3D.flat.mesh);
 
                     var loaderGLTF = new THREE.GLTFLoader();
-                    loaderGLTF.setPath("assets/3d/").load(background3D.three.src, function (gltf) {
+                    loaderGLTF.setPath("assets/3d/background-3d/").load(background3D.three.src, function (gltf) {
                         background3D.three.mesh = gltf.scene;
                         resetScale();
                         resetTilt();

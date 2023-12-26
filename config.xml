@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="de.moroway.oc" version="9.0.0" xmlns="http://www.w3.org/ns/widgets"
+<widget id="de.moroway.oc" version="9.0.2" xmlns="http://www.w3.org/ns/widgets"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>MOROway</name>
@@ -10,11 +10,14 @@
     <access origin="*" />
     <allow-intent href="http:*" />
     <allow-intent href="https:*" />
+    <hook src="scripts/addbuildconf.bash" type="before_build" />
+    <hook src="scripts/addbuildconf.bash" type="before_run" />
     <hook src="scripts/html.bash" type="before_build" />
     <hook src="scripts/html.bash" type="before_run" />
     <hook src="scripts/cleanup.bash" type="after_build" />
     <hook src="scripts/cleanup.bash" type="after_run" />
     <platform name="android">
+        <resource-file src="res/strings/debug.xml" target="app/src/debug/res/values/strings.xml" />
         <preference name="AndroidWindowSplashScreenAnimatedIcon"
             value="res/screen/android/splashscreen.png" />
         <preference name="AndroidWindowSplashScreenBackground" value="#303030" />

@@ -1,4 +1,17 @@
 function init() {
+    function getUserSystem() {
+        const shortStrings = ["Electron", "Edg", "Chrome", "Firefox", "Safari"];
+        for (var i = 0; i < shortStrings.length; i++) {
+            var index = navigator.userAgent.indexOf(" " + shortStrings[i] + "/");
+            if (index != -1) {
+                return navigator.userAgent
+                    .substring(index + 1)
+                    .replace(/ .*/, "")
+                    .replace(/[/]/, ", ");
+            }
+        }
+        return navigator.userAgent;
+    }
     document.querySelector("#backOption").addEventListener("click", function () {
         try {
             window.close();
@@ -12,6 +25,10 @@ function init() {
     document.querySelector("#general-whatsnew").addEventListener("click", function () {
         followLink("whatsnew/#newest", "_self", LINK_STATE_INTERNAL_HTML);
     });
+
+    elem = document.createElement("p");
+    elem.textContent = formatJSString(getString("helpScreenGeneralWelcomeSystem", "."), getUserSystem());
+    document.querySelector("#general-version").appendChild(elem);
 
     document.querySelector("#legal-libraries-threejs-license").addEventListener("click", function () {
         followLink("src/lib/open_code/three.js/LICENSE.txt", "_self", LINK_STATE_INTERNAL_LICENSE_FILE);

@@ -1,0 +1,5 @@
+Improved 3D view.
+Migrate to TypeScript modules.
+Update dependencies.
+Android WebView version 80 or newer required.
+Allow demo mode configuration.

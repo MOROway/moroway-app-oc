@@ -133,6 +133,7 @@ canvas {
     cursor: pointer;
     color: rgb(210, 120, 27);
     background: transparent;
+    user-select: none;
 }
 
 #info-overlay-text {
@@ -569,6 +570,8 @@ canvas {
     top: 50%;
     transform: translate(-50%, -50%);
     padding: 20px;
+    overflow-y: auto;
+    max-height: 90vh;
 }
 
 #confirm-dialog-title {
@@ -578,6 +581,10 @@ canvas {
 #confirm-dialog-text {
     border-top: 2px solid rgb(210, 120, 27);
     padding: 20px 0;
+}
+#confirm-dialog-params {
+    display: none;
+    padding: 20px;
 }
 #confirm-dialog-buttons-wrapper {
     display: flex;

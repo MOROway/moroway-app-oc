@@ -1,0 +1,5 @@
+Verbesserte 3D-Ansicht.
+Umstieg auf modularisiertes TypeScript.
+Aktualisierte Abhängigkeiten.
+Android WebView Version 80 oder neuer erforderlich.
+Demo-Modus kann nun konfiguriert werden.

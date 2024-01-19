@@ -39,6 +39,7 @@ h2 {
     display: none !important;
 }
 
+/* Fatal Error */
 #error-element {
     margin-top: 1em;
     text-align: center;
@@ -57,6 +58,26 @@ h2 {
     color: #ffccee;
 }
 
+/* Tooltip */
+.tooltip-container {
+    display: none;
+    position: fixed;
+    z-index: 3000;
+    max-width: 200px;
+    padding: 0.75em;
+    border-radius: 0.25em;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    user-select: none;
+    background-color: rgb(48, 48, 48);
+    color: rgb(207, 207, 207);
+    border: 2px solid rgb(210, 120, 27);
+}
+.tooltip-container.active {
+    display: block;
+}
+
 /* Info Cards */
 .card-container {
     display: flex;
@@ -73,6 +94,7 @@ h2 {
     margin: 1%;
     width: 90%;
     max-width: 450px;
+    overflow: hidden;
 }
 
 .card-big {
@@ -143,6 +165,7 @@ h2 {
     background: rgb(12, 12, 12);
     color: rgb(207, 207, 207);
     overflow: hidden;
+    max-width: 100vw;
 }
 
 .page-header > * {
@@ -198,7 +221,7 @@ h2 {
 }
 
 .settings-list > li {
-    padding: 10px 0px;
+    padding: 12px 2px;
     transition: opacity 0.2s;
     overflow: hidden;
 }
@@ -217,7 +240,7 @@ h2 {
     overflow: hidden;
 }
 .settings-opts-left-button {
-    padding: 1px;
+    padding: 2px;
     margin: 10px;
     margin-left: 14px;
     border-radius: 50%;
@@ -240,13 +263,18 @@ h2 {
     color: rgba(0, 0, 0, 0.56);
 }
 
+#langoption,
+.settings-buttons-wrapper {
+    padding-left: 8px;
+}
+
 #langoption {
     margin-top: 24px;
     margin-bottom: 24px;
 }
 
 #langoption #langoptioninfo {
-    margin-left: 16px;
+    margin-left: 8px;
     margin-bottom: 10px;
 }
 
@@ -259,9 +287,8 @@ h2 {
 #langoption .langvalue,
 .settings-button {
     color: black;
-    margin: 3px;
-    margin-left: 16px;
-    padding: 5px;
+    margin: 3px 8px;
+    padding: 6px;
     background: none;
     border: 1px black solid;
     border-radius: 2px;

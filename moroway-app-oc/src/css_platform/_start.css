@@ -47,17 +47,27 @@ body {
     background: rgba(255, 180, 230, 0.1);
 }
 #content div {
-    display: inline-block;
+    display: inline;
     text-overflow: ellipsis;
-    white-space: nowrap;
     max-width: 100%;
     max-height: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    vertical-align: middle;
 }
-#content div:hover {
+#content > div {
+    display: block;
+}
+#content > div:hover {
     color: #ac5076;
 }
 #content .text-icon-small {
     display: none;
+}
+@media (max-height: 400px) {
+    #content {
+        display: block;
+    }
 }
 @media (max-width: 300px) {
     #content {
@@ -67,7 +77,6 @@ body {
 @media (max-width: 400px) {
     #content div {
         width: 100%;
-        overflow: hidden;
     }
     #content .text-icons {
         display: none;
@@ -75,6 +84,7 @@ body {
 }
 @media (orientation: landscape) and (min-width: 500px) {
     #content {
+        display: flex;
         font-size: 1.5em;
         flex-direction: row;
         max-width: 100%;
@@ -89,7 +99,6 @@ body {
         justify-items: center;
         align-content: center;
         justify-content: center;
-        height: 100;
         flex-grow: 1;
         flex-basis: 0;
     }

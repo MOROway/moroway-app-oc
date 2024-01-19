@@ -10,17 +10,15 @@
 
         <!-- Open Source Libraries And Fonts -->
         <!-- Fonts -->
-        <link rel="stylesheet" type="text/css" href="src/lib/open_fonts/google/MaterialIcons/font.css" />
+        <link rel="stylesheet" type="text/css" href="src/lib/open_fonts/google/MaterialSymbols/font.css" />
         <link rel="stylesheet" type="text/css" href="src/lib/open_fonts/google/Roboto/font.css" />
 
         <!-- General Scripts -->
         <script src="src/js/error_handler.js"></script>
-        <script src="src/js/appdata.js"></script>
-        <script src="src/js/general.js"></script>
-        <script src="src/js_platform/general.js"></script>
+        <script src="src/jsm_platform/general.js" type="module"></script>
         <!-- Settings Scripts -->
-        <script src="src/js/settings.js"></script>
-        <script src="src/js_platform/settings.js"></script>
+        <script src="src/jsm/settings.js" type="module"></script>
+        <script src="src/jsm_platform/settings.js" type="module"></script>
 
         <!-- General Styles -->
         <link rel="stylesheet" type="text/css" href="src/css/general.css" />
@@ -30,7 +28,7 @@
 
     <body>
         <header class="page-header">
-            <i id="backOption" class="internal-link material-icons">arrow_back</i>
+            <i id="backOption" data-stringid-tooltip="generalBack" class="internal-link material-icons">arrow_back</i>
             <h1 data-stringid-content="generalTitleSettingsScreen"></h1>
         </header>
 
@@ -41,9 +39,5 @@
             <span></span>
             <button></button>
         </div>
-
-        <!-- initialize -->
-        <script src="src/js/init.js"></script>
-        <script src="src/js_platform/init.js"></script>
     </body>
 </html>

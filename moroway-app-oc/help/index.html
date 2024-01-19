@@ -10,17 +10,15 @@
 
         <!-- Open Source Libraries And Fonts -->
         <!-- Fonts -->
-        <link rel="stylesheet" type="text/css" href="src/lib/open_fonts/google/MaterialIcons/font.css" />
+        <link rel="stylesheet" type="text/css" href="src/lib/open_fonts/google/MaterialSymbols/font.css" />
         <link rel="stylesheet" type="text/css" href="src/lib/open_fonts/google/Roboto/font.css" />
 
         <!-- General Scripts -->
         <script src="src/js/error_handler.js"></script>
-        <script src="src/js/appdata.js"></script>
-        <script src="src/js/general.js"></script>
-        <script src="src/js_platform/general.js"></script>
+        <script src="src/jsm_platform/general.js" type="module"></script>
         <!-- Help Scripts -->
-        <script src="src/js/help.js"></script>
-        <script src="src/js_platform/help.js"></script>
+        <script src="src/jsm/help.js" type="module"></script>
+        <script src="src/jsm_platform/help.js" type="module"></script>
 
         <!-- General Styles -->
         <link rel="stylesheet" type="text/css" href="src/css/general.css" />
@@ -31,7 +29,7 @@
 
     <body>
         <header class="page-header">
-            <i id="backOption" class="internal-link material-icons">arrow_back</i>
+            <i id="backOption" data-stringid-tooltip="generalBack" class="internal-link material-icons">arrow_back</i>
             <h1 data-stringid-content="generalTitleHelpScreen"></h1>
         </header>
 
@@ -94,7 +92,7 @@
                             <section>
                                 <h3 data-stringid-content="helpScreenLegalLibrariesThreeJs"></h3>
                                 <div class="content" data-stringid-content="helpScreenLegalLibrariesThreeJsPs"></div>
-                                <button id="legal-libraries-threejs-license" data-stringid-content="helpScreenLegalStrLicense"></button>
+                                <button id="legal-libraries-threejs-license" data-stringid-content="generalLicense"></button>
                             </section>
                         </div>
                     </div>
@@ -106,13 +104,12 @@
                             <section>
                                 <h3 data-stringid-content="helpScreenLegalFontsRoboto"></h3>
                                 <div class="content" data-stringid-content="helpScreenLegalFontsRobotoPs"></div>
-                                <button id="legal-fonts-roboto-copyright" data-stringid-content="helpScreenLegalStrCopyright"></button> /
-                                <button id="legal-fonts-roboto-license" data-stringid-content="helpScreenLegalStrLicense"></button>
+                                <button id="legal-fonts-roboto-license" data-stringid-content="generalLicense"></button>
                             </section>
                             <section>
                                 <h3 data-stringid-content="helpScreenLegalFontsMaterialIcons"></h3>
                                 <div class="content" data-stringid-content="helpScreenLegalFontsMaterialIconsPs"></div>
-                                <button id="legal-fonts-materialicons-license" data-stringid-content="helpScreenLegalStrLicense"></button>
+                                <button id="legal-fonts-materialicons-license" data-stringid-content="generalLicense"></button>
                             </section>
                         </div>
                     </div>
@@ -141,12 +138,12 @@
                             <section>
                                 <h3 data-stringid-content="helpScreenLegalOwnCode"></h3>
                                 <div class="content" data-stringid-content="helpScreenLegalOwnCodePs"></div>
-                                <button id="legal-self-code-license"><span data-stringid-content="helpScreenLegalStrLicense"></span></button>
+                                <button id="legal-self-code-license"><span data-stringid-content="generalLicense"></span></button>
                             </section>
                             <section>
                                 <h3 data-stringid-content="helpScreenLegalOwnPics"></h3>
                                 <div class="content" data-stringid-content="helpScreenLegalOwnPicsPs"></div>
-                                <button id="legal-self-assets-license" data-stringid-content="helpScreenLegalStrLicense"></button>
+                                <button id="legal-self-assets-license" data-stringid-content="generalLicense"></button>
                             </section>
                         </div>
                     </div>
@@ -158,22 +155,22 @@
                             <section>
                                 <h3 data-stringid-content="helpScreenLegalAppOCCordova"></h3>
                                 <div class="content" data-stringid-content="helpScreenLegalAppOCCordovaPs"></div>
-                                <button id="legal-appoc-cordova-license"><span data-stringid-content="helpScreenLegalStrLicense"></span></button>
+                                <button id="legal-appoc-cordova-license"><span data-stringid-content="generalLicense"></span></button>
                             </section>
                             <section>
                                 <h3 data-stringid-content="helpScreenLegalAppOCInsomnia"></h3>
                                 <div class="content" data-stringid-content="helpScreenLegalAppOCInsomniaPs"></div>
-                                <button id="legal-appoc-insomnia-license"><span data-stringid-content="helpScreenLegalStrLicense"></span></button>
+                                <button id="legal-appoc-insomnia-license"><span data-stringid-content="generalLicense"></span></button>
                             </section>
                             <section>
                                 <h3 data-stringid-content="helpScreenLegalAppOCWebintent"></h3>
                                 <div class="content" data-stringid-content="helpScreenLegalAppOCWebintentPs"></div>
-                                <button id="legal-appoc-webintent-license"><span data-stringid-content="helpScreenLegalStrLicense"></span></button>
+                                <button id="legal-appoc-webintent-license"><span data-stringid-content="generalLicense"></span></button>
                             </section>
                             <section>
                                 <h3 data-stringid-content="helpScreenLegalAppOCDialogs"></h3>
                                 <div class="content" data-stringid-content="helpScreenLegalAppOCDialogsPs"></div>
-                                <button id="legal-appoc-dialogs-license"><span data-stringid-content="helpScreenLegalStrLicense"></span></button>
+                                <button id="legal-appoc-dialogs-license"><span data-stringid-content="generalLicense"></span></button>
                             </section>
                         </div>
                     </div>
@@ -185,7 +182,7 @@
                             <section>
                                 <h3 data-stringid-content="helpScreenLegalAppSnapCordova"></h3>
                                 <div class="content" data-stringid-content="helpScreenLegalAppSnapCordovaPs"></div>
-                                <button id="legal-appsnap-cordova-license"><span data-stringid-content="helpScreenLegalStrLicense"></span></button>
+                                <button id="legal-appsnap-cordova-license"><span data-stringid-content="generalLicense"></span></button>
                             </section>
                         </div>
                     </div>
@@ -196,31 +193,31 @@
                         <div class="card-content">
                             <section>
                                 <h3 data-stringid-content="helpScreenLegalAppAndroidKotlin"></h3>
-                                <button id="legal-appandroid-kotlin-license"><span data-stringid-content="helpScreenLegalStrLicense"></span></button>
+                                <button id="legal-appandroid-kotlin-license"><span data-stringid-content="generalLicense"></span></button>
                             </section>
                         </div>
                         <div class="card-content">
                             <section>
                                 <h3 data-stringid-content="helpScreenLegalAppAndroidAndroidXAppcompat"></h3>
-                                <button id="legal-appandroid-android-x-appcompat-license"><span data-stringid-content="helpScreenLegalStrLicense"></span></button>
+                                <button id="legal-appandroid-android-x-appcompat-license"><span data-stringid-content="generalLicense"></span></button>
                             </section>
                         </div>
                         <div class="card-content">
                             <section>
                                 <h3 data-stringid-content="helpScreenLegalAppAndroidAndroidXActivity"></h3>
-                                <button id="legal-appandroid-android-x-activity-license"><span data-stringid-content="helpScreenLegalStrLicense"></span></button>
+                                <button id="legal-appandroid-android-x-activity-license"><span data-stringid-content="generalLicense"></span></button>
                             </section>
                         </div>
                         <div class="card-content">
                             <section>
                                 <h3 data-stringid-content="helpScreenLegalAppAndroidAndroidXWebkit"></h3>
-                                <button id="legal-appandroid-android-x-webkit-license"><span data-stringid-content="helpScreenLegalStrLicense"></span></button>
+                                <button id="legal-appandroid-android-x-webkit-license"><span data-stringid-content="generalLicense"></span></button>
                             </section>
                         </div>
                         <div class="card-content">
                             <section>
                                 <h3 data-stringid-content="helpScreenLegalAppAndroidPicasso"></h3>
-                                <button id="legal-appandroid-picasso-license"><span data-stringid-content="helpScreenLegalStrLicense"></span></button>
+                                <button id="legal-appandroid-picasso-license"><span data-stringid-content="generalLicense"></span></button>
                             </section>
                         </div>
                     </div>
@@ -344,9 +341,5 @@
             <span></span>
             <button></button>
         </div>
-
-        <!-- initialize -->
-        <script src="src/js/init.js"></script>
-        <script src="src/js_platform/init.js"></script>
     </body>
 </html>

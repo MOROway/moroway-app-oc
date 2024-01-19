@@ -10,17 +10,15 @@
 
         <!-- Open Source Libraries And Fonts -->
         <!-- Fonts -->
-        <link rel="stylesheet" type="text/css" href="src/lib/open_fonts/google/MaterialIcons/font.css" />
+        <link rel="stylesheet" type="text/css" href="src/lib/open_fonts/google/MaterialSymbols/font.css" />
         <link rel="stylesheet" type="text/css" href="src/lib/open_fonts/google/Roboto/font.css" />
 
         <!-- General Scripts -->
         <script src="src/js/error_handler.js"></script>
-        <script src="src/js/appdata.js"></script>
-        <script src="src/js/general.js"></script>
-        <script src="src/js_platform/general.js"></script>
+        <script src="src/jsm_platform/general.js" type="module"></script>
         <!-- WhatsNew Scripts -->
-        <script src="src/js/whatsnew.js"></script>
-        <script src="src/js_platform/whatsnew.js"></script>
+        <script src="src/jsm/whatsnew.js" type="module"></script>
+        <script src="src/jsm_platform/whatsnew.js" type="module"></script>
 
         <!-- General Styles -->
         <link rel="stylesheet" type="text/css" href="src/css/general.css" />
@@ -29,14 +27,10 @@
 
     <body>
         <header class="page-header">
-            <i id="backOption" class="internal-link material-icons">arrow_back</i>
+            <i id="backOption" data-stringid-tooltip="generalBack" class="internal-link material-icons">arrow_back</i>
             <h1 data-stringid-content="generalTitleWhatsNewScreen"></h1>
         </header>
 
         <main></main>
-
-        <!-- initialize -->
-        <script src="src/js/init.js"></script>
-        <script src="src/js_platform/init.js"></script>
     </body>
 </html>

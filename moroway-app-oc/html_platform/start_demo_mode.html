@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <base href="../" />
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="theme-color" content="#000" />
+        <title data-stringid-content="generalTitle"></title>
+        <link rel="icon" type="image/x-icon" sizes="32x32" href="favicon.ico" />
+
+        <!-- Open Source Libraries And Fonts -->
+        <!-- Fonts -->
+        <link rel="stylesheet" type="text/css" href="src/lib/open_fonts/google/MaterialSymbols/font.css" />
+        <link rel="stylesheet" type="text/css" href="src/lib/open_fonts/google/Roboto/font.css" />
+
+        <!-- General Scripts -->
+        <script src="src/js/error_handler.js"></script>
+        <script src="src/jsm_platform/general.js" type="module"></script>
+        <!-- Start Demo Mode Scripts -->
+        <script src="src/jsm_platform/_start_demo_mode.js" type="module"></script>
+
+        <!-- General Styles -->
+        <link rel="stylesheet" type="text/css" href="src/css/general.css" />
+        <!-- Start Demo Mode Styles -->
+        <link rel="stylesheet" type="text/css" href="src/css_platform/_start_demo_mode.css" />
+    </head>
+
+    <body>
+        <!-- Content -->
+        <main id="content">
+            <header><h1 data-stringid-content="generalTitleDemoMode"></h1></header>
+            <p class="input-container"><input type="checkbox" id="demo-mode-3d" /><span data-stringid-content="general3DView"></span></p>
+            <div id="demo-mode-3d-only">
+                <p class="input-container"><input type="checkbox" id="demo-mode-3d-night" /><span data-stringid-content="generalStartGameDemoMode3DNight"></span></p>
+                <p class="input-container"><span data-stringid-content="generalStartDemoMode3DRotationSpeed"></span><br /><input type="range" min="0" max="100" value="50" id="demo-mode-3d-rotation-speed" /></p>
+            </div>
+            <p><button id="demo-mode-go" data-stringid-content="generalStartGameDemoMode"></button></p>
+        </main>
+    </body>
+</html>

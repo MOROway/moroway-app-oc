@@ -1,0 +1,32 @@
+body {
+    background: rgb(48, 48, 48);
+}
+
+#content {
+    background: rgba(207, 207, 207, 0.1);
+    padding: 20px;
+    text-align: center;
+    color: white;
+}
+
+p.input-container {
+    padding-bottom: 15px;
+    border-bottom: 1px solid rgba(210, 120, 27, 0.1);
+}
+
+input {
+    accent-color: rgb(210, 120, 27);
+}
+
+input[type="checkbox"] {
+    margin-right: 10px;
+}
+
+button {
+    border: 2px solid rgb(210, 120, 27);
+    border-radius: 15px;
+    padding: 15px;
+    font-size: 110%;
+    background: rgb(48, 48, 48);
+    color: white;
+}

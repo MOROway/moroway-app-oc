@@ -1,0 +1,38 @@
+"use strict";
+import {followLink, LINK_STATE_INTERNAL_HTML} from "./common/follow_links.js";
+import {optionsMenuEditorHide, getMode} from "../jsm/scripting.js";
+import {getString} from "../jsm/common/string_tools.js";
+import {getSetting} from "../jsm/common/settings.js";
+
+document.addEventListener("moroway-app-after-calc-options-menu-load", function () {
+    optionsMenuEditorHide("canvas-team");
+    optionsMenuEditorHide("canvas-single");
+    optionsMenuEditorHide("canvas-settings");
+    optionsMenuEditorHide("canvas-help");
+    optionsMenuEditorHide("canvas-demo-mode");
+});
+
+document.addEventListener("deviceready", function () {
+    window.plugins.insomnia.keepAwake();
+    document.addEventListener(
+        "backbutton",
+        function (e) {
+            e.preventDefault();
+            if (getMode() != "demo" && (!getSetting("saveGame") || getMode() == "online")) {
+                navigator.notification.confirm(
+                    getString("generalLeaveAndDestroyGame"),
+                    function (button) {
+                        if (button == 1) {
+                            followLink("html_platform/start.html", "_self", LINK_STATE_INTERNAL_HTML);
+                        }
+                    },
+                    getString("generalLeaveAndDestroyGameTitle"),
+                    [getString("generalLeaveAndDestroyGameYes"), getString("generalLeaveAndDestroyGameNo")]
+                );
+            } else {
+                followLink("html_platform/start.html", "_self", LINK_STATE_INTERNAL_HTML);
+            }
+        },
+        false
+    );
+});

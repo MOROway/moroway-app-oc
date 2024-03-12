@@ -1,0 +1,3 @@
+Minor 3d-view improvements.
+Update dependencies.
+Fehlerkorrekturen.

@@ -1,3 +1,21 @@
-Die MOROway App ermöglicht es Ihnen einige Züge und Autos der MORO Modellbahn virtuell zu steuern. Sie können somit auch unterwegs Lokführer spielen und Modellbahnfahrten aus der Vogelperspektive genießen.
+Die MOROway App ermöglicht es Ihnen einige Züge und Autos zu steuern, Weichen zu stellen und Modellbahnfahrten aus der Vogelperspektive zu genießen.
 
-Bedienung: Steuern Sie die Züge von MOROway mittels Klick auf den Trafo rechts im Bild. Wechseln Sie zwischen den Zügen, indem Sie den Umschalter links betätigen.
+🚉 Züge:
+Sie können sieben Züge in zwei Kreisen steuern.
+
+🕹️ Bedienung:
+Steuern Sie die Züge von MOROway mittels Klick auf den Trafo rechts im Bild. Wählen Sie einen Zug aus, indem Sie den Umschalter links betätigen.
+Alternativ können Sie den gewünschten Zug auch einfach anklicken oder das Zugkontrollzentrum nutzen.
+
+🏎️ Autos:
+Die drei Autos können einzeln gesteuert werden oder automatisch fahren.
+ 
+🌆 3D:
+Als Alternative zur Vogelperspektive gibt es eine einfache 3D-Ansicht.
+
+Weitere Funktionen:
+🔉 Hören Sie den Zügen zu mit den Audio-Effekten.
+👁️ Entspannen Sie sich im Demo-Modus.
+🎮 Mit Freunden spielen im Mehrspieler-Modus.
+🖼️ Zoomen und Neigen (3D) mit Gesten (Touch, Maus, Tastatur).
+❓ Detaillierte Information auf der Hilfe-Seite der App.

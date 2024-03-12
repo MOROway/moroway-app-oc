@@ -26,6 +26,43 @@ cd $(dirname "$0") || exit 3
 rm -r moroway-app-oc
 cp -r "$output_dir_build" moroway-app-oc
 
+# Set Metadata
+for lang in "$working_dir_build/metadata"/*; do
+	lang=$(basename "$lang")
+	if [[ -d fastlane/metadata/android/"$lang"/ ]]; then
+		file="$working_dir_build/metadata/$lang/application-name.txt"
+		file_out=fastlane/metadata/android/"$lang"/title.txt
+		if [[ -f "$file" ]]; then
+			cat "$file" >"$file_out"
+		elif [[ -f "$file_out" ]]; then
+			rm "$file_out"
+		fi
+		file="$working_dir_build/metadata/$lang/description.txt"
+		file_out=fastlane/metadata/android/"$lang"/full_description.txt
+		if [[ -f "$file" ]]; then
+			cat "$file" >"$file_out"
+			file_extra_lang="$working_dir_build/metadata/$lang/description-extra.txt"
+			file_extra_default="$working_dir_build/metadata/default/description-extra.txt"
+			if [[ -f "$file_extra_lang" ]]; then
+				echo -ne "\n" >>"$file_out"
+				cat "$file_extra_lang" >>"$file_out"
+			elif [[ -f "$file_extra_default" ]]; then
+				echo -ne "\n" >>"$file_out"
+				cat "$file_extra_default" >>"$file_out"
+			fi
+		elif [[ -f "$file_out" ]]; then
+			rm "$file_out"
+		fi
+		file="$working_dir_build/metadata/$lang/description-short.txt"
+		file_out=fastlane/metadata/android/"$lang"/short_description.txt
+		if [[ -f "$file" ]]; then
+			cat "$file" >"$file_out"
+		elif [[ -f "$file_out" ]]; then
+			rm "$file_out"
+		fi
+	fi
+done
+
 # Set Changelog
 version_long=$(echo "$version" | sed 's/\.\([0-9]\)/.0\1/g' | sed 's/\.0\([0-9]\{2\}\)/\1/g' | sed 's/\.//g')
 for lang in "$working_dir_build/changelogs"/*; do

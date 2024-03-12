@@ -10,4 +10,4 @@ Links to original projects' source code:
 
 - <https://github.com/google/material-design-icons> (icon font; by Google)
 
-- <https://github.com/google/fonts/tree/master/apache/roboto> (text font; by Google)
+- <https://github.com/google/fonts/tree/master/ofl/roboto> (text font; by Google)

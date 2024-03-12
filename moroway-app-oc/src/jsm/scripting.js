@@ -45,6 +45,9 @@ function drawImage(pic, x, y, width, height, cxt, sx, sy, sWidth, sHeight) {
         cxt.drawImage(pic, Math.floor(sx), Math.floor(sy), Math.floor(sWidth), Math.floor(sHeight), Math.floor(x), Math.floor(y), Math.floor(width), Math.floor(height));
     }
 }
+function resetGestures() {
+    hardware.mouse.isHold = hardware.mouse.isWheelHold = hardware.mouse.isDrag = controlCenter.mouse.hold = false;
+}
 function resetScale() {
     client.zoomAndTilt.realScale = 1;
     client.zoomAndTilt.pinchScale = 1;
@@ -80,8 +83,8 @@ function getFontSize(font, unit) {
     return parseInt(font.substr(0, font.length - (font.length - font.indexOf(unit))), 10);
 }
 function onVisibilityChange() {
+    resetGestures();
     client.hidden = document.visibilityState == "hidden";
-    hardware.mouse.isHold = hardware.mouse.isDrag = controlCenter.mouse.hold = false;
     hardware.keyboard.keysHold = [];
     playAndPauseAudio();
 }
@@ -1000,8 +1003,8 @@ function getGesture(gesture) {
                 client.zoomAndTilt.pinchY -= gesture.deltaY / client.zoomAndTilt.realScale;
                 break;
             case "tilt":
-                client.zoomAndTilt.tiltX -= gesture.deltaX / client.zoomAndTilt.realScale;
-                client.zoomAndTilt.tiltY -= gesture.deltaY / client.zoomAndTilt.realScale;
+                client.zoomAndTilt.tiltX -= gesture.deltaX;
+                client.zoomAndTilt.tiltY -= gesture.deltaY;
                 break;
         }
         client.zoomAndTilt.offsetX = (canvas.width / 2 - client.zoomAndTilt.pinchX) * client.zoomAndTilt.realScale;
@@ -1165,6 +1168,11 @@ function onMouseMove(event) {
             hardware.mouse.isHold = false;
         }
     }
+    else if (gui.three && hardware.mouse.isWheelHold) {
+        var deltaX = 5 * (hardware.mouse.moveX - event.clientX * client.devicePixelRatio);
+        var deltaY = 5 * (hardware.mouse.moveY - event.clientY * client.devicePixelRatio);
+        getGesture({ type: "tilt", deltaX: deltaX, deltaY: deltaY });
+    }
     hardware.mouse.moveX = event.clientX * client.devicePixelRatio;
     hardware.mouse.moveY = event.clientY * client.devicePixelRatio;
 }
@@ -1172,19 +1180,20 @@ function onMouseDown(event) {
     event.preventDefault();
     client.chosenInputMethod = "mouse";
     hardware.lastInputMouse = hardware.mouse.downTime = Date.now();
-    hardware.mouse.isHold = (event.which == undefined || event.which == 1) && !gui.controlCenter && !gui.konamiOverlay;
-    controlCenter.mouse.hold = (event.which == undefined || event.which == 1) && gui.controlCenter && !gui.konamiOverlay;
+    hardware.mouse.isHold = event.button == 0 && !gui.controlCenter && !gui.konamiOverlay;
+    controlCenter.mouse.hold = event.button == 0 && gui.controlCenter && !gui.konamiOverlay;
+    hardware.mouse.isWheelHold = event.button == 1 && !gui.controlCenter && !gui.konamiOverlay;
     hardware.mouse.moveX = hardware.mouse.downX = event.clientX * client.devicePixelRatio;
     hardware.mouse.moveY = hardware.mouse.downY = event.clientY * client.devicePixelRatio;
 }
 function onMouseUp(event) {
     event.preventDefault();
+    resetGestures();
     client.chosenInputMethod = "mouse";
     hardware.mouse.upX = event.clientX * client.devicePixelRatio;
     hardware.mouse.upY = event.clientY * client.devicePixelRatio;
     hardware.mouse.upTime = Date.now();
-    hardware.mouse.isHold = hardware.mouse.isDrag = controlCenter.mouse.hold = false;
-    controlCenter.mouse.clickEvent = event.which == 1 && gui.controlCenter && !gui.konamiOverlay;
+    controlCenter.mouse.clickEvent = event.button == 0 && gui.controlCenter && !gui.konamiOverlay;
 }
 function onMouseEnter(event) {
     client.chosenInputMethod = "mouse";
@@ -1192,9 +1201,9 @@ function onMouseEnter(event) {
 }
 function onMouseOut(event) {
     event.preventDefault();
+    resetGestures();
     client.chosenInputMethod = null;
     hardware.mouse.out = true;
-    hardware.mouse.isHold = hardware.mouse.isDrag = controlCenter.mouse.hold = false;
     hardware.keyboard.keysHold = [];
 }
 function onMouseWheel(event) {
@@ -1223,9 +1232,9 @@ function onMouseWheel(event) {
         }
     }
     else {
+        resetGestures();
         hardware.mouse.wheelScrolls = !gui.controlCenter && !gui.konamiOverlay;
         controlCenter.mouse.wheelScrolls = gui.controlCenter && !gui.konamiOverlay;
-        hardware.mouse.isHold = hardware.mouse.isDrag = controlCenter.mouse.hold = false;
         hardware.mouse.wheelX = event.clientX * client.devicePixelRatio;
         hardware.mouse.wheelY = event.clientY * client.devicePixelRatio;
         hardware.mouse.wheelScrollX = event.deltaX;
@@ -1262,27 +1271,27 @@ function getTouchMove(event) {
         var deltaX = -5 * (hardware.mouse.moveX - event.touches[0].clientX * client.devicePixelRatio);
         var deltaY = -5 * (hardware.mouse.moveY - event.touches[0].clientY * client.devicePixelRatio);
         if (client.zoomAndTilt.realScale > 1 && Math.max(Math.abs(deltaX), Math.abs(deltaY)) > Math.min(canvas.width, canvas.height) / 30 && notInTransformerInput(event.touches[0].clientX * client.devicePixelRatio, event.touches[0].clientY * client.devicePixelRatio)) {
+            resetGestures();
             getGesture({ type: "swipe", deltaX: deltaX / 4, deltaY: deltaY / 4 });
             if (typeof clickTimeOut !== "undefined") {
                 window.clearTimeout(clickTimeOut);
                 clickTimeOut = null;
             }
             hardware.mouse.isDrag = true;
-            hardware.mouse.isHold = false;
         }
         hardware.mouse.moveX = event.touches[0].clientX * client.devicePixelRatio;
         hardware.mouse.moveY = event.touches[0].clientY * client.devicePixelRatio;
     }
     else if (event.touches.length == 2) {
+        resetGestures();
         if (typeof clickTimeOut !== "undefined") {
             window.clearTimeout(clickTimeOut);
             clickTimeOut = null;
         }
-        hardware.mouse.isHold = false;
         var deltaX = -(hardware.mouse.moveX - event.touches[1].clientX * client.devicePixelRatio);
         var deltaY = -(hardware.mouse.moveY - event.touches[1].clientY * client.devicePixelRatio);
         var hypot = Math.hypot(event.touches[0].clientX - event.touches[1].clientX, event.touches[0].clientY - event.touches[1].clientY);
-        if (Math.abs(deltaX) > background.width / 20 || Math.abs(deltaY) > background.width / 20 || Math.abs(hypot - client.zoomAndTilt.pinchHypotDown) > background.width / 20) {
+        if (Math.abs(deltaX) > background.width / 20 || Math.abs(deltaY) > background.width / 20 || Math.abs(hypot - client.zoomAndTilt.pinchHypotDown) > background.width / 20 || typeof client.zoomAndTilt.pinchHypot != "undefined" || client.zoomAndTilt.pinchGestureIsTilt) {
             if (typeof client.zoomAndTilt.pinchHypot == "undefined" && !client.zoomAndTilt.pinchGestureIsTilt) {
                 if (Math.abs(hypot - client.zoomAndTilt.pinchHypotDown) < background.width / 50) {
                     client.zoomAndTilt.tiltXOld = ((event.touches[0].clientX + event.touches[1].clientX) / 2) * client.devicePixelRatio;
@@ -1303,11 +1312,13 @@ function getTouchMove(event) {
                 }
             }
             if (client.zoomAndTilt.pinchGestureIsTilt) {
-                var deltaX = -(client.zoomAndTilt.tiltXOld - ((event.touches[0].clientX + event.touches[1].clientX) / 2) * client.devicePixelRatio);
-                var deltaY = -(client.zoomAndTilt.tiltYOld - ((event.touches[0].clientY + event.touches[1].clientY) / 2) * client.devicePixelRatio);
-                getGesture({ type: "tilt", deltaX: -deltaX * 5, deltaY: -deltaY * 5 });
-                client.zoomAndTilt.tiltXOld = ((event.touches[0].clientX + event.touches[1].clientX) / 2) * client.devicePixelRatio;
-                client.zoomAndTilt.tiltYOld = ((event.touches[0].clientY + event.touches[1].clientY) / 2) * client.devicePixelRatio;
+                var tiltXNew = ((event.touches[0].clientX + event.touches[1].clientX) / 2) * client.devicePixelRatio;
+                var tiltYNew = ((event.touches[0].clientY + event.touches[1].clientY) / 2) * client.devicePixelRatio;
+                var deltaX = 3 * (client.zoomAndTilt.tiltXOld - tiltXNew);
+                var deltaY = 3 * (client.zoomAndTilt.tiltYOld - tiltYNew);
+                getGesture({ type: "tilt", deltaX: deltaX, deltaY: deltaY });
+                client.zoomAndTilt.tiltXOld = tiltXNew;
+                client.zoomAndTilt.tiltYOld = tiltYNew;
             }
             else {
                 getGesture({ type: "pinch", scale: hypot / client.zoomAndTilt.pinchHypot, deltaX: client.zoomAndTilt.pinchX, deltaY: client.zoomAndTilt.pinchY });
@@ -1315,11 +1326,11 @@ function getTouchMove(event) {
         }
     }
     else {
+        resetGestures();
         if (typeof clickTimeOut !== "undefined") {
             window.clearTimeout(clickTimeOut);
             clickTimeOut = null;
         }
-        hardware.mouse.isHold = false;
     }
 }
 function getTouchStart(event) {
@@ -1328,22 +1339,23 @@ function getTouchStart(event) {
     var xTS = event.changedTouches[0].clientX * client.devicePixelRatio;
     var yTS = event.changedTouches[0].clientY * client.devicePixelRatio;
     if (event.touches.length == 1 && Math.max(hardware.mouse.moveX, xTS) < 1.1 * Math.min(hardware.mouse.moveX, xTS) && Math.max(hardware.mouse.moveY, yTS) < 1.1 * Math.min(hardware.mouse.moveY, yTS) && Date.now() - hardware.mouse.downTime < doubleTouchTime && Date.now() - hardware.mouse.upTime < doubleTouchTime && notInTransformerTrainSwitch(xTS, yTS) && notInTransformerInput(xTS, yTS)) {
+        resetGestures();
         if (typeof clickTimeOut !== "undefined") {
             window.clearTimeout(clickTimeOut);
             clickTimeOut = null;
         }
         getGesture({ type: "doubletap", deltaX: xTS, deltaY: yTS });
-        hardware.mouse.isHold = hardware.mouse.isDrag = false;
     }
     else if (event.touches.length == 3) {
+        resetGestures();
         if (typeof clickTimeOut !== "undefined") {
             window.clearTimeout(clickTimeOut);
             clickTimeOut = null;
         }
         controlCenter.mouse.prepare = true;
-        hardware.mouse.isHold = hardware.mouse.isDrag = false;
     }
     else {
+        resetGestures();
         if (event.touches.length > 1 && typeof clickTimeOut !== "undefined") {
             window.clearTimeout(clickTimeOut);
             clickTimeOut = null;
@@ -1354,13 +1366,13 @@ function getTouchStart(event) {
         hardware.lastInputTouch = hardware.mouse.downTime = Date.now();
         hardware.mouse.moveX = hardware.mouse.downX = xTS;
         hardware.mouse.moveY = hardware.mouse.downY = yTS;
-        hardware.mouse.isDrag = false;
         hardware.mouse.isHold = event.touches.length == 1 && !gui.controlCenter && !gui.konamiOverlay;
         controlCenter.mouse.hold = event.touches.length == 1 && gui.controlCenter && !gui.konamiOverlay;
     }
 }
 function getTouchEnd(event) {
     event.preventDefault();
+    resetGestures();
     client.chosenInputMethod = "touch";
     if (event.touches.length == 1) {
         getGesture({ type: "pinchend" });
@@ -1372,13 +1384,12 @@ function getTouchEnd(event) {
     hardware.mouse.upX = event.changedTouches[0].clientX * client.devicePixelRatio;
     hardware.mouse.upY = event.changedTouches[0].clientY * client.devicePixelRatio;
     hardware.mouse.upTime = Date.now();
-    hardware.mouse.isHold = hardware.mouse.isDrag = controlCenter.mouse.hold = false;
     controlCenter.mouse.clickEvent = gui.controlCenter && !gui.konamiOverlay;
-    if (controlCenter.mouse.prepare) {
+    if (controlCenter.mouse.prepare && event.touches.length == 0) {
         if (!controlCenter.showCarCenter && gui.controlCenter && !gui.konamiOverlay && (client.zoomAndTilt.realScale == 1 || gui.three)) {
             controlCenter.showCarCenter = true;
             notify("#canvas-notifier", getString("appScreenCarControlCenterTitle"), NOTIFICATION_PRIO_LOW, 1000, null, null, client.y + menus.outerContainer.height);
-            controlCenter.mouse.prepare = false;
+            controlCenter.mouse.clickEvent = controlCenter.mouse.hold = controlCenter.mouse.prepare = false;
         }
         else {
             gui.controlCenter = !gui.controlCenter && !gui.konamiOverlay && (client.zoomAndTilt.realScale == 1 || gui.three);
@@ -1393,8 +1404,8 @@ function getTouchEnd(event) {
     }
 }
 function getTouchCancel(event) {
+    resetGestures();
     client.chosenInputMethod = "touch";
-    hardware.mouse.isHold = hardware.mouse.isDrag = controlCenter.mouse.hold = false;
     hardware.keyboard.keysHold = [];
 }
 function onKeyDown(event) {
@@ -1466,12 +1477,14 @@ function onKeyDown(event) {
         konamiState = -1;
         gui.konamiOverlay = true;
         drawBackground();
+        background3D.animateBehind(true);
     }
     else if (konamiState < 0 && (event.key == "Enter" || event.key == " " || event.key == "a" || event.key == "b")) {
         konamiState = konamiState > -2 ? --konamiState : 0;
         gui.konamiOverlay = false;
         if (konamiState == 0) {
             drawBackground();
+            background3D.animateBehind(true);
         }
     }
     else if (konamiState > 0) {
@@ -2458,6 +2471,9 @@ function drawObjects() {
         contextForeground.clearRect(0, 0, canvasForeground.width, canvasForeground.height);
         contextForeground.setTransform(1, 0, 0, 1, 0, 0);
         background3D.behind.style.display = "block";
+        if (background3D.behindClone) {
+            background3D.behindClone.style.display = "block";
+        }
         three.renderer.domElement.style.display = "block";
         /////THREE.JS/Background/////
         background3D.animateBehind();
@@ -2469,6 +2485,9 @@ function drawObjects() {
         canvasSemiForeground.style.display = "";
         canvasForeground.style.display = "";
         background3D.behind.style.display = "none";
+        if (background3D.behindClone) {
+            background3D.behindClone.style.display = "none";
+        }
         three.renderer.domElement.style.display = "none";
         context.clearRect(0, 0, canvas.width, canvas.height);
         context.setTransform(client.zoomAndTilt.realScale, 0, 0, client.zoomAndTilt.realScale, (-(client.zoomAndTilt.realScale - 1) * canvas.width) / 2 + client.zoomAndTilt.offsetX, (-(client.zoomAndTilt.realScale - 1) * canvas.height) / 2 + client.zoomAndTilt.offsetY);
@@ -2498,16 +2517,16 @@ function drawObjects() {
     var deltaX = 0;
     var deltaY = 0;
     if (hardware.keyboard.keysHold["ArrowLeft"] && hardware.keyboard.keysHold["ArrowLeft"].active && hardware.keyboard.keysHold["ArrowLeft"].ctrlKey) {
-        deltaX += (canvas.width * client.zoomAndTilt.realScale) / deltaDiv;
+        deltaX += canvas.width / deltaDiv;
     }
     if (hardware.keyboard.keysHold["ArrowUp"] && hardware.keyboard.keysHold["ArrowUp"].active && hardware.keyboard.keysHold["ArrowUp"].ctrlKey) {
-        deltaY += (canvas.height * client.zoomAndTilt.realScale) / deltaDiv;
+        deltaY += canvas.height / deltaDiv;
     }
     if (hardware.keyboard.keysHold["ArrowRight"] && hardware.keyboard.keysHold["ArrowRight"].active && hardware.keyboard.keysHold["ArrowRight"].ctrlKey) {
-        deltaX -= (canvas.width * client.zoomAndTilt.realScale) / deltaDiv;
+        deltaX -= canvas.width / deltaDiv;
     }
     if (hardware.keyboard.keysHold["ArrowDown"] && hardware.keyboard.keysHold["ArrowDown"].active && hardware.keyboard.keysHold["ArrowDown"].ctrlKey) {
-        deltaY -= (canvas.height * client.zoomAndTilt.realScale) / deltaDiv;
+        deltaY -= canvas.height / deltaDiv;
     }
     if (deltaX != 0 || deltaY != 0) {
         getGesture({ type: "tilt", deltaX: deltaX, deltaY: deltaY });
@@ -2637,7 +2656,9 @@ function drawObjects() {
                         if (hardware.mouse.isHold) {
                             parent.callback(raycasterDown.intersectObject(parent).length > 0, raycasterUp.intersectObject(parent).length > 0);
                         }
-                        hardware.mouse.cursor = "pointer";
+                        if (!hardware.mouse.isDrag) {
+                            hardware.mouse.cursor = "pointer";
+                        }
                     }
                 }
                 else if (hardware.mouse.isHold && raycasterDown.intersectObjects(three.scene.children).length == 0 && ((hardware.lastInputTouch < hardware.lastInputMouse && hardware.mouse.downTime - hardware.mouse.upTime > 0 && hardware.mouse.downTime - hardware.mouse.upTime < doubleClickTime && !hardware.mouse.lastClickDoubleClick && raycasterUp.intersectObjects(three.scene.children).length == 0) || (hardware.lastInputTouch > hardware.lastInputMouse && Date.now() - hardware.mouse.downTime > longTouchTime))) {
@@ -3935,34 +3956,31 @@ function drawObjects() {
         controlCenter.showCarCenter = false;
         gui.controlCenter = false;
     }
-    if (gui.three) {
-        canvasForeground.style.cursor = hardware.mouse.cursor;
-    }
-    else {
-        /////BACKGROUND/Margins-2////
-        if (konamiState < 0) {
+    /////BACKGROUND/Margins-2////
+    if (konamiState < 0) {
+        var bgGradient = contextForeground.createRadialGradient(0, canvas.height / 2, canvas.height / 2, canvas.width + canvas.height / 2, canvas.height / 2, canvas.height / 2);
+        bgGradient.addColorStop(0, "red");
+        bgGradient.addColorStop(0.2, "orange");
+        bgGradient.addColorStop(0.4, "yellow");
+        bgGradient.addColorStop(0.6, "lightgreen");
+        bgGradient.addColorStop(0.8, "blue");
+        bgGradient.addColorStop(1, "violet");
+        if (gui.konamiOverlay) {
+            hardware.mouse.cursor = "default";
+            contextForeground.save();
+            contextForeground.fillStyle = "black";
+            contextForeground.fillRect(background.x, background.y, background.width, background.height);
+            contextForeground.textAlign = "center";
+            contextForeground.fillStyle = bgGradient;
+            var konamiText = getString("appScreenKonami", "!");
+            contextForeground.font = measureFontSize(konamiText, "monospace", 100, background.width / 1.1, 5, background.width / 300);
+            contextForeground.fillText(konamiText, background.x + background.width / 2, background.y + background.height / 2);
+            contextForeground.fillText(getString("appScreenKonamiIconRow"), background.x + background.width / 2, background.y + background.height / 4);
+            contextForeground.fillText(getString("appScreenKonamiIconRow"), background.x + background.width / 2, background.y + background.height / 2 + background.height / 4);
+            contextForeground.restore();
+        }
+        if (!gui.three) {
             context.save();
-            var bgGradient = context.createRadialGradient(0, canvas.height / 2, canvas.height / 2, canvas.width + canvas.height / 2, canvas.height / 2, canvas.height / 2);
-            bgGradient.addColorStop(0, "red");
-            bgGradient.addColorStop(0.2, "orange");
-            bgGradient.addColorStop(0.4, "yellow");
-            bgGradient.addColorStop(0.6, "lightgreen");
-            bgGradient.addColorStop(0.8, "blue");
-            bgGradient.addColorStop(1, "violet");
-            if (konamiState == -1) {
-                hardware.mouse.cursor = "default";
-                contextForeground.save();
-                contextForeground.fillStyle = "black";
-                contextForeground.fillRect(background.x, background.y, background.width, background.height);
-                contextForeground.textAlign = "center";
-                contextForeground.fillStyle = bgGradient;
-                var konamiText = getString("appScreenKonami", "!");
-                contextForeground.font = measureFontSize(konamiText, "monospace", 100, background.width / 1.1, 5, background.width / 300);
-                contextForeground.fillText(konamiText, background.x + background.width / 2, background.y + background.height / 2);
-                contextForeground.fillText(getString("appScreenKonamiIconRow"), background.x + background.width / 2, background.y + background.height / 4);
-                contextForeground.fillText(getString("appScreenKonamiIconRow"), background.x + background.width / 2, background.y + background.height / 2 + background.height / 4);
-                contextForeground.restore();
-            }
             context.fillStyle = bgGradient;
             context.fillRect(0, 0, background.x, canvas.height);
             context.fillRect(0, 0, canvas.width, background.y);
@@ -3970,7 +3988,12 @@ function drawObjects() {
             context.fillRect(0, background.y + background.height + menus.outerContainer.height * client.devicePixelRatio, canvas.width, background.y);
             context.restore();
         }
-        /////CURSOR/////
+    }
+    /////CURSOR/////
+    if (gui.three) {
+        canvasForeground.style.cursor = client.chosenInputMethod != "mouse" || gui.demo ? "none" : hardware.mouse.cursor;
+    }
+    else {
         if (getSetting("cursorascircle") && client.chosenInputMethod == "mouse" && (hardware.mouse.isMoving || hardware.mouse.isHold || client.zoomAndTilt.realScale > 1)) {
             contextForeground.save();
             contextForeground.translate(adjustScaleX(hardware.mouse.moveX), adjustScaleY(hardware.mouse.moveY));
@@ -6612,19 +6635,26 @@ window.onload = function () {
                 background3D.animateBehind = function (reset) {
                     if (reset === void 0) { reset = false; }
                     if (reset) {
+                        background3D.behind.style.transform = "";
+                        var behindCloneId = background3D.behind.id + "-clone";
+                        var oldBehindClone = document.getElementById(behindCloneId);
+                        if (oldBehindClone != null) {
+                            oldBehindClone.parentNode.removeChild(oldBehindClone);
+                        }
                         background3D.animateBehindFac = 0;
                         background3D.animateBehindStars = [];
                         if (three.night) {
                             var length_1 = 200 + 100 * Math.random();
                             var starBaseColor = 100;
                             for (var i_1 = 0; i_1 < length_1; i_1++) {
-                                var alpha = 0.25 + Math.random() / 2;
-                                var starColorRed = starBaseColor + Math.round((255 - starBaseColor) * Math.random());
-                                var starColorGreen = Math.round(0.65 * starColorRed + 0.35 * starColorRed * Math.random());
+                                var alpha = konamiState < 0 ? 1 : 0.25 + Math.random() / 2;
+                                var starColorRed = konamiState < 0 ? Math.round(Math.random() * 255) : starBaseColor + Math.round((255 - starBaseColor) * Math.random());
+                                var starColorGreen = konamiState < 0 ? Math.round(Math.random() * 255) : Math.round(0.65 * starColorRed + 0.35 * starColorRed * Math.random());
+                                var starColorBlue = konamiState < 0 ? Math.round(Math.random() * 255) : starBaseColor;
                                 var left = Math.random() * background3D.behind.width;
                                 var top_1 = Math.random() * background3D.behind.height;
                                 var radius = Math.min(background3D.behind.width, background3D.behind.height) / 1000 + (Math.random() * Math.min(background3D.behind.width, background3D.behind.height)) / 500;
-                                var fill = "rgba(" + starColorRed + "," + starColorGreen + "," + starBaseColor + "," + alpha + ")";
+                                var fill = "rgba(" + starColorRed + "," + starColorGreen + "," + starColorBlue + "," + alpha + ")";
                                 background3D.animateBehindStars.push({ left: left, top: top_1, radius: radius, fill: fill });
                                 background3D.animateBehindStars.push({ left: left + background3D.behind.width, top: top_1, radius: radius, fill: fill });
                             }
@@ -6644,19 +6674,22 @@ window.onload = function () {
                                 background3D.animateBehindStars.push({ left: left, top: top_2, radius: radius, fill: fill });
                             }
                         }
-                    }
-                    if (three.night) {
-                        background3D.animateBehindFac += 0.00025;
-                        if (background3D.animateBehindFac >= 1) {
-                            background3D.animateBehindFac -= 1;
-                        }
-                    }
-                    if (reset || three.night) {
                         var behindContext = background3D.behind.getContext("2d");
                         behindContext.save();
-                        behindContext.fillStyle = "black";
+                        if (konamiState < 0 && !three.night) {
+                            var bgGradient = behindContext.createRadialGradient(0, canvas.height / 2, canvas.height / 2, canvas.width + canvas.height / 2, canvas.height / 2, canvas.height / 2);
+                            bgGradient.addColorStop(0, "#550400");
+                            bgGradient.addColorStop(0.2, "#542400");
+                            bgGradient.addColorStop(0.4, "#442200");
+                            bgGradient.addColorStop(0.6, "#054000");
+                            bgGradient.addColorStop(0.8, "#040037");
+                            bgGradient.addColorStop(1, "#350037");
+                            behindContext.fillStyle = bgGradient;
+                        }
+                        else {
+                            behindContext.fillStyle = "black";
+                        }
                         behindContext.fillRect(0, 0, background3D.behind.width, background3D.behind.height);
-                        behindContext.translate(-background3D.animateBehindFac * background3D.behind.width, 0);
                         for (var i_3 = 0; i_3 < background3D.animateBehindStars.length; i_3++) {
                             behindContext.save();
                             behindContext.fillStyle = background3D.animateBehindStars[i_3].fill;
@@ -6667,6 +6700,24 @@ window.onload = function () {
                             behindContext.restore();
                         }
                         behindContext.restore();
+                        if (three.night) {
+                            background3D.behindClone = background3D.behind.cloneNode();
+                            background3D.behindClone.id = behindCloneId;
+                            background3D.behind.parentNode.insertBefore(background3D.behindClone, background3D.behind);
+                            var behindCloneContext = background3D.behindClone.getContext("2d");
+                            behindCloneContext.drawImage(background3D.behind, 0, 0);
+                        }
+                        else {
+                            background3D.behindClone = null;
+                        }
+                    }
+                    if (three.night) {
+                        background3D.animateBehindFac += 0.00025;
+                        if (background3D.animateBehindFac >= 1) {
+                            background3D.animateBehindFac -= 1;
+                        }
+                        background3D.behind.style.transform = "translateX(" + -background3D.animateBehindFac * background3D.behind.offsetWidth + "px)";
+                        background3D.behindClone.style.transform = "translateX(" + (1 - background3D.animateBehindFac) * background3D.behind.offsetWidth + "px)";
                     }
                 };
                 three.camera = new THREE.PerspectiveCamera(60, client.width / client.height, 0.1, 10);

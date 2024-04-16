@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="de.moroway.oc" version="9.1.4" xmlns="http://www.w3.org/ns/widgets"
+<widget id="de.moroway.oc" version="9.1.5" xmlns="http://www.w3.org/ns/widgets"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>MOROway</name>
@@ -23,30 +23,30 @@
         <preference name="AndroidWindowSplashScreenBackground" value="#303030" />
         <preference name="Fullscreen" value="true" />
         <preference name="AndroidLaunchMode" value="singleTask" />
-        <icon monochrome="res/icon/android/ldpi_monochrome.png"
-            background="res/icon/android/ldpi.png" density="ldpi"
-            foreground="res/icon/android/ldpi_foreground.png" src="res/icon/android/ldpi.png" />
-        <icon monochrome="res/icon/android/mdpi_monochrome.png"
-            background="res/icon/android/mdpi.png" density="mdpi"
-            foreground="res/icon/android/mdpi_foreground.png" src="res/icon/android/mdpi.png" />
-        <icon monochrome="res/icon/android/hdpi_monochrome.png"
-            background="res/icon/android/hdpi.png" density="hdpi"
-            foreground="res/icon/android/hdpi_foreground.png" src="res/icon/android/hdpi.png" />
-        <icon monochrome="res/icon/android/xhdpi_monochrome.png"
-            background="res/icon/android/xhdpi.png" density="xhdpi"
-            foreground="res/icon/android/xhdpi_foreground.png" src="res/icon/android/xhdpi.png" />
-        <icon monochrome="res/icon/android/xxhdpi_monochrome.png"
-            background="res/icon/android/xxhdpi.png" density="xxhdpi"
-            foreground="res/icon/android/xxhdpi_foreground.png" src="res/icon/android/xxhdpi.png" />
-        <icon monochrome="res/icon/android/xxxhdpi_monochrome.png"
-            background="res/icon/android/xxxhdpi.png" density="xxxhdpi"
-            foreground="res/icon/android/xxxhdpi_foreground.png" src="res/icon/android/xxxhdpi.png" />
+        <icon background="res/icon/android/ldpi.png" density="ldpi"
+            foreground="res/icon/android/ldpi_foreground.png"
+            monochrome="res/icon/android/ldpi_monochrome.png" src="res/icon/android/ldpi.png" />
+        <icon background="res/icon/android/mdpi.png" density="mdpi"
+            foreground="res/icon/android/mdpi_foreground.png"
+            monochrome="res/icon/android/mdpi_monochrome.png" src="res/icon/android/mdpi.png" />
+        <icon background="res/icon/android/hdpi.png" density="hdpi"
+            foreground="res/icon/android/hdpi_foreground.png"
+            monochrome="res/icon/android/hdpi_monochrome.png" src="res/icon/android/hdpi.png" />
+        <icon background="res/icon/android/xhdpi.png" density="xhdpi"
+            foreground="res/icon/android/xhdpi_foreground.png"
+            monochrome="res/icon/android/xhdpi_monochrome.png" src="res/icon/android/xhdpi.png" />
+        <icon background="res/icon/android/xxhdpi.png" density="xxhdpi"
+            foreground="res/icon/android/xxhdpi_foreground.png"
+            monochrome="res/icon/android/xxhdpi_monochrome.png" src="res/icon/android/xxhdpi.png" />
+        <icon background="res/icon/android/xxxhdpi.png" density="xxxhdpi"
+            foreground="res/icon/android/xxxhdpi_foreground.png"
+            monochrome="res/icon/android/xxxhdpi_monochrome.png" src="res/icon/android/xxxhdpi.png" />
         <edit-config file="app/src/main/AndroidManifest.xml" mode="merge"
             target="/manifest/application/activity[@android:name='MainActivity']">
             <activity android:screenOrientation="sensorLandscape" />
         </edit-config>
         <config-file parent="application/activity" target="AndroidManifest.xml">
-            <intent-filter android:label="MOROway OC" android:autoVerify="true">
+            <intent-filter android:autoVerify="true" android:label="MOROway OC">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
@@ -56,6 +56,5 @@
         </config-file>
     </platform>
     <plugin name="cordova-webintent" spec="~2.0.0" />
-    <plugin name="cordova-plugin-insomnia" spec="~4.3.0" />
     <plugin name="cordova-plugin-dialogs" spec="~2.0.2" />
 </widget>

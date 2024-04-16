@@ -1,8 +1,9 @@
 "use strict";
 import {followLink, LINK_STATE_INTERNAL_HTML} from "./common/follow_links.js";
-import {optionsMenuEditorHide, getMode} from "../jsm/scripting.js";
+import {APP_DATA} from "../jsm/common/app_data.js";
 import {getString} from "../jsm/common/string_tools.js";
 import {getSetting} from "../jsm/common/settings.js";
+import {optionsMenuEditorHide, getMode} from "../jsm/scripting.js";
 
 document.addEventListener("moroway-app-after-calc-options-menu-load", function () {
     optionsMenuEditorHide("canvas-team");
@@ -13,7 +14,6 @@ document.addEventListener("moroway-app-after-calc-options-menu-load", function (
 });
 
 document.addEventListener("deviceready", function () {
-    window.plugins.insomnia.keepAwake();
     document.addEventListener(
         "backbutton",
         function (e) {
@@ -35,4 +35,18 @@ document.addEventListener("deviceready", function () {
         },
         false
     );
+});
+
+document.addEventListener("moroway-app-keep-screen-alive", function (event) {
+    if (event.detail) {
+        if (event.detail.acquire) {
+            try {
+                navigator.wakeLock.request("screen");
+            } catch (error) {
+                if (APP_DATA.debug) {
+                    console.log("Wake-Lock-Error:", error);
+                }
+            }
+        }
+    }
 });

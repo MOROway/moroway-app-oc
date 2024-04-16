@@ -13,9 +13,6 @@ document.addEventListener("DOMContentLoaded", function () {
     document.querySelector("#legal-appoc-cordova-license").addEventListener("click", function () {
         followLink("licenses_platform/cordova", "_self", LINK_STATE_INTERNAL_LICENSE);
     });
-    document.querySelector("#legal-appoc-insomnia-license").addEventListener("click", function () {
-        followLink("licenses_platform/insomnia", "_self", LINK_STATE_INTERNAL_LICENSE);
-    });
     document.querySelector("#legal-appoc-webintent-license").addEventListener("click", function () {
         followLink("licenses_platform/webintent", "_self", LINK_STATE_INTERNAL_LICENSE);
     });

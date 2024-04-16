@@ -1,0 +1,2 @@
+3D-view: visualize hidden track.
+Only keep screen on during a game.

@@ -59,7 +59,6 @@ window.addEventListener("resize", function () {
 });
 
 document.addEventListener("deviceready", function () {
-    window.plugins.insomnia.keepAwake();
     document.addEventListener("backbutton", function () {
         navigator.app.exitApp();
     });

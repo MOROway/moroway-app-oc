@@ -156,7 +156,7 @@ function changeCOSection(cO, isFront, input1, currentObject, i, reverse) {
             var stillInside = (cO.y - background.y) / (currentObject.width - 2 * currentObject.bogieDistance * currentObject.width);
             if (realIsFront) {
                 currentObject.invisible = false;
-                currentObject.opacity = stillInside;
+                currentObject.opacity = trainParams.minOpacity + (1 - trainParams.minOpacity) * stillInside;
             }
             if (isFirst) {
                 trains[input1].mute = false;
@@ -193,7 +193,7 @@ function changeCOSection(cO, isFront, input1, currentObject, i, reverse) {
                 currentObject.invisible = true;
             }
             else {
-                currentObject.opacity = stillInside;
+                currentObject.opacity = trainParams.minOpacity + (1 - trainParams.minOpacity) * stillInside;
             }
             if (isLast) {
                 trains[input1].mute = true;
@@ -345,7 +345,7 @@ function changeCOSection(cO, isFront, input1, currentObject, i, reverse) {
                 currentObject.invisible = true;
             }
             else {
-                currentObject.opacity = stillInside;
+                currentObject.opacity = trainParams.minOpacity + (1 - trainParams.minOpacity) * stillInside;
             }
             if (isFirst) {
                 trains[input1].mute = true;
@@ -386,7 +386,7 @@ function changeCOSection(cO, isFront, input1, currentObject, i, reverse) {
             var stillInside = (background.width - cO.x + background.x) / (currentObject.width - 2 * currentObject.bogieDistance * currentObject.width);
             if (!realIsFront) {
                 currentObject.invisible = false;
-                currentObject.opacity = stillInside;
+                currentObject.opacity = trainParams.minOpacity + (1 - trainParams.minOpacity) * stillInside;
             }
             if (isLast) {
                 trains[input1].mute = false;
@@ -1737,8 +1737,8 @@ function animateObjects() {
                 if (currentObject.opacity == undefined) {
                     currentObject.opacity = 1;
                 }
-                else if (currentObject.opacity < 0) {
-                    currentObject.opacity = 0;
+                else if (currentObject.opacity < trainParams.minOpacity) {
+                    currentObject.opacity = trainParams.minOpacity;
                 }
                 else if (currentObject.opacity > 1) {
                     currentObject.opacity = 1;
@@ -1794,9 +1794,9 @@ function animateObjects() {
     }
     if (firstRun) {
         firstRun = false;
-        postMessage({ k: "ready", trains: trains, animateInterval: animateInterval });
+        postMessage({ k: "ready", trains: trains, rotationPoints: rotationPoints, animateInterval: animateInterval });
     }
-    postMessage({ k: "setTrains", trains: trains });
+    postMessage({ k: "setTrains", trains: trains, rotationPoints: rotationPoints });
     for (var i = 0; i < newCrash.length; i++) {
         postMessage({ k: "trainCrash", i: newCrash[i].i, j: newCrash[i].j });
     }
@@ -1947,7 +1947,7 @@ var trains = [
     }
 ];
 var trainPics;
-var trainParams = { selected: Math.floor(Math.random() * trains.length), margin: 25, innerCollisionFac: 0.5 };
+var trainParams = { selected: Math.floor(Math.random() * trains.length), margin: 25, innerCollisionFac: 0.5, minOpacity: 0.3 };
 var switches;
 var switchesBeforeAddSidings;
 var background;
@@ -2202,7 +2202,7 @@ onmessage = function (message) {
             switchesBeforeAddSidings[i] *= background.width / message.data.oldBackground.width;
         }
         postMessage({ k: "switches", switches: switches });
-        postMessage({ k: "setTrains", trains: trains, resized: true });
+        postMessage({ k: "setTrains", trains: trains, rotationPoints: rotationPoints, resized: true });
         saveTheGameSend();
     }
     else if (message.data.k == "train") {
@@ -2258,6 +2258,6 @@ onmessage = function (message) {
     }
     else if (message.data.k == "debug") {
         debug = true;
-        postMessage({ k: "debug", animateInterval: animateInterval, trains: trains, rotationPoints: rotationPoints, switchesBeforeFac: switchesBeforeFac, switchesBeforeAddSidings: switchesBeforeAddSidings });
+        postMessage({ k: "debug", animateInterval: animateInterval, trains: trains, switchesBeforeFac: switchesBeforeFac, switchesBeforeAddSidings: switchesBeforeAddSidings });
     }
 };

@@ -16,14 +16,8 @@ import { GLTFLoader } from "../lib/open_code/jsm/three.js/GLTFLoader.js";
  *             Helper functions            *
  ******************************************/
 function measureViewSpace() {
-    function isSmallDevice() {
-        return window.innerHeight < 290 || window.innerWidth < 750;
-    }
-    function isTinyDevice() {
-        return window.innerHeight < 250 || window.innerWidth < 600;
-    }
-    client.isSmall = isSmallDevice();
-    client.isTiny = isTinyDevice();
+    client.isSmall = window.innerHeight < 290 || window.innerWidth < 750;
+    client.isTiny = window.innerHeight < 250 || window.innerWidth < 600;
     client.devicePixelRatio = window.devicePixelRatio;
     client.width = window.innerWidth;
     client.height = window.innerHeight;
@@ -534,7 +528,7 @@ function calcMenusAndBackground(state) {
     }
     function createTrainAudio(cTrainNumber) {
         try {
-            fetch("./assets/audio_asset_" + cTrainNumber + ".mp3")
+            fetch("./assets/audio_asset_" + cTrainNumber + "." + soundFileExtension)
                 .then(function (response) {
                 if (response.ok) {
                     return response.arrayBuffer();
@@ -612,6 +606,7 @@ function calcMenusAndBackground(state) {
             }
         }
     }
+    var soundFileExtension = "ogg";
     var elementNormalMode = document.querySelector("#canvas-single");
     var elementTeamMode = document.querySelector("#canvas-team");
     var elementDemoMode = document.querySelector("#canvas-demo-mode");
@@ -726,7 +721,7 @@ function calcMenusAndBackground(state) {
                     audio.source = {};
                     audio.source.train = [];
                     try {
-                        fetch("./assets/audio_asset_crash.mp3")
+                        fetch("./assets/audio_asset_crash." + soundFileExtension)
                             .then(function (response) {
                             return response.arrayBuffer();
                         })
@@ -747,7 +742,7 @@ function calcMenusAndBackground(state) {
                         }
                     }
                     try {
-                        fetch("./assets/audio_asset_switch.mp3")
+                        fetch("./assets/audio_asset_switch." + soundFileExtension)
                             .then(function (response) {
                             return response.arrayBuffer();
                         })
@@ -1991,6 +1986,45 @@ function drawObjects() {
             drawTrain(i);
         }
     }
+    function trainInTrackElement(state) {
+        for (var i_1 = 0; i_1 < trains.length; i_1++) {
+            if ((trains[i_1].front.state == state || trains[i_1].back.state == state) && trains[i_1].opacity < 1) {
+                return true;
+            }
+            for (var j = 0; j < trains[i_1].cars.length; j++) {
+                if ((trains[i_1].cars[j].front.state == state || trains[i_1].cars[j].back.state == state) && trains[i_1].cars[j].opacity < 1) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    function drawContinueTrackElement(group, geometry, corrFac) {
+        var material = new THREE.LineBasicMaterial({ color: three.night ? 0x541e03 : 0x963c0e });
+        var objectA = new THREE.Line(geometry, material);
+        objectA.translateX((-corrFac * background.width) / 990000);
+        objectA.translateY(-background.width / 990000);
+        objectA.translateZ(-background.width / 1000000);
+        group.add(objectA);
+        var objectB = new THREE.Line(geometry, material);
+        objectB.translateX((corrFac * background.width) / 990000);
+        objectB.translateY(background.width / 990000);
+        objectB.translateZ(-background.width / 1000000);
+        group.add(objectB);
+    }
+    function drawContinueTrackLine(group, lineName, corrFac) {
+        if (corrFac === void 0) { corrFac = 1; }
+        var points = [];
+        points.push(new THREE.Vector3(three.calcScale() * ((rotationPoints.outer.rightSiding[lineName].x[0] - background.width / 2) / background.width), three.calcScale() * (-(rotationPoints.outer.rightSiding[lineName].y[0] - background.height / 2) / background.width) + three.calcPositionY(), -0));
+        points.push(new THREE.Vector3(three.calcScale() * ((rotationPoints.outer.rightSiding[lineName].x[1] - background.width / 2) / background.width), three.calcScale() * (-(rotationPoints.outer.rightSiding[lineName].y[1] - background.height / 2) / background.width) + three.calcPositionY(), -0));
+        drawContinueTrackElement(group, new THREE.BufferGeometry().setFromPoints(points), corrFac);
+    }
+    function drawContinueTrackCurve(group, curveName, corrFac) {
+        if (corrFac === void 0) { corrFac = 1; }
+        var curve = new THREE.CubicBezierCurve3(new THREE.Vector3(three.calcScale() * ((rotationPoints.outer.rightSiding[curveName].x[0] - background.width / 2) / background.width), three.calcScale() * (-(rotationPoints.outer.rightSiding[curveName].y[0] - background.height / 2) / background.width) + three.calcPositionY(), -0), new THREE.Vector3(three.calcScale() * ((rotationPoints.outer.rightSiding[curveName].x[1] - background.width / 2) / background.width), three.calcScale() * (-(rotationPoints.outer.rightSiding[curveName].y[1] - background.height / 2) / background.width) + three.calcPositionY(), -0), new THREE.Vector3(three.calcScale() * ((rotationPoints.outer.rightSiding[curveName].x[2] - background.width / 2) / background.width), three.calcScale() * (-(rotationPoints.outer.rightSiding[curveName].y[2] - background.height / 2) / background.width) + three.calcPositionY(), -0), new THREE.Vector3(three.calcScale() * ((rotationPoints.outer.rightSiding[curveName].x[3] - background.width / 2) / background.width), three.calcScale() * (-(rotationPoints.outer.rightSiding[curveName].y[3] - background.height / 2) / background.width) + three.calcPositionY(), -0));
+        var points = curve.getPoints(30);
+        drawContinueTrackElement(group, new THREE.BufferGeometry().setFromPoints(points), corrFac);
+    }
     function calcCars() {
         function calcCarsAutoMode() {
             function carAutoModeIsFutureCollision(i, k, stop, j) {
@@ -2547,7 +2581,7 @@ function drawObjects() {
                         trains3D[i].mesh.position.z -= (trains3D[i].positionZ / 5) * Math.random();
                     }
                 }
-                trains3D[i].mesh.visible = !train.invisible;
+                trains3D[i].mesh.visible = true; //Never truly invisible
                 setMaterialTransparent(trains3D[i].mesh, train.opacity);
                 trains3D[i].mesh.rotation.z = -train.displayAngle;
             }
@@ -2562,7 +2596,7 @@ function drawObjects() {
                             trains3D[i].cars[j].mesh.position.z -= (trains3D[i].cars[j].mesh.position.z / 5) * Math.random();
                         }
                     }
-                    trains3D[i].cars[j].mesh.visible = !car.invisible;
+                    trains3D[i].cars[j].mesh.visible = true; //Never truly invisible
                     setMaterialTransparent(trains3D[i].cars[j].mesh, car.opacity);
                     trains3D[i].cars[j].mesh.rotation.z = -car.displayAngle;
                 }
@@ -2646,10 +2680,10 @@ function drawObjects() {
                 mouseUp.x = (hardware.mouse.upX / client.devicePixelRatio / three.renderer.domElement.clientWidth) * 2 - 1;
                 mouseUp.y = (-hardware.mouse.upY / client.devicePixelRatio / three.renderer.domElement.clientHeight) * 2 + 1;
                 raycasterUp.setFromCamera(mouseUp, three.camera);
-                var intersects = raycasterMove.intersectObjects(three.scene.children);
+                var intersects = raycasterMove.intersectObjects(three.mainGroup.children);
                 if (intersects.length > 0) {
                     var parent = intersects[0].object;
-                    while (parent.parent.type != "Scene") {
+                    while (parent.parent.name != "main_group") {
                         parent = parent.parent;
                     }
                     if (parent && parent.visible && parent.callback) {
@@ -2661,7 +2695,7 @@ function drawObjects() {
                         }
                     }
                 }
-                else if (hardware.mouse.isHold && raycasterDown.intersectObjects(three.scene.children).length == 0 && ((hardware.lastInputTouch < hardware.lastInputMouse && hardware.mouse.downTime - hardware.mouse.upTime > 0 && hardware.mouse.downTime - hardware.mouse.upTime < doubleClickTime && !hardware.mouse.lastClickDoubleClick && raycasterUp.intersectObjects(three.scene.children).length == 0) || (hardware.lastInputTouch > hardware.lastInputMouse && Date.now() - hardware.mouse.downTime > longTouchTime))) {
+                else if (hardware.mouse.isHold && raycasterDown.intersectObjects(three.mainGroup.children).length == 0 && ((hardware.lastInputTouch < hardware.lastInputMouse && hardware.mouse.downTime - hardware.mouse.upTime > 0 && hardware.mouse.downTime - hardware.mouse.upTime < doubleClickTime && !hardware.mouse.lastClickDoubleClick && raycasterUp.intersectObjects(three.mainGroup.children).length == 0) || (hardware.lastInputTouch > hardware.lastInputMouse && Date.now() - hardware.mouse.downTime > longTouchTime))) {
                     if (typeof clickTimeOut !== "undefined") {
                         window.clearTimeout(clickTimeOut);
                         clickTimeOut = null;
@@ -2674,6 +2708,37 @@ function drawObjects() {
                 }
             }
         }
+        var continueTrackGroupName = "continue_track_group";
+        var continueTrackOldObject = three.scene.getObjectByName(continueTrackGroupName);
+        if (continueTrackOldObject) {
+            three.scene.remove(continueTrackOldObject);
+        }
+        var continueTrackNewObject = new THREE.Group();
+        continueTrackNewObject.name = continueTrackGroupName;
+        if (trainInTrackElement(212)) {
+            drawContinueTrackLine(continueTrackNewObject, "end", -1);
+        }
+        if (trainInTrackElement(213)) {
+            drawContinueTrackCurve(continueTrackNewObject, "continueCurve0", -1);
+        }
+        if (trainInTrackElement(214)) {
+            drawContinueTrackLine(continueTrackNewObject, "continueLine0", -1);
+            drawContinueTrackLine(continueTrackNewObject, "continueLine0");
+        }
+        if (trainInTrackElement(215)) {
+            drawContinueTrackCurve(continueTrackNewObject, "continueCurve1");
+        }
+        if (trainInTrackElement(216)) {
+            drawContinueTrackLine(continueTrackNewObject, "continueLine1");
+            drawContinueTrackLine(continueTrackNewObject, "continueLine1", -1);
+        }
+        if (trainInTrackElement(217)) {
+            drawContinueTrackCurve(continueTrackNewObject, "continueCurve2", -1);
+        }
+        if (trainInTrackElement(218)) {
+            drawContinueTrackLine(continueTrackNewObject, "rejoin", -1);
+        }
+        three.scene.add(continueTrackNewObject);
         three.animateLights();
         three.renderer.render(three.scene, three.camera);
     }
@@ -5170,6 +5235,221 @@ window.onload = function () {
                 textControl.elements.output.textContent = textControl.commands[command].action(commands);
             }
         });
+        //Switches
+        if (getSetting("saveGame") && !onlineGame.enabled && !gui.demo && savedGameTrains != null && savedGameSwitches != null && savedGameBg != null) {
+            var savedSwitches = JSON.parse(savedGameSwitches);
+            Object.keys(savedSwitches).forEach(function (key) {
+                Object.keys(savedSwitches[key]).forEach(function (side) {
+                    switches[key][side].turned = savedSwitches[key][side];
+                });
+            });
+        }
+        else if (gui.demo) {
+            Object.keys(switches).forEach(function (key) {
+                Object.keys(switches[key]).forEach(function (side) {
+                    if (key == "inner2outer" || key == "outer2inner") {
+                        switches[key][side].turned = false;
+                    }
+                    else {
+                        switches[key][side].turned = Math.random() > 0.4;
+                    }
+                });
+            });
+        }
+        //Three.js
+        three.scene = new THREE.Scene();
+        three.mainGroup = new THREE.Group();
+        three.mainGroup.name = "main_group";
+        three.scene.add(three.mainGroup);
+        three.renderer = new THREE.WebGLRenderer({ alpha: true });
+        THREE.ColorManagement.enabled = false;
+        three.renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
+        three.renderer.setClearColor(0xffffff, 0);
+        document.querySelector("#game-gameplay").insertBefore(three.renderer.domElement, document.querySelector("#canvas-menus"));
+        three.renderer.domElement.id = "game-gameplay-three";
+        three.ambientLightNight = 0.25 * Math.PI;
+        three.ambientLightDay = 0.75 * Math.PI;
+        three.ambientLight = new THREE.AmbientLight(0xfffefe, three.night ? three.ambientLightNight : three.ambientLightDay);
+        three.scene.add(three.ambientLight);
+        three.directionalLight = new THREE.DirectionalLight(0xeedfdf, 0.45 * Math.PI);
+        three.directionalLight.position.set((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, 1);
+        three.scene.add(three.directionalLight);
+        three.directionalLightXFac = Math.round(Math.random()) * 2 - 1;
+        three.directionalLightYFac = Math.round(Math.random()) * 2 - 1;
+        three.animateLights = function () {
+            var add = 0.001;
+            var addX = add * three.directionalLightXFac;
+            var addY = add * three.directionalLightYFac;
+            three.directionalLight.position.x += addX;
+            three.directionalLight.position.y += addY;
+            if (three.directionalLight.position.x >= 1) {
+                three.directionalLight.position.x = 1;
+                three.directionalLightXFac = -1;
+            }
+            else if (three.directionalLight.position.x <= -1) {
+                three.directionalLight.position.x = -1;
+                three.directionalLightXFac = 1;
+            }
+            if (three.directionalLight.position.y >= 1) {
+                three.directionalLight.position.y = 1;
+                three.directionalLightYFac = -1;
+            }
+            else if (three.directionalLight.position.y <= -1) {
+                three.directionalLight.position.y = -1;
+                three.directionalLightYFac = 1;
+            }
+            var add = 0.005 * Math.PI;
+            if (three.night) {
+                if (three.ambientLight.intensity > three.ambientLightNight) {
+                    three.ambientLight.intensity -= add;
+                }
+                if (three.ambientLight.intensity < three.ambientLightNight) {
+                    three.ambientLight.intensity = three.ambientLightNight;
+                }
+            }
+            else {
+                if (three.ambientLight.intensity < three.ambientLightDay) {
+                    three.ambientLight.intensity += add;
+                }
+                if (three.ambientLight.intensity > three.ambientLightDay) {
+                    three.ambientLight.intensity = three.ambientLightDay;
+                }
+            }
+        };
+        var loaderTexture = new THREE.TextureLoader();
+        loaderTexture.load(background3D.flat.src, function (texture) {
+            var material = new THREE.MeshStandardMaterial({
+                map: texture,
+                roughness: 0.85,
+                metalness: 0.15
+            });
+            var geometry = new THREE.PlaneGeometry(1, background.height / background.width);
+            background3D.flat.mesh = new THREE.Mesh(geometry, material);
+            background3D.flat.resize = function () {
+                var scale = three.calcScale();
+                background3D.flat.mesh.scale.x = scale;
+                background3D.flat.mesh.scale.y = scale;
+                background3D.flat.mesh.position.set(0, three.calcPositionY(), 0);
+            };
+            background3D.flat.resize();
+            three.mainGroup.add(background3D.flat.mesh);
+        });
+        var loaderGLTF = new GLTFLoader();
+        loaderGLTF.setPath("assets/3d/background-3d/").load(background3D.three.src, function (gltf) {
+            background3D.three.mesh = gltf.scene;
+            background3D.three.resize = function () {
+                var scale = three.calcScale();
+                background3D.three.mesh.scale.x = scale;
+                background3D.three.mesh.scale.y = scale;
+                background3D.three.mesh.scale.z = scale;
+                background3D.three.mesh.position.set(0, three.calcPositionY(), 0);
+            };
+            background3D.three.resize();
+            three.mainGroup.add(background3D.three.mesh);
+        });
+        background3D.behind = document.getElementById("game-gameplay-three-bg");
+        background3D.animateBehind = function (reset) {
+            if (reset === void 0) { reset = false; }
+            if (reset) {
+                background3D.behind.style.transform = "";
+                var behindCloneId = background3D.behind.id + "-clone";
+                var oldBehindClone = document.getElementById(behindCloneId);
+                if (oldBehindClone != null) {
+                    oldBehindClone.parentNode.removeChild(oldBehindClone);
+                }
+                background3D.animateBehindFac = 0;
+                background3D.animateBehindStars = [];
+                if (three.night) {
+                    var length_1 = 200 + 100 * Math.random();
+                    var starBaseColor = 100;
+                    for (var i_2 = 0; i_2 < length_1; i_2++) {
+                        var alpha = konamiState < 0 ? 1 : 0.25 + Math.random() / 2;
+                        var starColorRed = konamiState < 0 ? Math.round(Math.random() * 255) : starBaseColor + Math.round((255 - starBaseColor) * Math.random());
+                        var starColorGreen = konamiState < 0 ? Math.round(Math.random() * 255) : Math.round(0.65 * starColorRed + 0.35 * starColorRed * Math.random());
+                        var starColorBlue = konamiState < 0 ? Math.round(Math.random() * 255) : starBaseColor;
+                        var left = Math.random() * background3D.behind.width;
+                        var top_1 = Math.random() * background3D.behind.height;
+                        var radius = Math.min(background3D.behind.width, background3D.behind.height) / 1000 + (Math.random() * Math.min(background3D.behind.width, background3D.behind.height)) / 500;
+                        var fill = "rgba(" + starColorRed + "," + starColorGreen + "," + starColorBlue + "," + alpha + ")";
+                        background3D.animateBehindStars.push({ left: left, top: top_1, radius: radius, fill: fill });
+                        background3D.animateBehindStars.push({ left: left + background3D.behind.width, top: top_1, radius: radius, fill: fill });
+                    }
+                }
+                else {
+                    var length_2 = 15 + 15 * Math.random();
+                    var starBaseColor = 20;
+                    for (var i_3 = 0; i_3 < length_2; i_3++) {
+                        var alpha = Math.random() / 8;
+                        var starColorRed = starBaseColor + Math.round((120 - starBaseColor) * Math.random());
+                        var starColorGreen = starBaseColor + Math.round((120 - starBaseColor) * Math.random());
+                        var starColorBlue = starBaseColor + Math.round((120 - starBaseColor) * Math.random());
+                        var left = Math.random() * background3D.behind.width;
+                        var top_2 = Math.random() * background3D.behind.height;
+                        var radius = Math.min(background3D.behind.width, background3D.behind.height) / 3 + (Math.random() * Math.min(background3D.behind.width, background3D.behind.height)) / 3;
+                        var fill = "rgba(" + starColorRed + "," + starColorGreen + "," + starColorBlue + "," + alpha + ")";
+                        background3D.animateBehindStars.push({ left: left, top: top_2, radius: radius, fill: fill });
+                    }
+                }
+                var behindContext = background3D.behind.getContext("2d");
+                behindContext.save();
+                if (konamiState < 0 && !three.night) {
+                    var bgGradient = behindContext.createRadialGradient(0, canvas.height / 2, canvas.height / 2, canvas.width + canvas.height / 2, canvas.height / 2, canvas.height / 2);
+                    bgGradient.addColorStop(0, "#550400");
+                    bgGradient.addColorStop(0.2, "#542400");
+                    bgGradient.addColorStop(0.4, "#442200");
+                    bgGradient.addColorStop(0.6, "#054000");
+                    bgGradient.addColorStop(0.8, "#040037");
+                    bgGradient.addColorStop(1, "#350037");
+                    behindContext.fillStyle = bgGradient;
+                }
+                else {
+                    behindContext.fillStyle = "black";
+                }
+                behindContext.fillRect(0, 0, background3D.behind.width, background3D.behind.height);
+                for (var i_4 = 0; i_4 < background3D.animateBehindStars.length; i_4++) {
+                    behindContext.save();
+                    behindContext.fillStyle = background3D.animateBehindStars[i_4].fill;
+                    behindContext.translate(background3D.animateBehindStars[i_4].left, background3D.animateBehindStars[i_4].top);
+                    behindContext.beginPath();
+                    behindContext.arc(0, 0, background3D.animateBehindStars[i_4].radius, 0, 2 * Math.PI);
+                    behindContext.fill();
+                    behindContext.restore();
+                }
+                behindContext.restore();
+                if (three.night) {
+                    background3D.behindClone = background3D.behind.cloneNode();
+                    background3D.behindClone.id = behindCloneId;
+                    background3D.behind.parentNode.insertBefore(background3D.behindClone, background3D.behind);
+                    var behindCloneContext = background3D.behindClone.getContext("2d");
+                    behindCloneContext.drawImage(background3D.behind, 0, 0);
+                }
+                else {
+                    background3D.behindClone = null;
+                }
+            }
+            if (three.night) {
+                background3D.animateBehindFac += 0.00025;
+                if (background3D.animateBehindFac >= 1) {
+                    background3D.animateBehindFac -= 1;
+                }
+                background3D.behind.style.transform = "translateX(" + -background3D.animateBehindFac * background3D.behind.offsetWidth + "px)";
+                background3D.behindClone.style.transform = "translateX(" + (1 - background3D.animateBehindFac) * background3D.behind.offsetWidth + "px)";
+            }
+        };
+        three.camera = new THREE.PerspectiveCamera(60, client.width / client.height, 0.1, 10);
+        three.camera.position.set(0, 0, 1);
+        three.camera.zoom = three.zoom;
+        three.camera.aspect = client.width / client.height;
+        three.camera.updateProjectionMatrix();
+        if (gui.demo) {
+            three.demoRotationFacX = Math.round(Math.random()) * 2 - 1;
+            three.demoRotationFacY = Math.round(Math.random()) * 2 - 1;
+        }
+        if (APP_DATA.debug && debug.paint) {
+            var axesHelper = new THREE.AxesHelper(15);
+            three.scene.add(axesHelper);
+        }
+        //Animate Worker
         animateWorker.onerror = function () {
             notify("#canvas-notifier", getString("appScreenIsFail", "!", "upper"), NOTIFICATION_PRIO_HIGH, 950, null, null, client.height);
             window.setTimeout(function () {
@@ -5217,677 +5497,6 @@ window.onload = function () {
                 trainParams = message.data.trainParams;
             }
             else if (message.data.k == "ready") {
-                trains = message.data.trains;
-                trains.forEach(function (train, i) {
-                    var trainCallback = function (downIntersects, upIntersects) {
-                        if (hardware.lastInputTouch < hardware.lastInputMouse) {
-                            hardware.mouse.isHold = false;
-                        }
-                        if ((hardware.lastInputTouch < hardware.lastInputMouse && hardware.mouse.downTime - hardware.mouse.upTime > 0 && upIntersects && downIntersects && hardware.mouse.downTime - hardware.mouse.upTime < doubleClickTime && !hardware.mouse.lastClickDoubleClick) || (hardware.lastInputTouch > hardware.lastInputMouse && downIntersects && Date.now() - hardware.mouse.downTime > longTouchTime)) {
-                            if (typeof clickTimeOut !== "undefined") {
-                                window.clearTimeout(clickTimeOut);
-                                clickTimeOut = null;
-                            }
-                            if (hardware.lastInputTouch > hardware.lastInputMouse) {
-                                hardware.mouse.isHold = false;
-                            }
-                            else {
-                                hardware.mouse.lastClickDoubleClick = true;
-                            }
-                            if (trains[i].accelerationSpeed <= 0 && Math.abs(trains[i].accelerationSpeed) < 0.2) {
-                                trainActions.changeDirection(i, true);
-                            }
-                        }
-                        else {
-                            if (typeof clickTimeOut !== "undefined") {
-                                window.clearTimeout(clickTimeOut);
-                                clickTimeOut = null;
-                            }
-                            clickTimeOut = window.setTimeout(function () {
-                                clickTimeOut = null;
-                                if (hardware.lastInputTouch > hardware.lastInputMouse) {
-                                    hardware.mouse.isHold = false;
-                                }
-                                if (!trains[i].crash) {
-                                    if (trains[i].move && trains[i].accelerationSpeed > 0) {
-                                        trainActions.stop(i);
-                                    }
-                                    else {
-                                        trainActions.start(i, 50);
-                                    }
-                                }
-                            }, hardware.lastInputTouch > hardware.lastInputMouse ? longTouchWaitTime : doubleClickWaitTime);
-                        }
-                    };
-                    trains3D[i] = {};
-                    var loaderGLTF = new GLTFLoader();
-                    loaderGLTF.setPath("assets/3d/").load("asset" + train.src + ".glb", function (gltf) {
-                        trains3D[i].mesh = gltf.scene;
-                        trains3D[i].resize = function () {
-                            var scale = three.calcScale();
-                            trains3D[i].mesh.scale.set(scale * (trains[i].width / background.width), scale * (trains[i].width / background.width), scale * (trains[i].width / background.width));
-                            if (train.assetFlip) {
-                                trains3D[i].mesh.scale.x *= -1;
-                            }
-                            trains3D[i].mesh.position.set(0, 0, 0);
-                            trains3D[i].positionZ = new THREE.Box3().setFromObject(trains3D[i].mesh).getSize(new THREE.Vector3()).z / 2;
-                        };
-                        trains3D[i].resize();
-                        trains3D[i].mesh.callback = trainCallback;
-                        three.scene.add(trains3D[i].mesh);
-                    }, null, function () {
-                        var height3D = 0.0125;
-                        trains3D[i].resize = function () {
-                            if (three.scene.getObjectByName("train_" + i)) {
-                                three.scene.remove(trains3D[i].mesh);
-                            }
-                            var scale = three.calcScale();
-                            trains3D[i].mesh = new THREE.Mesh(new THREE.BoxGeometry(scale * (trains[i].width / background.width), scale * (trains[i].height / background.height / 2), scale * height3D), new THREE.MeshBasicMaterial({ color: 0x00aa00, transparent: true, opacity: 0.5 }));
-                            trains3D[i].mesh.position.set(0, 0, 0);
-                            trains3D[i].positionZ = (scale * height3D) / 2;
-                            trains3D[i].mesh.callback = trainCallback;
-                            trains3D[i].mesh.name = "train_" + i;
-                            three.scene.add(trains3D[i].mesh);
-                        };
-                        trains3D[i].resize();
-                    });
-                    trains3D[i].cars = [];
-                    train.cars.forEach(function (car, j) {
-                        trains3D[i].cars[j] = {};
-                        var loaderGLTF = new GLTFLoader();
-                        loaderGLTF.setPath("assets/3d/").load("asset" + car.src + ".glb", function (gltf) {
-                            trains3D[i].cars[j].mesh = gltf.scene;
-                            trains3D[i].cars[j].resize = function () {
-                                var scale = three.calcScale();
-                                trains3D[i].cars[j].mesh.scale.set(scale * (trains[i].cars[j].width / background.width), scale * (trains[i].cars[j].width / background.width), scale * (trains[i].cars[j].width / background.width));
-                                if (car.assetFlip) {
-                                    trains3D[i].cars[j].mesh.scale.x *= -1;
-                                }
-                                trains3D[i].cars[j].mesh.position.set(0, 0, 0);
-                                trains3D[i].cars[j].positionZ = new THREE.Box3().setFromObject(trains3D[i].cars[j].mesh).getSize(new THREE.Vector3()).z / 2;
-                            };
-                            trains3D[i].cars[j].resize();
-                            trains3D[i].cars[j].mesh.callback = trainCallback;
-                            three.scene.add(trains3D[i].cars[j].mesh);
-                        }, null, function () {
-                            var height3D = 0.01;
-                            trains3D[i].cars[j].resize = function () {
-                                if (three.scene.getObjectByName("train_" + i + "_car_" + j)) {
-                                    three.scene.remove(trains3D[i].cars[j].mesh);
-                                }
-                                var scale = three.calcScale();
-                                trains3D[i].cars[j].mesh = new THREE.Mesh(new THREE.BoxGeometry(scale * (trains[i].cars[j].width / background.width), scale * (trains[i].cars[j].height / background.height / 2), scale * height3D), new THREE.MeshBasicMaterial({ color: 0xaa0000, transparent: true, opacity: 0.5 }));
-                                trains3D[i].cars[j].mesh.position.set(0, 0, 0);
-                                trains3D[i].cars[j].positionZ = (scale * height3D) / 2;
-                                trains3D[i].cars[j].mesh.callback = trainCallback;
-                                trains3D[i].cars[j].mesh.name = "train_" + i + "_car_" + j;
-                                three.scene.add(trains3D[i].cars[j].mesh);
-                            };
-                            trains3D[i].cars[j].resize();
-                        });
-                    });
-                });
-                cars.forEach(function (car, i) {
-                    var carCallback = function (downIntersects, upIntersects) {
-                        if (hardware.lastInputTouch < hardware.lastInputMouse) {
-                            hardware.mouse.isHold = false;
-                        }
-                        if ((hardware.lastInputTouch < hardware.lastInputMouse && hardware.mouse.downTime - hardware.mouse.upTime > 0 && upIntersects && downIntersects && hardware.mouse.downTime - hardware.mouse.upTime < doubleClickTime && !hardware.mouse.lastClickDoubleClick) || (hardware.lastInputTouch > hardware.lastInputMouse && downIntersects && Date.now() - hardware.mouse.downTime > longTouchTime)) {
-                            if (typeof clickTimeOut !== "undefined") {
-                                window.clearTimeout(clickTimeOut);
-                                clickTimeOut = null;
-                            }
-                            if (hardware.lastInputTouch > hardware.lastInputMouse) {
-                                hardware.mouse.isHold = false;
-                            }
-                            else {
-                                hardware.mouse.lastClickDoubleClick = true;
-                            }
-                            if (carParams.init) {
-                                carActions.auto.start();
-                            }
-                            else if (carParams.autoModeOff && !cars[i].move && cars[i].backwardsState === 0) {
-                                carActions.manual.backwards(i);
-                            }
-                        }
-                        else {
-                            if (typeof clickTimeOut !== "undefined") {
-                                window.clearTimeout(clickTimeOut);
-                                clickTimeOut = null;
-                            }
-                            clickTimeOut = window.setTimeout(function () {
-                                clickTimeOut = null;
-                                if (hardware.lastInputTouch > hardware.lastInputMouse) {
-                                    hardware.mouse.isHold = false;
-                                }
-                                if (!carCollisionCourse(i, false)) {
-                                    if (carParams.autoModeRuns) {
-                                        carActions.auto.pause();
-                                    }
-                                    else if (carParams.init || carParams.autoModeOff) {
-                                        if (cars[i].move) {
-                                            carActions.manual.stop(i);
-                                        }
-                                        else {
-                                            carActions.manual.start(i);
-                                        }
-                                    }
-                                    else {
-                                        carActions.auto.resume();
-                                    }
-                                }
-                            }, hardware.lastInputTouch > hardware.lastInputMouse ? longTouchWaitTime : doubleClickWaitTime);
-                        }
-                    };
-                    cars3D[i] = {};
-                    var loaderGLTF = new GLTFLoader();
-                    loaderGLTF.setPath("assets/3d/").load("asset" + car.src + ".glb", function (gltf) {
-                        cars3D[i].mesh = gltf.scene;
-                        cars3D[i].resize = function () {
-                            var scale = three.calcScale();
-                            cars3D[i].mesh.scale.set(scale * (cars[i].width / background.width), scale * (cars[i].width / background.width), scale * (cars[i].width / background.width));
-                            cars3D[i].mesh.position.set(0, 0, 0);
-                            cars3D[i].positionZ = new THREE.Box3().setFromObject(cars3D[i].mesh).getSize(new THREE.Vector3()).z / 2;
-                            cars3D[i].resizeParkingLot();
-                        };
-                        cars3D[i].resize();
-                        cars3D[i].mesh.callback = carCallback;
-                        three.scene.add(cars3D[i].mesh);
-                    }, null, function () {
-                        var height3D = 0.005;
-                        cars3D[i].resize = function () {
-                            if (three.scene.getObjectByName("car_" + i)) {
-                                three.scene.remove(cars3D[i].mesh);
-                            }
-                            var scale = three.calcScale();
-                            cars3D[i].mesh = new THREE.Mesh(new THREE.BoxGeometry(scale * (cars[i].width / background.width), scale * (cars[i].height / background.height / 2), scale * height3D), new THREE.MeshBasicMaterial({ color: 0xaaaa00, transparent: true, opacity: 0.5 }));
-                            cars3D[i].mesh.position.set(0, 0, 0);
-                            cars3D[i].positionZ = (scale * height3D) / 2;
-                            cars3D[i].mesh.callback = carCallback;
-                            cars3D[i].mesh.name = "car_" + i;
-                            three.scene.add(cars3D[i].mesh);
-                            cars3D[i].resizeParkingLot();
-                        };
-                        cars3D[i].resize();
-                    });
-                    var radius = 0.0036;
-                    var height3D = 0.0005;
-                    cars3D[i].meshParkingLot = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, height3D, 48), new THREE.MeshBasicMaterial({ color: 0xffffff, opacity: 0.5, transparent: true }));
-                    cars3D[i].meshParkingLot.rotation.x = Math.PI / 2;
-                    cars3D[i].resizeParkingLot = function () {
-                        var scale = three.calcScale();
-                        cars3D[i].meshParkingLot.scale.set(scale, scale, scale);
-                        cars3D[i].meshParkingLot.position.set(scale * ((carWays[i].start[cars[i].startFrame].x - background.width / 2) / background.width), scale * (-(carWays[i].start[cars[i].startFrame].y - background.height / 2) / background.width) + three.calcPositionY(), scale * (height3D / 2));
-                    };
-                    cars3D[i].meshParkingLot.callback = function () {
-                        if (carParams.autoModeOff) {
-                            carActions.manual.park(i);
-                        }
-                        else {
-                            carActions.auto.end();
-                        }
-                    };
-                    cars3D[i].meshParkingLot.visible = false;
-                    cars3D[i].resizeParkingLot();
-                    three.scene.add(cars3D[i].meshParkingLot);
-                });
-                if (!gui.demo) {
-                    Object.keys(switches).forEach(function (key) {
-                        switches3D[key] = {};
-                        Object.keys(switches[key]).forEach(function (currentKey) {
-                            switches3D[key][currentKey] = {};
-                            var radius = 0.01;
-                            var length = radius * 1.25;
-                            var height3D = 0.0005;
-                            var meshCallback = function () {
-                                if (typeof clickTimeOut !== "undefined") {
-                                    window.clearTimeout(clickTimeOut);
-                                    clickTimeOut = null;
-                                }
-                                clickTimeOut = window.setTimeout(function () {
-                                    clickTimeOut = null;
-                                    hardware.mouse.isHold = false;
-                                    switchActions.turn(key, currentKey);
-                                }, hardware.lastInputTouch > hardware.lastInputMouse ? doubleTouchWaitTime : 0);
-                            };
-                            switches3D[key][currentKey].circleMesh = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, height3D, 48), new THREE.MeshBasicMaterial({ color: 0xffffff, opacity: 0.25, transparent: true }));
-                            switches3D[key][currentKey].circleMesh.rotation.x = Math.PI / 2;
-                            switches3D[key][currentKey].circleMesh.callback = meshCallback;
-                            switches3D[key][currentKey].circleMeshSmall = new THREE.Mesh(new THREE.CylinderGeometry(radius / 8, radius / 8, radius / 4, 24), new THREE.MeshBasicMaterial({ color: 0xffffff }));
-                            switches3D[key][currentKey].circleMeshSmall.rotation.x = Math.PI / 2;
-                            switches3D[key][currentKey].circleMeshSmall.callback = meshCallback;
-                            switches3D[key][currentKey].squareMeshHighlight = new THREE.Mesh(new THREE.BoxGeometry(length * 1.25, radius / 4, radius / 4), new THREE.MeshBasicMaterial({ color: 0xffffff }));
-                            switches3D[key][currentKey].squareMeshHighlight.rotation.x = Math.PI / 2;
-                            switches3D[key][currentKey].squareMeshHighlight.callback = meshCallback;
-                            switches3D[key][currentKey].squareMeshNormal = new THREE.Mesh(new THREE.BoxGeometry(length, radius / 6, radius / 6), new THREE.MeshBasicMaterial({ color: 0xffffff, opacity: 0.45, transparent: true }));
-                            switches3D[key][currentKey].squareMeshNormal.rotation.x = Math.PI / 2;
-                            switches3D[key][currentKey].squareMeshNormal.callback = meshCallback;
-                            switches3D[key][currentKey].squareMeshTurned = new THREE.Mesh(new THREE.BoxGeometry(length, radius / 6, radius / 6), new THREE.MeshBasicMaterial({ color: 0xffffff, opacity: 0.45, transparent: true }));
-                            switches3D[key][currentKey].squareMeshTurned.rotation.x = Math.PI / 2;
-                            switches3D[key][currentKey].squareMeshTurned.callback = meshCallback;
-                            switches3D[key][currentKey].resize = function () {
-                                var scale = three.calcScale();
-                                switches3D[key][currentKey].circleMesh.scale.set(scale, scale, scale);
-                                switches3D[key][currentKey].circleMeshSmall.scale.set(scale, scale, scale);
-                                switches3D[key][currentKey].squareMeshHighlight.scale.set(scale, scale, scale);
-                                switches3D[key][currentKey].squareMeshNormal.scale.set(scale, scale, scale);
-                                switches3D[key][currentKey].squareMeshTurned.scale.set(scale, scale, scale);
-                                switches3D[key][currentKey].circleMesh.position.set(scale * ((switches[key][currentKey].x - background.width / 2) / background.width), scale * (-(switches[key][currentKey].y - background.height / 2) / background.width) + three.calcPositionY(), scale * (height3D / 2));
-                                switches3D[key][currentKey].circleMeshSmall.position.set(scale * ((switches[key][currentKey].x - background.width / 2) / background.width), scale * (-(switches[key][currentKey].y - background.height / 2) / background.width) + three.calcPositionY(), scale * (radius / 8));
-                            };
-                            switches3D[key][currentKey].resize();
-                            three.scene.add(switches3D[key][currentKey].circleMesh);
-                            three.scene.add(switches3D[key][currentKey].circleMeshSmall);
-                            three.scene.add(switches3D[key][currentKey].squareMeshHighlight);
-                            three.scene.add(switches3D[key][currentKey].squareMeshNormal);
-                            three.scene.add(switches3D[key][currentKey].squareMeshTurned);
-                        });
-                    });
-                }
-                calcClassicUIElements();
-                calcControlCenter();
-                drawOptionsMenu("show");
-                window.addEventListener("resize", requestResize);
-                requestResize();
-                drawInterval = message.data.animateInterval;
-                drawObjects();
-                document.addEventListener("visibilitychange", function () {
-                    if (document.visibilityState != "hidden") {
-                        if (drawTimeout !== undefined && drawTimeout !== null) {
-                            window.clearTimeout(drawTimeout);
-                        }
-                        drawObjects();
-                    }
-                });
-                if (gui.demo) {
-                    window.setTimeout(function () {
-                        if (carParams.autoModeRuns) {
-                            window.sessionStorage.setItem("demoCars", JSON.stringify(cars));
-                            window.sessionStorage.setItem("demoCarParams", JSON.stringify(carParams));
-                            window.sessionStorage.setItem("demoBg", JSON.stringify(background));
-                        }
-                        followLink(window.location.href, "_self", LINK_STATE_INTERNAL_HTML);
-                    }, 90000);
-                    if (!demoMode.standalone) {
-                        document.addEventListener("keyup", function (event) {
-                            if (event.key == "Escape") {
-                                switchMode();
-                            }
-                        });
-                        document.addEventListener("touchstart", demoMode.leaveTimeoutStart, { passive: false });
-                        document.addEventListener("touchend", demoMode.leaveTimeoutEnd, { passive: false });
-                        document.addEventListener("mousedown", demoMode.leaveTimeoutStart, { passive: false });
-                        document.addEventListener("mouseup", demoMode.leaveTimeoutEnd, { passive: false });
-                    }
-                }
-                else {
-                    canvasForeground.addEventListener("touchmove", getTouchMove, { passive: false });
-                    canvasForeground.addEventListener("touchstart", getTouchStart, { passive: false });
-                    canvasForeground.addEventListener("touchend", getTouchEnd, { passive: false });
-                    canvasForeground.addEventListener("touchcancel", getTouchCancel);
-                    canvasForeground.addEventListener("mousemove", onMouseMove);
-                    canvasForeground.addEventListener("mousedown", onMouseDown, { passive: false });
-                    canvasForeground.addEventListener("mouseup", onMouseUp, { passive: false });
-                    canvasForeground.addEventListener("mouseout", onMouseOut, { passive: false });
-                    canvasForeground.addEventListener("mouseenter", onMouseEnter);
-                    canvasForeground.addEventListener("contextmenu", onMouseRight, { passive: false });
-                    canvasForeground.addEventListener("wheel", onMouseWheel, { passive: false });
-                    document.addEventListener("keydown", onKeyDown);
-                    document.addEventListener("keyup", onKeyUp);
-                    document.removeEventListener("wheel", preventMouseZoomDuringLoad);
-                    document.removeEventListener("keydown", preventKeyZoomDuringLoad);
-                }
-                document.removeEventListener("keyup", preventKeyZoomDuringLoad);
-                var timeWait = 0.5;
-                var timeLoad = 1.5;
-                if (gui.demo) {
-                    window.clearInterval(loadingAnimElemChangingFilter);
-                }
-                window.setTimeout(function () {
-                    destroy([document.querySelector("#snake"), document.querySelector("#percent")]);
-                    var event = new CustomEvent("moroway-app-ready");
-                    document.dispatchEvent(event);
-                    var toHide = document.querySelector("#branding");
-                    if (toHide != null && !onlineGame.enabled) {
-                        toHide.style.transition = "opacity " + timeLoad + "s ease-in";
-                        toHide.style.opacity = "0";
-                        window.setTimeout(function () {
-                            var localAppData = getLocalAppDataCopy();
-                            if (getSetting("classicUI") && !classicUI.trainSwitch.selectedTrainDisplay.visible && !gui.demo && !gui.three) {
-                                notify("#canvas-notifier", formatJSString(getString("appScreenTrainSelected", "."), getString(["appScreenTrainNames", trainParams.selected]), getString("appScreenTrainSelectedAuto", " ")), NOTIFICATION_PRIO_HIGH, 3000, null, null, client.y + menus.outerContainer.height);
-                            }
-                            else if (localAppData != null && (localAppData.version.major < APP_DATA.version.major || (localAppData.version.major == APP_DATA.version.major && localAppData.version.minor < APP_DATA.version.minor)) && !gui.demo) {
-                                var event_2 = new CustomEvent("moroway-app-update-notification", { detail: { notifyMinHeight: client.y + menus.outerContainer.height } });
-                                document.dispatchEvent(event_2);
-                            }
-                            else if (!gui.demo) {
-                                var event_3 = new CustomEvent("moroway-app-ready-notification", { detail: { notifyMinHeight: client.y + menus.outerContainer.height } });
-                                document.dispatchEvent(event_3);
-                            }
-                            setLocalAppDataCopy();
-                            destroy(toHide);
-                        }, timeLoad * 900);
-                    }
-                }, timeWait * 1000);
-            }
-            if (message.data.k == "setTrains") {
-                message.data.trains.forEach(function (train, i) {
-                    trains[i].x = train.x;
-                    trains[i].y = train.y;
-                    if (APP_DATA.debug) {
-                        trains[i].front.x = train.front.x;
-                        trains[i].front.y = train.front.y;
-                        trains[i].front.angle = train.front.angle;
-                        trains[i].back.x = train.back.x;
-                        trains[i].back.y = train.back.y;
-                        trains[i].back.angle = train.back.angle;
-                    }
-                    trains[i].width = train.width;
-                    trains[i].height = train.height;
-                    trains[i].displayAngle = train.displayAngle;
-                    trains[i].assetFlip = train.assetFlip;
-                    trains[i].circleFamily = train.circleFamily;
-                    trains[i].move = train.move;
-                    trains[i].lastDirectionChange = train.lastDirectionChange;
-                    trains[i].speedInPercent = train.speedInPercent;
-                    trains[i].currentSpeedInPercent = train.currentSpeedInPercent;
-                    trains[i].accelerationSpeed = train.accelerationSpeed;
-                    trains[i].accelerationSpeedCustom = train.accelerationSpeedCustom;
-                    trains[i].standardDirection = train.standardDirection;
-                    trains[i].crash = train.crash;
-                    trains[i].mute = train.mute;
-                    trains[i].volume = train.volume;
-                    trains[i].invisible = train.invisible;
-                    trains[i].opacity = train.opacity;
-                    train.cars.forEach(function (car, j) {
-                        trains[i].cars[j].x = car.x;
-                        trains[i].cars[j].y = car.y;
-                        trains[i].cars[j].width = car.width;
-                        trains[i].cars[j].height = car.height;
-                        trains[i].cars[j].displayAngle = car.displayAngle;
-                        trains[i].cars[j].assetFlip = car.assetFlip;
-                        trains[i].cars[j].konamiUseTrainIcon = car.konamiUseTrainIcon;
-                        trains[i].cars[j].invisible = car.invisible;
-                        trains[i].cars[j].opacity = car.opacity;
-                        if (APP_DATA.debug) {
-                            trains[i].cars[j].front.x = car.front.x;
-                            trains[i].cars[j].front.y = car.front.y;
-                            trains[i].cars[j].front.angle = car.front.angle;
-                            trains[i].cars[j].back.x = car.back.x;
-                            trains[i].cars[j].back.y = car.back.y;
-                            trains[i].cars[j].back.angle = car.back.angle;
-                        }
-                    });
-                    if (train.move && !train.mute && audio.active) {
-                        if (!existsAudio("train", i)) {
-                            startAudio("train", i, true);
-                        }
-                        if (train.currentSpeedInPercent == undefined) {
-                            train.currentSpeedInPercent = 0;
-                        }
-                        setAudioVolume("train", i, train.volume);
-                    }
-                    else if (existsAudio("train", i)) {
-                        stopAudio("train", i);
-                    }
-                });
-                if (message.data.resized) {
-                    trains3D.forEach(function (train) {
-                        if (train.resize) {
-                            train.resize();
-                        }
-                        train.cars.forEach(function (car) {
-                            if (car.resize) {
-                                car.resize();
-                            }
-                        });
-                    });
-                    if (!gui.demo) {
-                        Object.keys(switches).forEach(function (key) {
-                            Object.keys(switches[key]).forEach(function (currentKey) {
-                                switches3D[key][currentKey].resize();
-                            });
-                        });
-                    }
-                    if (onlineGame.enabled) {
-                        if (onlineGame.resizedTimeout != undefined && onlineGame.resizedTimeout != null) {
-                            window.clearTimeout(onlineGame.resizedTimeout);
-                        }
-                        onlineGame.resizedTimeout = window.setTimeout(function () {
-                            onlineGame.resized = false;
-                        }, 3000);
-                    }
-                    resized = false;
-                    if (APP_DATA.debug) {
-                        animateWorker.postMessage({ k: "debug" });
-                    }
-                }
-            }
-            else if (message.data.k == "trainCrash") {
-                actionSync("trains", message.data.i, [{ move: false }, { accelerationSpeed: 0 }, { accelerationSpeedCustom: 1 }], [{ getString: ["appScreenObjectHasCrashed", "."] }, { getString: [["appScreenTrainNames", message.data.i]] }, { getString: [["appScreenTrainNames", message.data.j]] }]);
-                actionSync("train-crash");
-                if (existsAudio("trainCrash")) {
-                    stopAudio("trainCrash");
-                }
-                if (audio.active) {
-                    startAudio("trainCrash", null, false);
-                }
-            }
-            else if (message.data.k == "switches") {
-                switches = message.data.switches;
-            }
-            else if (message.data.k == "sync-ready") {
-                trains = message.data.trains;
-                rotationPoints = message.data.rotationPoints;
-                teamplaySync("sync-ready");
-            }
-            else if (message.data.k == "save-game") {
-                if (getSetting("saveGame") && !onlineGame.enabled && !gui.demo) {
-                    try {
-                        window.localStorage.setItem("morowayAppSavedGame_v-" + getVersionCode() + "_Trains", JSON.stringify(message.data.saveTrains));
-                        var saveSwitches = {};
-                        Object.keys(switches).forEach(function (key) {
-                            saveSwitches[key] = {};
-                            Object.keys(switches[key]).forEach(function (side) {
-                                saveSwitches[key][side] = switches[key][side].turned;
-                            });
-                        });
-                        window.localStorage.setItem("morowayAppSavedGame_v-" + getVersionCode() + "_Switches", JSON.stringify(saveSwitches));
-                        if (cars.length == carWays.length && cars.length > 0) {
-                            window.localStorage.setItem("morowayAppSavedGame_v-" + getVersionCode() + "_Cars", JSON.stringify(cars));
-                            window.localStorage.setItem("morowayAppSavedGame_v-" + getVersionCode() + "_CarParams", JSON.stringify(carParams));
-                        }
-                        window.localStorage.setItem("morowayAppSavedGame_v-" + getVersionCode() + "_Bg", JSON.stringify(background));
-                    }
-                    catch (e) {
-                        if (APP_DATA.debug) {
-                            console.log(e.name + "/" + e.message);
-                        }
-                        notify("#canvas-notifier", getString("appScreenSaveGameError", "."), NOTIFICATION_PRIO_HIGH, 1000, null, null, client.y + menus.outerContainer.height);
-                    }
-                    animateWorker.postMessage({ k: "game-saved" });
-                }
-            }
-            else if (message.data.k == "debug") {
-                rotationPoints = message.data.rotationPoints;
-                switchesBeforeFac = message.data.switchesBeforeFac;
-                switchesBeforeAddSidings = message.data.switchesBeforeAddSidings;
-                if (!debug.trainReady) {
-                    console.log("Animate Interval:", message.data.animateInterval);
-                }
-                console.log("Trains: ", message.data.trains);
-            }
-            else if (message.data.k == "debugDrawPoints") {
-                debug.drawPoints = message.data.p;
-                debug.drawPointsCrash = message.data.pC;
-                debug.trainCollisions = message.data.tC;
-                debug.trainReady = true;
-            }
-        };
-        if (getSetting("saveGame") && !onlineGame.enabled && !gui.demo && savedGameTrains != null && savedGameSwitches != null && savedGameBg != null) {
-            var savedSwitches = JSON.parse(savedGameSwitches);
-            Object.keys(savedSwitches).forEach(function (key) {
-                Object.keys(savedSwitches[key]).forEach(function (side) {
-                    switches[key][side].turned = savedSwitches[key][side];
-                });
-            });
-        }
-        else if (gui.demo) {
-            Object.keys(switches).forEach(function (key) {
-                Object.keys(switches[key]).forEach(function (side) {
-                    if (key == "inner2outer" || key == "outer2inner") {
-                        switches[key][side].turned = false;
-                    }
-                    else {
-                        switches[key][side].turned = Math.random() > 0.4;
-                    }
-                });
-            });
-        }
-        animateWorker.postMessage({ k: "start", background: background, switches: switches, online: onlineGame.enabled, onlineInterval: onlineGame.animateInterval, demo: gui.demo });
-    }
-    function resetForElem(parent, elem, to) {
-        if (to === void 0) { to = ""; }
-        var elements = parent.childNodes;
-        for (var i = 0; i < elements.length; i++) {
-            if (elements[i].nodeName.substr(0, 1) != "#") {
-                elements[i].style.display = elements[i] == elem ? to : "none";
-            }
-        }
-    }
-    function destroy(toDestroyElements) {
-        if (typeof toDestroyElements == "object") {
-            if (!Array.isArray(toDestroyElements)) {
-                toDestroyElements = [toDestroyElements];
-            }
-            toDestroyElements.forEach(function (toDestroy) {
-                if (toDestroy != null) {
-                    toDestroy.parentNode.removeChild(toDestroy);
-                }
-            });
-        }
-    }
-    function loadingImageAnimation() {
-        var loadingAnimElem = document.querySelector("#branding img");
-        var loadingAnimElemDefaultFilter = "blur(1px) saturate(5) sepia(1) hue-rotate({{0}}deg)";
-        loadingAnimElem.style.transition = "filter 0.08s";
-        loadingAnimElem.style.filter = formatJSString(loadingAnimElemDefaultFilter, Math.random() * 260 + 100);
-        return window.setInterval(function () {
-            loadingAnimElem.style.filter = formatJSString(loadingAnimElemDefaultFilter, Math.random() * 260 + 100);
-        }, 10);
-    }
-    function keepScreenAlive() {
-        if (document.visibilityState == "visible") {
-            try {
-                navigator.wakeLock.request("screen");
-            }
-            catch (error) {
-                if (APP_DATA.debug) {
-                    console.log("Wake-Lock-Error:", error);
-                }
-            }
-        }
-    }
-    canvas = document.querySelector("canvas#game-gameplay-main");
-    canvasGesture = document.querySelector("canvas#game-gameplay-gesture");
-    canvasBackground = document.querySelector("canvas#game-gameplay-bg");
-    canvasSemiForeground = document.querySelector("canvas#game-gameplay-sfg");
-    canvasForeground = document.querySelector("canvas#game-gameplay-fg");
-    context = canvas.getContext("2d");
-    contextGesture = canvasGesture.getContext("2d");
-    contextBackground = canvasBackground.getContext("2d");
-    contextSemiForeground = canvasSemiForeground.getContext("2d");
-    contextForeground = canvasForeground.getContext("2d");
-    hardware.lastInputMouse = hardware.lastInputTouch = 0;
-    document.addEventListener("wheel", preventMouseZoomDuringLoad, { passive: false });
-    document.addEventListener("keydown", preventKeyZoomDuringLoad, { passive: false });
-    document.addEventListener("keyup", preventKeyZoomDuringLoad, { passive: false });
-    document.addEventListener("visibilitychange", onVisibilityChange);
-    onVisibilityChange();
-    gui.demo = getQueryString("mode") == "demo" || getQueryString("mode") == "demoStandalone" || (getSetting("startDemoMode") && getQueryString("mode") == "");
-    if (gui.demo) {
-        document.body.style.cursor = "none";
-        var loadingAnimElemChangingFilter = loadingImageAnimation();
-        keepScreenAlive();
-        document.addEventListener("visibilitychange", keepScreenAlive);
-        demoMode.standalone = getQueryString("mode") == "demoStandalone";
-    }
-    //THREE.JS
-    var queryString3D = getQueryString("gui-3d");
-    if (queryString3D == "0" || queryString3D == "1") {
-        gui.three = getGuiState("3d", queryString3D == "1");
-    }
-    else {
-        gui.three = getGuiState("3d");
-    }
-    var queryString3DNight = getQueryString("gui-3d-night");
-    if (queryString3DNight == "0" || queryString3DNight == "1") {
-        three.night = getGuiState("3d-night", queryString3DNight == "1");
-    }
-    else {
-        three.night = getGuiState("3d-night");
-    }
-    three.demoRotationSpeedFac = getGuiState("3d-rotation-speed", parseInt(getQueryString("gui-demo-3d-rotation-speed-percent"), 10));
-    if (getQueryString("mode") == "multiplay") {
-        if ("WebSocket" in window) {
-            onlineGame.enabled = true;
-        }
-        else {
-            onlineGame.enabled = false;
-            notify("#canvas-notifier", getString("appScreenTeamplayNoWebsocket", "!", "upper"), NOTIFICATION_PRIO_HIGH, 6000, null, null, client.y + menus.outerContainer.height);
-        }
-    }
-    else {
-        onlineGame.enabled = false;
-    }
-    if (onlineGame.enabled) {
-        var loadingAnimElemChangingFilter = loadingImageAnimation();
-        keepScreenAlive();
-        document.addEventListener("visibilitychange", keepScreenAlive);
-    }
-    else {
-        var elements = document.querySelectorAll("#content > *:not(#game), #game > *:not(#game-gameplay)");
-        for (var i = 0; i < elements.length; i++) {
-            elements[i].style.display = "none";
-        }
-        elements = document.querySelectorAll("#content > #game, #game > #game-gameplay");
-        for (i = 0; i < elements.length; i++) {
-            elements[i].style.display = "block";
-        }
-    }
-    window.setTimeout(function () {
-        var toShowElements = [document.querySelector("#percent")];
-        toShowElements.forEach(function (toShow) {
-            if (toShow != null) {
-                toShow.style.display = "block";
-            }
-        });
-    }, 2500);
-    measureViewSpace();
-    if (getSetting("saveGame")) {
-        updateSavedGame();
-    }
-    else {
-        removeSavedGame();
-    }
-    var defaultPics = copyJSObject(pics);
-    var finalPicNo = defaultPics.length;
-    pics = [];
-    var loadNo = 0;
-    defaultPics.forEach(function (pic) {
-        pics[pic.id] = new Image();
-        pics[pic.id].src = "assets/asset" + pic.id + "." + pic.extension;
-        pics[pic.id].onload = function () {
-            loadNo++;
-            var cPercent = Math.round(100 * (loadNo / finalPicNo));
-            var elementPercentText = document.querySelector("#percent #percent-text");
-            var elementPercentProgress = document.querySelector("#percent #percent-progress");
-            if (elementPercentText != null && elementPercentProgress != null) {
-                elementPercentText.textContent = cPercent + "%";
-                elementPercentProgress.style.left = -100 + cPercent + "%";
-            }
-            if (loadNo == finalPicNo) {
-                initialDisplay();
                 if (onlineGame.enabled) {
                     var chatNotify_1 = document.querySelector("#tp-chat-notifier");
                     var chat_1 = document.querySelector("#chat");
@@ -6544,195 +6153,669 @@ window.onload = function () {
                         }
                     });
                 }
-                three.scene = new THREE.Scene();
-                three.renderer = new THREE.WebGLRenderer({ alpha: true });
-                THREE.ColorManagement.enabled = false;
-                three.renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
-                three.renderer.setClearColor(0xffffff, 0);
-                document.querySelector("#game-gameplay").insertBefore(three.renderer.domElement, document.querySelector("#canvas-menus"));
-                three.renderer.domElement.id = "game-gameplay-three";
-                three.ambientLightNight = 0.25 * Math.PI;
-                three.ambientLightDay = 0.75 * Math.PI;
-                three.ambientLight = new THREE.AmbientLight(0xfffefe, three.night ? three.ambientLightNight : three.ambientLightDay);
-                three.scene.add(three.ambientLight);
-                three.directionalLight = new THREE.DirectionalLight(0xeedfdf, 0.45 * Math.PI);
-                three.directionalLight.position.set((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, 1);
-                three.scene.add(three.directionalLight);
-                three.directionalLightXFac = Math.round(Math.random()) * 2 - 1;
-                three.directionalLightYFac = Math.round(Math.random()) * 2 - 1;
-                three.animateLights = function () {
-                    var add = 0.001;
-                    var addX = add * three.directionalLightXFac;
-                    var addY = add * three.directionalLightYFac;
-                    three.directionalLight.position.x += addX;
-                    three.directionalLight.position.y += addY;
-                    if (three.directionalLight.position.x >= 1) {
-                        three.directionalLight.position.x = 1;
-                        three.directionalLightXFac = -1;
-                    }
-                    else if (three.directionalLight.position.x <= -1) {
-                        three.directionalLight.position.x = -1;
-                        three.directionalLightXFac = 1;
-                    }
-                    if (three.directionalLight.position.y >= 1) {
-                        three.directionalLight.position.y = 1;
-                        three.directionalLightYFac = -1;
-                    }
-                    else if (three.directionalLight.position.y <= -1) {
-                        three.directionalLight.position.y = -1;
-                        three.directionalLightYFac = 1;
-                    }
-                    var add = 0.005 * Math.PI;
-                    if (three.night) {
-                        if (three.ambientLight.intensity > three.ambientLightNight) {
-                            three.ambientLight.intensity -= add;
+                //Initialize trains
+                rotationPoints = message.data.rotationPoints;
+                trains = message.data.trains;
+                trains.forEach(function (train, i) {
+                    var trainCallback = function (downIntersects, upIntersects) {
+                        if (hardware.lastInputTouch < hardware.lastInputMouse) {
+                            hardware.mouse.isHold = false;
                         }
-                        if (three.ambientLight.intensity < three.ambientLightNight) {
-                            three.ambientLight.intensity = three.ambientLightNight;
+                        if ((hardware.lastInputTouch < hardware.lastInputMouse && hardware.mouse.downTime - hardware.mouse.upTime > 0 && upIntersects && downIntersects && hardware.mouse.downTime - hardware.mouse.upTime < doubleClickTime && !hardware.mouse.lastClickDoubleClick) || (hardware.lastInputTouch > hardware.lastInputMouse && downIntersects && Date.now() - hardware.mouse.downTime > longTouchTime)) {
+                            if (typeof clickTimeOut !== "undefined") {
+                                window.clearTimeout(clickTimeOut);
+                                clickTimeOut = null;
+                            }
+                            if (hardware.lastInputTouch > hardware.lastInputMouse) {
+                                hardware.mouse.isHold = false;
+                            }
+                            else {
+                                hardware.mouse.lastClickDoubleClick = true;
+                            }
+                            if (trains[i].accelerationSpeed <= 0 && Math.abs(trains[i].accelerationSpeed) < 0.2) {
+                                trainActions.changeDirection(i, true);
+                            }
                         }
-                    }
-                    else {
-                        if (three.ambientLight.intensity < three.ambientLightDay) {
-                            three.ambientLight.intensity += add;
+                        else {
+                            if (typeof clickTimeOut !== "undefined") {
+                                window.clearTimeout(clickTimeOut);
+                                clickTimeOut = null;
+                            }
+                            clickTimeOut = window.setTimeout(function () {
+                                clickTimeOut = null;
+                                if (hardware.lastInputTouch > hardware.lastInputMouse) {
+                                    hardware.mouse.isHold = false;
+                                }
+                                if (!trains[i].crash) {
+                                    if (trains[i].move && trains[i].accelerationSpeed > 0) {
+                                        trainActions.stop(i);
+                                    }
+                                    else {
+                                        trainActions.start(i, 50);
+                                    }
+                                }
+                            }, hardware.lastInputTouch > hardware.lastInputMouse ? longTouchWaitTime : doubleClickWaitTime);
                         }
-                        if (three.ambientLight.intensity > three.ambientLightDay) {
-                            three.ambientLight.intensity = three.ambientLightDay;
-                        }
-                    }
-                };
-                var loaderTexture = new THREE.TextureLoader();
-                loaderTexture.load(background3D.flat.src, function (texture) {
-                    var material = new THREE.MeshStandardMaterial({
-                        map: texture,
-                        roughness: 0.85,
-                        metalness: 0.15
+                    };
+                    //Three.js
+                    trains3D[i] = {};
+                    var loaderGLTF = new GLTFLoader();
+                    loaderGLTF.setPath("assets/3d/").load("asset" + train.src + ".glb", function (gltf) {
+                        trains3D[i].mesh = gltf.scene;
+                        trains3D[i].resize = function () {
+                            var scale = three.calcScale();
+                            trains3D[i].mesh.scale.set(scale * (trains[i].width / background.width), scale * (trains[i].width / background.width), scale * (trains[i].width / background.width));
+                            if (train.assetFlip) {
+                                trains3D[i].mesh.scale.x *= -1;
+                            }
+                            trains3D[i].mesh.position.set(0, 0, 0);
+                            trains3D[i].positionZ = new THREE.Box3().setFromObject(trains3D[i].mesh).getSize(new THREE.Vector3()).z / 2;
+                        };
+                        trains3D[i].resize();
+                        trains3D[i].mesh.callback = trainCallback;
+                        three.mainGroup.add(trains3D[i].mesh);
+                    }, null, function () {
+                        var height3D = 0.0125;
+                        trains3D[i].resize = function () {
+                            if (three.mainGroup.getObjectByName("train_" + i)) {
+                                three.mainGroup.remove(trains3D[i].mesh);
+                            }
+                            var scale = three.calcScale();
+                            trains3D[i].mesh = new THREE.Mesh(new THREE.BoxGeometry(scale * (trains[i].width / background.width), scale * (trains[i].height / background.height / 2), scale * height3D), new THREE.MeshBasicMaterial({ color: 0x00aa00, transparent: true, opacity: 0.5 }));
+                            trains3D[i].mesh.position.set(0, 0, 0);
+                            trains3D[i].positionZ = (scale * height3D) / 2;
+                            trains3D[i].mesh.callback = trainCallback;
+                            trains3D[i].mesh.name = "train_" + i;
+                            three.mainGroup.add(trains3D[i].mesh);
+                        };
+                        trains3D[i].resize();
                     });
-                    var geometry = new THREE.PlaneGeometry(1, background.height / background.width);
-                    background3D.flat.mesh = new THREE.Mesh(geometry, material);
-                    background3D.flat.resize = function () {
-                        var scale = three.calcScale();
-                        background3D.flat.mesh.scale.x = scale;
-                        background3D.flat.mesh.scale.y = scale;
-                        background3D.flat.mesh.position.set(0, three.calcPositionY(), 0);
-                    };
-                    background3D.flat.resize();
-                    three.scene.add(background3D.flat.mesh);
+                    trains3D[i].cars = [];
+                    train.cars.forEach(function (car, j) {
+                        trains3D[i].cars[j] = {};
+                        var loaderGLTF = new GLTFLoader();
+                        loaderGLTF.setPath("assets/3d/").load("asset" + car.src + ".glb", function (gltf) {
+                            trains3D[i].cars[j].mesh = gltf.scene;
+                            trains3D[i].cars[j].resize = function () {
+                                var scale = three.calcScale();
+                                trains3D[i].cars[j].mesh.scale.set(scale * (trains[i].cars[j].width / background.width), scale * (trains[i].cars[j].width / background.width), scale * (trains[i].cars[j].width / background.width));
+                                if (car.assetFlip) {
+                                    trains3D[i].cars[j].mesh.scale.x *= -1;
+                                }
+                                trains3D[i].cars[j].mesh.position.set(0, 0, 0);
+                                trains3D[i].cars[j].positionZ = new THREE.Box3().setFromObject(trains3D[i].cars[j].mesh).getSize(new THREE.Vector3()).z / 2;
+                            };
+                            trains3D[i].cars[j].resize();
+                            trains3D[i].cars[j].mesh.callback = trainCallback;
+                            three.mainGroup.add(trains3D[i].cars[j].mesh);
+                        }, null, function () {
+                            var height3D = 0.01;
+                            trains3D[i].cars[j].resize = function () {
+                                if (three.mainGroup.getObjectByName("train_" + i + "_car_" + j)) {
+                                    three.mainGroup.remove(trains3D[i].cars[j].mesh);
+                                }
+                                var scale = three.calcScale();
+                                trains3D[i].cars[j].mesh = new THREE.Mesh(new THREE.BoxGeometry(scale * (trains[i].cars[j].width / background.width), scale * (trains[i].cars[j].height / background.height / 2), scale * height3D), new THREE.MeshBasicMaterial({ color: 0xaa0000, transparent: true, opacity: 0.5 }));
+                                trains3D[i].cars[j].mesh.position.set(0, 0, 0);
+                                trains3D[i].cars[j].positionZ = (scale * height3D) / 2;
+                                trains3D[i].cars[j].mesh.callback = trainCallback;
+                                trains3D[i].cars[j].mesh.name = "train_" + i + "_car_" + j;
+                                three.mainGroup.add(trains3D[i].cars[j].mesh);
+                            };
+                            trains3D[i].cars[j].resize();
+                        });
+                    });
                 });
-                var loaderGLTF = new GLTFLoader();
-                loaderGLTF.setPath("assets/3d/background-3d/").load(background3D.three.src, function (gltf) {
-                    background3D.three.mesh = gltf.scene;
-                    background3D.three.resize = function () {
-                        var scale = three.calcScale();
-                        background3D.three.mesh.scale.x = scale;
-                        background3D.three.mesh.scale.y = scale;
-                        background3D.three.mesh.scale.z = scale;
-                        background3D.three.mesh.position.set(0, three.calcPositionY(), 0);
-                    };
-                    background3D.three.resize();
-                    three.scene.add(background3D.three.mesh);
-                });
-                background3D.behind = document.getElementById("game-gameplay-three-bg");
-                background3D.animateBehind = function (reset) {
-                    if (reset === void 0) { reset = false; }
-                    if (reset) {
-                        background3D.behind.style.transform = "";
-                        var behindCloneId = background3D.behind.id + "-clone";
-                        var oldBehindClone = document.getElementById(behindCloneId);
-                        if (oldBehindClone != null) {
-                            oldBehindClone.parentNode.removeChild(oldBehindClone);
+                cars.forEach(function (car, i) {
+                    var carCallback = function (downIntersects, upIntersects) {
+                        if (hardware.lastInputTouch < hardware.lastInputMouse) {
+                            hardware.mouse.isHold = false;
                         }
-                        background3D.animateBehindFac = 0;
-                        background3D.animateBehindStars = [];
-                        if (three.night) {
-                            var length_1 = 200 + 100 * Math.random();
-                            var starBaseColor = 100;
-                            for (var i_1 = 0; i_1 < length_1; i_1++) {
-                                var alpha = konamiState < 0 ? 1 : 0.25 + Math.random() / 2;
-                                var starColorRed = konamiState < 0 ? Math.round(Math.random() * 255) : starBaseColor + Math.round((255 - starBaseColor) * Math.random());
-                                var starColorGreen = konamiState < 0 ? Math.round(Math.random() * 255) : Math.round(0.65 * starColorRed + 0.35 * starColorRed * Math.random());
-                                var starColorBlue = konamiState < 0 ? Math.round(Math.random() * 255) : starBaseColor;
-                                var left = Math.random() * background3D.behind.width;
-                                var top_1 = Math.random() * background3D.behind.height;
-                                var radius = Math.min(background3D.behind.width, background3D.behind.height) / 1000 + (Math.random() * Math.min(background3D.behind.width, background3D.behind.height)) / 500;
-                                var fill = "rgba(" + starColorRed + "," + starColorGreen + "," + starColorBlue + "," + alpha + ")";
-                                background3D.animateBehindStars.push({ left: left, top: top_1, radius: radius, fill: fill });
-                                background3D.animateBehindStars.push({ left: left + background3D.behind.width, top: top_1, radius: radius, fill: fill });
+                        if ((hardware.lastInputTouch < hardware.lastInputMouse && hardware.mouse.downTime - hardware.mouse.upTime > 0 && upIntersects && downIntersects && hardware.mouse.downTime - hardware.mouse.upTime < doubleClickTime && !hardware.mouse.lastClickDoubleClick) || (hardware.lastInputTouch > hardware.lastInputMouse && downIntersects && Date.now() - hardware.mouse.downTime > longTouchTime)) {
+                            if (typeof clickTimeOut !== "undefined") {
+                                window.clearTimeout(clickTimeOut);
+                                clickTimeOut = null;
+                            }
+                            if (hardware.lastInputTouch > hardware.lastInputMouse) {
+                                hardware.mouse.isHold = false;
+                            }
+                            else {
+                                hardware.mouse.lastClickDoubleClick = true;
+                            }
+                            if (carParams.init) {
+                                carActions.auto.start();
+                            }
+                            else if (carParams.autoModeOff && !cars[i].move && cars[i].backwardsState === 0) {
+                                carActions.manual.backwards(i);
                             }
                         }
                         else {
-                            var length_2 = 15 + 15 * Math.random();
-                            var starBaseColor = 20;
-                            for (var i_2 = 0; i_2 < length_2; i_2++) {
-                                var alpha = Math.random() / 8;
-                                var starColorRed = starBaseColor + Math.round((120 - starBaseColor) * Math.random());
-                                var starColorGreen = starBaseColor + Math.round((120 - starBaseColor) * Math.random());
-                                var starColorBlue = starBaseColor + Math.round((120 - starBaseColor) * Math.random());
-                                var left = Math.random() * background3D.behind.width;
-                                var top_2 = Math.random() * background3D.behind.height;
-                                var radius = Math.min(background3D.behind.width, background3D.behind.height) / 3 + (Math.random() * Math.min(background3D.behind.width, background3D.behind.height)) / 3;
-                                var fill = "rgba(" + starColorRed + "," + starColorGreen + "," + starColorBlue + "," + alpha + ")";
-                                background3D.animateBehindStars.push({ left: left, top: top_2, radius: radius, fill: fill });
+                            if (typeof clickTimeOut !== "undefined") {
+                                window.clearTimeout(clickTimeOut);
+                                clickTimeOut = null;
                             }
+                            clickTimeOut = window.setTimeout(function () {
+                                clickTimeOut = null;
+                                if (hardware.lastInputTouch > hardware.lastInputMouse) {
+                                    hardware.mouse.isHold = false;
+                                }
+                                if (!carCollisionCourse(i, false)) {
+                                    if (carParams.autoModeRuns) {
+                                        carActions.auto.pause();
+                                    }
+                                    else if (carParams.init || carParams.autoModeOff) {
+                                        if (cars[i].move) {
+                                            carActions.manual.stop(i);
+                                        }
+                                        else {
+                                            carActions.manual.start(i);
+                                        }
+                                    }
+                                    else {
+                                        carActions.auto.resume();
+                                    }
+                                }
+                            }, hardware.lastInputTouch > hardware.lastInputMouse ? longTouchWaitTime : doubleClickWaitTime);
                         }
-                        var behindContext = background3D.behind.getContext("2d");
-                        behindContext.save();
-                        if (konamiState < 0 && !three.night) {
-                            var bgGradient = behindContext.createRadialGradient(0, canvas.height / 2, canvas.height / 2, canvas.width + canvas.height / 2, canvas.height / 2, canvas.height / 2);
-                            bgGradient.addColorStop(0, "#550400");
-                            bgGradient.addColorStop(0.2, "#542400");
-                            bgGradient.addColorStop(0.4, "#442200");
-                            bgGradient.addColorStop(0.6, "#054000");
-                            bgGradient.addColorStop(0.8, "#040037");
-                            bgGradient.addColorStop(1, "#350037");
-                            behindContext.fillStyle = bgGradient;
+                    };
+                    cars3D[i] = {};
+                    var loaderGLTF = new GLTFLoader();
+                    loaderGLTF.setPath("assets/3d/").load("asset" + car.src + ".glb", function (gltf) {
+                        cars3D[i].mesh = gltf.scene;
+                        cars3D[i].resize = function () {
+                            var scale = three.calcScale();
+                            cars3D[i].mesh.scale.set(scale * (cars[i].width / background.width), scale * (cars[i].width / background.width), scale * (cars[i].width / background.width));
+                            cars3D[i].mesh.position.set(0, 0, 0);
+                            cars3D[i].positionZ = new THREE.Box3().setFromObject(cars3D[i].mesh).getSize(new THREE.Vector3()).z / 2;
+                            cars3D[i].resizeParkingLot();
+                        };
+                        cars3D[i].resize();
+                        cars3D[i].mesh.callback = carCallback;
+                        three.mainGroup.add(cars3D[i].mesh);
+                    }, null, function () {
+                        var height3D = 0.005;
+                        cars3D[i].resize = function () {
+                            if (three.mainGroup.getObjectByName("car_" + i)) {
+                                three.mainGroup.remove(cars3D[i].mesh);
+                            }
+                            var scale = three.calcScale();
+                            cars3D[i].mesh = new THREE.Mesh(new THREE.BoxGeometry(scale * (cars[i].width / background.width), scale * (cars[i].height / background.height / 2), scale * height3D), new THREE.MeshBasicMaterial({ color: 0xaaaa00, transparent: true, opacity: 0.5 }));
+                            cars3D[i].mesh.position.set(0, 0, 0);
+                            cars3D[i].positionZ = (scale * height3D) / 2;
+                            cars3D[i].mesh.callback = carCallback;
+                            cars3D[i].mesh.name = "car_" + i;
+                            three.mainGroup.add(cars3D[i].mesh);
+                            cars3D[i].resizeParkingLot();
+                        };
+                        cars3D[i].resize();
+                    });
+                    var radius = 0.0036;
+                    var height3D = 0.0005;
+                    cars3D[i].meshParkingLot = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, height3D, 48), new THREE.MeshBasicMaterial({ color: 0xffffff, opacity: 0.5, transparent: true }));
+                    cars3D[i].meshParkingLot.rotation.x = Math.PI / 2;
+                    cars3D[i].resizeParkingLot = function () {
+                        var scale = three.calcScale();
+                        cars3D[i].meshParkingLot.scale.set(scale, scale, scale);
+                        cars3D[i].meshParkingLot.position.set(scale * ((carWays[i].start[cars[i].startFrame].x - background.width / 2) / background.width), scale * (-(carWays[i].start[cars[i].startFrame].y - background.height / 2) / background.width) + three.calcPositionY(), scale * (height3D / 2));
+                    };
+                    cars3D[i].meshParkingLot.callback = function () {
+                        if (carParams.autoModeOff) {
+                            carActions.manual.park(i);
                         }
                         else {
-                            behindContext.fillStyle = "black";
+                            carActions.auto.end();
                         }
-                        behindContext.fillRect(0, 0, background3D.behind.width, background3D.behind.height);
-                        for (var i_3 = 0; i_3 < background3D.animateBehindStars.length; i_3++) {
-                            behindContext.save();
-                            behindContext.fillStyle = background3D.animateBehindStars[i_3].fill;
-                            behindContext.translate(background3D.animateBehindStars[i_3].left, background3D.animateBehindStars[i_3].top);
-                            behindContext.beginPath();
-                            behindContext.arc(0, 0, background3D.animateBehindStars[i_3].radius, 0, 2 * Math.PI);
-                            behindContext.fill();
-                            behindContext.restore();
+                    };
+                    cars3D[i].meshParkingLot.visible = false;
+                    cars3D[i].resizeParkingLot();
+                    three.mainGroup.add(cars3D[i].meshParkingLot);
+                });
+                if (!gui.demo) {
+                    Object.keys(switches).forEach(function (key) {
+                        switches3D[key] = {};
+                        Object.keys(switches[key]).forEach(function (currentKey) {
+                            switches3D[key][currentKey] = {};
+                            var radius = 0.01;
+                            var length = radius * 1.25;
+                            var height3D = 0.0005;
+                            var meshCallback = function () {
+                                if (typeof clickTimeOut !== "undefined") {
+                                    window.clearTimeout(clickTimeOut);
+                                    clickTimeOut = null;
+                                }
+                                clickTimeOut = window.setTimeout(function () {
+                                    clickTimeOut = null;
+                                    hardware.mouse.isHold = false;
+                                    switchActions.turn(key, currentKey);
+                                }, hardware.lastInputTouch > hardware.lastInputMouse ? doubleTouchWaitTime : 0);
+                            };
+                            switches3D[key][currentKey].circleMesh = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, height3D, 48), new THREE.MeshBasicMaterial({ color: 0xffffff, opacity: 0.25, transparent: true }));
+                            switches3D[key][currentKey].circleMesh.rotation.x = Math.PI / 2;
+                            switches3D[key][currentKey].circleMesh.callback = meshCallback;
+                            switches3D[key][currentKey].circleMeshSmall = new THREE.Mesh(new THREE.CylinderGeometry(radius / 8, radius / 8, radius / 4, 24), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+                            switches3D[key][currentKey].circleMeshSmall.rotation.x = Math.PI / 2;
+                            switches3D[key][currentKey].circleMeshSmall.callback = meshCallback;
+                            switches3D[key][currentKey].squareMeshHighlight = new THREE.Mesh(new THREE.BoxGeometry(length * 1.25, radius / 4, radius / 4), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+                            switches3D[key][currentKey].squareMeshHighlight.rotation.x = Math.PI / 2;
+                            switches3D[key][currentKey].squareMeshHighlight.callback = meshCallback;
+                            switches3D[key][currentKey].squareMeshNormal = new THREE.Mesh(new THREE.BoxGeometry(length, radius / 6, radius / 6), new THREE.MeshBasicMaterial({ color: 0xffffff, opacity: 0.45, transparent: true }));
+                            switches3D[key][currentKey].squareMeshNormal.rotation.x = Math.PI / 2;
+                            switches3D[key][currentKey].squareMeshNormal.callback = meshCallback;
+                            switches3D[key][currentKey].squareMeshTurned = new THREE.Mesh(new THREE.BoxGeometry(length, radius / 6, radius / 6), new THREE.MeshBasicMaterial({ color: 0xffffff, opacity: 0.45, transparent: true }));
+                            switches3D[key][currentKey].squareMeshTurned.rotation.x = Math.PI / 2;
+                            switches3D[key][currentKey].squareMeshTurned.callback = meshCallback;
+                            switches3D[key][currentKey].resize = function () {
+                                var scale = three.calcScale();
+                                switches3D[key][currentKey].circleMesh.scale.set(scale, scale, scale);
+                                switches3D[key][currentKey].circleMeshSmall.scale.set(scale, scale, scale);
+                                switches3D[key][currentKey].squareMeshHighlight.scale.set(scale, scale, scale);
+                                switches3D[key][currentKey].squareMeshNormal.scale.set(scale, scale, scale);
+                                switches3D[key][currentKey].squareMeshTurned.scale.set(scale, scale, scale);
+                                switches3D[key][currentKey].circleMesh.position.set(scale * ((switches[key][currentKey].x - background.width / 2) / background.width), scale * (-(switches[key][currentKey].y - background.height / 2) / background.width) + three.calcPositionY(), scale * (height3D / 2));
+                                switches3D[key][currentKey].circleMeshSmall.position.set(scale * ((switches[key][currentKey].x - background.width / 2) / background.width), scale * (-(switches[key][currentKey].y - background.height / 2) / background.width) + three.calcPositionY(), scale * (radius / 8));
+                            };
+                            switches3D[key][currentKey].resize();
+                            three.mainGroup.add(switches3D[key][currentKey].circleMesh);
+                            three.mainGroup.add(switches3D[key][currentKey].circleMeshSmall);
+                            three.mainGroup.add(switches3D[key][currentKey].squareMeshHighlight);
+                            three.mainGroup.add(switches3D[key][currentKey].squareMeshNormal);
+                            three.mainGroup.add(switches3D[key][currentKey].squareMeshTurned);
+                        });
+                    });
+                }
+                //Calc and show UI
+                calcClassicUIElements();
+                calcControlCenter();
+                drawOptionsMenu("show");
+                //Trigger resize
+                window.addEventListener("resize", requestResize);
+                requestResize();
+                //Initialize canvas
+                drawInterval = message.data.animateInterval;
+                drawObjects();
+                document.addEventListener("visibilitychange", function () {
+                    if (document.visibilityState != "hidden") {
+                        if (drawTimeout !== undefined && drawTimeout !== null) {
+                            window.clearTimeout(drawTimeout);
                         }
-                        behindContext.restore();
-                        if (three.night) {
-                            background3D.behindClone = background3D.behind.cloneNode();
-                            background3D.behindClone.id = behindCloneId;
-                            background3D.behind.parentNode.insertBefore(background3D.behindClone, background3D.behind);
-                            var behindCloneContext = background3D.behindClone.getContext("2d");
-                            behindCloneContext.drawImage(background3D.behind, 0, 0);
-                        }
-                        else {
-                            background3D.behindClone = null;
-                        }
+                        drawObjects();
                     }
-                    if (three.night) {
-                        background3D.animateBehindFac += 0.00025;
-                        if (background3D.animateBehindFac >= 1) {
-                            background3D.animateBehindFac -= 1;
-                        }
-                        background3D.behind.style.transform = "translateX(" + -background3D.animateBehindFac * background3D.behind.offsetWidth + "px)";
-                        background3D.behindClone.style.transform = "translateX(" + (1 - background3D.animateBehindFac) * background3D.behind.offsetWidth + "px)";
-                    }
-                };
-                three.camera = new THREE.PerspectiveCamera(60, client.width / client.height, 0.1, 10);
-                three.camera.position.set(0, 0, 1);
-                three.camera.zoom = three.zoom;
-                three.camera.aspect = client.width / client.height;
-                three.camera.updateProjectionMatrix();
+                });
+                //Gestures
                 if (gui.demo) {
-                    three.demoRotationFacX = Math.round(Math.random()) * 2 - 1;
-                    three.demoRotationFacY = Math.round(Math.random()) * 2 - 1;
+                    window.setTimeout(function () {
+                        if (carParams.autoModeRuns) {
+                            window.sessionStorage.setItem("demoCars", JSON.stringify(cars));
+                            window.sessionStorage.setItem("demoCarParams", JSON.stringify(carParams));
+                            window.sessionStorage.setItem("demoBg", JSON.stringify(background));
+                        }
+                        followLink(window.location.href, "_self", LINK_STATE_INTERNAL_HTML);
+                    }, 90000);
+                    if (!demoMode.standalone) {
+                        document.addEventListener("keyup", function (event) {
+                            if (event.key == "Escape") {
+                                switchMode();
+                            }
+                        });
+                        document.addEventListener("touchstart", demoMode.leaveTimeoutStart, { passive: false });
+                        document.addEventListener("touchend", demoMode.leaveTimeoutEnd, { passive: false });
+                        document.addEventListener("mousedown", demoMode.leaveTimeoutStart, { passive: false });
+                        document.addEventListener("mouseup", demoMode.leaveTimeoutEnd, { passive: false });
+                    }
                 }
-                if (APP_DATA.debug && debug.paint) {
-                    var axesHelper = new THREE.AxesHelper(15);
-                    three.scene.add(axesHelper);
+                else {
+                    canvasForeground.addEventListener("touchmove", getTouchMove, { passive: false });
+                    canvasForeground.addEventListener("touchstart", getTouchStart, { passive: false });
+                    canvasForeground.addEventListener("touchend", getTouchEnd, { passive: false });
+                    canvasForeground.addEventListener("touchcancel", getTouchCancel);
+                    canvasForeground.addEventListener("mousemove", onMouseMove);
+                    canvasForeground.addEventListener("mousedown", onMouseDown, { passive: false });
+                    canvasForeground.addEventListener("mouseup", onMouseUp, { passive: false });
+                    canvasForeground.addEventListener("mouseout", onMouseOut, { passive: false });
+                    canvasForeground.addEventListener("mouseenter", onMouseEnter);
+                    canvasForeground.addEventListener("contextmenu", onMouseRight, { passive: false });
+                    canvasForeground.addEventListener("wheel", onMouseWheel, { passive: false });
+                    document.addEventListener("keydown", onKeyDown);
+                    document.addEventListener("keyup", onKeyUp);
+                    document.removeEventListener("wheel", preventMouseZoomDuringLoad);
+                    document.removeEventListener("keydown", preventKeyZoomDuringLoad);
                 }
+                document.removeEventListener("keyup", preventKeyZoomDuringLoad);
+                //Show everything
+                var timeWait = 0.5;
+                var timeLoad = 1.5;
+                if (gui.demo) {
+                    window.clearInterval(loadingAnimElemChangingFilter);
+                }
+                window.setTimeout(function () {
+                    destroy([document.querySelector("#snake"), document.querySelector("#percent")]);
+                    var event = new CustomEvent("moroway-app-ready");
+                    document.dispatchEvent(event);
+                    var toHide = document.querySelector("#branding");
+                    if (toHide != null && !onlineGame.enabled) {
+                        toHide.style.transition = "opacity " + timeLoad + "s ease-in";
+                        toHide.style.opacity = "0";
+                        window.setTimeout(function () {
+                            var localAppData = getLocalAppDataCopy();
+                            if (getSetting("classicUI") && !classicUI.trainSwitch.selectedTrainDisplay.visible && !gui.demo && !gui.three) {
+                                notify("#canvas-notifier", formatJSString(getString("appScreenTrainSelected", "."), getString(["appScreenTrainNames", trainParams.selected]), getString("appScreenTrainSelectedAuto", " ")), NOTIFICATION_PRIO_HIGH, 3000, null, null, client.y + menus.outerContainer.height);
+                            }
+                            else if (localAppData != null && (localAppData.version.major < APP_DATA.version.major || (localAppData.version.major == APP_DATA.version.major && localAppData.version.minor < APP_DATA.version.minor)) && !gui.demo) {
+                                var event_2 = new CustomEvent("moroway-app-update-notification", { detail: { notifyMinHeight: client.y + menus.outerContainer.height } });
+                                document.dispatchEvent(event_2);
+                            }
+                            else if (!gui.demo) {
+                                var event_3 = new CustomEvent("moroway-app-ready-notification", { detail: { notifyMinHeight: client.y + menus.outerContainer.height } });
+                                document.dispatchEvent(event_3);
+                            }
+                            setLocalAppDataCopy();
+                            destroy(toHide);
+                        }, timeLoad * 900);
+                    }
+                }, timeWait * 1000);
+            }
+            else if (message.data.k == "setTrains") {
+                rotationPoints = message.data.rotationPoints;
+                message.data.trains.forEach(function (train, i) {
+                    trains[i].x = train.x;
+                    trains[i].y = train.y;
+                    trains[i].front.state = train.front.state;
+                    trains[i].front.state = train.front.state;
+                    trains[i].back.state = train.back.state;
+                    trains[i].back.state = train.back.state;
+                    if (APP_DATA.debug) {
+                        trains[i].front.x = train.front.x;
+                        trains[i].front.y = train.front.y;
+                        trains[i].front.angle = train.front.angle;
+                        trains[i].back.x = train.back.x;
+                        trains[i].back.y = train.back.y;
+                        trains[i].back.angle = train.back.angle;
+                    }
+                    trains[i].width = train.width;
+                    trains[i].height = train.height;
+                    trains[i].displayAngle = train.displayAngle;
+                    trains[i].assetFlip = train.assetFlip;
+                    trains[i].circleFamily = train.circleFamily;
+                    trains[i].move = train.move;
+                    trains[i].lastDirectionChange = train.lastDirectionChange;
+                    trains[i].speedInPercent = train.speedInPercent;
+                    trains[i].currentSpeedInPercent = train.currentSpeedInPercent;
+                    trains[i].accelerationSpeed = train.accelerationSpeed;
+                    trains[i].accelerationSpeedCustom = train.accelerationSpeedCustom;
+                    trains[i].standardDirection = train.standardDirection;
+                    trains[i].crash = train.crash;
+                    trains[i].mute = train.mute;
+                    trains[i].volume = train.volume;
+                    trains[i].invisible = train.invisible;
+                    trains[i].opacity = train.opacity;
+                    train.cars.forEach(function (car, j) {
+                        trains[i].cars[j].x = car.x;
+                        trains[i].cars[j].y = car.y;
+                        trains[i].cars[j].width = car.width;
+                        trains[i].cars[j].height = car.height;
+                        trains[i].cars[j].displayAngle = car.displayAngle;
+                        trains[i].cars[j].assetFlip = car.assetFlip;
+                        trains[i].cars[j].konamiUseTrainIcon = car.konamiUseTrainIcon;
+                        trains[i].cars[j].invisible = car.invisible;
+                        trains[i].cars[j].opacity = car.opacity;
+                        trains[i].cars[j].front.state = car.front.state;
+                        trains[i].cars[j].front.state = car.front.state;
+                        trains[i].cars[j].back.state = car.back.state;
+                        trains[i].cars[j].back.state = car.back.state;
+                        if (APP_DATA.debug) {
+                            trains[i].cars[j].front.x = car.front.x;
+                            trains[i].cars[j].front.y = car.front.y;
+                            trains[i].cars[j].front.angle = car.front.angle;
+                            trains[i].cars[j].back.x = car.back.x;
+                            trains[i].cars[j].back.y = car.back.y;
+                            trains[i].cars[j].back.angle = car.back.angle;
+                        }
+                    });
+                    if (train.move && !train.mute && audio.active) {
+                        if (!existsAudio("train", i)) {
+                            startAudio("train", i, true);
+                        }
+                        if (train.currentSpeedInPercent == undefined) {
+                            train.currentSpeedInPercent = 0;
+                        }
+                        setAudioVolume("train", i, train.volume);
+                    }
+                    else if (existsAudio("train", i)) {
+                        stopAudio("train", i);
+                    }
+                });
+                if (message.data.resized) {
+                    trains3D.forEach(function (train) {
+                        if (train.resize) {
+                            train.resize();
+                        }
+                        train.cars.forEach(function (car) {
+                            if (car.resize) {
+                                car.resize();
+                            }
+                        });
+                    });
+                    if (!gui.demo) {
+                        Object.keys(switches).forEach(function (key) {
+                            Object.keys(switches[key]).forEach(function (currentKey) {
+                                switches3D[key][currentKey].resize();
+                            });
+                        });
+                    }
+                    if (onlineGame.enabled) {
+                        if (onlineGame.resizedTimeout != undefined && onlineGame.resizedTimeout != null) {
+                            window.clearTimeout(onlineGame.resizedTimeout);
+                        }
+                        onlineGame.resizedTimeout = window.setTimeout(function () {
+                            onlineGame.resized = false;
+                        }, 3000);
+                    }
+                    resized = false;
+                    if (APP_DATA.debug) {
+                        animateWorker.postMessage({ k: "debug" });
+                    }
+                }
+            }
+            else if (message.data.k == "trainCrash") {
+                actionSync("trains", message.data.i, [{ move: false }, { accelerationSpeed: 0 }, { accelerationSpeedCustom: 1 }], [{ getString: ["appScreenObjectHasCrashed", "."] }, { getString: [["appScreenTrainNames", message.data.i]] }, { getString: [["appScreenTrainNames", message.data.j]] }]);
+                actionSync("train-crash");
+                if (existsAudio("trainCrash")) {
+                    stopAudio("trainCrash");
+                }
+                if (audio.active) {
+                    startAudio("trainCrash", null, false);
+                }
+            }
+            else if (message.data.k == "switches") {
+                switches = message.data.switches;
+            }
+            else if (message.data.k == "sync-ready") {
+                rotationPoints = message.data.rotationPoints;
+                trains = message.data.trains;
+                teamplaySync("sync-ready");
+            }
+            else if (message.data.k == "save-game") {
+                if (getSetting("saveGame") && !onlineGame.enabled && !gui.demo) {
+                    try {
+                        window.localStorage.setItem("morowayAppSavedGame_v-" + getVersionCode() + "_Trains", JSON.stringify(message.data.saveTrains));
+                        var saveSwitches = {};
+                        Object.keys(switches).forEach(function (key) {
+                            saveSwitches[key] = {};
+                            Object.keys(switches[key]).forEach(function (side) {
+                                saveSwitches[key][side] = switches[key][side].turned;
+                            });
+                        });
+                        window.localStorage.setItem("morowayAppSavedGame_v-" + getVersionCode() + "_Switches", JSON.stringify(saveSwitches));
+                        if (cars.length == carWays.length && cars.length > 0) {
+                            window.localStorage.setItem("morowayAppSavedGame_v-" + getVersionCode() + "_Cars", JSON.stringify(cars));
+                            window.localStorage.setItem("morowayAppSavedGame_v-" + getVersionCode() + "_CarParams", JSON.stringify(carParams));
+                        }
+                        window.localStorage.setItem("morowayAppSavedGame_v-" + getVersionCode() + "_Bg", JSON.stringify(background));
+                    }
+                    catch (e) {
+                        if (APP_DATA.debug) {
+                            console.log(e.name + "/" + e.message);
+                        }
+                        notify("#canvas-notifier", getString("appScreenSaveGameError", "."), NOTIFICATION_PRIO_HIGH, 1000, null, null, client.y + menus.outerContainer.height);
+                    }
+                    animateWorker.postMessage({ k: "game-saved" });
+                }
+            }
+            else if (message.data.k == "debug") {
+                switchesBeforeFac = message.data.switchesBeforeFac;
+                switchesBeforeAddSidings = message.data.switchesBeforeAddSidings;
+                if (!debug.trainReady) {
+                    console.log("Animate Interval:", message.data.animateInterval);
+                }
+                console.log("Trains: ", message.data.trains);
+            }
+            else if (message.data.k == "debugDrawPoints") {
+                debug.drawPoints = message.data.p;
+                debug.drawPointsCrash = message.data.pC;
+                debug.trainCollisions = message.data.tC;
+                debug.trainReady = true;
+            }
+        };
+        animateWorker.postMessage({ k: "start", background: background, switches: switches, online: onlineGame.enabled, onlineInterval: onlineGame.animateInterval, demo: gui.demo });
+    }
+    function resetForElem(parent, elem, to) {
+        if (to === void 0) { to = ""; }
+        var elements = parent.childNodes;
+        for (var i = 0; i < elements.length; i++) {
+            if (elements[i].nodeName.substr(0, 1) != "#") {
+                elements[i].style.display = elements[i] == elem ? to : "none";
+            }
+        }
+    }
+    function destroy(toDestroyElements) {
+        if (typeof toDestroyElements == "object") {
+            if (!Array.isArray(toDestroyElements)) {
+                toDestroyElements = [toDestroyElements];
+            }
+            toDestroyElements.forEach(function (toDestroy) {
+                if (toDestroy != null) {
+                    toDestroy.parentNode.removeChild(toDestroy);
+                }
+            });
+        }
+    }
+    function loadingImageAnimation() {
+        var loadingAnimElem = document.querySelector("#branding img");
+        var loadingAnimElemDefaultFilter = "blur(1px) saturate(5) sepia(1) hue-rotate({{0}}deg)";
+        loadingAnimElem.style.transition = "filter 0.08s";
+        loadingAnimElem.style.filter = formatJSString(loadingAnimElemDefaultFilter, Math.random() * 260 + 100);
+        return window.setInterval(function () {
+            loadingAnimElem.style.filter = formatJSString(loadingAnimElemDefaultFilter, Math.random() * 260 + 100);
+        }, 10);
+    }
+    function keepScreenAlive() {
+        var event = new CustomEvent("moroway-app-keep-screen-alive", { detail: { acquire: document.visibilityState == "visible" } });
+        document.dispatchEvent(event);
+    }
+    //Set mode: demo
+    gui.demo = getQueryString("mode") == "demo" || getQueryString("mode") == "demoStandalone" || (getSetting("startDemoMode") && getQueryString("mode") == "");
+    if (gui.demo) {
+        document.body.style.cursor = "none";
+        var loadingAnimElemChangingFilter = loadingImageAnimation();
+        demoMode.standalone = getQueryString("mode") == "demoStandalone";
+    }
+    //Set mode: multiplay
+    if (getQueryString("mode") == "multiplay") {
+        if ("WebSocket" in window) {
+            onlineGame.enabled = true;
+            var loadingAnimElemChangingFilter = loadingImageAnimation();
+        }
+        else {
+            onlineGame.enabled = false;
+            notify("#canvas-notifier", getString("appScreenTeamplayNoWebsocket", "!", "upper"), NOTIFICATION_PRIO_HIGH, 6000, null, null, client.y + menus.outerContainer.height);
+        }
+    }
+    else {
+        onlineGame.enabled = false;
+    }
+    //GUI State
+    var queryString3D = getQueryString("gui-3d");
+    if (queryString3D == "0" || queryString3D == "1") {
+        gui.three = getGuiState("3d", queryString3D == "1");
+    }
+    else {
+        gui.three = getGuiState("3d");
+    }
+    var queryString3DNight = getQueryString("gui-3d-night");
+    if (queryString3DNight == "0" || queryString3DNight == "1") {
+        three.night = getGuiState("3d-night", queryString3DNight == "1");
+    }
+    else {
+        three.night = getGuiState("3d-night");
+    }
+    three.demoRotationSpeedFac = getGuiState("3d-rotation-speed", parseInt(getQueryString("gui-demo-3d-rotation-speed-percent"), 10));
+    //Initialize canvases and contexts
+    canvas = document.querySelector("canvas#game-gameplay-main");
+    canvasGesture = document.querySelector("canvas#game-gameplay-gesture");
+    canvasBackground = document.querySelector("canvas#game-gameplay-bg");
+    canvasSemiForeground = document.querySelector("canvas#game-gameplay-sfg");
+    canvasForeground = document.querySelector("canvas#game-gameplay-fg");
+    context = canvas.getContext("2d");
+    contextGesture = canvasGesture.getContext("2d");
+    contextBackground = canvasBackground.getContext("2d");
+    contextSemiForeground = canvasSemiForeground.getContext("2d");
+    contextForeground = canvasForeground.getContext("2d");
+    //Input handling
+    hardware.lastInputMouse = hardware.lastInputTouch = 0;
+    document.addEventListener("wheel", preventMouseZoomDuringLoad, { passive: false });
+    document.addEventListener("keydown", preventKeyZoomDuringLoad, { passive: false });
+    document.addEventListener("keyup", preventKeyZoomDuringLoad, { passive: false });
+    //Visibility handling
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    onVisibilityChange();
+    document.addEventListener("visibilitychange", keepScreenAlive);
+    keepScreenAlive();
+    //Prepare game
+    if (!onlineGame.enabled) {
+        var elements = document.querySelectorAll("#content > *:not(#game), #game > *:not(#game-gameplay)");
+        for (var i = 0; i < elements.length; i++) {
+            elements[i].style.display = "none";
+        }
+        elements = document.querySelectorAll("#content > #game, #game > #game-gameplay");
+        for (i = 0; i < elements.length; i++) {
+            elements[i].style.display = "block";
+        }
+    }
+    measureViewSpace();
+    if (getSetting("saveGame")) {
+        updateSavedGame();
+    }
+    else {
+        removeSavedGame();
+    }
+    //Show progress bar if app loads slowly
+    window.setTimeout(function () {
+        var toShowElements = [document.querySelector("#percent")];
+        toShowElements.forEach(function (toShow) {
+            if (toShow != null) {
+                toShow.style.display = "block";
+            }
+        });
+    }, 2500);
+    //Load app
+    var defaultPics = copyJSObject(pics);
+    var finalPicNo = defaultPics.length;
+    pics = [];
+    var loadNo = 0;
+    defaultPics.forEach(function (pic) {
+        pics[pic.id] = new Image();
+        pics[pic.id].src = "assets/asset" + pic.id + "." + pic.extension;
+        pics[pic.id].onload = function () {
+            loadNo++;
+            var cPercent = Math.round(100 * (loadNo / finalPicNo));
+            var elementPercentText = document.querySelector("#percent #percent-text");
+            var elementPercentProgress = document.querySelector("#percent #percent-progress");
+            if (elementPercentText != null && elementPercentProgress != null) {
+                elementPercentText.textContent = cPercent + "%";
+                elementPercentProgress.style.left = -100 + cPercent + "%";
+            }
+            if (loadNo == finalPicNo) {
+                initialDisplay();
             }
         };
         pics[pic.id].onerror = function () {

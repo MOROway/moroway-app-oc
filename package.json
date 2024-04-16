@@ -3,13 +3,11 @@
     "devDependencies": {
         "cordova-android": "^12.0.1",
         "cordova-plugin-dialogs": "^2.0.2",
-        "cordova-plugin-insomnia": "github:EddyVerbruggen/Insomnia-PhoneGap-Plugin",
         "cordova-webintent": "github:cordova-misc/cordova-webintent"
     },
     "cordova": {
         "plugins": {
             "cordova-webintent": {},
-            "cordova-plugin-insomnia": {},
             "cordova-plugin-dialogs": {}
         },
         "platforms": [

@@ -24,7 +24,6 @@ Apache Cordova: [Apache License 2.0](https://github.com/apache/cordova-android/b
 ### MOROway App OC: Cordova Plugins
 
 * cordova-plugin-dialogs: [Apache License 2.0](https://github.com/apache/cordova-plugin-dialogs/blob/master/LICENSE)
-* cordova-plugin-insomnia: [MIT License](https://github.com/EddyVerbruggen/Insomnia-PhoneGap-Plugin/blob/master/README.md)
 * cordova-webintent: [MIT License](https://github.com/cordova-misc/cordova-webintent/blob/master/README.md)
 
 ## Build

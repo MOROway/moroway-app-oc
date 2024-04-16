@@ -9,7 +9,7 @@ Alternativ können Sie den gewünschten Zug auch einfach anklicken oder das Zugk
 
 🏎️ Autos:
 Die drei Autos können einzeln gesteuert werden oder automatisch fahren.
- 
+
 🌆 3D:
 Als Alternative zur Vogelperspektive gibt es eine einfache 3D-Ansicht.
 

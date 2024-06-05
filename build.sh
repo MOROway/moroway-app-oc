@@ -102,3 +102,7 @@ echo $(echo "$link" | sed 's!^\(.*//\)*\([^/]*\).*$!\2!') >app_domain.txt
 
 # Set App Version
 sed -i "s/version=\"[0-9]\+\.[0-9]\+\.[0-9]\+\"/version=\"$version\"/" config.xml
+
+# Set package.json
+license="$(cat "$working_dir_build/metadata/default/license.txt")"
+sed -i 's/\("license":\s*\)".*"/\1"'"$license"'"/' package.json

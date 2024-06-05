@@ -1,7 +1,7 @@
 {
     "license": "Apache-2.0",
     "devDependencies": {
-        "cordova-android": "^12.0.1",
+        "cordova-android": "^13.0.0",
         "cordova-plugin-dialogs": "^2.0.2",
         "cordova-webintent": "github:cordova-misc/cordova-webintent"
     },

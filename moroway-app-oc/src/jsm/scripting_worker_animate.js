@@ -1,3 +1,7 @@
+/**
+ * Copyright 2024 Jonathan Herrmann-Engel
+ * SPDX-License-Identifier: Apache-2.0
+ */
 "use strict";
 import { copyJSObject } from "./common/js_objects.js";
 function saveTrainCirclePrepare(train, trainOriginal) {
@@ -1963,7 +1967,7 @@ onmessage = function (message) {
     function resizeTrains(oldBackground, excludes) {
         if (excludes === void 0) { excludes = []; }
         for (var i = 0; i < trains.length; i++) {
-            if (typeof excludes != "object" || !Array.isArray(excludes) || excludes.indexOf(i) == -1) {
+            if (typeof excludes != "object" || !Array.isArray(excludes) || !excludes.includes(i)) {
                 trains[i].front.x = background.x + ((trains[i].front.x - oldBackground.x) * background.width) / oldBackground.width;
                 trains[i].back.x = background.x + ((trains[i].back.x - oldBackground.x) * background.width) / oldBackground.width;
                 trains[i].x = background.x + ((trains[i].x - oldBackground.x) * background.width) / oldBackground.width;
@@ -2050,7 +2054,7 @@ onmessage = function (message) {
             if (trains.length > newTrainIds.length && Math.random() > 0.3 && newTrains[0].standardDirectionStartValue) {
                 do {
                     k = Math.floor(Math.random() * trains.length);
-                } while (newTrainIds.indexOf(k) > -1);
+                } while (newTrainIds.includes(k));
                 trains[k].demoModeEquals = 0;
                 trains[k].state = newTrains[trains[k].demoModeEquals].state == 1 ? 3 : 1;
                 trains[k].standardDirectionStartValue = newTrains[trains[k].demoModeEquals].standardDirectionStartValue;
@@ -2068,7 +2072,7 @@ onmessage = function (message) {
             if (trains.length > newTrainIds.length && Math.random() > 0.6) {
                 do {
                     l = Math.floor(Math.random() * trains.length);
-                } while (newTrainIds.indexOf(l) > -1);
+                } while (newTrainIds.includes(l));
                 trains[l].demoModeEquals = 1;
                 trains[l].state = newTrains[trains[l].demoModeEquals].state == 1 ? 3 : 1;
                 trains[l].standardDirectionStartValue = newTrains[trains[l].demoModeEquals].standardDirectionStartValue;
@@ -2086,7 +2090,7 @@ onmessage = function (message) {
             if (trains.length > newTrainIds.length && Math.random() > 0.6 && newTrains[0].standardDirectionStartValue) {
                 do {
                     m = Math.floor(Math.random() * trains.length);
-                } while (newTrainIds.indexOf(m) > -1);
+                } while (newTrainIds.includes(m));
                 trains[m].state = 111;
                 trains[m].circleFamily = rotationPoints.inner;
                 trains[m].circle = rotationPoints.inner.narrow;
@@ -2100,7 +2104,7 @@ onmessage = function (message) {
             if (trains.length > newTrainIds.length && Math.random() > 0.4 && newTrains[0].standardDirectionStartValue) {
                 do {
                     n = Math.floor(Math.random() * trains.length);
-                } while (newTrainIds.indexOf(n) > -1);
+                } while (newTrainIds.includes(n));
                 trains[n].state = 121;
                 trains[n].circleFamily = rotationPoints.inner;
                 trains[n].circle = rotationPoints.inner.narrow;
@@ -2114,7 +2118,7 @@ onmessage = function (message) {
             if (trains.length > newTrainIds.length && Math.random() > 0.8 && newTrains[0].standardDirectionStartValue) {
                 do {
                     o = Math.floor(Math.random() * trains.length);
-                } while (newTrainIds.indexOf(o) > -1);
+                } while (newTrainIds.includes(o));
                 trains[o].state = 131;
                 trains[o].circleFamily = rotationPoints.inner;
                 trains[o].circle = rotationPoints.inner.narrow;

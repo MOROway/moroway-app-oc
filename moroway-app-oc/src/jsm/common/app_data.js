@@ -1,3 +1,7 @@
+/**
+ * Copyright 2024 Jonathan Herrmann-Engel
+ * SPDX-License-Identifier: Apache-2.0
+ */
 "use strict";
 import { deepFreeze } from "./js_objects.js";
 //Placeholders are set by build-script, type error is therefore intentional
@@ -5,12 +9,12 @@ var APP_DATA = {
     version: {
         major: 9,
         minor: 1,
-        patch: 5,
+        patch: 9,
         beta: 0,
         date: {
             year: 2024,
-            month: 4,
-            day: 16
+            month: 6,
+            day: 5
         }
     },
     platform: "oc",

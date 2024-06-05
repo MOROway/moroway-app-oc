@@ -1,3 +1,7 @@
+/**
+ * Copyright 2024 Jonathan Herrmann-Engel
+ * SPDX-License-Identifier: Apache-2.0
+ */
 "use strict";
 import {followLink, LINK_STATE_INTERNAL_HTML, LINK_STATE_INTERNAL_LICENSE, LINK_STATE_NORMAL} from "./common/follow_links.js";
 import {getServerRedirectLink} from "../jsm/common/web_tools.js";
@@ -18,10 +22,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
     document.querySelector("#legal-appoc-dialogs-license").addEventListener("click", function () {
         followLink("licenses_platform/dialogs", "_self", LINK_STATE_INTERNAL_LICENSE);
-    });
-    document.querySelector("#download-sourcelink").style.display = "none";
-    document.querySelector("#download-sourcelink-oc").addEventListener("click", function () {
-        followLink(getServerRedirectLink("source_code_appoc"), "_blank", LINK_STATE_NORMAL);
     });
 });
 document.addEventListener("deviceready", function () {

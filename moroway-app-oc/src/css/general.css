@@ -301,7 +301,7 @@ h2 {
 }
 
 /* Server Note */
-#server-note {
+.server-note {
     font-family: Roboto;
     position: fixed;
     background: rgb(48, 48, 48);
@@ -318,8 +318,9 @@ h2 {
     background-position: center;
     background-clip: padding-box;
     overflow: hidden;
+    user-select: none;
 }
-#server-note-main {
+.server-note-main {
     display: flex;
     background: rgba(48, 48, 48, 0.75);
     width: 100%;
@@ -327,7 +328,7 @@ h2 {
     flex-direction: column;
     overflow: hidden;
 }
-#server-note-title {
+.server-note-title {
     font-size: 400%;
     padding: 20px;
     line-height: 150%;
@@ -338,46 +339,52 @@ h2 {
     overflow-x: auto;
     flex-shrink: 0;
 }
-#server-note-inner {
+.server-note-inner {
     display: flex;
     flex-direction: column;
     overflow-x: hidden;
     overflow-y: auto;
     flex-grow: 1;
 }
-#server-note-text {
+.server-note-text {
     font-size: 300%;
     margin: auto;
     padding: 30px;
     line-height: 150%;
 }
-#server-note-later {
+.server-note-later {
     display: flex;
     justify-content: center;
     align-items: center;
+    cursor: pointer;
+    margin-bottom: 5px;
 }
-#server-note-img {
+.server-note-later > .server-note-later-box {
+    padding-right: 10px;
+}
+.server-note-img {
     display: none;
     margin: auto;
     max-height: 25%;
     justify-content: center;
     align-items: center;
 }
-#server-note-img img {
+.server-note-img img {
     height: 95%;
     object-fit: contain;
 }
-#server-note-later-info {
+.server-note-later-info {
     font-size: 80%;
     margin-bottom: 1vh;
+    font-style: italic;
 }
-#server-note-buttons {
+.server-note-buttons {
     font-size: 150%;
     color: rgb(207, 207, 207);
     display: flex;
     justify-content: center;
 }
-#server-note-buttons div {
+.server-note-buttons div {
     padding: 10px;
     margin: 10px;
     cursor: pointer;
@@ -386,11 +393,11 @@ h2 {
     display: flex;
     align-items: center;
 }
-#server-note-buttons div#server-note-button-go {
+.server-note-buttons .server-note-button-go {
     display: none;
 }
 @media (max-height: 500px), (max-width: 750px) {
-    #server-note {
+    .server-note {
         width: 90vw;
         height: 90vh;
         height: calc(90vh - calc(100vh - 100%));
@@ -398,14 +405,14 @@ h2 {
         border-top-width: 5vh;
         border-bottom-width: 5vh;
     }
-    #server-note-title {
+    .server-note-title {
         font-size: 175%;
         padding: 0px;
     }
-    #server-note-text {
+    .server-note-text {
         font-size: 150%;
     }
-    #server-note-buttons {
+    .server-note-buttons {
         font-size: 100%;
     }
 }

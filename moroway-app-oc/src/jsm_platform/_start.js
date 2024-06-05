@@ -1,3 +1,7 @@
+/**
+ * Copyright 2024 Jonathan Herrmann-Engel
+ * SPDX-License-Identifier: Apache-2.0
+ */
 "use strict";
 import {followLink, LINK_STATE_INTERNAL_HTML} from "./common/follow_links.js";
 import {getLocalAppDataCopy, setLocalAppDataCopy, APP_DATA} from "../jsm/common/app_data.js";
@@ -77,7 +81,7 @@ document.addEventListener("deviceready", function () {
             [getString("platformOcAppUpdateYes"), getString("platformOcAppUpdateNo")]
         );
     } else {
-        showServerNote();
+        showServerNote(document.querySelector("#server-note"));
     }
     setLocalAppDataCopy();
 });

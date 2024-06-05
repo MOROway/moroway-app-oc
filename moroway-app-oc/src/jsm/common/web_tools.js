@@ -1,7 +1,11 @@
+/**
+ * Copyright 2024 Jonathan Herrmann-Engel
+ * SPDX-License-Identifier: Apache-2.0
+ */
 "use strict";
 import { followLink, LINK_STATE_NORMAL } from "../../jsm_platform/common/follow_links.js";
 import { APP_DATA } from "./app_data.js";
-import { formatJSString, CURRENT_LANG } from "./string_tools.js";
+import { formatJSString, getString, CURRENT_LANG } from "./string_tools.js";
 //HANDLE QUERY String
 export function getQueryString(key) {
     var value = "";
@@ -83,49 +87,86 @@ export function getServerNote(func) {
         });
     }
 }
-export function showServerNote() {
-    if (document.querySelector("#server-note") != null) {
-        getServerNote(function (serverMsg) {
-            var serverNoteElementRoot = document.querySelector("#server-note");
-            var serverNoteElementTitle = document.querySelector("#server-note-title");
-            var serverNoteElementText = document.querySelector("#server-note-text");
-            var serverNoteElementLater = document.querySelector("#server-note #server-note-later");
-            var serverNoteElementLaterCheckBox = document.querySelector("#server-note #server-note-later-box");
-            var serverNoteElementButtonNo = document.querySelector("#server-note #server-note-button-no");
-            var serverNoteElementButtonGo = document.querySelector("#server-note #server-note-button-go");
-            var serverNoteElementImageContainer = document.querySelector("#server-note #server-note-img");
-            var serverNoteElementImage = document.querySelector("#server-note #server-note-img img");
-            serverNoteElementRoot.style.display = "block";
-            serverNoteElementTitle.textContent = serverMsg.title;
-            serverNoteElementText.textContent = serverMsg.text;
-            serverNoteElementLaterCheckBox.checked = false;
-            serverNoteElementLater.addEventListener("click", function () {
-                window.localStorage.setItem("morowayAppLastServerNoteShowAgain", serverNoteElementLaterCheckBox.checked ? "1" : "0");
-            });
-            serverNoteElementButtonNo.addEventListener("click", function () {
-                serverNoteElementRoot.style.display = "";
-            });
-            if (serverMsg.link != undefined && serverMsg.link != null && typeof serverMsg.link == "string") {
-                serverNoteElementButtonGo.style.display = "block";
-                serverNoteElementButtonGo.addEventListener("click", function () {
-                    followLink(getServerRedirectLink(serverMsg.link), "_blank", LINK_STATE_NORMAL);
-                });
+export function showServerNote(serverNoteElementRoot) {
+    getServerNote(function (serverMsg) {
+        function styleShowAgain() {
+            window.localStorage.setItem("morowayAppLastServerNoteShowAgain", showAgain ? "1" : "0");
+            serverNoteElementLaterCheckBox.textContent = showAgain ? "check_box" : "check_box_outline_blank";
+        }
+        var showAgain = false;
+        serverNoteElementRoot.classList.add("server-note");
+        var serverNoteElementMain = document.createElement("div");
+        serverNoteElementMain.className = "server-note-main";
+        var serverNoteElementTitle = document.createElement("div");
+        serverNoteElementTitle.className = "server-note-title";
+        serverNoteElementTitle.textContent = serverMsg.title;
+        var serverNoteElementInner = document.createElement("div");
+        serverNoteElementInner.className = "server-note-inner";
+        var serverNoteElementText = document.createElement("div");
+        serverNoteElementText.className = "server-note-text";
+        serverNoteElementText.textContent = serverMsg.text;
+        var serverNoteElementImageContainer = document.createElement("div");
+        serverNoteElementImageContainer.className = "server-note-img";
+        var serverNoteElementImage = document.createElement("img");
+        var serverNoteElementLater = document.createElement("div");
+        serverNoteElementLater.className = "server-note-later";
+        var serverNoteElementLaterCheckBox = document.createElement("i");
+        serverNoteElementLaterCheckBox.className = "server-note-later-box material-icons";
+        var serverNoteElementLaterCheckBoxLabel = document.createElement("span");
+        serverNoteElementLaterCheckBoxLabel.textContent = getString("generalServerNoteButtonLater");
+        var serverNoteElementLaterInfo = document.createElement("div");
+        serverNoteElementLaterInfo.className = "server-note-later-info";
+        serverNoteElementLaterInfo.textContent = getString("generalServerNoteInfoLater");
+        var serverNoteElementButtons = document.createElement("div");
+        serverNoteElementButtons.className = "server-note-buttons";
+        var serverNoteElementButtonGo = document.createElement("div");
+        serverNoteElementButtonGo.className = "server-note-button-go";
+        serverNoteElementButtonGo.textContent = getString("generalServerNoteButtonGo", "", "upper");
+        var serverNoteElementButtonNo = document.createElement("div");
+        serverNoteElementButtonNo.className = "server-note-button-no";
+        serverNoteElementButtonNo.textContent = getString("generalOK", "", "upper");
+        styleShowAgain();
+        serverNoteElementLater.onclick = function () {
+            showAgain = !showAgain;
+            styleShowAgain();
+        };
+        if (serverMsg.link != undefined && serverMsg.link != null && typeof serverMsg.link == "string") {
+            serverNoteElementButtonGo.style.display = "block";
+            serverNoteElementButtonGo.onclick = function () {
+                followLink(getServerRedirectLink(serverMsg.link), "_blank", LINK_STATE_NORMAL);
+            };
+        }
+        serverNoteElementButtonNo.onclick = function () {
+            serverNoteElementRoot.style.display = "";
+        };
+        if (serverMsg.imageSrc != undefined && typeof serverMsg.imageSrc == "string") {
+            serverNoteElementImageContainer.style.display = "flex";
+            serverNoteElementImage.src = serverMsg.imageSrc;
+            if (serverMsg.imageLink != undefined && serverMsg.imageLink != null && typeof serverMsg.imageLink == "string") {
+                serverNoteElementImage.style.cursor = "pointer";
+                serverNoteElementImage.onclick = function () {
+                    followLink(getServerRedirectLink(serverMsg.imageLink), "_blank", LINK_STATE_NORMAL);
+                };
             }
-            if (serverMsg.imageSrc != undefined && typeof serverMsg.imageSrc == "string") {
-                serverNoteElementImageContainer.style.display = "flex";
-                serverNoteElementImage.src = serverMsg.imageSrc;
-                if (serverMsg.imageLink != undefined && serverMsg.imageLink != null && typeof serverMsg.imageLink == "string") {
-                    serverNoteElementImage.style.cursor = "pointer";
-                    serverNoteElementImage.addEventListener("click", function () {
-                        followLink(getServerRedirectLink(serverMsg.imageLink), "_blank", LINK_STATE_NORMAL);
-                    });
-                }
-            }
-            if (serverMsg.backgroundImageSrc != undefined && typeof serverMsg.backgroundImageSrc == "string") {
-                serverNoteElementRoot.style.backgroundImage = "url(" + serverMsg.backgroundImageSrc + ")";
-            }
-        });
-    }
+        }
+        if (serverMsg.backgroundImageSrc != undefined && typeof serverMsg.backgroundImageSrc == "string") {
+            serverNoteElementRoot.style.backgroundImage = "url(" + serverMsg.backgroundImageSrc + ")";
+        }
+        serverNoteElementMain.appendChild(serverNoteElementTitle);
+        serverNoteElementInner.appendChild(serverNoteElementText);
+        serverNoteElementImageContainer.appendChild(serverNoteElementImage);
+        serverNoteElementInner.appendChild(serverNoteElementImageContainer);
+        serverNoteElementLater.appendChild(serverNoteElementLaterCheckBox);
+        serverNoteElementLater.appendChild(serverNoteElementLaterCheckBoxLabel);
+        serverNoteElementInner.appendChild(serverNoteElementLater);
+        serverNoteElementInner.appendChild(serverNoteElementLaterInfo);
+        serverNoteElementButtons.appendChild(serverNoteElementButtonGo);
+        serverNoteElementButtons.appendChild(serverNoteElementButtonNo);
+        serverNoteElementInner.appendChild(serverNoteElementButtons);
+        serverNoteElementMain.appendChild(serverNoteElementInner);
+        serverNoteElementRoot.appendChild(serverNoteElementMain);
+        serverNoteElementRoot.style.display = "block";
+    });
 }
 export var PROTOCOL_HTTP = "https";
 export var PROTOCOL_WS = "wss";

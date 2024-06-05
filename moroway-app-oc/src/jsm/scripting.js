@@ -1,3 +1,7 @@
+/**
+ * Copyright 2024 Jonathan Herrmann-Engel
+ * SPDX-License-Identifier: Apache-2.0
+ */
 "use strict";
 import { followLink, LINK_STATE_INTERNAL_HTML } from "../jsm_platform/common/follow_links.js";
 import { getLocalAppDataCopy, setLocalAppDataCopy, APP_DATA } from "./common/app_data.js";
@@ -2581,7 +2585,9 @@ function drawObjects() {
                         trains3D[i].mesh.position.z -= (trains3D[i].positionZ / 5) * Math.random();
                     }
                 }
-                trains3D[i].mesh.visible = true; //Never truly invisible
+                /* UPDATE: v9.1.5 */
+                trains3D[i].mesh.visible = true;
+                /* END UPDATE: v9.1.5 */
                 setMaterialTransparent(trains3D[i].mesh, train.opacity);
                 trains3D[i].mesh.rotation.z = -train.displayAngle;
             }
@@ -2596,7 +2602,9 @@ function drawObjects() {
                             trains3D[i].cars[j].mesh.position.z -= (trains3D[i].cars[j].mesh.position.z / 5) * Math.random();
                         }
                     }
-                    trains3D[i].cars[j].mesh.visible = true; //Never truly invisible
+                    /* UPDATE: v9.1.5 */
+                    trains3D[i].cars[j].mesh.visible = true;
+                    /* END UPDATE: v9.1.5 */
                     setMaterialTransparent(trains3D[i].cars[j].mesh, car.opacity);
                     trains3D[i].cars[j].mesh.rotation.z = -car.displayAngle;
                 }
@@ -4520,11 +4528,11 @@ var textControl = {
     },
     execute: function (command, args) {
         var commandNames = Object.keys(this.commands);
-        if (commandNames.indexOf(command) == -1) {
+        if (!commandNames.includes(command)) {
             commandNames.shift();
             return formatJSString(getString("appScreenTextCommandsGeneralCommands"), "", commandNames.join(", "));
         }
-        if (typeof args == "object" && args.length > 0 && this.getSubcommandNames(command).indexOf(args[0]) != -1) {
+        if (typeof args == "object" && args.length > 0 && this.getSubcommandNames(command).includes(args[0])) {
             if (this.validateSubcommand(command, args)) {
                 return this.commands[command].subcommands[args[0]].execute(args);
             }
@@ -5229,7 +5237,7 @@ window.onload = function () {
                 var commands = commandsInput.split(" ");
                 var command = commands.shift();
                 textControl.elements.input.value = "";
-                if (Object.keys(textControl.commands).indexOf(command) == -1) {
+                if (!Object.keys(textControl.commands).includes(command)) {
                     command = "/";
                 }
                 textControl.elements.output.textContent = textControl.commands[command].action(commands);
@@ -5451,7 +5459,7 @@ window.onload = function () {
         }
         //Animate Worker
         animateWorker.onerror = function () {
-            notify("#canvas-notifier", getString("appScreenIsFail", "!", "upper"), NOTIFICATION_PRIO_HIGH, 950, null, null, client.height);
+            notify("#canvas-notifier", getString("generalIsFail", "!", "upper"), NOTIFICATION_PRIO_HIGH, 950, null, null, client.height);
             window.setTimeout(function () {
                 followLink("error#animate", "_self", LINK_STATE_INTERNAL_HTML);
             }, 1000);
@@ -6712,15 +6720,16 @@ window.onload = function () {
         var event = new CustomEvent("moroway-app-keep-screen-alive", { detail: { acquire: document.visibilityState == "visible" } });
         document.dispatchEvent(event);
     }
+    var queryStringMode = getQueryString("mode");
     //Set mode: demo
-    gui.demo = getQueryString("mode") == "demo" || getQueryString("mode") == "demoStandalone" || (getSetting("startDemoMode") && getQueryString("mode") == "");
+    gui.demo = queryStringMode == "demo" || queryStringMode == "demoStandalone" || (getSetting("startDemoMode") && queryStringMode == "");
     if (gui.demo) {
         document.body.style.cursor = "none";
         var loadingAnimElemChangingFilter = loadingImageAnimation();
-        demoMode.standalone = getQueryString("mode") == "demoStandalone";
+        demoMode.standalone = queryStringMode == "demoStandalone";
     }
     //Set mode: multiplay
-    if (getQueryString("mode") == "multiplay") {
+    if (queryStringMode == "multiplay") {
         if ("WebSocket" in window) {
             onlineGame.enabled = true;
             var loadingAnimElemChangingFilter = loadingImageAnimation();
@@ -6819,7 +6828,7 @@ window.onload = function () {
             }
         };
         pics[pic.id].onerror = function () {
-            notify("#canvas-notifier", getString("appScreenIsFail", "!", "upper"), NOTIFICATION_PRIO_HIGH, 950, null, null, client.height);
+            notify("#canvas-notifier", getString("generalIsFail", "!", "upper"), NOTIFICATION_PRIO_HIGH, 950, null, null, client.height);
             window.setTimeout(function () {
                 followLink("error#pic", "_self", LINK_STATE_INTERNAL_HTML);
             }, 1000);

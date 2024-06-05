@@ -1,0 +1,2 @@
+Update dependencies.
+Upgrade Apache Cordova Android to version 13.0.0.

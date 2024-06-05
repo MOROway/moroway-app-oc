@@ -1,3 +1,7 @@
+/**
+ * Copyright 2024 Jonathan Herrmann-Engel
+ * SPDX-License-Identifier: Apache-2.0
+ */
 window.addEventListener("error", function (event) {
     if (document.body != null) {
         document.body.style.background = "#110022";

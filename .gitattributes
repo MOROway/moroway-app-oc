@@ -1,4 +1,3 @@
-docs/** linguist-documentation
 fastlane/** linguist-documentation
 moroway-app-oc/** linguist-generated
 package-lock.json linguist-generated

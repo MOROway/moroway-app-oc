@@ -17,4 +17,5 @@ More features:
 👁️ Relax in demo mode.
 🎮 Play with friends using multiplayer mode.
 🖼️ Zoom and tilt (3D) with gestures (touch, mouse, keyboard).
+🎥 Follow trains and cars (3D).
 ❓ Detailed Information in the app's help section.

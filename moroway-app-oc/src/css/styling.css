@@ -229,6 +229,7 @@ canvas {
     background: floralwhite;
     border-top: 2px solid rgb(48, 48, 48);
     width: inherit;
+    max-width: inherit;
     display: flex;
     justify-content: center;
 }
@@ -585,6 +586,12 @@ canvas {
 #confirm-dialog-params {
     display: none;
     padding: 20px;
+}
+#confirm-dialog-params > div {
+    padding: 10px;
+}
+#confirm-dialog-params input {
+    accent-color: rgb(210, 120, 27);
 }
 #confirm-dialog-buttons-wrapper {
     display: flex;

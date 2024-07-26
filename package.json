@@ -1,5 +1,5 @@
 {
-    "license": "Apache-2.0",
+    "license": "GPL-3.0-only",
     "devDependencies": {
         "cordova-android": "^13.0.0",
         "cordova-plugin-dialogs": "^2.0.2",

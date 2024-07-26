@@ -1,0 +1,2 @@
+3D view: train conductor and car driver cameras.
+New license: GNU General Public License v3.0 replaces Apache License Version 2.

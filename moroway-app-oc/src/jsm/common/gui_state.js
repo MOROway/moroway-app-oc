@@ -1,9 +1,15 @@
 /**
  * Copyright 2024 Jonathan Herrmann-Engel
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-License-Identifier: GPL-3.0-only
  */
 "use strict";
 //GUI STATE
+export var ThreeCameraModes;
+(function (ThreeCameraModes) {
+    ThreeCameraModes["BIRDS_EYE"] = "birds-eye";
+    ThreeCameraModes["FOLLOW_TRAIN"] = "follow-train";
+    ThreeCameraModes["FOLLOW_CAR"] = "follow-car";
+})(ThreeCameraModes || (ThreeCameraModes = {}));
 function validateGuiState(item, test) {
     if (items.hasOwnProperty(item)) {
         return items[item].validate(test);
@@ -54,10 +60,28 @@ var items = {
             return typeof test == "boolean";
         }
     },
+    "3d-cam-mode": {
+        default: ThreeCameraModes.BIRDS_EYE,
+        validate: function (test) {
+            return Object.values(ThreeCameraModes).includes(test);
+        }
+    },
+    "3d-follow-object": {
+        default: 0,
+        validate: function (test) {
+            return typeof test == "number" && Number.isInteger(test) && test >= 0;
+        }
+    },
     "3d-rotation-speed": {
         default: 50,
         validate: function (test) {
             return typeof test == "number" && !Number.isNaN(test) && test >= 0 && test <= 100;
+        }
+    },
+    "demo-random": {
+        default: false,
+        validate: function (test) {
+            return typeof test == "boolean";
         }
     }
 };

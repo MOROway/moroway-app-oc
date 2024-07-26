@@ -38,6 +38,9 @@ h2 {
 .hidden {
     display: none !important;
 }
+.mirror {
+    transform: scaleX(-1);
+}
 
 /* Fatal Error */
 #error-element {

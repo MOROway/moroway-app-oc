@@ -1,6 +1,6 @@
 /**
  * Copyright 2024 Jonathan Herrmann-Engel
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-License-Identifier: GPL-3.0-only
  */
 "use strict";
 import { APP_DATA } from "./app_data.js";
@@ -99,3 +99,4 @@ export var NOTIFICATION_CHANNEL_DEFAULT = 0;
 export var NOTIFICATION_CHANNEL_TRAIN_SWITCHES = 1;
 export var NOTIFICATION_CHANNEL_CLASSIC_UI_TRAIN_SWITCH = 2;
 export var NOTIFICATION_CHANNEL_TEAMPLAY_CHAT = 3;
+export var NOTIFICATION_CHANNEL_3D_CAMERA = 4;

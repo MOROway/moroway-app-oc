@@ -1,6 +1,6 @@
 /**
  * Copyright 2024 Jonathan Herrmann-Engel
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-License-Identifier: GPL-3.0-only
  */
 "use strict";
 import { followLink, LINK_STATE_INTERNAL_HTML } from "../../jsm_platform/common/follow_links.js";
@@ -15,8 +15,8 @@ export function getSettings() {
         values = JSON.parse(window.localStorage.getItem(SETTINGS_NAME) || "{}");
     }
     catch (e) { }
-    var defaults = { showNotifications: true, classicUI: true, alwaysShowSelectedTrain: true, cursorascircle: true, burnTheTaxOffice: true, saveGame: true, reduceOptMenu: false, reduceOptMenuHideGraphicalInfoToggle: false, reduceOptMenuHideTrainControlCenter: false, reduceOptMenuHideCarControlCenter: false, reduceOptMenuHideAudioToggle: false, reduceOptMenuHideDemoMode: false, startDemoMode: false, lockOrientationLandscape: false, showVersionNoteAgain: false, reduceOptMenuHide3DViewToggle: false, reduceOptMenuHide3DViewNightToggle: false, reduceOptMenuHideExit: false };
-    var dependencies = { alwaysShowSelectedTrain: ["classicUI"], reduceOptMenuHideGraphicalInfoToggle: ["reduceOptMenu"], reduceOptMenuHideTrainControlCenter: ["reduceOptMenu"], reduceOptMenuHideCarControlCenter: ["reduceOptMenu"], reduceOptMenuHideAudioToggle: ["reduceOptMenu"], reduceOptMenuHideDemoMode: ["reduceOptMenu"], reduceOptMenuHide3DViewToggle: ["reduceOptMenu"], reduceOptMenuHide3DViewNightToggle: ["reduceOptMenu"], reduceOptMenuHideExit: ["reduceOptMenu"] };
+    var defaults = { showNotifications: true, classicUI: true, alwaysShowSelectedTrain: true, cursorascircle: true, burnTheTaxOffice: true, saveGame: true, reduceOptMenu: false, reduceOptMenuHideGraphicalInfoToggle: false, reduceOptMenuHideTrainControlCenter: false, reduceOptMenuHideCarControlCenter: false, reduceOptMenuHideAudioToggle: false, reduceOptMenuHideDemoMode: false, startDemoMode: false, lockOrientationLandscape: false, showVersionNoteAgain: false, reduceOptMenuHide3DViewToggle: false, reduceOptMenuHide3DViewNightToggle: false, reduceOptMenuHide3DViewCameraSwitcher: false, reduceOptMenuHideExit: false };
+    var dependencies = { alwaysShowSelectedTrain: ["classicUI"], reduceOptMenuHideGraphicalInfoToggle: ["reduceOptMenu"], reduceOptMenuHideTrainControlCenter: ["reduceOptMenu"], reduceOptMenuHideCarControlCenter: ["reduceOptMenu"], reduceOptMenuHideAudioToggle: ["reduceOptMenu"], reduceOptMenuHideDemoMode: ["reduceOptMenu"], reduceOptMenuHide3DViewToggle: ["reduceOptMenu"], reduceOptMenuHide3DViewNightToggle: ["reduceOptMenu"], reduceOptMenuHide3DViewCameraSwitcher: ["reduceOptMenu"], reduceOptMenuHideExit: ["reduceOptMenu"] };
     var hardware = { cursorascircle: ["mouse"] };
     var platforms = { reduceOptMenuHideDemoMode: ["snap", "web", "windows"], reduceOptMenuHideExit: ["android"], startDemoMode: ["snap", "windows"], lockOrientationLandscape: ["android"], showVersionNoteAgain: ["android"] };
     Object.keys(defaults).forEach(function (key) {
@@ -205,7 +205,7 @@ export function setSettingsHTML(elem, standalone) {
             else if (opt == "reduceOptMenu") {
                 child = document.createElement("div");
                 child.className = "settings-buttons-wrapper";
-                var kidNames = ["reduceOptMenuHideGraphicalInfoToggle", "reduceOptMenuHideTrainControlCenter", "reduceOptMenuHideCarControlCenter", "reduceOptMenuHideAudioToggle", "reduceOptMenuHideDemoMode", "reduceOptMenuHide3DViewToggle", "reduceOptMenuHide3DViewNightToggle", "reduceOptMenuHideExit"];
+                var kidNames = ["reduceOptMenuHideGraphicalInfoToggle", "reduceOptMenuHideTrainControlCenter", "reduceOptMenuHideCarControlCenter", "reduceOptMenuHideAudioToggle", "reduceOptMenuHideDemoMode", "reduceOptMenuHide3DViewToggle", "reduceOptMenuHide3DViewNightToggle", "reduceOptMenuHide3DViewCameraSwitcher", "reduceOptMenuHideExit"];
                 kidNames.forEach(function (kidName) {
                     if (isHardwareAvailable(kidName) && isInPlatformList(kidName)) {
                         kid = document.createElement("button");

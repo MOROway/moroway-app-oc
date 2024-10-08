@@ -37,26 +37,18 @@ for lang in "$working_dir_build/metadata"/*; do
 		elif [[ -f "$file_out" ]]; then
 			rm "$file_out"
 		fi
-		file="$working_dir_build/metadata/$lang/description.txt"
+		file="$working_dir_build/metadata/$lang/translations.yml"
 		file_out=fastlane/metadata/android/"$lang"/full_description.txt
 		if [[ -f "$file" ]]; then
-			cat "$file" >"$file_out"
-			file_extra_lang="$working_dir_build/metadata/$lang/description-extra.txt"
-			file_extra_default="$working_dir_build/metadata/default/description-extra.txt"
-			if [[ -f "$file_extra_lang" ]]; then
-				echo -ne "\n" >>"$file_out"
-				cat "$file_extra_lang" >>"$file_out"
-			elif [[ -f "$file_extra_default" ]]; then
-				echo -ne "\n" >>"$file_out"
-				cat "$file_extra_default" >>"$file_out"
-			fi
+			"$working_dir_build"/build-libs/yq_linux_amd64 e ".Description | .Standard" "$file" >"$file_out"
+			echo -ne "\n" >>"$file_out"
+			"$working_dir_build"/build-libs/yq_linux_amd64 e ".Description | .Extra | .[]" "$file" >>"$file_out"
 		elif [[ -f "$file_out" ]]; then
 			rm "$file_out"
 		fi
-		file="$working_dir_build/metadata/$lang/description-short.txt"
 		file_out=fastlane/metadata/android/"$lang"/short_description.txt
 		if [[ -f "$file" ]]; then
-			cat "$file" >"$file_out"
+			"$working_dir_build"/build-libs/yq_linux_amd64 e ".Description | .Short" "$file" >"$file_out"
 		elif [[ -f "$file_out" ]]; then
 			rm "$file_out"
 		fi
@@ -65,32 +57,37 @@ done
 
 # Set Changelog
 version_long=$(echo "$version" | sed 's/\.\([0-9]\)/.0\1/g' | sed 's/\.0\([0-9]\{2\}\)/\1/g' | sed 's/\.//g')
+rm fastlane/metadata/android/*/changelogs/"$version_long".txt 2>/dev/null
 for lang in "$working_dir_build/changelogs"/*; do
 	lang=$(basename "$lang")
-	changelog=""
-	if [[ -f "$working_dir_build/changelogs/$lang/$version" ]] || [[ -f "$working_dir_build/changelogs/default/$version" ]]; then
-		changelogfile="$working_dir_build/changelogs/default/$version"
-		if [[ -f "$working_dir_build/changelogs/$lang/$version" ]]; then
-			changelogfile="$working_dir_build/changelogs/$lang/$version"
+	if [[ "$lang" != meta ]]; then
+		changelog=""
+		changelogAdd=$("$working_dir_build"/build-libs/yq_linux_amd64 e ".versions .\"$version\" .general | select(.)" "$working_dir_build/changelogs/$lang/changelog.yml" | sed 's/{{[0-9]\+}}\s\?//g')
+		if [[ -z "$changelogAdd" ]]; then
+			changelogAdd=$("$working_dir_build"/build-libs/yq_linux_amd64 e ".versions .\"$version\" .general | select(.)" "$working_dir_build/changelogs/default/changelog.yml" | sed 's/{{[0-9]\+}}\s\?//g')
 		fi
-		changelog="$changelog"$(cat "$changelogfile" | sed 's/{{[0-9]\+}}\s\?//g')$'\n'
-	fi
-	if [[ -f "$working_dir_build/changelogs/$lang/$version-oc" ]] || [[ -f "$working_dir_build/changelogs/default/$version-oc" ]]; then
-		changelogfile_platform="$working_dir_build/changelogs/default/$version-oc"
-		if [[ -f "$working_dir_build/changelogs/$lang/$version-oc" ]]; then
-			changelogfile_platform="$working_dir_build/changelogs/$lang/$version-oc"
+		if [[ ! -z "$changelogAdd" ]]; then
+			changelog="$changelog$changelogAdd"$'\n'
 		fi
-		changelog="$changelog"$(cat "$changelogfile_platform" | sed 's/{{[0-9]\+}}\s\?//g')$'\n'
-	fi
-	if [[ $(cat "$working_dir_build/changelogs/meta/fixes/bool/$version") == 1 ]]; then
-		changelogfile_bool="$working_dir_build/changelogs/meta/fixes/locale/default"
-		if [[ -f "$working_dir_build/changelogs/meta/fixes/locale/$lang" ]]; then
-			changelogfile_bool="$working_dir_build/changelogs/meta/fixes/locale/$lang"
+		changelogAdd=$("$working_dir_build"/build-libs/yq_linux_amd64 e ".versions .\"$version\" .oc | select(.)" "$working_dir_build/changelogs/$lang/changelog.yml" | sed 's/{{[0-9]\+}}\s\?//g')
+		if [[ -z "$changelogAdd" ]]; then
+			changelogAdd=$("$working_dir_build"/build-libs/yq_linux_amd64 e ".versions .\"$version\" .oc | select(.)" "$working_dir_build/changelogs/default/changelog.yml" | sed 's/{{[0-9]\+}}\s\?//g')
 		fi
-		changelog="$changelog"$(cat "$changelogfile_bool")"."$'\n'
-	fi
-	if [[ ! -z "$changelog" ]] && [[ -d fastlane/metadata/android/"$lang"/changelogs/ ]]; then
-		printf '%s' "$changelog" >fastlane/metadata/android/"$lang"/changelogs/"$version_long".txt
+		if [[ ! -z "$changelogAdd" ]]; then
+			changelog="$changelog$changelogAdd"$'\n'
+		fi
+		if [[ $(cat "$working_dir_build/changelogs/meta/fixes/$version") == 1 ]]; then
+			changelogAdd=$("$working_dir_build"/build-libs/yq_linux_amd64 e ".fixes | select(.)" "$working_dir_build/changelogs/$lang/changelog.yml")
+			if [[ -z "$changelogAdd" ]]; then
+				changelogAdd=$("$working_dir_build"/build-libs/yq_linux_amd64 e ".fixes | select(.)" "$working_dir_build/changelogs/default/changelog.yml")
+			fi
+			if [[ ! -z "$changelogAdd" ]]; then
+				changelog="$changelog$changelogAdd."$'\n'
+			fi
+		fi
+		if [[ ! -z "$changelog" ]] && [[ -d fastlane/metadata/android/"$lang"/changelogs/ ]]; then
+			printf '%s' "$changelog" >fastlane/metadata/android/"$lang"/changelogs/"$version_long".txt
+		fi
 	fi
 done
 

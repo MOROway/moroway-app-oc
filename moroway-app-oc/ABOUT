@@ -5,7 +5,7 @@ All MOROway App files are subject to the "GNU General Public License v3.0" (file
 In addition all MOROway App media files like images are also subject to the "Creative Commons Attribution 4.0 International" License (file: 'LICENSE_ASSETS.txt').
 For these media files you may choose between these two licenses.
 
-For included open source files (e.g. [App-Root]/src/lib/) the copyright and license files are located in the specific directory.
+For included open source files (e.g. [App-Root]/src/lib/ or [App-Root]/build/build-libs/) the copyright and license files are located in the specific directory.
 
 The following media files are CC0-licensed files taken from freesound.org:
 [App-Root]/assets/audio_asset_0.ogg (https://freesound.org/people/steaq/sounds/594215/)

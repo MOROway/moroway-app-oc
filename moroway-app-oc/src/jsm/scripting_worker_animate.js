@@ -1722,16 +1722,22 @@ function animateObjects() {
                     currentObject.opacity = 1;
                 }
             }
-            currentObject.wheelMoveX = currentObject.width / 2 - currentObject.bogieDistance * currentObject.width;
-            currentObject.wheelMoveY = (trainParams.trackWidth / 2) * background.width;
-            currentObject.wheelFrontLeftX = currentObject.x + currentObject.wheelMoveX * Math.sin(Math.PI / 2 - currentObject.displayAngle) - currentObject.wheelMoveY * Math.cos(-Math.PI / 2 - currentObject.displayAngle);
-            currentObject.wheelFrontLeftY = currentObject.y + currentObject.wheelMoveX * Math.cos(Math.PI / 2 - currentObject.displayAngle) + currentObject.wheelMoveY * Math.sin(-Math.PI / 2 - currentObject.displayAngle);
-            currentObject.wheelFrontRightX = currentObject.x + currentObject.wheelMoveX * Math.sin(Math.PI / 2 - currentObject.displayAngle) + currentObject.wheelMoveY * Math.cos(-Math.PI / 2 - currentObject.displayAngle);
-            currentObject.wheelFrontRightY = currentObject.y + currentObject.wheelMoveX * Math.cos(Math.PI / 2 - currentObject.displayAngle) - currentObject.wheelMoveY * Math.sin(-Math.PI / 2 - currentObject.displayAngle);
-            currentObject.wheelBackLeftX = currentObject.x - currentObject.wheelMoveX * Math.sin(Math.PI / 2 - currentObject.displayAngle) - currentObject.wheelMoveY * Math.cos(-Math.PI / 2 - currentObject.displayAngle);
-            currentObject.wheelBackLeftY = currentObject.y - currentObject.wheelMoveX * Math.cos(Math.PI / 2 - currentObject.displayAngle) + currentObject.wheelMoveY * Math.sin(-Math.PI / 2 - currentObject.displayAngle);
-            currentObject.wheelBackRightX = currentObject.x - currentObject.wheelMoveX * Math.sin(Math.PI / 2 - currentObject.displayAngle) + currentObject.wheelMoveY * Math.cos(-Math.PI / 2 - currentObject.displayAngle);
-            currentObject.wheelBackRightY = currentObject.y - currentObject.wheelMoveX * Math.cos(Math.PI / 2 - currentObject.displayAngle) - currentObject.wheelMoveY * Math.sin(-Math.PI / 2 - currentObject.displayAngle);
+            if (currentObject.wheels) {
+                currentObject.wheels.moveX = currentObject.width / 2 - currentObject.bogieDistance * currentObject.width;
+                currentObject.wheels.moveY = (trainParams.trackWidth / 2) * background.width;
+                if (currentObject.wheels.front) {
+                    currentObject.wheels.front.leftX = currentObject.x + currentObject.wheels.moveX * Math.sin(Math.PI / 2 - currentObject.displayAngle) - currentObject.wheels.moveY * Math.cos(-Math.PI / 2 - currentObject.displayAngle);
+                    currentObject.wheels.front.leftY = currentObject.y + currentObject.wheels.moveX * Math.cos(Math.PI / 2 - currentObject.displayAngle) + currentObject.wheels.moveY * Math.sin(-Math.PI / 2 - currentObject.displayAngle);
+                    currentObject.wheels.front.rightX = currentObject.x + currentObject.wheels.moveX * Math.sin(Math.PI / 2 - currentObject.displayAngle) + currentObject.wheels.moveY * Math.cos(-Math.PI / 2 - currentObject.displayAngle);
+                    currentObject.wheels.front.rightY = currentObject.y + currentObject.wheels.moveX * Math.cos(Math.PI / 2 - currentObject.displayAngle) - currentObject.wheels.moveY * Math.sin(-Math.PI / 2 - currentObject.displayAngle);
+                }
+                if (currentObject.wheels.back) {
+                    currentObject.wheels.back.leftX = currentObject.x - currentObject.wheels.moveX * Math.sin(Math.PI / 2 - currentObject.displayAngle) - currentObject.wheels.moveY * Math.cos(-Math.PI / 2 - currentObject.displayAngle);
+                    currentObject.wheels.back.leftY = currentObject.y - currentObject.wheels.moveX * Math.cos(Math.PI / 2 - currentObject.displayAngle) + currentObject.wheels.moveY * Math.sin(-Math.PI / 2 - currentObject.displayAngle);
+                    currentObject.wheels.back.rightX = currentObject.x - currentObject.wheels.moveX * Math.sin(Math.PI / 2 - currentObject.displayAngle) + currentObject.wheels.moveY * Math.cos(-Math.PI / 2 - currentObject.displayAngle);
+                    currentObject.wheels.back.rightY = currentObject.y - currentObject.wheels.moveX * Math.cos(Math.PI / 2 - currentObject.displayAngle) - currentObject.wheels.moveY * Math.sin(-Math.PI / 2 - currentObject.displayAngle);
+                }
+            }
         }
         if (trains[input1].move) {
             //Calc acceleration
@@ -1855,10 +1861,10 @@ var trains = [
         flickerFacFront: 2.5,
         trainSwitchSrc: 25,
         cars: [
-            { src: 2, fac: 0.06, bogieDistance: 0.15, wheelFront3D: true, wheelBack3D: true },
-            { src: 2, fac: 0.06, bogieDistance: 0.15, wheelFront3D: true, wheelBack3D: true },
-            { src: 2, fac: 0.06, bogieDistance: 0.15, wheelFront3D: true, wheelBack3D: true },
-            { src: 3, fac: 0.044, bogieDistance: 0.15, wheelFront3D: true, wheelBack3D: true }
+            { src: 2, fac: 0.06, bogieDistance: 0.15, wheels: { front: { use3d: true }, back: { use3d: true } } },
+            { src: 2, fac: 0.06, bogieDistance: 0.15, wheels: { front: { use3d: true }, back: { use3d: true } } },
+            { src: 2, fac: 0.06, bogieDistance: 0.15, wheels: { front: { use3d: true }, back: { use3d: true } } },
+            { src: 3, fac: 0.044, bogieDistance: 0.15, wheels: { front: { use3d: true }, back: { use3d: true } } }
         ]
     },
     {
@@ -1875,15 +1881,14 @@ var trains = [
         flickerFacFront: 2.1,
         flickerFacBack: 2.1,
         trainSwitchSrc: 26,
-        wheelFront3D: true,
-        wheelBack3D: true,
+        wheels: { front: { use3d: true }, back: { use3d: true } },
         cars: [
-            { src: 5, fac: 0.11, bogieDistance: 0.15, wheelFront3D: true, wheelBack3D: true },
-            { src: 5, fac: 0.11, bogieDistance: 0.15, assetFlip: true, wheelFront3D: true, wheelBack3D: true },
-            { src: 4, fac: 0.093, bogieDistance: 0.15, assetFlip: true, konamiUseTrainIcon: true, wheelFront3D: true, wheelBack3D: true }
+            { src: 5, fac: 0.11, bogieDistance: 0.15, wheels: { front: { use3d: true }, back: { use3d: true } } },
+            { src: 5, fac: 0.11, bogieDistance: 0.15, assetFlip: true, wheels: { front: { use3d: true }, back: { use3d: true } } },
+            { src: 4, fac: 0.093, bogieDistance: 0.15, assetFlip: true, konamiUseTrainIcon: true, wheels: { front: { use3d: true }, back: { use3d: true } } }
         ]
     },
-    { src: 8, fac: 0.068, speedFac: 1 / 375, accelerationSpeedStartFac: 0.04, accelerationSpeedFac: 1.01, circle: rotationPoints.inner.wide, circleFamily: rotationPoints.inner, circleStartPosDiv: 0.8, standardDirectionStartValue: true, bogieDistance: 0.04, state: 121, flickerFacFront: 2.4, flickerFacBack: 2.3, flickerFacFrontOffset: 2.82, flickerFacBackOffset: 2.75, trainSwitchSrc: 27, wheelFront2DSrc: 38, wheelBack2DSrc: 38, wheelFront3D: true, wheelBack3D: true, cars: [] },
+    { src: 8, fac: 0.068, speedFac: 1 / 375, accelerationSpeedStartFac: 0.04, accelerationSpeedFac: 1.01, circle: rotationPoints.inner.wide, circleFamily: rotationPoints.inner, circleStartPosDiv: 0.8, standardDirectionStartValue: true, bogieDistance: 0.04, state: 121, flickerFacFront: 2.4, flickerFacBack: 2.3, flickerFacFrontOffset: 2.82, flickerFacBackOffset: 2.75, trainSwitchSrc: 27, wheels: { front: { use3d: true, src2d: 39 }, back: { use3d: true, src2d: 38 } }, cars: [] },
     {
         src: 7,
         fac: 0.1,
@@ -1900,12 +1905,11 @@ var trains = [
         flickerFacFront: 2.1,
         flickerFacBack: 2.1,
         trainSwitchSrc: 28,
-        wheelFront3D: true,
-        wheelBack3D: true,
+        wheels: { front: { use3d: true }, back: { use3d: true } },
         cars: [
-            { src: 6, fac: 0.1, bogieDistance: 0.15, wheelFront3D: true, wheelBack3D: true },
-            { src: 6, fac: 0.1, bogieDistance: 0.15, assetFlip: true, wheelFront3D: true, wheelBack3D: true },
-            { src: 7, fac: 0.1, bogieDistance: 0.15, assetFlip: true, konamiUseTrainIcon: true, wheelFront3D: true, wheelBack3D: true }
+            { src: 6, fac: 0.1, bogieDistance: 0.15, wheels: { front: { use3d: true }, back: { use3d: true } } },
+            { src: 6, fac: 0.1, bogieDistance: 0.15, assetFlip: true, wheels: { front: { use3d: true }, back: { use3d: true } } },
+            { src: 7, fac: 0.1, bogieDistance: 0.15, assetFlip: true, konamiUseTrainIcon: true, wheels: { front: { use3d: true }, back: { use3d: true } } }
         ]
     },
     {
@@ -1924,11 +1928,10 @@ var trains = [
         flickerFacFront: 2.1,
         flickerFacBack: 2.1,
         trainSwitchSrc: 29,
-        wheelFront3D: true,
-        wheelBack3D: true,
+        wheels: { front: { use3d: true }, back: { use3d: true } },
         cars: [
-            { src: 21, fac: 0.043, bogieDistance: 0.15, wheelFront3D: true, wheelBack3D: true },
-            { src: 22, fac: 0.055, bogieDistance: 0.15, wheelFront3D: true, wheelBack3D: true }
+            { src: 21, fac: 0.043, bogieDistance: 0.15, wheels: { front: { use3d: true }, back: { use3d: true } } },
+            { src: 22, fac: 0.055, bogieDistance: 0.15, wheels: { front: { use3d: true }, back: { use3d: true } } }
         ]
     },
     {
@@ -1945,11 +1948,10 @@ var trains = [
         state: 131,
         margin: 500,
         trainSwitchSrc: 30,
-        wheelFront3D: true,
-        wheelBack3D: true,
+        wheels: { front: { use3d: true }, back: { use3d: true } },
         cars: [
-            { src: 19, fac: 0.08, bogieDistance: 0.15, wheelFront3D: true, wheelBack3D: true },
-            { src: 18, fac: 0.093, bogieDistance: 0.19, assetFlip: true, konamiUseTrainIcon: true, wheelFront3D: true, wheelBack3D: true }
+            { src: 19, fac: 0.08, bogieDistance: 0.15, wheels: { front: { use3d: true }, back: { use3d: true } } },
+            { src: 18, fac: 0.093, bogieDistance: 0.19, assetFlip: true, konamiUseTrainIcon: true, wheels: { front: { use3d: true }, back: { use3d: true } } }
         ]
     },
     {
@@ -1968,10 +1970,10 @@ var trains = [
         flickerFacFront: 2.1,
         trainSwitchSrc: 32,
         cars: [
-            { src: 34, fac: 0.054, bogieDistance: 0.15, wheelFront3D: true, wheelBack3D: true },
-            { src: 35, fac: 0.054, bogieDistance: 0.15, wheelFront3D: true, wheelBack3D: true },
-            { src: 36, fac: 0.064, bogieDistance: 0.15, wheelFront3D: true, wheelBack3D: true },
-            { src: 37, fac: 0.045, bogieDistance: 0.15, wheelFront3D: true, wheelBack3D: true }
+            { src: 34, fac: 0.054, bogieDistance: 0.15, wheels: { front: { use3d: true }, back: { use3d: true } } },
+            { src: 35, fac: 0.054, bogieDistance: 0.15, wheels: { front: { use3d: true }, back: { use3d: true } } },
+            { src: 36, fac: 0.064, bogieDistance: 0.15, wheels: { front: { use3d: true }, back: { use3d: true } } },
+            { src: 37, fac: 0.045, bogieDistance: 0.15, wheels: { front: { use3d: true }, back: { use3d: true } } }
         ]
     }
 ];
@@ -2202,56 +2204,127 @@ onmessage = function (message) {
             }
             /* END UPDATE: v8.0.0 */
             /* UPDATE: v10.0.0 */
-            trains[0].cars[0].wheelFront3D = true;
-            trains[0].cars[0].wheelBack3D = true;
-            trains[0].cars[1].wheelFront3D = true;
-            trains[0].cars[1].wheelBack3D = true;
-            trains[0].cars[2].wheelFront3D = true;
-            trains[0].cars[2].wheelBack3D = true;
-            trains[0].cars[3].wheelFront3D = true;
-            trains[0].cars[3].wheelBack3D = true;
-            trains[1].wheelFront3D = true;
-            trains[1].wheelBack3D = true;
-            trains[1].cars[0].wheelFront3D = true;
-            trains[1].cars[0].wheelBack3D = true;
-            trains[1].cars[1].wheelFront3D = true;
-            trains[1].cars[1].wheelBack3D = true;
-            trains[1].cars[2].wheelFront3D = true;
-            trains[1].cars[2].wheelBack3D = true;
             trains[2].bogieDistance = 0.04;
-            trains[2].wheelFront2DSrc = 38;
-            trains[2].wheelBack2DSrc = 38;
-            trains[2].wheelFront3D = true;
-            trains[2].wheelBack3D = true;
-            trains[3].wheelFront3D = true;
-            trains[3].wheelBack3D = true;
-            trains[3].cars[0].wheelFront3D = true;
-            trains[3].cars[0].wheelBack3D = true;
-            trains[3].cars[1].wheelFront3D = true;
-            trains[3].cars[1].wheelBack3D = true;
-            trains[3].cars[2].wheelFront3D = true;
-            trains[3].cars[2].wheelBack3D = true;
-            trains[4].wheelFront3D = true;
-            trains[4].wheelBack3D = true;
-            trains[4].cars[0].wheelFront3D = true;
-            trains[4].cars[0].wheelBack3D = true;
-            trains[4].cars[1].wheelFront3D = true;
-            trains[4].cars[1].wheelBack3D = true;
-            trains[5].wheelFront3D = true;
-            trains[5].wheelBack3D = true;
-            trains[5].cars[0].wheelFront3D = true;
-            trains[5].cars[0].wheelBack3D = true;
-            trains[5].cars[1].wheelFront3D = true;
-            trains[5].cars[1].wheelBack3D = true;
-            trains[6].cars[0].wheelFront3D = true;
-            trains[6].cars[0].wheelBack3D = true;
-            trains[6].cars[1].wheelFront3D = true;
-            trains[6].cars[1].wheelBack3D = true;
-            trains[6].cars[2].wheelFront3D = true;
-            trains[6].cars[2].wheelBack3D = true;
-            trains[6].cars[3].wheelFront3D = true;
-            trains[6].cars[3].wheelBack3D = true;
             /* END UPDATE: v10.0.0 */
+            /* UPDATE: v10.1.1 */
+            trains[0].cars[0].wheels = {};
+            trains[0].cars[0].wheels.front = {};
+            trains[0].cars[0].wheels.back = {};
+            trains[0].cars[0].wheels.front.use3d = true;
+            trains[0].cars[0].wheels.back.use3d = true;
+            trains[0].cars[1].wheels = {};
+            trains[0].cars[1].wheels.front = {};
+            trains[0].cars[1].wheels.back = {};
+            trains[0].cars[1].wheels.front.use3d = true;
+            trains[0].cars[1].wheels.back.use3d = true;
+            trains[0].cars[2].wheels = {};
+            trains[0].cars[2].wheels.front = {};
+            trains[0].cars[2].wheels.back = {};
+            trains[0].cars[2].wheels.front.use3d = true;
+            trains[0].cars[2].wheels.back.use3d = true;
+            trains[0].cars[3].wheels = {};
+            trains[0].cars[3].wheels.front = {};
+            trains[0].cars[3].wheels.back = {};
+            trains[0].cars[3].wheels.front.use3d = true;
+            trains[0].cars[3].wheels.back.use3d = true;
+            trains[1].wheels = {};
+            trains[1].wheels.front = {};
+            trains[1].wheels.back = {};
+            trains[1].wheels.front.use3d = true;
+            trains[1].wheels.back.use3d = true;
+            trains[1].cars[0].wheels = {};
+            trains[1].cars[0].wheels.front = {};
+            trains[1].cars[0].wheels.back = {};
+            trains[1].cars[0].wheels.front.use3d = true;
+            trains[1].cars[0].wheels.back.use3d = true;
+            trains[1].cars[1].wheels = {};
+            trains[1].cars[1].wheels.front = {};
+            trains[1].cars[1].wheels.back = {};
+            trains[1].cars[1].wheels.front.use3d = true;
+            trains[1].cars[1].wheels.back.use3d = true;
+            trains[1].cars[2].wheels = {};
+            trains[1].cars[2].wheels.front = {};
+            trains[1].cars[2].wheels.back = {};
+            trains[1].cars[2].wheels.front.use3d = true;
+            trains[1].cars[2].wheels.back.use3d = true;
+            trains[2].wheels = {};
+            trains[2].wheels.front = {};
+            trains[2].wheels.back = {};
+            trains[2].wheels.front.use3d = true;
+            trains[2].wheels.back.use3d = true;
+            trains[2].wheels.front.src2d = 39;
+            trains[2].wheels.back.src2d = 38;
+            trains[3].wheels = {};
+            trains[3].wheels.front = {};
+            trains[3].wheels.back = {};
+            trains[3].wheels.front.use3d = true;
+            trains[3].wheels.back.use3d = true;
+            trains[3].cars[0].wheels = {};
+            trains[3].cars[0].wheels.front = {};
+            trains[3].cars[0].wheels.back = {};
+            trains[3].cars[0].wheels.front.use3d = true;
+            trains[3].cars[0].wheels.back.use3d = true;
+            trains[3].cars[1].wheels = {};
+            trains[3].cars[1].wheels.front = {};
+            trains[3].cars[1].wheels.back = {};
+            trains[3].cars[1].wheels.front.use3d = true;
+            trains[3].cars[1].wheels.back.use3d = true;
+            trains[3].cars[2].wheels = {};
+            trains[3].cars[2].wheels.front = {};
+            trains[3].cars[2].wheels.back = {};
+            trains[3].cars[2].wheels.front.use3d = true;
+            trains[3].cars[2].wheels.back.use3d = true;
+            trains[4].wheels = {};
+            trains[4].wheels.front = {};
+            trains[4].wheels.back = {};
+            trains[4].wheels.front.use3d = true;
+            trains[4].wheels.back.use3d = true;
+            trains[4].cars[0].wheels = {};
+            trains[4].cars[0].wheels.front = {};
+            trains[4].cars[0].wheels.back = {};
+            trains[4].cars[0].wheels.front.use3d = true;
+            trains[4].cars[0].wheels.back.use3d = true;
+            trains[4].cars[1].wheels = {};
+            trains[4].cars[1].wheels.front = {};
+            trains[4].cars[1].wheels.back = {};
+            trains[4].cars[1].wheels.front.use3d = true;
+            trains[4].cars[1].wheels.back.use3d = true;
+            trains[5].wheels = {};
+            trains[5].wheels.front = {};
+            trains[5].wheels.back = {};
+            trains[5].wheels.front.use3d = true;
+            trains[5].wheels.back.use3d = true;
+            trains[5].cars[0].wheels = {};
+            trains[5].cars[0].wheels.front = {};
+            trains[5].cars[0].wheels.back = {};
+            trains[5].cars[0].wheels.front.use3d = true;
+            trains[5].cars[0].wheels.back.use3d = true;
+            trains[5].cars[1].wheels = {};
+            trains[5].cars[1].wheels.front = {};
+            trains[5].cars[1].wheels.back = {};
+            trains[5].cars[1].wheels.front.use3d = true;
+            trains[5].cars[1].wheels.back.use3d = true;
+            trains[6].cars[0].wheels = {};
+            trains[6].cars[0].wheels.front = {};
+            trains[6].cars[0].wheels.back = {};
+            trains[6].cars[0].wheels.front.use3d = true;
+            trains[6].cars[0].wheels.back.use3d = true;
+            trains[6].cars[1].wheels = {};
+            trains[6].cars[1].wheels.front = {};
+            trains[6].cars[1].wheels.back = {};
+            trains[6].cars[1].wheels.front.use3d = true;
+            trains[6].cars[1].wheels.back.use3d = true;
+            trains[6].cars[2].wheels = {};
+            trains[6].cars[2].wheels.front = {};
+            trains[6].cars[2].wheels.back = {};
+            trains[6].cars[2].wheels.front.use3d = true;
+            trains[6].cars[2].wheels.back.use3d = true;
+            trains[6].cars[3].wheels = {};
+            trains[6].cars[3].wheels.front = {};
+            trains[6].cars[3].wheels.back = {};
+            trains[6].cars[3].wheels.front.use3d = true;
+            trains[6].cars[3].wheels.back.use3d = true;
+            /* END UPDATE: v10.1.1 */
         }
         else {
             placeTrainsAtInitialPositions();

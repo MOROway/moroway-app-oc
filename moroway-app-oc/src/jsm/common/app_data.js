@@ -9,12 +9,12 @@ var APP_DATA = {
     version: {
         major: 10,
         minor: 1,
-        patch: 1,
+        patch: 2,
         beta: 0,
         date: {
             year: 2024,
-            month: 10,
-            day: 8
+            month: 12,
+            day: 12
         }
     },
     platform: "oc",

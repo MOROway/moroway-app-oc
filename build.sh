@@ -20,7 +20,7 @@ done
 
 [[ ! -d "$working_dir_build/changelogs" ]] && exit 1
 [[ ! -d "$output_dir_build" ]] && exit 2
-cd $(dirname "$0") || exit 3
+cd "$(dirname "$0")" || exit 3
 
 # Copy MOROway App Files
 rm -r moroway-app-oc

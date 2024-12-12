@@ -1,0 +1,21 @@
+Avec MOROway App vous pouvez contrôler plusieurs trains et voitures, tourner les interrupteurs et profiter d’une vue à vol d’oiseau du modèle ferroviaire.
+
+🚉 Trains :
+Vous pouvez contrôler sept trains en deux cercles.
+
+🕹️ Usage :
+Contrôlez les trains de MOROway en utilisant le transformateur sur le côté droit. Sélectionnez un train avec la bascule sur le côté gauche. Vous pouvez également cliquer sur le train souhaité ou utiliser le centre de contrôle des trains.
+
+🏎️ Automobiles :
+Les trois voitures peuvent être actionnées séparément ou se déplacer automatiquement.
+
+🌆 3D :
+En alternative à la vue aérienne, il existe une simple vue 3D.
+
+Autres caractéristiques :
+🔉 Écoutez les trains avec des effets sonores.
+👁️ Détendez-vous en mode démo.
+🎮 Jouer avec des amis en utilisant le mode multijoueur.
+🖼️ Zoom et inclinaison (3D) avec des gestes (toucher, souris, clavier).
+🎥 Suivre les trains et les voitures (3D).
+❓ Informations détaillées dans la section d’aide de l’application.

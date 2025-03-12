@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Jonathan Herrmann-Engel
+ * Copyright 2025 Jonathan Herrmann-Engel
  * SPDX-License-Identifier: GPL-3.0-only
  */
 "use strict";
@@ -68,6 +68,18 @@ document.addEventListener("DOMContentLoaded", function () {
     document.querySelector("#contact-feedbacklink").addEventListener("click", function () {
         notify("#help-notifier", getString("helpScreenContactFeedbackSendNotification", "."), NOTIFICATION_PRIO_DEFAULT, 900, null, null, window.innerHeight);
         followLink(getServerHTMLLink("feedback"), "_blank", LINK_STATE_NORMAL);
+    });
+    document.querySelector("#download-androidlink").addEventListener("click", function () {
+        followLink(getServerRedirectLink("download_android"), "_blank", LINK_STATE_NORMAL);
+    });
+    document.querySelector("#download-fdroidlink").addEventListener("click", function () {
+        followLink(getServerRedirectLink("download_fdroid"), "_blank", LINK_STATE_NORMAL);
+    });
+    document.querySelector("#download-windowslink").addEventListener("click", function () {
+        followLink(getServerRedirectLink("download_windows"), "_blank", LINK_STATE_NORMAL);
+    });
+    document.querySelector("#download-snaplink").addEventListener("click", function () {
+        followLink(getServerRedirectLink("download_snap"), "_blank", LINK_STATE_NORMAL);
     });
     document.querySelector("#download-sourcelink").addEventListener("click", function () {
         followLink(getServerRedirectLink("source_code"), "_blank", LINK_STATE_NORMAL);

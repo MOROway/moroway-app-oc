@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Jonathan Herrmann-Engel
+ * Copyright 2025 Jonathan Herrmann-Engel
  * SPDX-License-Identifier: GPL-3.0-only
  */
 "use strict";
@@ -8,12 +8,12 @@ import { deepFreeze } from "./js_objects.js";
 var APP_DATA = {
     version: {
         major: 10,
-        minor: 1,
-        patch: 2,
+        minor: 2,
+        patch: 0,
         beta: 0,
         date: {
-            year: 2024,
-            month: 12,
+            year: 2025,
+            month: 3,
             day: 12
         }
     },

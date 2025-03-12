@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Jonathan Herrmann-Engel
+ * Copyright 2025 Jonathan Herrmann-Engel
  * SPDX-License-Identifier: GPL-3.0-only
  */
 "use strict";
@@ -11,7 +11,7 @@ document.addEventListener("DOMContentLoaded", function () {
     setHTMLStrings();
     initTooltips();
 });
-window.addEventListener("load", function () {
+document.addEventListener("DOMContentLoaded", function () {
     setSettingsHTML(document.querySelector("main"), true);
     document.querySelector("#backOption").addEventListener("click", function () {
         try {

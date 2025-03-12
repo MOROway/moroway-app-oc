@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Jonathan Herrmann-Engel
+ * Copyright 2025 Jonathan Herrmann-Engel
  * SPDX-License-Identifier: GPL-3.0-only
  */
 window.addEventListener("error", function (event) {

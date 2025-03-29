@@ -1,0 +1,3 @@
+Verbesserter Mehrspieler Server.
+Aktualisierte Abhängigkeiten.
+Aktualisierung von Apache Cordova Android auf Version 14.0.0.

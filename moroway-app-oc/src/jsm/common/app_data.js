@@ -8,13 +8,13 @@ import { deepFreeze } from "./js_objects.js";
 var APP_DATA = {
     version: {
         major: 10,
-        minor: 2,
+        minor: 3,
         patch: 0,
         beta: 0,
         date: {
             year: 2025,
             month: 3,
-            day: 12
+            day: 29
         }
     },
     platform: "oc",

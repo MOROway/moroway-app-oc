@@ -1,0 +1,3 @@
+Improve multiplayer server.
+Update dependencies.
+Update Apache Cordova Android to 14.0.0.

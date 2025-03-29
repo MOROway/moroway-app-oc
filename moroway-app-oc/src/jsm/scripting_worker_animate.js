@@ -1840,7 +1840,7 @@ function animateObjects() {
     }
 }
 var animateTimeout;
-var animateInterval = 22;
+var animateInterval;
 var rotationPoints = {
     inner: { narrow: { x: [], y: [], bezierLength: { left: 0, right: 0 } }, wide: { x: [], y: [], bezierLength: { left: 0, right: 0 } }, sidings: { first: { x: [], y: [], bezierLength: 0 }, firstS1: { x: [], y: [] }, firstS2: { x: [], y: [], bezierLength: 0 }, second: { x: [], y: [], bezierLength: 0 }, secondS1: { x: [], y: [] }, secondS2: { x: [], y: [], bezierLength: 0 }, third: { x: [], y: [], bezierLength: 0 }, thirdS1: { x: [], y: [] }, thirdS2: { x: [], y: [], bezierLength: 0 } } },
     outer: { narrow: { x: [], y: [], bezierLength: { left: 0, right: 0 } }, altState3: { left: { x: [], y: [], bezierLength: 0 }, right: { x: [], y: [], bezierLength: 0 } }, rightSiding: { enter: { x: [], y: [] }, curve: { x: [], y: [], bezierLength: 0 }, continueCurve0: { x: [], y: [], bezierLength: 0 }, continueLine0: { x: [], y: [], bezierLength: 0 }, continueCurve1: { x: [], y: [], bezierLength: 0 }, continueLine1: { x: [], y: [] }, continueCurve2: { x: [], y: [], bezierLength: 0 }, rejoin: { x: [], y: [] }, end: { x: [], y: [] } } },
@@ -1978,7 +1978,7 @@ var trains = [
     }
 ];
 var trainPics;
-var trainParams = { selected: Math.floor(Math.random() * trains.length), margin: 25, innerCollisionFac: 0.5, minOpacity: 0.3, trackWidth: 0.0066 };
+var trainParams = { selected: Math.floor(Math.random() * trains.length), margin: 25, innerCollisionFac: 0.5, minOpacity: 0.3, trackWidth: 0.0066, minSpeed: 10 };
 var switches;
 var switchesBeforeAddSidings;
 var background;
@@ -2016,18 +2016,26 @@ onmessage = function (message) {
             }
         }
     }
-    function performanceTest() {
-        var startTime = performance.now();
-        for (var i = 0; i < 3; i++) {
-            var startNo = 12500000;
-            var newNo = 1;
-            var res = 1;
-            while (newNo < startNo) {
-                res *= startNo - newNo;
-                newNo++;
+    function getAnimateInterval(interval) {
+        if (interval === void 0) { interval = undefined; }
+        function performanceTest() {
+            var startTime = performance.now();
+            for (var i = 0; i < 3; i++) {
+                var startNo = 12500000;
+                var newNo = 1;
+                var res = 1;
+                while (newNo < startNo) {
+                    res *= startNo - newNo;
+                    newNo++;
+                }
             }
+            return (performance.now() - startTime) / 90;
         }
-        return (performance.now() - startTime) / 90;
+        var defaultInterval = 22;
+        if (typeof interval != "number") {
+            interval = performanceTest();
+        }
+        return Math.min(Math.max(interval * defaultInterval, defaultInterval), 3 * defaultInterval);
     }
     function updateStateNegative3V8(cO) {
         if (cO.state == -3) {
@@ -2050,7 +2058,12 @@ onmessage = function (message) {
     }
     if (message.data.k == "start") {
         online = message.data.online;
-        animateInterval = online ? message.data.onlineInterval : Math.min(Math.max(performanceTest() * animateInterval, animateInterval), 3 * animateInterval);
+        if (online) {
+            animateInterval = getAnimateInterval(message.data.onlineInterval);
+        }
+        else {
+            animateInterval = getAnimateInterval();
+        }
         background = message.data.background;
         switchesBeforeAddSidings = [0.008 * background.width, 0.012 * background.width];
         switches = message.data.switches;
@@ -2157,8 +2170,7 @@ onmessage = function (message) {
             }
             trains = newTrains;
         }
-        postMessage({ k: "getTrainPics", trains: trains });
-        postMessage({ k: "setTrainParams", trainParams: trainParams });
+        postMessage({ k: "getTrainPics", trains: trains, trainParams: trainParams });
     }
     else if (message.data.k == "setTrainPics") {
         trainPics = message.data.trainPics;

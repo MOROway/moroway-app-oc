@@ -97,7 +97,7 @@ function onVisibilityChange() {
  ******************************************/
 function playAndPauseAudio() {
     if (typeof audio.context == "object") {
-        var play = audio.active && !client.hidden && !onlineGame.stop;
+        var play = audio.active && !client.hidden && !onlineGame.paused;
         if (play && audio.context.state == "suspended") {
             audio.context.resume();
         }
@@ -2445,7 +2445,6 @@ function drawObjects() {
                 }, hardware.lastInputTouch > hardware.lastInputMouse ? longTouchWaitTime : doubleClickWaitTime);
             }
         }
-        context.closePath();
         context.restore();
         if (!currentObject.parking && !currentObject.move && !carParams.autoModeRuns && !carParams.isBackToRoot && !carCollisionCourse(input1, false, -1)) {
             context.save();
@@ -2473,7 +2472,6 @@ function drawObjects() {
                 }
             }
         }
-        context.closePath();
         context.restore();
         if (APP_DATA.debug && debug.paint) {
             context.save();
@@ -2579,7 +2577,9 @@ function drawObjects() {
         contextForeground.clearRect(0, 0, canvasForeground.width, canvasForeground.height);
         contextForeground.setTransform(1, 0, 0, 1, 0, 0);
         /////THREE.JS/Background/////
-        background3D.animateBehind();
+        if (three.cameraMode == ThreeCameraModes.BIRDS_EYE) {
+            background3D.animateBehind();
+        }
     }
     else {
         canvasGesture.style.display = "";
@@ -2765,6 +2765,12 @@ function drawObjects() {
             if (typeof three.followObject != "number" || !Number.isInteger(three.followObject) || three.followObject < 0 || three.followObject > cars.length - 1) {
                 three.followObject = gui.demo ? Math.floor(Math.random() * cars.length) : 0;
             }
+            if ((!carParams.autoModeOff && carParams.isBackToRoot) || (carParams.autoModeOff && (cars[three.followObject].backToInit || cars[three.followObject].backwardsState > 0))) {
+                background3D.animateBehind(false, (cars[three.followObject].displayAngle - Math.PI) / (2 * Math.PI));
+            }
+            else {
+                background3D.animateBehind(false, cars[three.followObject].displayAngle / (2 * Math.PI));
+            }
             three.followCamera.position.set(three.calcScale() * ((cars[three.followObject].outerX - background.width / 2) / background.width), three.calcScale() * (-(cars[three.followObject].outerY - background.height / 2) / background.width) + three.calcPositionY(), cars3D[three.followObject].positionZ == undefined ? 0 : cars3D[three.followObject].positionZ);
             three.followCamera.rotation.set(0, 0, 0);
             three.followCamera.rotation.z = -cars[three.followObject].displayAngle;
@@ -2778,7 +2784,7 @@ function drawObjects() {
             var rad = Math.PI / 2;
             three.followCamera.rotateOnAxis(axis, rad);
             three.renderer.render(three.scene, three.followCamera);
-            if (!gui.demo && !gui.controlCenter && !gui.konamiOverlay && !onlineGame.stop) {
+            if (!gui.demo && !gui.controlCenter && !gui.konamiOverlay && !onlineGame.waitingClock.visible) {
                 contextForeground.save();
                 contextForeground.translate(three.followCamControls.x, three.followCamControls.y + three.followCamControls.textSize);
                 contextForeground.font = three.followCamControls.font;
@@ -2874,7 +2880,9 @@ function drawObjects() {
                 three.followObject = gui.demo ? Math.floor(Math.random() * trains.length) : 0;
             }
             var object = trains[three.followObject].standardDirection || trains[three.followObject].cars.length == 0 ? trains[three.followObject] : trains[three.followObject].cars[trains[three.followObject].cars.length - 1];
-            three.followCamera.position.set((three.calcScale() * (trains[three.followObject].outerX - background.x - background.width / 2)) / background.width, three.calcScale() * (-(trains[three.followObject].outerY - background.y - background.height / 2) / background.width) + three.calcPositionY(), trains3D[three.followObject].positionZ == undefined ? 0 : trains3D[three.followObject].positionZ);
+            var object3D = trains[three.followObject].standardDirection || trains3D[three.followObject].cars.length == 0 ? trains3D[three.followObject] : trains3D[three.followObject].cars[trains3D[three.followObject].cars.length - 1];
+            background3D.animateBehind(false, (trains[three.followObject].standardDirection ? object.displayAngle : object.displayAngle - Math.PI) / (2 * Math.PI));
+            three.followCamera.position.set((three.calcScale() * (trains[three.followObject].outerX - background.x - background.width / 2)) / background.width, three.calcScale() * (-(trains[three.followObject].outerY - background.y - background.height / 2) / background.width) + three.calcPositionY(), object3D.positionZ == undefined ? 0 : object3D.positionZ);
             three.followCamera.rotation.set(0, 0, 0);
             three.followCamera.rotation.z = -object.displayAngle;
             if (!trains[three.followObject].standardDirection) {
@@ -2886,7 +2894,7 @@ function drawObjects() {
             var axis = new THREE.Vector3(1, 0, 0);
             var rad = Math.PI / 2;
             three.followCamera.rotateOnAxis(axis, rad);
-            if (!gui.demo && !gui.controlCenter && !gui.konamiOverlay && !onlineGame.stop) {
+            if (!gui.demo && !gui.controlCenter && !gui.konamiOverlay && !onlineGame.waitingClock.visible) {
                 contextForeground.save();
                 contextForeground.translate(three.followCamControls.x, three.followCamControls.y);
                 contextForeground.beginPath();
@@ -3164,7 +3172,7 @@ function drawObjects() {
             });
         }
         /////TAX OFFICE/////
-        if (getSetting("burnTheTaxOffice") && !onlineGame.stop) {
+        if (getSetting("burnTheTaxOffice") && !onlineGame.waitingClock.visible) {
             //General (BEGIN)
             contextForeground.save();
             contextForeground.translate(background.x, background.y);
@@ -3215,7 +3223,6 @@ function drawObjects() {
                 contextForeground.translate(taxOffice.fire[i].x, taxOffice.fire[i].y);
                 contextForeground.beginPath();
                 contextForeground.arc(0, 0, taxOffice.fire[i].size, 0, 2 * Math.PI);
-                contextForeground.closePath();
                 contextForeground.fill();
                 contextForeground.restore();
                 contextForeground.save();
@@ -3223,7 +3230,6 @@ function drawObjects() {
                 contextForeground.translate(taxOffice.smoke[i].x, taxOffice.smoke[i].y);
                 contextForeground.beginPath();
                 contextForeground.arc(0, 0, taxOffice.smoke[i].size, 0, 2 * Math.PI);
-                contextForeground.closePath();
                 contextForeground.fill();
                 contextForeground.restore();
             }
@@ -3255,7 +3261,7 @@ function drawObjects() {
             contextForeground.restore();
         }
         /////CLASSIC UI/////
-        if (classicUI.ready()) {
+        if (classicUI.ready(true)) {
             if (classicUISavedMouseHold != undefined && classicUISavedMouseDrag != undefined) {
                 hardware.mouse.isHold = classicUISavedMouseHold;
                 hardware.mouse.isDrag = classicUISavedMouseDrag;
@@ -3618,7 +3624,6 @@ function drawObjects() {
                 if (!wasPointer && contextForeground.isPointInPath(hardware.mouse.moveX, hardware.mouse.moveY) && !hardware.mouse.isDrag) {
                     hardware.mouse.cursor = "pointer";
                 }
-                contextForeground.closePath();
                 contextForeground.restore();
             });
         });
@@ -3641,24 +3646,20 @@ function drawObjects() {
                 }
                 else if (!hardware.mouse.isHold && switches[key][side].lastStateChange != undefined && frameNo - switches[key][side].lastStateChange < switchParams.showDuration) {
                     contextForeground.fillStyle = switches[key][side].turned ? "rgba(144, 255, 144,1)" : "rgba(255,0,0,1)";
-                    contextForeground.closePath();
                     contextForeground.fill();
                     contextForeground.restore();
                 }
                 else if (!hardware.mouse.isHold && switches[key][side].lastStateChange != undefined && frameNo - switches[key][side].lastStateChange < switchParams.showDurationFade) {
-                    contextForeground.closePath();
                     contextForeground.restore();
                     contextForeground.save();
                     contextForeground.beginPath();
                     var fac = 1 - (frameNo - switchParams.showDuration - switches[key][side].lastStateChange) / (switchParams.showDurationFade - switchParams.showDuration);
                     contextForeground.fillStyle = switches[key][side].turned ? "rgba(144, 255, 144," + fac + ")" : "rgba(255,0,0," + fac + ")";
                     contextForeground.arc(background.x + switches[key][side].x, background.y + switches[key][side].y, fac * switchParams.radius, 0, 2 * Math.PI);
-                    contextForeground.closePath();
                     contextForeground.fill();
                     contextForeground.restore();
                 }
                 else if ((client.chosenInputMethod == "mouse" && !wasPointer && !hardware.mouse.isHold && (switches[key][side].lastStateChange == undefined || frameNo - switches[key][side].lastStateChange > switchParams.showDurationEnd) && contextForeground.isPointInPath(hardware.mouse.moveX, hardware.mouse.moveY)) || (hardware.mouse.isHold && hardware.mouse.cursor == "default" && (clickTimeOut === null || clickTimeOut === undefined))) {
-                    contextForeground.closePath();
                     contextForeground.restore();
                     contextForeground.save();
                     contextForeground.lineWidth = 5;
@@ -3675,7 +3676,6 @@ function drawObjects() {
                     contextForeground.beginPath();
                     contextForeground.lineWidth = 5;
                     contextForeground.arc(0, 0, 0.2 * switchParams.radius + (konamiState < 0 ? Math.random() * 0.3 * switchParams.radius : 0), 0, 2 * Math.PI);
-                    contextForeground.closePath();
                     contextForeground.fillStyle = switches[key][side].turned ? "rgba(144, 238, 144,1)" : "rgba(255,0,0,1)";
                     contextForeground.fill();
                     contextForeground.restore();
@@ -3715,7 +3715,6 @@ function drawObjects() {
                         }
                         contextForeground.restore();
                     }
-                    contextForeground.closePath();
                     contextForeground.restore();
                 }
             });
@@ -4651,9 +4650,15 @@ var trainActions = {
     checkRange: function (i) {
         return i >= 0 && i < trains.length;
     },
+    checkReady: function () {
+        return !gui.demo && !onlineGame.stop;
+    },
+    checkAll: function (i) {
+        return this.checkRange(i) && this.checkReady();
+    },
     start: function (i, speed, notificationOnlyForOthers) {
         if (notificationOnlyForOthers === void 0) { notificationOnlyForOthers = false; }
-        if (!this.checkRange(i) || trains[i].crash || trains[i].accelerationSpeed > 0 || speed <= 0 || speed > 100) {
+        if (!this.checkAll(i) || trains[i].crash || trains[i].accelerationSpeed > 0 || speed <= 0 || speed > 100) {
             return false;
         }
         if (trains[i].move) {
@@ -4666,7 +4671,7 @@ var trainActions = {
     },
     stop: function (i, notificationOnlyForOthers) {
         if (notificationOnlyForOthers === void 0) { notificationOnlyForOthers = false; }
-        if (!this.checkRange(i) || trains[i].accelerationSpeed <= 0) {
+        if (!this.checkAll(i) || trains[i].accelerationSpeed <= 0) {
             return false;
         }
         actionSync("trains", i, [{ accelerationSpeed: (trains[i].accelerationSpeed *= -1) }], [{ getString: ["appScreenObjectStops", "."] }, { getString: [["appScreenTrainNames", i]] }], notificationOnlyForOthers);
@@ -4675,7 +4680,7 @@ var trainActions = {
     changeDirection: function (i, highlight, notificationOnlyForOthers) {
         if (highlight === void 0) { highlight = false; }
         if (notificationOnlyForOthers === void 0) { notificationOnlyForOthers = false; }
-        if (!this.checkRange(i) || trains[i].accelerationSpeed > 0 || Math.abs(trains[i].accelerationSpeed) >= 0.2) {
+        if (!this.checkAll(i) || trains[i].accelerationSpeed > 0 || Math.abs(trains[i].accelerationSpeed) >= 0.2) {
             return false;
         }
         if (highlight) {
@@ -4688,7 +4693,7 @@ var trainActions = {
     },
     setSpeed: function (i, speed, notificationOnlyForOthers) {
         if (notificationOnlyForOthers === void 0) { notificationOnlyForOthers = false; }
-        if (!this.checkRange(i) || speed < 0 || speed > 100) {
+        if (!this.checkAll(i) || speed < 0 || speed > 100) {
             return false;
         }
         if (speed < trainParams.minSpeed) {
@@ -4817,8 +4822,11 @@ var carWays = [];
 var carParams = { init: true, wayNo: 7 };
 var carActions = {
     auto: {
+        checkReady: function () {
+            return !gui.demo && !onlineGame.stop;
+        },
         start: function () {
-            if (carParams.init) {
+            if (this.checkReady() && carParams.init) {
                 carParams.init = false;
                 carParams.autoModeOff = false;
                 carParams.autoModeRuns = true;
@@ -4829,7 +4837,7 @@ var carActions = {
             return false;
         },
         end: function () {
-            if (!carParams.autoModeOff && !carParams.isBackToRoot) {
+            if (this.checkReady() && !carParams.autoModeOff && !carParams.isBackToRoot) {
                 carParams.autoModeRuns = true;
                 carParams.isBackToRoot = true;
                 notify("#canvas-notifier", getString("appScreenCarAutoModeParking", "."), NOTIFICATION_PRIO_DEFAULT, 750, null, null, client.y + menus.outerContainer.height);
@@ -4838,7 +4846,7 @@ var carActions = {
             return false;
         },
         pause: function () {
-            if (!carParams.autoModeRuns) {
+            if (!this.checkReady() || !carParams.autoModeRuns) {
                 return false;
             }
             carParams.autoModeRuns = false;
@@ -4846,7 +4854,7 @@ var carActions = {
             return true;
         },
         resume: function () {
-            if (carParams.autoModeRuns || carParams.autoModeOff) {
+            if (!this.checkReady() || carParams.autoModeRuns || carParams.autoModeOff) {
                 return false;
             }
             carParams.autoModeRuns = true;
@@ -4859,8 +4867,14 @@ var carActions = {
         checkRange: function (car) {
             return car >= 0 && car < cars.length;
         },
+        checkReady: function () {
+            return !gui.demo && !onlineGame.stop;
+        },
+        checkAll: function (car) {
+            return this.checkRange(car) && this.checkReady();
+        },
         start: function (car) {
-            if (!this.checkRange(car) || carCollisionCourse(car, false) || (!carParams.init && !carParams.autoModeOff) || cars[car].move) {
+            if (!this.checkAll(car) || carCollisionCourse(car, false) || (!carParams.init && !carParams.autoModeOff) || cars[car].move) {
                 return false;
             }
             cars[car].move = true;
@@ -4873,7 +4887,7 @@ var carActions = {
             return true;
         },
         stop: function (car) {
-            if (!this.checkRange(car) || !carParams.autoModeOff || !cars[car].move) {
+            if (!this.checkAll(car) || !carParams.autoModeOff || !cars[car].move) {
                 return false;
             }
             cars[car].move = false;
@@ -4886,7 +4900,7 @@ var carActions = {
             return true;
         },
         backwards: function (car) {
-            if (!this.checkRange(car) || !carParams.autoModeOff || cars[car].move || cars[car].backwardsState !== 0 || cars[car].parking) {
+            if (!this.checkAll(car) || !carParams.autoModeOff || cars[car].move || cars[car].backwardsState !== 0 || cars[car].parking) {
                 return false;
             }
             cars[car].lastDirectionChange = frameNo;
@@ -4900,7 +4914,7 @@ var carActions = {
             return true;
         },
         park: function (car) {
-            if (!this.checkRange(car) || carCollisionCourse(car, false, -1) || !carParams.autoModeOff || cars[car].move || cars[car].parking) {
+            if (!this.checkAll(car) || carCollisionCourse(car, false, -1) || !carParams.autoModeOff || cars[car].move || cars[car].parking) {
                 return false;
             }
             cars[car].move = true;
@@ -4930,8 +4944,9 @@ var taxOffice = {
 var classicUI = {
     trainSwitch: { src: 11, srcFill: 31, selectedTrainDisplay: { fontFamily: defaultFont } },
     transformer: { src: 12, onSrc: 13, readySrc: 23, angle: Math.PI / 5, wheelInput: { src: 14, angle: 0, maxAngle: 1.5 * Math.PI }, directionInput: { srcStandardDirection: 24, srcNotStandardDirection: 15 } },
-    ready: function () {
-        return getSetting("classicUI") && !(gui.controlCenter || gui.konamiOverlay || gui.three || gui.demo || onlineGame.stop || canvasGesture == undefined || contextGesture == undefined);
+    ready: function (displayOnly) {
+        if (displayOnly === void 0) { displayOnly = false; }
+        return getSetting("classicUI") && !(gui.controlCenter || gui.konamiOverlay || gui.three || gui.demo || onlineGame.waitingClock.visible || canvasGesture == undefined || contextGesture == undefined) && (displayOnly || !onlineGame.stop);
     },
     pointInTransformerImage: function (x, y) {
         if (!classicUI.ready()) {
@@ -5297,6 +5312,7 @@ var onlineGame = {
             if (Date.now() - onlineGame.waitingClock.initTime < 5000) {
                 return;
             }
+            onlineGame.waitingClock.visible = onlineGame.stop;
             //WAITING CLOCK/GLOBAL/SETUP/1
             contextForeground.save();
             contextForeground.translate(canvasForeground.width / 2, canvasForeground.height / 2);
@@ -6187,8 +6203,9 @@ window.addEventListener("load", function () {
             three.mainGroup.add(background3D.three.mesh);
         });
         background3D.behind = document.getElementById("game-gameplay-three-bg");
-        background3D.animateBehind = function (reset) {
+        background3D.animateBehind = function (reset, forceFac) {
             if (reset === void 0) { reset = false; }
+            if (forceFac === void 0) { forceFac = undefined; }
             if (reset) {
                 background3D.behind.style.transform = "";
                 var behindCloneId = background3D.behind.id + "-clone";
@@ -6212,6 +6229,7 @@ window.addEventListener("load", function () {
                         var fill = "rgba(" + starColorRed + "," + starColorGreen + "," + starColorBlue + "," + alpha + ")";
                         background3D.animateBehindStars.push({ left: left, top: top_1, radius: radius, fill: fill });
                         background3D.animateBehindStars.push({ left: left + background3D.behind.width, top: top_1, radius: radius, fill: fill });
+                        background3D.animateBehindStars.push({ left: left - background3D.behind.width, top: top_1, radius: radius, fill: fill });
                     }
                 }
                 else {
@@ -6267,9 +6285,17 @@ window.addEventListener("load", function () {
                 }
             }
             if (three.night) {
-                background3D.animateBehindFac += 0.00025;
-                if (background3D.animateBehindFac >= 1) {
+                if (typeof forceFac == "number") {
+                    background3D.animateBehindFac = forceFac;
+                }
+                else {
+                    background3D.animateBehindFac += 0.00025;
+                }
+                while (background3D.animateBehindFac >= 1) {
                     background3D.animateBehindFac -= 1;
+                }
+                while (background3D.animateBehindFac < 0) {
+                    background3D.animateBehindFac += 1;
                 }
                 background3D.behind.style.transform = "translateX(" + -background3D.animateBehindFac * background3D.behind.offsetWidth + "px)";
                 background3D.behindClone.style.transform = "translateX(" + (1 - background3D.animateBehindFac) * background3D.behind.offsetWidth + "px)";
@@ -6496,6 +6522,7 @@ window.addEventListener("load", function () {
                         }
                         function showNewGameLink() {
                             hideLoadingAnimation();
+                            playAndPauseAudio();
                             var parent = document.querySelector("#content");
                             var elem = parent.querySelector("#setup");
                             resetForElem(parent, elem, "block");
@@ -6628,9 +6655,7 @@ window.addEventListener("load", function () {
                         };
                         onlineConnection.socket.onclose = function () {
                             showNewGameLink();
-                            notify("#canvas-notifier", getString("appScreenTeamplayConnectionError", "."), NOTIFICATION_PRIO_HIGH, 6000, function () {
-                                followLink("error#tp-connection", "_self", LINK_STATE_INTERNAL_HTML);
-                            }, getString("appScreenFurtherInformation"), client.height);
+                            notify("#canvas-notifier", getString("appScreenTeamplayGameEnded", "."), NOTIFICATION_PRIO_HIGH, 900, null, null, client.height);
                         };
                         onlineConnection.socket.onmessage = function (message) {
                             var ERROR_LEVEL_OKAY = 0;
@@ -6638,7 +6663,15 @@ window.addEventListener("load", function () {
                             var ERROR_LEVEL_ERROR = 2;
                             var json = JSON.parse(message.data);
                             if (APP_DATA.debug) {
-                                console.log(json);
+                                if (json.errorLevel === ERROR_LEVEL_ERROR) {
+                                    console.error(json);
+                                }
+                                else if (json.errorLevel === ERROR_LEVEL_WARNING) {
+                                    console.warn(json);
+                                }
+                                else {
+                                    console.debug(json);
+                                }
                             }
                             switch (json.mode) {
                                 case "hello":
@@ -6771,6 +6804,7 @@ window.addEventListener("load", function () {
                                                 onlineGame.stop = false;
                                                 onlineGame.paused = false;
                                                 onlineGame.syncing = false;
+                                                onlineGame.waitingClock.visible = false;
                                                 if (onlineGame.syncRequest !== undefined && onlineGame.syncRequest !== null) {
                                                     window.clearTimeout(onlineGame.syncRequest);
                                                 }
@@ -6879,6 +6913,9 @@ window.addEventListener("load", function () {
                                 case "sync-done":
                                     onlineGame.stop = onlineGame.paused;
                                     onlineGame.syncing = false;
+                                    if (!onlineGame.stop) {
+                                        onlineGame.waitingClock.visible = false;
+                                    }
                                     if (json.errorLevel !== ERROR_LEVEL_OKAY) {
                                         notify("#canvas-notifier", getString("appScreenTeamplaySyncError", "."), NOTIFICATION_PRIO_HIGH, 900, null, null, client.y + menus.outerContainer.height);
                                     }
@@ -6915,19 +6952,16 @@ window.addEventListener("load", function () {
                                         }
                                         onlineGame.stop = onlineGame.syncing;
                                         onlineGame.paused = false;
+                                        if (!onlineGame.stop) {
+                                            onlineGame.waitingClock.visible = false;
+                                        }
                                         playAndPauseAudio();
                                         notify("#canvas-notifier", getString("appScreenTeamplayGameResumed", "."), NOTIFICATION_PRIO_HIGH, 900, null, null, client.y + menus.outerContainer.height);
                                         animateWorker.postMessage({ k: "resume" });
                                     }
                                     break;
                                 case "leave":
-                                    if (json.errorLevel === ERROR_LEVEL_ERROR) {
-                                        showNewGameLink();
-                                        notify("#canvas-notifier", getString("appScreenTeamplayTeammateLeft", "."), NOTIFICATION_PRIO_HIGH, 900, null, null, client.height);
-                                    }
-                                    else {
-                                        notify("#canvas-notifier", json.sessionName + ": " + getString("appScreenTeamplaySomebodyLeft", "."), NOTIFICATION_PRIO_HIGH, 900, null, null, client.y + menus.outerContainer.height);
-                                    }
+                                    notify("#canvas-notifier", json.sessionName + ": " + getString("appScreenTeamplayTeammateLeft", "."), NOTIFICATION_PRIO_HIGH, 900, null, null, client.y + menus.outerContainer.height);
                                     break;
                                 case "chat-msg":
                                     chatInnerNone_1.style.display = "none";
@@ -7597,9 +7631,9 @@ window.addEventListener("load", function () {
                 switchParams.beforeFac = message.data.switchesBeforeFac;
                 switchParams.beforeAddSidings = message.data.switchesBeforeAddSidings;
                 if (!debug.trainReady) {
-                    console.log("Animate Interval:", message.data.animateInterval);
+                    console.info("Animate Interval:", message.data.animateInterval);
                 }
-                console.log("Trains: ", message.data.trains);
+                console.debug("Trains: ", message.data.trains);
             }
             else if (message.data.k == "debugDrawPoints") {
                 debug.drawPoints = message.data.p;

@@ -4,9 +4,103 @@
  */
 "use strict";
 import { followLink, LINK_STATE_INTERNAL_HTML } from "../jsm_platform/common/follow_links.js";
-import { formatHTMLString, formatJSString, getString, setHTMLStrings } from "./common/string_tools.js";
+import { formatHTMLString, formatJSString, getString, searchStringKeys, setHTMLStrings } from "./common/string_tools.js";
 import { initTooltips } from "./common/tooltip.js";
 document.addEventListener("DOMContentLoaded", function () {
+    function createCardForMinor(major, element, newestFamily) {
+        function createDetailsOnPatches(major, minor, element) {
+            var patches = searchStringKeys(RegExp("whatsNewScreenByVersionMa" + major + "Mi" + minor + "Pa[1-9][0-9]*"));
+            if (patches.length == 0) {
+                return;
+            }
+            patches.sort(new Intl.Collator(undefined, { numeric: true }).compare);
+            var subElementPatches = document.createElement("details");
+            subElementPatches.name = "patches";
+            var subElementPatchesSummary = document.createElement("summary");
+            subElementPatchesSummary.textContent = getString("whatsNewScreenPatchesDetail");
+            subElementPatches.appendChild(subElementPatchesSummary);
+            var addedContent = false;
+            patches.forEach(function (key) {
+                var currentlyAddedContent = false;
+                var patch = parseInt(key.replace("whatsNewScreenByVersionMa" + major + "Mi" + minor + "Pa", ""), 10);
+                var subElementPatchesContent = document.createElement("p");
+                var subElementPatchesIntro = document.createElement("i");
+                subElementPatchesIntro.textContent = formatJSString(getString("whatsNewScreenPatchesPatch", ": "), patch) + formatJSString(getString([key, 0]));
+                subElementPatchesContent.appendChild(subElementPatchesIntro);
+                var m = 1;
+                while (m > 0) {
+                    if (getString([key, m]) != "undefined") {
+                        var subElementPatchesBr = document.createElement("br");
+                        subElementPatchesContent.appendChild(subElementPatchesBr);
+                        var subElementPatchesSpan = document.createElement("span");
+                        subElementPatchesSpan.textContent = formatJSString(getString([key, m]));
+                        subElementPatchesContent.appendChild(subElementPatchesSpan);
+                        m++;
+                    }
+                    else {
+                        if (m > 1) {
+                            currentlyAddedContent = true;
+                            addedContent = true;
+                        }
+                        m = 0;
+                    }
+                }
+                if (currentlyAddedContent) {
+                    subElementPatches.appendChild(subElementPatchesContent);
+                }
+            });
+            if (addedContent) {
+                element.appendChild(subElementPatches);
+            }
+        }
+        var minors = searchStringKeys(RegExp("whatsNewScreenByVersionMa" + major + "Mi[0-9]+Pa0"));
+        if (minors.length == 0) {
+            return;
+        }
+        minors.sort(new Intl.Collator(undefined, { numeric: true }).compare);
+        minors.forEach(function (key, index) {
+            var minor = parseInt(key.replace(RegExp("whatsNewScreenByVersionMa" + major + "Mi([0-9]+)Pa0"), "$1"), 10);
+            var subElement = document.createElement("div");
+            if (newestFamily && index == minors.length - 1) {
+                subElement.id = "newest";
+            }
+            subElement.className = "card";
+            var subElementTitle = document.createElement("div");
+            subElementTitle.className = "card-title";
+            var subElement2 = document.createElement("h2");
+            subElement2.textContent = formatJSString(getString("whatsNewScreenVersionNumberMinor"), major, minor);
+            subElementTitle.appendChild(subElement2);
+            subElement.appendChild(subElementTitle);
+            var subElementContent = document.createElement("div");
+            subElementContent.className = "card-content";
+            var subElementContentInner = document.createElement("p");
+            var subElementContentInnerText = document.createElement("i");
+            subElementContentInnerText.textContent = formatJSString(getString([key, 0]));
+            subElementContentInner.appendChild(subElementContentInnerText);
+            subElementContent.appendChild(subElementContentInner);
+            var subElementContentInner2 = document.createElement("p");
+            var i = 1;
+            while (i > 0) {
+                if (getString([key, i]) != "undefined") {
+                    if (i > 1) {
+                        var subElementContentInner2Br = document.createElement("br");
+                        subElementContentInner2.appendChild(subElementContentInner2Br);
+                    }
+                    var subElementContentInner2Span = document.createElement("span");
+                    subElementContentInner2Span.innerHTML = formatJSString(formatHTMLString(getString([key, i])), "<b>" + formatHTMLString(getString("whatsNewScreenVersionIsNew", "", "upper")) + "</b>! ");
+                    subElementContentInner2.appendChild(subElementContentInner2Span);
+                    i++;
+                }
+                else {
+                    i = 0;
+                }
+            }
+            subElementContent.appendChild(subElementContentInner2);
+            createDetailsOnPatches(major, minor, subElementContent);
+            subElement.appendChild(subElementContent);
+            element.appendChild(subElement);
+        });
+    }
     document.querySelector("#backOption").addEventListener("click", function () {
         if (document.referrer === document.baseURI + "help/") {
             followLink("./help", "_self", LINK_STATE_INTERNAL_HTML);
@@ -19,78 +113,23 @@ document.addEventListener("DOMContentLoaded", function () {
             followLink("./", "_self", LINK_STATE_INTERNAL_HTML);
         }
     });
-    var i = 0;
-    var versions = [];
-    do {
-        if (getString("whatsNewScreenByVersionMa" + (i + 1) + "Mi0") != "undefined") {
-            var j = 0;
+    var versions = searchStringKeys(RegExp("whatsNewScreenByVersionMa[0-9]+Mi0Pa0"));
+    if (versions.length > 0) {
+        versions.sort(new Intl.Collator(undefined, { numeric: true }).compare).reverse();
+        versions.forEach(function (key, index) {
+            var major = parseInt(key.replace(RegExp("whatsNewScreenByVersionMa([0-9]+)Mi0Pa0"), "$1"), 10);
             var elem = document.createElement("article");
-            elem.id = "v" + (i + 1);
-            var elem1 = document.createElement("h2");
-            elem1.textContent = formatJSString(getString("whatsNewScreenVersionNumber"), i + 1);
-            elem.appendChild(elem1);
-            elem1 = document.createElement("div");
-            elem1.className = "card-container card-container-highlightable";
-            do {
-                if (getString("whatsNewScreenByVersionMa" + (i + 1) + "Mi" + j) != "undefined") {
-                    var subElement = document.createElement("div");
-                    subElement.className = "card";
-                    var subElement1 = document.createElement("div");
-                    subElement1.className = "card-title";
-                    var subElement2 = document.createElement("h2");
-                    subElement2.textContent = formatJSString(getString("whatsNewScreenVersionNumberMinor"), i + 1, j);
-                    subElement1.appendChild(subElement2);
-                    subElement.appendChild(subElement1);
-                    elem.appendChild(subElement);
-                    subElement1 = document.createElement("div");
-                    subElement1.className = "card-content";
-                    subElement2 = document.createElement("p");
-                    var subElement3I = document.createElement("i");
-                    subElement3I.textContent = formatJSString(getString(["whatsNewScreenByVersionMa" + (i + 1) + "Mi" + j, 0]));
-                    subElement2.appendChild(subElement3I);
-                    subElement1.appendChild(subElement2);
-                    subElement2 = document.createElement("p");
-                    var k = 1;
-                    do {
-                        if (getString(["whatsNewScreenByVersionMa" + (i + 1) + "Mi" + j, k]) != "undefined") {
-                            if (k > 1) {
-                                var subElement3Br = document.createElement("br");
-                                subElement2.appendChild(subElement3Br);
-                            }
-                            var subElement3Span = document.createElement("span");
-                            subElement3Span.innerHTML = formatJSString(formatHTMLString(getString(["whatsNewScreenByVersionMa" + (i + 1) + "Mi" + j, k])), "<b>" + formatHTMLString(getString("whatsNewScreenVersionIsNew", "", "upper")) + "</b>! ");
-                            subElement2.appendChild(subElement3Span);
-                            k++;
-                        }
-                        else {
-                            k = 1;
-                        }
-                    } while (k > 1);
-                    subElement1.appendChild(subElement2);
-                    subElement.appendChild(subElement1);
-                    elem1.appendChild(subElement);
-                    j++;
-                }
-                else {
-                    j = 0;
-                }
-            } while (j > 0);
-            elem.appendChild(elem1);
-            versions[i] = elem;
-            i++;
-        }
-        else {
-            i = 0;
-        }
-    } while (i > 0);
-    var newestFamily;
-    for (var i = versions.length - 1; i >= 0; i--) {
-        if (i == versions.length - 1) {
-            newestFamily = versions[i].id;
-        }
-        document.querySelector("main").appendChild(versions[i]);
+            elem.id = "v" + major;
+            var elemTitle = document.createElement("h2");
+            elemTitle.textContent = formatJSString(getString("whatsNewScreenVersionNumber"), major);
+            elem.appendChild(elemTitle);
+            var elemContent = document.createElement("div");
+            elemContent.className = "card-container card-container-highlightable";
+            createCardForMinor(major, elemContent, index == 0);
+            elem.appendChild(elemContent);
+            document.querySelector("main").appendChild(elem);
+        });
     }
-    document.querySelector("#" + newestFamily).querySelector(".card-container").lastChild.id = "newest";
     setHTMLStrings();
     initTooltips();
 });

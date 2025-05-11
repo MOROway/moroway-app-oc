@@ -5,7 +5,7 @@
 "use strict";
 //HANDLE OBJECTS
 export function copyJSObject(obj) {
-    return JSON.parse(JSON.stringify(obj));
+    return structuredClone(obj);
 }
 export function deepFreeze(obj) {
     if (typeof obj == "object") {

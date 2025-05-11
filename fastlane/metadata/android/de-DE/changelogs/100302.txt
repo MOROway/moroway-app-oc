@@ -1,0 +1,4 @@
+Verbesserungen and der Versions-Historie.
+Verbesserungen an den Build-Skripten.
+Aktualisierte Abhängigkeiten.
+Fehlerkorrekturen.

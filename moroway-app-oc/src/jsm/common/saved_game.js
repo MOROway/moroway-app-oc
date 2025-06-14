@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: GPL-3.0-only
  */
 "use strict";
-//SAVED GAME
 import { APP_DATA } from "./app_data.js";
+//SAVED GAME
 export function getVersionCode() {
     return APP_DATA.version.major * 10000 + APP_DATA.version.minor * 100 + APP_DATA.version.patch;
 }

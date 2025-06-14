@@ -592,6 +592,10 @@ canvas {
 }
 #confirm-dialog-params input {
     accent-color: rgb(210, 120, 27);
+    margin-right: 1em;
+}
+#confirm-dialog-params input[type="number"] {
+    max-width: 4em;
 }
 #confirm-dialog-buttons-wrapper {
     display: flex;

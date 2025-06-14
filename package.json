@@ -3,12 +3,14 @@
     "devDependencies": {
         "cordova-android": "^14.0.1",
         "cordova-plugin-dialogs": "^2.0.2",
-        "cordova-webintent": "github:cordova-misc/cordova-webintent"
+        "cordova-webintent": "github:cordova-misc/cordova-webintent",
+        "moroway-app-oc-sys-tools": "file:moroway-app-plugins/sys-tools"
     },
     "cordova": {
         "plugins": {
             "cordova-webintent": {},
-            "cordova-plugin-dialogs": {}
+            "cordova-plugin-dialogs": {},
+            "moroway-app-oc-sys-tools": {}
         },
         "platforms": [
             "android"

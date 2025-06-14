@@ -1,0 +1,1 @@
+Anwendung im Demo-Modus nach spezifiziertem Zeitraum beenden wenn von Plattform unterstützt.

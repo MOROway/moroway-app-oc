@@ -8,16 +8,16 @@ import { getSetting } from "./settings.js";
 //NOTIFICATIONS
 export function notify(elem, message, prio, timeout, actionHandler, actionText, minHeight, channel) {
     if (minHeight === void 0) { minHeight = -1; }
-    if (channel === void 0) { channel = NOTIFICATION_CHANNEL_DEFAULT; }
+    if (channel === void 0) { channel = NotificationChannel.Default; }
     var notificationContainer = document.querySelector(elem);
     if (notificationContainer == undefined || notificationContainer == null) {
         return false;
     }
     if (prio == undefined || prio == null) {
-        prio = NOTIFICATION_PRIO_DEFAULT;
+        prio = NotificationPriority.Default;
     }
     if (channel == undefined || channel == null) {
-        channel = NOTIFICATION_CHANNEL_DEFAULT;
+        channel = NotificationChannel.Default;
     }
     if (notificationContainer.queue == undefined) {
         notificationContainer.queue = [];
@@ -73,11 +73,11 @@ export function notify(elem, message, prio, timeout, actionHandler, actionText, 
             return false;
         };
     }
-    if (prio > NOTIFICATION_PRIO_LOW || (notificationContainer.queue.length == 0 && !notificationContainer.active)) {
+    if (prio > NotificationPriority.Low || (notificationContainer.queue.length == 0 && !notificationContainer.active)) {
         var obj = { message: message, timeout: timeout, prio: prio, channel: channel, actionHandler: actionHandler, actionText: actionText };
-        if (prio === NOTIFICATION_PRIO_HIGH || minHeight == -1 || (minHeight >= notificationContainer.offsetHeight - 15 && getSetting("showNotifications"))) {
+        if (prio === NotificationPriority.High || minHeight == -1 || (minHeight >= notificationContainer.offsetHeight - 15 && getSetting("showNotifications"))) {
             var chNo = notificationContainer.sameChannelNo(notificationContainer, channel, prio);
-            if (channel != NOTIFICATION_CHANNEL_DEFAULT && chNo !== false) {
+            if (channel != NotificationChannel.Default && chNo !== false) {
                 notificationContainer.queue[chNo] = obj;
             }
             else {
@@ -88,15 +88,21 @@ export function notify(elem, message, prio, timeout, actionHandler, actionText, 
             }
         }
         else if (APP_DATA.debug) {
-            console.log(message);
+            console.debug(message);
         }
     }
 }
-export var NOTIFICATION_PRIO_LOW = 0;
-export var NOTIFICATION_PRIO_DEFAULT = 1;
-export var NOTIFICATION_PRIO_HIGH = 2;
-export var NOTIFICATION_CHANNEL_DEFAULT = 0;
-export var NOTIFICATION_CHANNEL_TRAIN_SWITCHES = 1;
-export var NOTIFICATION_CHANNEL_CLASSIC_UI_TRAIN_SWITCH = 2;
-export var NOTIFICATION_CHANNEL_TEAMPLAY_CHAT = 3;
-export var NOTIFICATION_CHANNEL_3D_CAMERA = 4;
+export var NotificationPriority;
+(function (NotificationPriority) {
+    NotificationPriority[NotificationPriority["Low"] = 0] = "Low";
+    NotificationPriority[NotificationPriority["Default"] = 1] = "Default";
+    NotificationPriority[NotificationPriority["High"] = 2] = "High";
+})(NotificationPriority || (NotificationPriority = {}));
+export var NotificationChannel;
+(function (NotificationChannel) {
+    NotificationChannel[NotificationChannel["Default"] = 0] = "Default";
+    NotificationChannel[NotificationChannel["TrainSwitches"] = 1] = "TrainSwitches";
+    NotificationChannel[NotificationChannel["ClassicUiTrainSwitch"] = 2] = "ClassicUiTrainSwitch";
+    NotificationChannel[NotificationChannel["MultiplayerChat"] = 3] = "MultiplayerChat";
+    NotificationChannel[NotificationChannel["Camera3D"] = 4] = "Camera3D";
+})(NotificationChannel || (NotificationChannel = {}));

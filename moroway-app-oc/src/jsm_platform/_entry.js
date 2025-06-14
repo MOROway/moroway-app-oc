@@ -3,9 +3,11 @@
  * SPDX-License-Identifier: GPL-3.0-only
  */
 "use strict";
-import {followIntent} from "./common/follow_links.js";
+import { followLink, LinkStates } from "../jsm/common/web_tools.js";
 document.addEventListener("deviceready", function () {
+    // Cordova wrapper contains this function
+    // @ts-ignore
     window.plugins.webintent.getUri(function (url) {
-        followIntent(url);
+        followLink(url, "", LinkStates.Intent);
     }, false);
 });

@@ -34,7 +34,7 @@ export function copy(selector, successFunction, failFunction) {
                         failFunction();
                     }
                     if (APP_DATA.debug) {
-                        console.log(error);
+                        console.error(error);
                     }
                 });
             }
@@ -49,7 +49,7 @@ export function copy(selector, successFunction, failFunction) {
                 failFunction();
             }
             if (APP_DATA.debug) {
-                console.log(error);
+                console.error(error);
             }
         });
     }

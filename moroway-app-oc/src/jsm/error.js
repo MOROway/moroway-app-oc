@@ -3,12 +3,13 @@
  * SPDX-License-Identifier: GPL-3.0-only
  */
 "use strict";
-import { followLink, LINK_STATE_INTERNAL_HTML } from "../jsm_platform/common/follow_links.js";
 import { getString, setHTMLStrings } from "./common/string_tools.js";
+import { SYSTEM_TOOLS } from "./common/system_tools.js";
 import { initTooltips } from "./common/tooltip.js";
 document.addEventListener("DOMContentLoaded", function () {
-    document.querySelector("#backOption").addEventListener("click", function () {
-        followLink("./", "_self", LINK_STATE_INTERNAL_HTML);
+    var backButton = document.querySelector("#backOption");
+    backButton.addEventListener("click", function () {
+        SYSTEM_TOOLS.navigateBack();
     });
     var elements = document.querySelectorAll(".content");
     for (var i = 0; i < elements.length; i++) {

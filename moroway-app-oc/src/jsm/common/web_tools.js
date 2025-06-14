@@ -3,9 +3,10 @@
  * SPDX-License-Identifier: GPL-3.0-only
  */
 "use strict";
-import { followLink, LINK_STATE_NORMAL } from "../../jsm_platform/common/follow_links.js";
+import { followLink } from "../../jsm_platform/common/web_tools.js";
 import { APP_DATA } from "./app_data.js";
-import { formatJSString, getString, CURRENT_LANG } from "./string_tools.js";
+import { CURRENT_LANG, formatJSString, getString } from "./string_tools.js";
+export { followLink } from "../../jsm_platform/common/web_tools.js";
 //HANDLE QUERY String
 export function getQueryString(key) {
     var value = "";
@@ -13,7 +14,7 @@ export function getQueryString(key) {
         .substring(1)
         .split("&")
         .forEach(function (part) {
-        if (part.indexOf("=") > 0 && part.substring(0, part.indexOf("=")) == key) {
+        if (part.indexOf("=") > 0 && part.substring(0, part.indexOf("=")) === key) {
             value = part.substring(part.indexOf("=") + 1);
         }
     });
@@ -27,17 +28,16 @@ export function getShareLinkServerName() {
     return "app.moroway.de";
 }
 export function getServerLink(protocol) {
-    if (protocol === void 0) { protocol = PROTOCOL_HTTP; }
+    if (protocol === void 0) { protocol = Protocols.Http; }
     return protocol + "://herrmann-engel.de/projekte/moroway/moroway-app/server";
 }
 export function getServerRedirectLink(key) {
     var SERVER_REDIRECT_LINK = getServerLink() + "/redirect_to/index.php";
     return SERVER_REDIRECT_LINK + "?key=" + key + "&platform=" + APP_DATA.platform + "&lang=" + CURRENT_LANG;
 }
-export function getServerHTMLLink(key, showCloseButton) {
-    if (showCloseButton === void 0) { showCloseButton = ""; }
+export function getServerHTMLLink(key) {
     var SERVER_HTML_LINK = getServerLink() + "/html_content/index.php";
-    return SERVER_HTML_LINK + "?key=" + key + "&platform=" + APP_DATA.platform + "&lang=" + CURRENT_LANG + "&closeButton=" + showCloseButton;
+    return SERVER_HTML_LINK + "?key=" + key + "&platform=" + APP_DATA.platform + "&lang=" + CURRENT_LANG + "&closeButton=auto";
 }
 export function getServerDataLink(path) {
     var SERVER_DATA_LINK = getServerLink() + "/data";
@@ -51,7 +51,7 @@ export function handleServerJSONValues(key, func) {
     })
         .catch(function (error) {
         if (APP_DATA.debug) {
-            console.log("Fetch-Error:", error);
+            console.error("Fetch-Error:", error);
         }
     })
         .then(function (response) {
@@ -59,7 +59,7 @@ export function handleServerJSONValues(key, func) {
             func(response);
         }
         else if (APP_DATA.debug) {
-            console.log(typeof response != "undefined" && response != null && typeof response.error != "undefined" ? "ERROR: " + response.error : "ERROR: Can't handle request!");
+            console.error(typeof response != "undefined" && response != null && typeof response.error != "undefined" ? "ERROR: " + response.error : "ERROR: Can't handle request!");
         }
     });
 }
@@ -133,7 +133,7 @@ export function showServerNote(serverNoteElementRoot) {
         if (serverMsg.link != undefined && serverMsg.link != null && typeof serverMsg.link == "string") {
             serverNoteElementButtonGo.style.display = "block";
             serverNoteElementButtonGo.onclick = function () {
-                followLink(getServerRedirectLink(serverMsg.link), "_blank", LINK_STATE_NORMAL);
+                followLink(getServerRedirectLink(serverMsg.link), "_blank", LinkStates.External);
             };
         }
         serverNoteElementButtonNo.onclick = function () {
@@ -145,7 +145,7 @@ export function showServerNote(serverNoteElementRoot) {
             if (serverMsg.imageLink != undefined && serverMsg.imageLink != null && typeof serverMsg.imageLink == "string") {
                 serverNoteElementImage.style.cursor = "pointer";
                 serverNoteElementImage.onclick = function () {
-                    followLink(getServerRedirectLink(serverMsg.imageLink), "_blank", LINK_STATE_NORMAL);
+                    followLink(getServerRedirectLink(serverMsg.imageLink), "_blank", LinkStates.External);
                 };
             }
         }
@@ -168,5 +168,16 @@ export function showServerNote(serverNoteElementRoot) {
         serverNoteElementRoot.style.display = "block";
     });
 }
-export var PROTOCOL_HTTP = "https";
-export var PROTOCOL_WS = "wss";
+export var Protocols;
+(function (Protocols) {
+    Protocols["Http"] = "https";
+    Protocols["WebSocket"] = "wss";
+})(Protocols || (Protocols = {}));
+export var LinkStates;
+(function (LinkStates) {
+    LinkStates[LinkStates["External"] = 0] = "External";
+    LinkStates[LinkStates["InternalHtml"] = 1] = "InternalHtml";
+    LinkStates[LinkStates["InternalLicense"] = 2] = "InternalLicense";
+    LinkStates[LinkStates["InternalReload"] = 3] = "InternalReload";
+    LinkStates[LinkStates["Intent"] = 4] = "Intent";
+})(LinkStates || (LinkStates = {}));

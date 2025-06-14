@@ -18,8 +18,13 @@ input {
     accent-color: rgb(210, 120, 27);
 }
 
-input[type="checkbox"] {
+input[type="checkbox"],
+input[type="number"] {
     margin-right: 10px;
+}
+
+input[type="number"] {
+    max-width: 4em;
 }
 
 button {

@@ -39,9 +39,9 @@ export function initTooltip(elem) {
     }
 }
 export function initTooltips() {
-    var elemsTooltip = document.querySelectorAll("*[data-tooltip]");
-    for (var i = 0; i < elemsTooltip.length; i++) {
-        initTooltip(elemsTooltip[i]);
+    var elementsTooltip = document.querySelectorAll("*[data-tooltip]");
+    for (var i = 0; i < elementsTooltip.length; i++) {
+        initTooltip(elementsTooltip[i]);
     }
 }
 var tooltipContainer = document.createElement("div");

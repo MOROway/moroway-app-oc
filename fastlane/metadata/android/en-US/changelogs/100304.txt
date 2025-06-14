@@ -1,0 +1,1 @@
+Exit app in demo mode after specified amount of time if supported by platform.

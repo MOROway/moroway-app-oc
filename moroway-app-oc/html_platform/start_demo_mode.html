@@ -29,14 +29,15 @@
         <!-- Content -->
         <main id="content">
             <header><h1 data-stringid-content="generalTitleDemoMode"></h1></header>
-            <p class="input-container"><input type="checkbox" id="demo-mode-random" /><span data-stringid-content="generalStartDemoModeRandom"></span></p>
+            <p class="input-container"><input type="checkbox" id="demo-mode-random" /><label for="demo-mode-random" data-stringid-content="generalStartDemoModeRandom"></label></p>
+            <p class="input-container"><input type="number" id="demo-mode-exit-timeout" step="1" pattern="d+" /><label for="demo-mode-exit-timeout" data-stringid-content="generalStartDemoModeExitTimeout"></label></p>
             <div id="demo-mode-manual-only">
-                <p class="input-container"><input type="checkbox" id="demo-mode-3d" /><span data-stringid-content="general3DView"></span></p>
+                <p class="input-container"><input type="checkbox" id="demo-mode-3d" /><label for="demo-mode-3d" data-stringid-content="general3DView"></label></p>
                 <div id="demo-mode-3d-only">
-                    <p class="input-container"><input type="checkbox" id="demo-mode-3d-night" /><span data-stringid-content="generalStartGameDemoMode3DNight"></span></p>
-                    <p class="input-container"><span data-stringid-content="generalStartDemoMode3DCameraMode"></span><br /><input type="radio" checked name="demo-mode-3d-camera-mode" id="demo-mode-3d-camera-mode-birds-eye" /><span data-stringid-content="generalStartDemoMode3DCameraModeBirdsEye"></span><input type="radio" name="demo-mode-3d-camera-mode" id="demo-mode-3d-camera-mode-follow-train" /> <span data-stringid-content="generalStartDemoMode3DCameraModeFollowTrain"></span> <input type="radio" name="demo-mode-3d-camera-mode" id="demo-mode-3d-camera-mode-follow-car" /> <span data-stringid-content="generalStartDemoMode3DCameraModeFollowCar"></span></p>
+                    <p class="input-container"><input type="checkbox" id="demo-mode-3d-night" /><label for="demo-mode-3d-night" data-stringid-content="generalStartGameDemoMode3DNight"></label></p>
+                    <p class="input-container"><span data-stringid-content="generalStartDemoMode3DCameraMode"></span><br /><input type="radio" checked name="demo-mode-3d-camera-mode" id="demo-mode-3d-camera-mode-birds-eye" /><label for="demo-mode-3d-camera-mode-birds-eye" data-stringid-content="generalStartDemoMode3DCameraModeBirdsEye"></label><input type="radio" name="demo-mode-3d-camera-mode" id="demo-mode-3d-camera-mode-follow-train" /> <label for="demo-mode-3d-camera-mode-follow-train" data-stringid-content="generalStartDemoMode3DCameraModeFollowTrain"></label> <input type="radio" name="demo-mode-3d-camera-mode" id="demo-mode-3d-camera-mode-follow-car" /> <label for="demo-mode-3d-camera-mode-follow-car" data-stringid-content="generalStartDemoMode3DCameraModeFollowCar"></label></p>
                     <div id="demo-mode-3d-birdseye-only">
-                        <p class="input-container"><span data-stringid-content="generalStartDemoMode3DRotationSpeed"></span><br /><input type="range" min="0" max="100" value="50" id="demo-mode-3d-rotation-speed" /></p>
+                        <p class="input-container"><label for="" data-stringid-content="generalStartDemoMode3DRotationSpeed"></label><br /><input type="range" min="0" max="100" value="50" id="demo-mode-3d-rotation-speed" /></p>
                     </div>
                 </div>
             </div>

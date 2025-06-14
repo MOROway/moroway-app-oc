@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<plugin xmlns="http://cordova.apache.org/ns/plugins/1.0"
+           id="moroway-app-oc-sys-tools">
+    <name>moroway-app-oc-sys-tools</name>
+
+    <js-module src="www/sys-tools.js" name="SysTools">
+        <clobbers target="SysTools" />
+    </js-module>
+
+    <platform name="android">
+        <config-file target="config.xml" parent="/*">
+            <feature name="SysTools">
+                <param name="android-package" value="de.moroway.oc.SysTools" />
+            </feature>
+        </config-file>
+
+        <source-file src="src/android/SysTools.java" target-dir="src/de/moroway/oc" />
+    </platform>
+</plugin>

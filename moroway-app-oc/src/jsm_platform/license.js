@@ -3,21 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0-only
  */
 "use strict";
-import {followLink, LINK_STATE_INTERNAL_HTML} from "./common/follow_links.js";
-function goBack() {
-    followLink("./help", "_self", LINK_STATE_INTERNAL_HTML);
-}
-document.addEventListener("DOMContentLoaded", function () {
-    const elem = document.getElementById("backOption");
-    if (elem) {
-        const elemClone = elem.cloneNode(true);
-        elem.parentNode.replaceChild(elemClone, elem);
-        const elemNew = document.getElementById("backOption");
-        if (elemNew) {
-            elemNew.addEventListener("click", goBack);
-        }
-    }
-});
+import { SYSTEM_TOOLS } from "../jsm/common/system_tools.js";
 document.addEventListener("deviceready", function () {
-    document.addEventListener("backbutton", goBack, false);
+    document.addEventListener("backbutton", SYSTEM_TOOLS.navigateBack, false);
 });

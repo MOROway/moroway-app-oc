@@ -3,11 +3,11 @@
  * SPDX-License-Identifier: GPL-3.0-only
  */
 "use strict";
-import { followLink, LINK_STATE_INTERNAL_HTML } from "../../jsm_platform/common/follow_links.js";
 import { APP_DATA } from "./app_data.js";
-import { getString, getLanguageList, setCurrentLang, CURRENT_LANG } from "./string_tools.js";
-import { notify, NOTIFICATION_PRIO_HIGH, NOTIFICATION_PRIO_LOW } from "./notify.js";
+import { NotificationPriority, notify } from "./notify.js";
 import { isGameSaved, removeSavedGame } from "./saved_game.js";
+import { CURRENT_LANG, getLanguageList, getString, setCurrentLang } from "./string_tools.js";
+import { followLink, LinkStates } from "./web_tools.js";
 //SETTINGS
 export function getSettings() {
     var values = {};
@@ -131,7 +131,7 @@ export function setSettingsHTML(elem, standalone) {
         setSetting(id, !getSetting(id));
         displaySettingsOpts();
         displaySettingsButtons();
-        notify(".notify", getString("optApply", "."), NOTIFICATION_PRIO_LOW, 900, null, null, window.innerHeight);
+        notify(".notify", getString("optApply", "."), NotificationPriority.Low, 900, null, null, window.innerHeight);
     }
     if (elem == undefined || elem == null) {
         return false;
@@ -245,8 +245,8 @@ export function setSettingsHTML(elem, standalone) {
         else {
             childButton.addEventListener("click", function () {
                 setCurrentLang(val);
-                notify(".notify", getString("optLangSelectChange", "!", "upper", val), NOTIFICATION_PRIO_HIGH, 10000, function () {
-                    followLink(window.location.href, "_self", LINK_STATE_INTERNAL_HTML);
+                notify(".notify", getString("optLangSelectChange", "!", "upper", val), NotificationPriority.High, 10000, function () {
+                    followLink(window.location.href, "_self", LinkStates.InternalHtml);
                 }, getString("optLangSelectChangeButton", "", "upper", val));
             });
         }

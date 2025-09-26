@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", function () {
         else if (demoModeInput3DCamModeFollowCar.checked) {
             cameraMode = "follow-car";
         }
-        var url = "./?mode=demoStandalone&gui-3d=" + (demoModeInput3D.checked ? 1 : 0) + "&gui-3d-night=" + (document.getElementById("demo-mode-3d-night").checked ? 1 : 0) + "&gui-demo-3d-rotation-speed-percent=" + document.getElementById("demo-mode-3d-rotation-speed").value + "&gui-3d-cam-mode=" + cameraMode + "&gui-demo-random=" + (demoModeInputRandom.checked ? 1 : 0) + (demoModeInputExitTimeout.value !== "" ? "&exit-timeout=" + parseInt(demoModeInputExitTimeout.value, 10) : "");
+        var url = "./?mode=demo&demo-standalone=1&gui-3d=" + (demoModeInput3D.checked ? 1 : 0) + "&gui-3d-night=" + (document.getElementById("demo-mode-3d-night").checked ? 1 : 0) + "&gui-demo-3d-rotation-speed-percent=" + parseInt(document.getElementById("demo-mode-3d-rotation-speed").value, 10) + "&gui-3d-cam-mode=" + cameraMode + "&gui-demo-random=" + (demoModeInputRandom.checked ? 1 : 0) + (demoModeInputExitTimeout.value !== "" ? "&exit-timeout=" + parseInt(demoModeInputExitTimeout.value, 10) : "");
         followLink(url, "_self", LinkStates.InternalHtml);
     });
     demoModeInputRandom.addEventListener("change", function () {

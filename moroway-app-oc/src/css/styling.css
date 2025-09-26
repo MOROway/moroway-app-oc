@@ -25,9 +25,23 @@ canvas {
     -webkit-tap-highlight-color: transparent;
 }
 
+.mode-hidden,
 .settings-hidden,
 .gui-hidden {
     display: none !important;
+}
+
+#loading-anim {
+    z-index: 900;
+    width: 100vw;
+    width: stretch;
+    height: 100vh;
+    height: stretch;
+    left: 0;
+    top: 0;
+    position: fixed;
+    background: inherit;
+    user-select: none;
 }
 
 #branding,
@@ -35,10 +49,8 @@ canvas {
     position: fixed;
     left: 0;
     top: 0;
-    z-index: 3;
     width: 100%;
     height: 100%;
-    background: inherit;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -75,10 +87,8 @@ canvas {
 
 #percent {
     position: fixed;
-    display: none;
     left: 0;
     bottom: 0;
-    z-index: 3;
     width: 100vw;
 }
 
@@ -117,7 +127,7 @@ canvas {
 
 #canvas-options-inner,
 #canvas-info-inner {
-    z-index: 1;
+    z-index: 10;
     display: none;
     justify-content: center;
     align-items: center;
@@ -137,7 +147,7 @@ canvas {
 }
 
 #info-overlay-text {
-    z-index: 1;
+    z-index: 10;
     display: none;
     justify-content: center;
     align-items: center;
@@ -158,7 +168,7 @@ canvas {
     border: 2px solid rgb(210, 120, 27);
     border-radius: 30px;
     margin: 0;
-    z-index: 101;
+    z-index: 500;
     position: fixed;
     background: rgb(48, 48, 48);
     transform: translateX(-50%);
@@ -180,21 +190,20 @@ canvas {
 
 #settings,
 #chat {
-    text-align: left;
+    z-index: 30;
+    top: 0;
+    right: 0;
+    width: 450px;
+    max-width: calc(100vw - 5px);
+    height: 100vh;
+    height: stretch;
+    border-left: 5px solid black;
+    overflow-y: auto;
     display: none;
     position: fixed;
     background: floralWhite;
+    text-align: left;
     color: black;
-    top: 0;
-    right: 0;
-    height: 100vh;
-    height: -webkit-fill-available;
-    height: stretch;
-    width: 450px;
-    max-width: calc(100vw - 5px);
-    border-left: 5px solid black;
-    z-index: 2;
-    overflow-y: auto;
 }
 #chat > * {
     position: fixed;
@@ -223,8 +232,8 @@ canvas {
 }
 #settings .nav-wrapper {
     position: fixed;
-    bottom: 0;
     right: 0;
+    bottom: 0;
     padding: 10px 0px;
     background: floralwhite;
     border-top: 2px solid rgb(48, 48, 48);
@@ -377,11 +386,12 @@ canvas {
 }
 
 #setup #setup-colorbottom {
-    z-index: 2;
+    z-index: 3;
     height: 20vh;
     transition: 2s;
     width: 200vw;
     position: fixed;
+    left: 0;
     bottom: 0;
     transform: translate(-25%, 50%);
     background-image: radial-gradient(ellipse at 50% 60%, rgba(139, 0, 0, 0.7) 10%, rgba(139, 0, 0, 0.3) 40%, rgba(139, 0, 0, 0) 70%);
@@ -453,7 +463,7 @@ canvas {
     cursor: pointer;
     font-size: 1.5em;
     color: rgba(150, 50, 50);
-    z-index: 2;
+    z-index: 5;
     right: 1.5vw;
     top: 1.5vw;
 }
@@ -565,7 +575,7 @@ canvas {
     border-radius: 50px;
     color: floralWhite;
     background: #444;
-    z-index: 102;
+    z-index: 500;
     position: absolute;
     left: 50%;
     top: 50%;
@@ -614,8 +624,9 @@ canvas {
 #text-control {
     display: none;
     position: fixed;
+    left: 0;
     bottom: 0;
-    z-index: 1;
+    z-index: 10;
     width: 100%;
     padding-bottom: 10px;
     background-color: rgba(0, 0, 0, 0.5);

@@ -7,7 +7,7 @@ import { APP_DATA } from "./common/app_data.js";
 import { getString, setHTMLStrings } from "./common/string_tools.js";
 import { SYSTEM_TOOLS } from "./common/system_tools.js";
 import { initTooltips } from "./common/tooltip.js";
-import { getQueryString } from "./common/web_tools.js";
+import { getQueryStringValue } from "./common/web_tools.js";
 document.addEventListener("DOMContentLoaded", function () {
     var backButton = document.querySelector("#backOption");
     backButton.addEventListener("click", function () {
@@ -18,7 +18,7 @@ document.addEventListener("DOMContentLoaded", function () {
     var elementTitle = document.querySelector("#license-title");
     var elementContent = document.querySelector("#license-content");
     if (elementTitle && elementContent) {
-        var file = getQueryString("license-file");
+        var file = getQueryStringValue("license-file");
         if ((file.startsWith(document.baseURI) || (!file.startsWith("/") && !file.includes("://"))) && (file.endsWith(".txt") || file.match(/([/]|^)[^.]+$/)) && !file.endsWith("/")) {
             fetch(file)
                 .then(function (response) {

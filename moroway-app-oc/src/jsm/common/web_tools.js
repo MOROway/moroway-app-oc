@@ -8,7 +8,7 @@ import { APP_DATA } from "./app_data.js";
 import { CURRENT_LANG, formatJSString, getString } from "./string_tools.js";
 export { followLink } from "../../jsm_platform/common/web_tools.js";
 //HANDLE QUERY String
-export function getQueryString(key) {
+export function getQueryStringValue(key) {
     var value = "";
     window.location.search
         .substring(1)
@@ -178,6 +178,5 @@ export var LinkStates;
     LinkStates[LinkStates["External"] = 0] = "External";
     LinkStates[LinkStates["InternalHtml"] = 1] = "InternalHtml";
     LinkStates[LinkStates["InternalLicense"] = 2] = "InternalLicense";
-    LinkStates[LinkStates["InternalReload"] = 3] = "InternalReload";
-    LinkStates[LinkStates["Intent"] = 4] = "Intent";
+    LinkStates[LinkStates["Intent"] = 3] = "Intent";
 })(LinkStates || (LinkStates = {}));

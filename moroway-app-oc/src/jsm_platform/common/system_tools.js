@@ -12,6 +12,7 @@ export var SYSTEM_TOOLS = {
         // @ts-ignore
         cordova.commitSuicide();
     },
+    forceModeSwitchHandling: function () { return false; },
     keepAlive: function (acquire) {
         if (acquire) {
             try {

@@ -1,0 +1,2 @@
+Verbesserte Navigation innerhalb der Anwendung.
+Aktualisierte Abhängigkeiten.

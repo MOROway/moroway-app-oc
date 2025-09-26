@@ -3,7 +3,7 @@
     <head>
         <base href="./" />
         <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
         <meta name="theme-color" content="#000" />
         <title>MOROway App</title>
         <meta name="application-name" content="MOROway App">
@@ -143,11 +143,13 @@
         </main>
 
         <!-- loading animation -->
-        <div id="branding"><img src="assets/asset_background_train.png" alt="" /></div>
-        <div id="snake"><div></div></div>
-        <div id="percent">
-            <div id="percent-progress"></div>
-            <div id="percent-text">0%</div>
+        <div id="loading-anim">
+            <div id="branding"><img src="assets/asset_background_train.png" alt="" /></div>
+            <div id="snake"><div></div></div>
+            <div id="percent" class="hidden">
+                <div id="percent-progress"></div>
+                <div id="percent-text">0%</div>
+            </div>
         </div>
 
         <!-- notify -->

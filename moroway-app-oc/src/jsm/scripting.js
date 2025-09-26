@@ -18,7 +18,13 @@ import { getSetting } from "./common/settings.js";
 import { formatJSString, getString, setHTMLStrings } from "./common/string_tools.js";
 import { SYSTEM_TOOLS } from "./common/system_tools.js";
 import { initTooltip, initTooltips } from "./common/tooltip.js";
-import { followLink, getQueryString, getServerLink, getShareLink, LinkStates, Protocols } from "./common/web_tools.js";
+import { followLink, getQueryStringValue, getServerLink, getShareLink, LinkStates, Protocols } from "./common/web_tools.js";
+export var Modes;
+(function (Modes) {
+    Modes["SINGLEPLAYER"] = "singleplayer";
+    Modes["MULTIPLAYER"] = "multiplayer";
+    Modes["DEMO"] = "demo";
+})(Modes || (Modes = {}));
 /*******************************************
  *             Helper functions            *
  ******************************************/
@@ -51,6 +57,11 @@ function drawImage(pic, x, y, width, height, cxt, sx, sy, sWidth, sHeight) {
     else {
         cxt.drawImage(pic, floorIfBigEnough(sx), floorIfBigEnough(sy), floorIfBigEnough(sWidth), floorIfBigEnough(sHeight), floorIfBigEnough(x), floorIfBigEnough(y), floorIfBigEnough(width), floorIfBigEnough(height));
     }
+}
+function resetAll() {
+    resetGestures();
+    resetScale();
+    resetTilt();
 }
 function resetGestures() {
     hardware.mouse.isHold = hardware.mouse.isWheelHold = hardware.mouse.isDrag = controlCenter.mouse.hold = three.followCamControls.dragging = false;
@@ -89,118 +100,13 @@ function measureFontSize(text, fontFamily, fontSize, wantedTextWidth, approximat
 function getFontSize(font, unit) {
     return parseInt(font.substr(0, font.length - (font.length - font.indexOf(unit))), 10);
 }
-function onVisibilityChange() {
-    resetGestures();
-    client.hidden = document.visibilityState == "hidden";
-    hardware.keyboard.keysHold = [];
-    playAndPauseAudio();
-}
-function keepScreenAlive() {
-    SYSTEM_TOOLS.keepAlive(document.visibilityState == "visible");
-}
-/*******************************************
- *            Audio functions              *
- ******************************************/
-function playAndPauseAudio() {
-    if (typeof audio.context == "object") {
-        var play = audio.active && !client.hidden && !onlineGame.paused;
-        if (play && audio.context.state == "suspended") {
-            audio.context.resume();
-        }
-        else if (!play && audio.context.state == "running") {
-            audio.context.suspend();
-        }
-        return true;
-    }
-    return false;
-}
-function existsAudio(destinationName, destinationIndex) {
-    if (destinationIndex === void 0) { destinationIndex = undefined; }
-    if (typeof audio.context == "object") {
-        if (typeof destinationIndex == "number") {
-            if (typeof audio.source[destinationName][destinationIndex] == "object") {
-                return true;
-            }
-        }
-        else {
-            if (typeof audio.source[destinationName] == "object") {
-                return true;
-            }
-        }
-    }
-    return false;
-}
-function startAudio(destinationName, destinationIndex, loop) {
-    if (typeof audio.context == "object") {
-        var source = audio.context.createBufferSource();
-        source.loop = loop;
-        if (typeof destinationIndex == "number") {
-            if (typeof audio.buffer[destinationName][destinationIndex] == "object" && typeof audio.gainNode[destinationName][destinationIndex] == "object") {
-                source.buffer = audio.buffer[destinationName][destinationIndex];
-                source.connect(audio.gainNode[destinationName][destinationIndex]);
-                audio.source[destinationName][destinationIndex] = source;
-            }
-            else {
-                return false;
-            }
-        }
-        else {
-            if (typeof audio.buffer[destinationName] == "object" && typeof audio.gainNode[destinationName] == "object") {
-                source.buffer = audio.buffer[destinationName];
-                source.connect(audio.gainNode[destinationName]);
-                audio.source[destinationName] = source;
-            }
-            else {
-                return false;
-            }
-        }
-        source.start();
-        return true;
-    }
-    return false;
-}
-function setAudioVolume(destinationName, destinationIndex, volume) {
-    if (typeof audio.context == "object") {
-        var gainNode;
-        if (typeof destinationIndex == "number") {
-            gainNode = audio.gainNode[destinationName][destinationIndex];
-        }
-        else {
-            gainNode = audio.gainNode[destinationName];
-        }
-        if (typeof gainNode == "object" && volume != undefined) {
-            gainNode.gain.value = Math.round(volume) / 100;
-            return true;
-        }
-    }
-    return false;
-}
-function stopAudio(destinationName, destinationIndex) {
-    if (destinationIndex === void 0) { destinationIndex = undefined; }
-    if (typeof audio.context == "object") {
-        if (typeof destinationIndex == "number") {
-            if (typeof audio.source[destinationName][destinationIndex] == "object") {
-                audio.source[destinationName][destinationIndex].stop();
-                delete audio.source[destinationName][destinationIndex];
-                return true;
-            }
-        }
-        else {
-            if (typeof audio.source[destinationName] == "object") {
-                audio.source[destinationName].stop();
-                delete audio.source[destinationName];
-                return true;
-            }
-        }
-    }
-    return false;
-}
 /*******************************************
  *             Mode functions              *
  ******************************************/
 function showConfirmDialogLeaveMultiplayerMode() {
+    resetConfirmDialog();
     var confirmDialog = document.querySelector("#confirm-dialog");
-    if (confirmDialog != null) {
+    if (confirmDialog) {
         var confirmDialogTitle = confirmDialog.querySelector("#confirm-dialog-title");
         var confirmDialogText = confirmDialog.querySelector("#confirm-dialog-text");
         confirmDialogTitle.textContent = getString("appScreenTeamplayLeaveDialogTitle");
@@ -208,22 +114,23 @@ function showConfirmDialogLeaveMultiplayerMode() {
         var confirmDialogYes = document.querySelector("#confirm-dialog #confirm-dialog-yes");
         if (confirmDialogYes != null) {
             confirmDialogYes.onclick = function () {
-                switchMode();
                 closeConfirmDialog();
+                switchMode(Modes.SINGLEPLAYER);
             };
         }
         var confirmDialogNo = document.querySelector("#confirm-dialog #confirm-dialog-no");
         if (confirmDialogNo != null) {
             confirmDialogNo.onclick = closeConfirmDialog;
         }
-        if (onlineGame.enabled && confirmDialog.style.display == "") {
+        if (currentMode == Modes.MULTIPLAYER) {
             confirmDialog.style.display = "block";
         }
     }
 }
 function showConfirmDialogEnterDemoMode() {
+    resetConfirmDialog();
     var confirmDialog = document.querySelector("#confirm-dialog");
-    if (confirmDialog !== null) {
+    if (confirmDialog) {
         var confirmDialogTitle = confirmDialog.querySelector("#confirm-dialog-title");
         var confirmDialogText = confirmDialog.querySelector("#confirm-dialog-text");
         var confirmDialogParams = confirmDialog.querySelector("#confirm-dialog-params");
@@ -237,7 +144,7 @@ function showConfirmDialogEnterDemoMode() {
         confirmDialogRandom_1.type = "checkbox";
         confirmDialogRandom_1.onchange = function () {
             var param3DRotationSpeedElem = confirmDialog.querySelector("#confirm-dialog-params-3d-rotation-speed-container");
-            if (param3DRotationSpeedElem !== null) {
+            if (param3DRotationSpeedElem) {
                 param3DRotationSpeedElem.style.display = confirmDialogRandom_1.checked ? "none" : "";
             }
         };
@@ -255,6 +162,7 @@ function showConfirmDialogEnterDemoMode() {
         confirmDialogExitTimeout_1.type = "number";
         confirmDialogExitTimeout_1.step = "1";
         confirmDialogExitTimeout_1.pattern = "d+";
+        confirmDialogExitTimeout_1.min = "1";
         confirmDialogExitTimeout_1.value = "";
         var confirmDialogExitTimeoutLabel = document.createElement("label");
         confirmDialogExitTimeoutLabel.htmlFor = confirmDialogExitTimeoutId;
@@ -284,35 +192,39 @@ function showConfirmDialogEnterDemoMode() {
             confirmDialogParams.appendChild(elemDiv);
         }
         var confirmDialogYes = document.querySelector("#confirm-dialog #confirm-dialog-yes");
-        if (confirmDialogYes !== null) {
+        if (confirmDialogYes) {
             confirmDialogYes.onclick = function () {
+                closeConfirmDialog();
                 var param3DRotationSpeedElem = confirmDialog.querySelector("#confirm-dialog-params-3d-rotation-speed-input");
-                if (param3DRotationSpeedElem !== null) {
+                if (param3DRotationSpeedElem) {
                     setGuiState("3d-rotation-speed", parseInt(param3DRotationSpeedElem.value, 10));
                 }
                 setGuiState("demo-random", confirmDialogRandom_1.checked);
-                closeConfirmDialog();
+                var switchDemoModeAdditionalParams = {};
                 if (confirmDialogExitTimeout_1.value !== "") {
-                    switchMode("demo", { "exit-timeout": confirmDialogExitTimeout_1.value });
+                    switchDemoModeAdditionalParams["exit-timeout"] = confirmDialogExitTimeout_1.value;
                 }
-                else {
-                    switchMode("demo");
-                }
+                switchMode(Modes.DEMO, switchDemoModeAdditionalParams);
             };
         }
         var confirmDialogNo = document.querySelector("#confirm-dialog #confirm-dialog-no");
         if (confirmDialogNo != null) {
             confirmDialogNo.onclick = closeConfirmDialog;
         }
-        if (!gui.demo && confirmDialog.style.display == "") {
+        if (currentMode != Modes.DEMO) {
             confirmDialog.style.display = "block";
         }
     }
 }
 function closeConfirmDialog() {
     var confirmDialog = document.querySelector("#confirm-dialog");
-    if (confirmDialog != null) {
+    if (confirmDialog) {
         confirmDialog.style.display = "";
+    }
+}
+function resetConfirmDialog() {
+    var confirmDialog = document.querySelector("#confirm-dialog");
+    if (confirmDialog) {
         var confirmDialogTitle = confirmDialog.querySelector("#confirm-dialog-title");
         var confirmDialogText = confirmDialog.querySelector("#confirm-dialog-text");
         var confirmDialogParams = confirmDialog.querySelector("#confirm-dialog-params");
@@ -324,21 +236,54 @@ function closeConfirmDialog() {
     }
 }
 function switchMode(mode, additionalParameters) {
-    if (mode === void 0) { mode = "normal"; }
+    if (mode === void 0) { mode = Modes.SINGLEPLAYER; }
     if (additionalParameters === void 0) { additionalParameters = {}; }
-    additionalParameters.mode = mode;
-    var additionalParametersString = new URLSearchParams(additionalParameters).toString();
-    var url = "?" + additionalParametersString;
-    followLink(url, "_self", LinkStates.InternalReload);
+    function requestModeSwitch() {
+        var _a;
+        if (modeSwitchingTimeout !== undefined && modeSwitchingTimeout !== null) {
+            clearTimeout(modeSwitchingTimeout);
+        }
+        if (drawing || resized) {
+            modeSwitchingTimeout = setTimeout(requestModeSwitch, 10);
+        }
+        else {
+            //Update URL
+            if (SYSTEM_TOOLS.forceModeSwitchHandling(currentMode != mode) == "navigate") {
+                followLink(url, "_self", LinkStates.InternalHtml);
+            }
+            else if (SYSTEM_TOOLS.forceModeSwitchHandling(currentMode != mode) == "historyReplace") {
+                history.replaceState(null, "", url);
+            }
+            else if (((_a = history.state) === null || _a === void 0 ? void 0 : _a.mode) == mode) {
+                history.replaceState({ mode: mode }, "", url);
+            }
+            else {
+                history.pushState({ mode: mode }, "", url);
+            }
+            //Reload app
+            prepareInit(mode);
+            animateWorker.postMessage({ k: "ready", state: "reload", online: currentMode == Modes.MULTIPLAYER, onlineInterval: multiplayerMode.animateInterval, demo: currentMode == Modes.DEMO });
+        }
+    }
+    if (modeSwitching) {
+        return;
+    }
+    modeSwitching = true;
+    var lastUrlParams = new URLSearchParams(location.search);
+    var urlParams = Object.assign(Object.fromEntries(lastUrlParams.entries()), additionalParameters);
+    urlParams.mode = mode;
+    if (urlParams.mode == Modes.SINGLEPLAYER || urlParams.mode.length == 0) {
+        delete urlParams.mode;
+    }
+    var urlParamsString = new URLSearchParams(urlParams).toString();
+    var url = "?" + urlParamsString;
+    modeSwitchingReloadTimeout = setTimeout(function () {
+        location.reload();
+    }, 5000);
+    requestModeSwitch();
 }
 export function getMode() {
-    if (onlineGame.enabled) {
-        return "online";
-    }
-    else if (gui.demo) {
-        return "demo";
-    }
-    return "normal";
+    return currentMode;
 }
 /*******************************************
  *      Background and menus functions     *
@@ -423,199 +368,180 @@ function drawBackground() {
         contextSemiForeground.putImageData(imgData, 0, 0);
     }
 }
-function drawMenuIcons(menu, state) {
-    var innerWidth = menus.innerWidth;
-    if (menus.innerWidthRelativeToItemLength) {
-        innerWidth *= menu.items.length;
-        if (innerWidth > menus.outerContainer.width) {
-            innerWidth = menus.outerContainer.width;
-        }
-    }
-    menu.container.elementInner.style.width = innerWidth + "px";
-    menu.container.elementInner.style.height = menus.outerContainer.element.style.height;
-    switch (state) {
-        case "hide-outer":
-            menus.outerContainer.element.style.display = "none";
-        case "hide":
-            menu.container.elementInner.style.display = "";
-            break;
-        case "show":
-            menu.container.elementInner.style.display = "inline-flex";
-            menus.outerContainer.element.style.display = "";
-            break;
-        case "invisible-outer":
-            menus.outerContainer.element.style.visibility = "hidden";
-        case "invisible":
-            menu.container.elementInner.style.visibility = "hidden";
-            break;
-        case "visible":
-            menus.outerContainer.element.style.visibility = menu.container.elementInner.style.visibility = "";
-            break;
-    }
-    var itemSize = Math.min(menus.itemDefaultSize, (menus.itemDefaultSize * innerWidth) / (menus.itemDefaultSize * menu.items.length));
-    if (menus.floating) {
-        itemSize = Math.min(itemSize, Math.max(itemSize / 2, 30));
-    }
-    for (var i = 0; i < menu.items.length; i++) {
-        menu.items[i].style.display = "";
-        var textItem = menu.items[i].querySelector("i") == undefined ? menu.items[i] : menu.items[i].querySelector("i");
-        menu.items[i].style.width = menu.items[i].style.height = textItem.style.fontSize = textItem.style.lineHeight = itemSize + "px";
-        if (gui.three) {
-            menu.items[i].style.textShadow = "-1px 0 black, 0 1px black, 1px 0 black, 0 -1px black";
-        }
-        else {
-            menu.items[i].style.textShadow = "";
-        }
-    }
-}
-function drawInfoOverlayMenu(state) {
-    if (menus.infoOverlay.textTimeout != undefined && menus.infoOverlay.textTimeout != null) {
-        window.clearTimeout(menus.infoOverlay.textTimeout);
-        delete menus.infoOverlay.focus;
-        menus.infoOverlay.overlayText.style.display = menus.infoOverlay.overlayText.style.fontSize = menus.infoOverlay.overlayText.style.height = "";
-    }
-    if (menus.infoOverlay.scaleInterval != undefined && menus.infoOverlay.scaleInterval != null) {
-        window.clearInterval(menus.infoOverlay.scaleInterval);
-    }
-    menus.infoOverlay.scaleFac = 1;
-    menus.infoOverlay.scaleFacGrow = true;
-    menus.infoOverlay.items = [1, 2];
-    if (getSetting("burnTheTaxOffice")) {
-        menus.infoOverlay.items[menus.infoOverlay.items.length] = 3;
-    }
-    if (getSetting("classicUI") && !gui.controlCenter) {
-        menus.infoOverlay.items[menus.infoOverlay.items.length] = 4;
-        if (classicUI.trainSwitch.selectedTrainDisplay.visible) {
-            menus.infoOverlay.items[menus.infoOverlay.items.length] = 5;
-        }
-        menus.infoOverlay.items[menus.infoOverlay.items.length] = 6;
-        if (classicUI.transformer.directionInput.visible) {
-            menus.infoOverlay.items[menus.infoOverlay.items.length] = 7;
-        }
-    }
-    menus.infoOverlay.items[menus.infoOverlay.items.length] = 8;
-    if (gui.controlCenter && !controlCenter.showCarCenter) {
-        menus.infoOverlay.items[menus.infoOverlay.items.length] = 9;
-        menus.infoOverlay.items[menus.infoOverlay.items.length] = 10;
-        menus.infoOverlay.items[menus.infoOverlay.items.length] = 11;
-    }
-    var infoExit = document.querySelector("#canvas-info-exit");
-    if (menus.infoOverlay.container.elementInner != null) {
-        menus.infoOverlay.container.elementInner.innerHTML = "";
-    }
-    for (var i = 0; i < menus.infoOverlay.items.length; i++) {
-        var element = document.createElement("button");
-        element.className = "canvas-info-button";
-        element.textContent = menus.infoOverlay.items[i];
-        element.dataset.tooltip = getString(["appScreenGraphicalInfoList", menus.infoOverlay.items[i] - 1]);
-        initTooltip(element);
-        element.onclick = function (event) {
-            var target = event.target;
-            if (menus.infoOverlay.textTimeout != undefined && menus.infoOverlay.textTimeout != null) {
-                window.clearTimeout(menus.infoOverlay.textTimeout);
+function drawMenu(state) {
+    function drawMenuIcons(menu, state) {
+        var menusInnerWidth = menus.innerWidth;
+        if (menus.innerWidthRelativeToItemLength) {
+            menusInnerWidth *= menu.items.length;
+            if (menusInnerWidth > menus.outerContainer.width) {
+                menusInnerWidth = menus.outerContainer.width;
             }
-            if (menus.infoOverlay.scaleInterval != undefined && menus.infoOverlay.scaleInterval != null) {
-                window.clearInterval(menus.infoOverlay.scaleInterval);
-            }
-            menus.infoOverlay.scaleFac = 1;
-            menus.infoOverlay.scaleFacGrow = true;
-            menus.infoOverlay.overlayText.style.display = menus.infoOverlay.overlayText.style.fontSize = menus.infoOverlay.overlayText.style.height = "";
-            if (menus.infoOverlay.focus == target.textContent) {
-                delete menus.infoOverlay.focus;
+        }
+        menu.container.elementInner.style.width = menusInnerWidth + "px";
+        menu.container.elementInner.style.height = menus.outerContainer.element.style.height;
+        switch (state) {
+            case "hide-outer":
+                menus.outerContainer.element.style.display = "none";
+            case "hide":
+                menu.container.elementInner.style.display = "";
+                break;
+            case "show":
+                menu.container.elementInner.style.display = "inline-flex";
+                menus.outerContainer.element.style.display = "";
+                break;
+            case "invisible":
+                menu.container.elementInner.style.visibility = "hidden";
+                break;
+            case "visible":
+                menus.outerContainer.element.style.visibility = menu.container.elementInner.style.visibility = "";
+                break;
+        }
+        var itemSize = Math.min(menus.itemDefaultSize, (menus.itemDefaultSize * menusInnerWidth) / (menus.itemDefaultSize * menu.items.length));
+        if (menus.floating) {
+            itemSize = Math.min(itemSize, Math.max(itemSize / 2, 30));
+        }
+        for (var i = 0; i < menu.items.length; i++) {
+            menu.items[i].style.display = "";
+            var textItem = menu.items[i].querySelector("i") == undefined ? menu.items[i] : menu.items[i].querySelector("i");
+            menu.items[i].style.width = menu.items[i].style.height = textItem.style.fontSize = textItem.style.lineHeight = itemSize + "px";
+            if (gui.three) {
+                menu.items[i].style.textShadow = "-1px 0 black, 0 1px black, 1px 0 black, 0 -1px black";
             }
             else {
-                menus.infoOverlay.focus = target.textContent;
-                menus.infoOverlay.overlayText.textContent = getString(["appScreenGraphicalInfoList", parseInt(target.textContent, 10) - 1]);
-                menus.infoOverlay.overlayText.style.display = "flex";
-                while (menus.infoOverlay.overlayText.offsetWidth < menus.infoOverlay.overlayText.scrollWidth) {
-                    var fontSize = window.getComputedStyle(menus.infoOverlay.overlayText).getPropertyValue("font-size");
-                    menus.infoOverlay.overlayText.style.fontSize = parseFloat(fontSize.substring(0, fontSize.length - 2)) * 0.9 + "px";
-                }
-                var overlayTextHeight = menus.infoOverlay.overlayText.offsetHeight;
-                menus.infoOverlay.overlayText.style.height = Math.max(client.y, overlayTextHeight) + "px";
-                menus.infoOverlay.textTimeout = window.setTimeout(function () {
-                    if (menus.infoOverlay.scaleInterval != undefined && menus.infoOverlay.scaleInterval != null) {
-                        window.clearInterval(menus.infoOverlay.scaleInterval);
-                    }
-                    menus.infoOverlay.scaleFac = 1;
-                    menus.infoOverlay.scaleFacGrow = true;
-                    menus.infoOverlay.overlayText.style.display = menus.infoOverlay.overlayText.style.fontSize = menus.infoOverlay.overlayText.style.height = "";
-                    delete menus.infoOverlay.focus;
-                }, 4000);
-                menus.infoOverlay.scaleInterval = window.setInterval(function () {
-                    var scaleGrow = 1.002;
-                    if (menus.infoOverlay.scaleFacGrow) {
-                        menus.infoOverlay.scaleFac *= scaleGrow;
-                    }
-                    else {
-                        menus.infoOverlay.scaleFac /= scaleGrow;
-                    }
-                    if (menus.infoOverlay.scaleFac < 1) {
-                        menus.infoOverlay.scaleFacGrow = true;
-                    }
-                    else if (menus.infoOverlay.scaleFac > 1.075) {
-                        menus.infoOverlay.scaleFacGrow = false;
-                    }
-                }, drawInterval);
+                menu.items[i].style.textShadow = "";
             }
-        };
-        menus.infoOverlay.container.elementInner.appendChild(element);
+        }
     }
-    menus.infoOverlay.container.elementInner.appendChild(infoExit);
-    menus.infoOverlay.items = menus.infoOverlay.container.elementInner.querySelectorAll("*:not(.hidden):not(.settings-hidden):not(.gui-hidden)");
-    if (menus.options.items.length > 0 && menus.infoOverlay.items.length > 0 && !gui.demo) {
-        drawMenuIcons(menus.infoOverlay, state);
+    function drawInfoOverlayMenu(state) {
+        if (menus.infoOverlay.textTimeout != undefined && menus.infoOverlay.textTimeout != null) {
+            clearTimeout(menus.infoOverlay.textTimeout);
+            delete menus.infoOverlay.focus;
+            menus.infoOverlay.overlayText.style.display = menus.infoOverlay.overlayText.style.fontSize = menus.infoOverlay.overlayText.style.height = "";
+        }
+        if (menus.infoOverlay.scaleInterval != undefined && menus.infoOverlay.scaleInterval != null) {
+            clearInterval(menus.infoOverlay.scaleInterval);
+        }
+        menus.infoOverlay.scaleFac = 1;
+        menus.infoOverlay.scaleFacGrow = true;
+        menus.infoOverlay.items = [1, 2];
+        if (getSetting("burnTheTaxOffice")) {
+            menus.infoOverlay.items[menus.infoOverlay.items.length] = 3;
+        }
+        if (getSetting("classicUI") && !gui.controlCenter) {
+            menus.infoOverlay.items[menus.infoOverlay.items.length] = 4;
+            if (classicUI.trainSwitch.selectedTrainDisplay.visible) {
+                menus.infoOverlay.items[menus.infoOverlay.items.length] = 5;
+            }
+            menus.infoOverlay.items[menus.infoOverlay.items.length] = 6;
+            if (classicUI.transformer.directionInput.visible) {
+                menus.infoOverlay.items[menus.infoOverlay.items.length] = 7;
+            }
+        }
+        menus.infoOverlay.items[menus.infoOverlay.items.length] = 8;
+        if (gui.controlCenter && !controlCenter.showCarCenter) {
+            menus.infoOverlay.items[menus.infoOverlay.items.length] = 9;
+            menus.infoOverlay.items[menus.infoOverlay.items.length] = 10;
+            menus.infoOverlay.items[menus.infoOverlay.items.length] = 11;
+        }
+        var infoExit = document.querySelector("#canvas-info-exit");
+        if (menus.infoOverlay.container.elementInner != null) {
+            menus.infoOverlay.container.elementInner.innerHTML = "";
+        }
+        for (var i = 0; i < menus.infoOverlay.items.length; i++) {
+            var element = document.createElement("button");
+            element.className = "canvas-info-button";
+            element.textContent = menus.infoOverlay.items[i];
+            element.dataset.tooltip = getString(["appScreenGraphicalInfoList", menus.infoOverlay.items[i] - 1]);
+            initTooltip(element);
+            element.onclick = function (event) {
+                var target = event.target;
+                if (menus.infoOverlay.textTimeout != undefined && menus.infoOverlay.textTimeout != null) {
+                    clearTimeout(menus.infoOverlay.textTimeout);
+                }
+                if (menus.infoOverlay.scaleInterval != undefined && menus.infoOverlay.scaleInterval != null) {
+                    clearInterval(menus.infoOverlay.scaleInterval);
+                }
+                menus.infoOverlay.scaleFac = 1;
+                menus.infoOverlay.scaleFacGrow = true;
+                menus.infoOverlay.overlayText.style.display = menus.infoOverlay.overlayText.style.fontSize = menus.infoOverlay.overlayText.style.height = "";
+                if (menus.infoOverlay.focus == target.textContent) {
+                    delete menus.infoOverlay.focus;
+                }
+                else {
+                    menus.infoOverlay.focus = target.textContent;
+                    menus.infoOverlay.overlayText.textContent = getString(["appScreenGraphicalInfoList", parseInt(target.textContent, 10) - 1]);
+                    menus.infoOverlay.overlayText.style.display = "flex";
+                    while (menus.infoOverlay.overlayText.offsetWidth < menus.infoOverlay.overlayText.scrollWidth) {
+                        var fontSize = getComputedStyle(menus.infoOverlay.overlayText).getPropertyValue("font-size");
+                        menus.infoOverlay.overlayText.style.fontSize = parseFloat(fontSize.substring(0, fontSize.length - 2)) * 0.9 + "px";
+                    }
+                    var overlayTextHeight = menus.infoOverlay.overlayText.offsetHeight;
+                    menus.infoOverlay.overlayText.style.height = Math.max(client.y, overlayTextHeight) + "px";
+                    menus.infoOverlay.textTimeout = setTimeout(function () {
+                        if (menus.infoOverlay.scaleInterval != undefined && menus.infoOverlay.scaleInterval != null) {
+                            clearInterval(menus.infoOverlay.scaleInterval);
+                        }
+                        menus.infoOverlay.scaleFac = 1;
+                        menus.infoOverlay.scaleFacGrow = true;
+                        menus.infoOverlay.overlayText.style.display = menus.infoOverlay.overlayText.style.fontSize = menus.infoOverlay.overlayText.style.height = "";
+                        delete menus.infoOverlay.focus;
+                    }, 4000);
+                    menus.infoOverlay.scaleInterval = setInterval(function () {
+                        var scaleGrow = 1.002;
+                        if (menus.infoOverlay.scaleFacGrow) {
+                            menus.infoOverlay.scaleFac *= scaleGrow;
+                        }
+                        else {
+                            menus.infoOverlay.scaleFac /= scaleGrow;
+                        }
+                        if (menus.infoOverlay.scaleFac < 1) {
+                            menus.infoOverlay.scaleFacGrow = true;
+                        }
+                        else if (menus.infoOverlay.scaleFac > 1.075) {
+                            menus.infoOverlay.scaleFacGrow = false;
+                        }
+                    }, drawInterval);
+                }
+            };
+            menus.infoOverlay.container.elementInner.appendChild(element);
+        }
+        menus.infoOverlay.container.elementInner.appendChild(infoExit);
+        menus.infoOverlay.items = menus.infoOverlay.container.elementInner.querySelectorAll("*:not(.hidden):not(.settings-hidden):not(.gui-hidden)");
+        if (menus.options.items.length > 0 && menus.infoOverlay.items.length > 0) {
+            drawMenuIcons(menus.infoOverlay, state);
+        }
+    }
+    function drawOptionsMenu(state) {
+        menus.options.items = document.querySelectorAll("#canvas-options-inner > *:not(.hidden):not(.settings-hidden):not(.gui-hidden)");
+        if (menus.options.items.length > 0) {
+            drawMenuIcons(menus.options, state);
+        }
+    }
+    if (currentMode == Modes.DEMO) {
+        drawOptionsMenu("hide");
+        drawInfoOverlayMenu("hide");
+    }
+    else if (state == "menu-switch") {
+        if (gui.infoOverlay) {
+            drawOptionsMenu("hide");
+            drawInfoOverlayMenu("show");
+        }
+        else {
+            drawOptionsMenu("show");
+            drawInfoOverlayMenu("hide");
+        }
+    }
+    else if (gui.infoOverlay) {
+        drawInfoOverlayMenu(state);
+    }
+    else {
+        drawOptionsMenu(state);
     }
 }
-function drawOptionsMenu(state) {
-    menus.options.items = document.querySelectorAll("#canvas-options-inner > *:not(.hidden):not(.settings-hidden):not(.gui-hidden)");
-    if (menus.options.items.length > 0 && !gui.demo) {
-        drawMenuIcons(menus.options, state);
-    }
-}
-function commonOnOptionsMenuClick() {
+function beforeOptionsMenuChange() {
     closeConfirmDialog();
 }
 function calcMenusAndBackground(state) {
-    function createAudio(destinationName, destinationIndex, buffer, volume) {
-        var gainNode = audio.context.createGain();
-        gainNode.gain.value = volume;
-        gainNode.connect(audio.context.destination);
-        if (typeof destinationIndex == "number") {
-            audio.gainNode[destinationName][destinationIndex] = gainNode;
-            audio.buffer[destinationName][destinationIndex] = buffer;
-        }
-        else {
-            audio.gainNode[destinationName] = gainNode;
-            audio.buffer[destinationName] = buffer;
-        }
-    }
-    function createTrainAudio(cTrainNumber) {
-        try {
-            fetch("./assets/audio_asset_" + cTrainNumber + "." + soundFileExtension)
-                .then(function (response) {
-                if (response.ok) {
-                    return response.arrayBuffer();
-                }
-                throw new Error("response not ok");
-            })
-                .then(function (response) {
-                audio.context.decodeAudioData(response, function (buffer) {
-                    createAudio("train", cTrainNumber, buffer, 0);
-                });
-            })
-                .catch(function (error) {
-                if (APP_DATA.debug) {
-                    console.error("Fetch-Error:", error);
-                }
-            });
-        }
-        catch (e) {
-            if (APP_DATA.debug) {
-                console.error(e);
-            }
-        }
-    }
     function calcBackground(simulate) {
         if (simulate === void 0) { simulate = false; }
         var additionalHeight;
@@ -654,312 +580,238 @@ function calcMenusAndBackground(state) {
     }
     function set3DItems() {
         if (gui.three) {
-            elementInfoToggle === null || elementInfoToggle === void 0 ? void 0 : elementInfoToggle.classList.add("gui-hidden");
-            element3DViewNightToggle === null || element3DViewNightToggle === void 0 ? void 0 : element3DViewNightToggle.classList.remove("gui-hidden");
-            if (element3DViewToggle != null) {
-                element3DViewToggle.querySelector("i").textContent = "2d";
-                element3DViewToggle.dataset.tooltip = formatJSString(getString("generalXIsY"), getString("general3DView"), getString("generalOn"));
-            }
-            element3DViewCameraSwitcherBackwards === null || element3DViewCameraSwitcherBackwards === void 0 ? void 0 : element3DViewCameraSwitcherBackwards.classList.remove("gui-hidden");
-            element3DViewCameraSwitcherForwards === null || element3DViewCameraSwitcherForwards === void 0 ? void 0 : element3DViewCameraSwitcherForwards.classList.remove("gui-hidden");
+            menus.options.elements.infoToggle.classList.add("gui-hidden");
+            menus.options.elements.view3DNightToggle.classList.remove("gui-hidden");
+            menus.options.elements.view3DToggle.querySelector("i").textContent = "2d";
+            menus.options.elements.view3DToggle.dataset.tooltip = formatJSString(getString("generalXIsY"), getString("general3DView"), getString("generalOn"));
+            menus.options.elements.view3DCameraSwitcherBackwards.classList.remove("gui-hidden");
+            menus.options.elements.view3DCameraSwitcherForwards.classList.remove("gui-hidden");
         }
         else {
-            elementInfoToggle === null || elementInfoToggle === void 0 ? void 0 : elementInfoToggle.classList.remove("gui-hidden");
-            element3DViewNightToggle === null || element3DViewNightToggle === void 0 ? void 0 : element3DViewNightToggle.classList.add("gui-hidden");
-            if (element3DViewToggle != null) {
-                element3DViewToggle.querySelector("i").textContent = "view_in_ar";
-                element3DViewToggle.dataset.tooltip = formatJSString(getString("generalXIsY"), getString("general3DView"), getString("generalOff"));
-            }
-            element3DViewCameraSwitcherBackwards === null || element3DViewCameraSwitcherBackwards === void 0 ? void 0 : element3DViewCameraSwitcherBackwards.classList.add("gui-hidden");
-            element3DViewCameraSwitcherForwards === null || element3DViewCameraSwitcherForwards === void 0 ? void 0 : element3DViewCameraSwitcherForwards.classList.add("gui-hidden");
+            menus.options.elements.infoToggle.classList.remove("gui-hidden");
+            menus.options.elements.view3DNightToggle.classList.add("gui-hidden");
+            menus.options.elements.view3DToggle.querySelector("i").textContent = "view_in_ar";
+            menus.options.elements.view3DToggle.dataset.tooltip = formatJSString(getString("generalXIsY"), getString("general3DView"), getString("generalOff"));
+            menus.options.elements.view3DCameraSwitcherBackwards.classList.add("gui-hidden");
+            menus.options.elements.view3DCameraSwitcherForwards.classList.add("gui-hidden");
         }
     }
-    var soundFileExtension = "ogg";
-    var elementNormalMode = document.querySelector("#canvas-single");
-    var elementTeamMode = document.querySelector("#canvas-team");
-    var elementDemoMode = document.querySelector("#canvas-demo-mode");
-    var elementHelp = document.querySelector("#canvas-help");
-    var elementSettings = document.querySelector("#canvas-settings");
-    var elementInfoToggle = document.querySelector("#canvas-info-toggle");
-    var elementSoundToggle = document.querySelector("#canvas-sound-toggle");
-    var element3DViewToggle = document.querySelector("#canvas-3d-view-toggle");
-    var element3DViewNightToggle = document.querySelector("#canvas-3d-view-day-night");
-    var element3DViewCameraSwitcherBackwards = document.querySelector("#canvas-3d-view-camera-switcher-backwards");
-    var element3DViewCameraSwitcherForwards = document.querySelector("#canvas-3d-view-camera-switcher-forwards");
-    var elementControlCenterTrains = document.querySelector("#canvas-control-center");
-    var elementControlCenterCars = document.querySelector("#canvas-car-control-center");
-    var elementTeamChat = document.querySelector("#canvas-chat-open");
-    if (elementInfoToggle != null) {
-        if (getSetting("reduceOptMenuHideGraphicalInfoToggle")) {
-            elementInfoToggle.classList.add("settings-hidden");
-            if (gui.infoOverlay) {
-                gui.infoOverlay = false;
-                drawOptionsMenu("show");
-                drawInfoOverlayMenu("hide");
-            }
-        }
-        else {
-            elementInfoToggle.classList.remove("settings-hidden");
+    if (!Object.hasOwn(menus, "options")) {
+        menus.options = {};
+    }
+    if (!Object.hasOwn(menus.options, "elements")) {
+        menus.options.elements = {};
+        menus.options.elements.modeSingleplayer = document.querySelector("#canvas-single");
+        menus.options.elements.modeMultiplayer = document.querySelector("#canvas-team");
+        menus.options.elements.modeDemo = document.querySelector("#canvas-demo-mode");
+        menus.options.elements.help = document.querySelector("#canvas-help");
+        menus.options.elements.settings = document.querySelector("#canvas-settings");
+        menus.options.elements.controlCenterTrains = document.querySelector("#canvas-control-center");
+        menus.options.elements.controlCenterCars = document.querySelector("#canvas-car-control-center");
+        menus.options.elements.infoToggle = document.querySelector("#canvas-info-toggle");
+        menus.options.elements.soundToggle = document.querySelector("#canvas-sound-toggle");
+        menus.options.elements.view3DToggle = document.querySelector("#canvas-3d-view-toggle");
+        menus.options.elements.view3DNightToggle = document.querySelector("#canvas-3d-view-day-night");
+        menus.options.elements.view3DCameraSwitcherBackwards = document.querySelector("#canvas-3d-view-camera-switcher-backwards");
+        menus.options.elements.view3DCameraSwitcherForwards = document.querySelector("#canvas-3d-view-camera-switcher-forwards");
+        menus.options.elements.multiplayerChat = document.querySelector("#canvas-chat-open");
+    }
+    if (getSetting("reduceOptMenuHideGraphicalInfoToggle")) {
+        menus.options.elements.infoToggle.classList.add("settings-hidden");
+        if (gui.infoOverlay) {
+            gui.infoOverlay = false;
+            drawMenu("menu-switch");
         }
     }
-    if (elementControlCenterTrains != null) {
-        if (getSetting("reduceOptMenuHideTrainControlCenter")) {
-            elementControlCenterTrains.classList.add("settings-hidden");
-        }
-        else {
-            elementControlCenterTrains.classList.remove("settings-hidden");
-        }
+    else {
+        menus.options.elements.infoToggle.classList.remove("settings-hidden");
     }
-    if (elementControlCenterCars != null) {
-        if (getSetting("reduceOptMenuHideCarControlCenter")) {
-            elementControlCenterCars.classList.add("settings-hidden");
-        }
-        else {
-            elementControlCenterCars.classList.remove("settings-hidden");
-        }
+    if (getSetting("reduceOptMenuHideTrainControlCenter")) {
+        menus.options.elements.controlCenterTrains.classList.add("settings-hidden");
     }
-    if (elementSoundToggle != null) {
-        if (getSetting("reduceOptMenuHideAudioToggle")) {
-            elementSoundToggle.classList.add("settings-hidden");
-            audio.active = false;
-            playAndPauseAudio();
-            elementSoundToggle.querySelector("i").textContent = "volume_off";
-            elementSoundToggle.dataset.tooltip = formatJSString(getString("generalXAreY"), getString("appScreenSound"), getString("generalOff"));
-        }
-        else {
-            elementSoundToggle.classList.remove("settings-hidden");
-        }
+    else {
+        menus.options.elements.controlCenterTrains.classList.remove("settings-hidden");
     }
-    if (elementDemoMode != null) {
-        if (getSetting("reduceOptMenuHideDemoMode")) {
-            elementDemoMode.classList.add("settings-hidden");
-        }
-        else {
-            elementDemoMode.classList.remove("settings-hidden");
-        }
+    if (getSetting("reduceOptMenuHideCarControlCenter")) {
+        menus.options.elements.controlCenterCars.classList.add("settings-hidden");
     }
-    if (element3DViewToggle != null) {
-        if (getSetting("reduceOptMenuHide3DViewToggle")) {
-            element3DViewToggle.classList.add("settings-hidden");
-        }
-        else {
-            element3DViewToggle.classList.remove("settings-hidden");
-        }
+    else {
+        menus.options.elements.controlCenterCars.classList.remove("settings-hidden");
     }
-    if (element3DViewNightToggle != null) {
-        if (getSetting("reduceOptMenuHide3DViewNightToggle")) {
-            element3DViewNightToggle.classList.add("settings-hidden");
-        }
-        else {
-            element3DViewNightToggle.classList.remove("settings-hidden");
-        }
+    if (getSetting("reduceOptMenuHideAudioToggle")) {
+        menus.options.elements.soundToggle.classList.add("settings-hidden");
+        audio.active = false;
+        audioControl.playAndPauseAll();
+        menus.options.elements.soundToggle.querySelector("i").textContent = "volume_off";
+        menus.options.elements.soundToggle.dataset.tooltip = formatJSString(getString("generalXAreY"), getString("appScreenSound"), getString("generalOff"));
     }
-    if (element3DViewCameraSwitcherBackwards != null && element3DViewCameraSwitcherForwards != null) {
-        if (getSetting("reduceOptMenuHide3DViewCameraSwitcher")) {
-            element3DViewCameraSwitcherBackwards.classList.add("settings-hidden");
-            element3DViewCameraSwitcherForwards.classList.add("settings-hidden");
-        }
-        else {
-            element3DViewCameraSwitcherBackwards.classList.remove("settings-hidden");
-            element3DViewCameraSwitcherForwards.classList.remove("settings-hidden");
-        }
+    else {
+        menus.options.elements.soundToggle.classList.remove("settings-hidden");
+    }
+    if (getSetting("reduceOptMenuHideDemoMode")) {
+        menus.options.elements.modeDemo.classList.add("settings-hidden");
+    }
+    else {
+        menus.options.elements.modeDemo.classList.remove("settings-hidden");
+    }
+    if (getSetting("reduceOptMenuHide3DViewToggle")) {
+        menus.options.elements.view3DToggle.classList.add("settings-hidden");
+    }
+    else {
+        menus.options.elements.view3DToggle.classList.remove("settings-hidden");
+    }
+    if (getSetting("reduceOptMenuHide3DViewNightToggle")) {
+        menus.options.elements.view3DNightToggle.classList.add("settings-hidden");
+    }
+    else {
+        menus.options.elements.view3DNightToggle.classList.remove("settings-hidden");
+    }
+    if (getSetting("reduceOptMenuHide3DViewCameraSwitcher")) {
+        menus.options.elements.view3DCameraSwitcherBackwards.classList.add("settings-hidden");
+        menus.options.elements.view3DCameraSwitcherForwards.classList.add("settings-hidden");
+    }
+    else {
+        menus.options.elements.view3DCameraSwitcherBackwards.classList.remove("settings-hidden");
+        menus.options.elements.view3DCameraSwitcherForwards.classList.remove("settings-hidden");
     }
     if (state == "load") {
         menus.outerContainer = {};
         menus.outerContainer.element = document.querySelector("#canvas-menus");
-        menus.outerContainer.element.addEventListener("wheel", function (event) {
+        menus.outerContainer.element.onwheel = function (event) {
             event.preventDefault();
-        }, { passive: false });
-        menus.options = {};
+        };
         menus.options.container = {};
         menus.options.container.elementInner = document.querySelector("#canvas-options-inner");
         menus.infoOverlay = {};
         menus.infoOverlay.container = {};
         menus.infoOverlay.container.elementInner = document.querySelector("#canvas-info-inner");
         menus.infoOverlay.overlayText = document.querySelector("#info-overlay-text");
-        if (elementDemoMode != null) {
-            if (onlineGame.enabled) {
-                elementDemoMode.classList.add("hidden");
+        menus.options.elements.modeDemo.onclick = function () {
+            beforeOptionsMenuChange();
+            showConfirmDialogEnterDemoMode();
+        };
+        menus.options.elements.soundToggle.dataset.tooltip = formatJSString(getString("generalXAreY"), getString("appScreenSound"), getString("generalOff"));
+        menus.options.elements.soundToggle.onclick = function () {
+            beforeOptionsMenuChange();
+            if (audio.context == undefined) {
+                audioControl.init();
+            }
+            audio.active = !audio.active;
+            audioControl.playAndPauseAll();
+            if (audio.active) {
+                menus.options.elements.soundToggle.querySelector("i").textContent = "volume_up";
+                menus.options.elements.soundToggle.dataset.tooltip = formatJSString(getString("generalXAreY"), getString("appScreenSound"), getString("generalOn"));
             }
             else {
-                elementDemoMode.addEventListener("click", function () {
-                    commonOnOptionsMenuClick();
-                    showConfirmDialogEnterDemoMode();
-                });
+                menus.options.elements.soundToggle.querySelector("i").textContent = "volume_off";
+                menus.options.elements.soundToggle.dataset.tooltip = formatJSString(getString("generalXAreY"), getString("appScreenSound"), getString("generalOff"));
             }
-        }
-        if (elementSoundToggle != null) {
-            elementSoundToggle.dataset.tooltip = formatJSString(getString("generalXAreY"), getString("appScreenSound"), getString("generalOff"));
-            elementSoundToggle.addEventListener("click", function () {
-                commonOnOptionsMenuClick();
-                if (audio.context == undefined) {
-                    audio.context = new AudioContext();
-                    audio.buffer = {};
-                    audio.buffer.train = [];
-                    audio.gainNode = {};
-                    audio.gainNode.train = [];
-                    audio.source = {};
-                    audio.source.train = [];
-                    try {
-                        fetch("./assets/audio_asset_crash." + soundFileExtension)
-                            .then(function (response) {
-                            return response.arrayBuffer();
-                        })
-                            .catch(function (error) {
-                            if (APP_DATA.debug) {
-                                console.error("Fetch-Error:", error);
-                            }
-                        })
-                            .then(function (response) {
-                            audio.context.decodeAudioData(response, function (buffer) {
-                                createAudio("trainCrash", null, buffer, 1);
-                            });
-                        });
-                    }
-                    catch (e) {
-                        if (APP_DATA.debug) {
-                            console.error(e);
-                        }
-                    }
-                    try {
-                        fetch("./assets/audio_asset_switch." + soundFileExtension)
-                            .then(function (response) {
-                            return response.arrayBuffer();
-                        })
-                            .catch(function (error) {
-                            if (APP_DATA.debug) {
-                                console.error("Fetch-Error:", error);
-                            }
-                        })
-                            .then(function (response) {
-                            audio.context.decodeAudioData(response, function (buffer) {
-                                createAudio("switch", null, buffer, 1);
-                            });
-                        });
-                    }
-                    catch (e) {
-                        if (APP_DATA.debug) {
-                            console.error(e);
-                        }
-                    }
-                    for (var i = 0; i < trains.length; i++) {
-                        createTrainAudio(i);
-                    }
-                }
-                audio.active = !audio.active;
-                playAndPauseAudio();
-                if (elementSoundToggle != null) {
-                    if (audio.active) {
-                        elementSoundToggle.querySelector("i").textContent = "volume_up";
-                        elementSoundToggle.dataset.tooltip = formatJSString(getString("generalXAreY"), getString("appScreenSound"), getString("generalOn"));
-                    }
-                    else {
-                        elementSoundToggle.querySelector("i").textContent = "volume_off";
-                        elementSoundToggle.dataset.tooltip = formatJSString(getString("generalXAreY"), getString("appScreenSound"), getString("generalOff"));
-                    }
-                }
-            });
-        }
-        if (onlineGame.enabled) {
-            elementTeamMode === null || elementTeamMode === void 0 ? void 0 : elementTeamMode.classList.add("hidden");
-            elementTeamChat === null || elementTeamChat === void 0 ? void 0 : elementTeamChat.addEventListener("click", function () {
-                commonOnOptionsMenuClick();
-                document.querySelector("#chat").openChat();
-            });
-            elementNormalMode === null || elementNormalMode === void 0 ? void 0 : elementNormalMode.addEventListener("click", function () {
-                commonOnOptionsMenuClick();
-                showConfirmDialogLeaveMultiplayerMode();
-            });
-        }
-        else {
-            elementNormalMode === null || elementNormalMode === void 0 ? void 0 : elementNormalMode.classList.add("hidden");
-            elementTeamChat === null || elementTeamChat === void 0 ? void 0 : elementTeamChat.classList.add("hidden");
-            elementTeamMode === null || elementTeamMode === void 0 ? void 0 : elementTeamMode.addEventListener("click", function () {
-                commonOnOptionsMenuClick();
-                switchMode("multiplay");
-            });
-        }
+        };
+        menus.options.elements.modeSingleplayer.onclick = function () {
+            beforeOptionsMenuChange();
+            showConfirmDialogLeaveMultiplayerMode();
+        };
+        menus.options.elements.multiplayerChat.onclick = function () {
+            beforeOptionsMenuChange();
+            document.querySelector("#chat").openChat();
+        };
+        menus.options.elements.modeMultiplayer.onclick = function () {
+            beforeOptionsMenuChange();
+            switchMode(Modes.MULTIPLAYER);
+        };
         var settingsElem_1 = document.querySelector("#settings");
         var settingsElemApply = settingsElem_1.querySelector("#settings-apply");
-        elementSettings === null || elementSettings === void 0 ? void 0 : elementSettings.addEventListener("click", function () {
-            commonOnOptionsMenuClick();
+        menus.options.elements.settings.onclick = function () {
+            beforeOptionsMenuChange();
             gui.settings = gui.sidebarRight = true;
             settingsElem_1.style.display = "block";
-            drawOptionsMenu("invisible");
-        });
+            drawMenu("invisible");
+        };
         settingsElemApply.onclick = function () {
             gui.settings = gui.sidebarRight = false;
             settingsElem_1.scrollTo(0, 0);
             settingsElem_1.style.display = "";
             calcMenusAndBackground("settings-change");
-            drawOptionsMenu("visible");
-            if (getSetting("saveGame") && !onlineGame.enabled && !gui.demo) {
+            drawMenu("visible");
+            if (getSetting("saveGame") && currentMode == Modes.SINGLEPLAYER) {
                 animateWorker.postMessage({ k: "enable-save-game" });
             }
         };
-        elementHelp === null || elementHelp === void 0 ? void 0 : elementHelp.addEventListener("click", function () {
-            commonOnOptionsMenuClick();
+        menus.options.elements.help.onclick = function () {
+            beforeOptionsMenuChange();
             followLink("help", "_blank", LinkStates.InternalHtml);
-        });
-        elementInfoToggle === null || elementInfoToggle === void 0 ? void 0 : elementInfoToggle.addEventListener("click", function () {
-            commonOnOptionsMenuClick();
+        };
+        menus.options.elements.infoToggle.onclick = function () {
+            beforeOptionsMenuChange();
             gui.infoOverlay = true;
-            drawOptionsMenu("hide");
-            drawInfoOverlayMenu("show");
-        });
+            drawMenu("menu-switch");
+        };
         var infoExit = document.querySelector("#canvas-info-exit");
-        infoExit === null || infoExit === void 0 ? void 0 : infoExit.addEventListener("click", function () {
+        infoExit.onclick = function () {
             gui.infoOverlay = false;
-            drawOptionsMenu("show");
-            drawInfoOverlayMenu("hide");
-        });
-        elementControlCenterTrains === null || elementControlCenterTrains === void 0 ? void 0 : elementControlCenterTrains.addEventListener("click", function () {
-            commonOnOptionsMenuClick();
-            gui.controlCenter = (!gui.controlCenter || controlCenter.showCarCenter) && !gui.konamiOverlay && !onlineGame.stop;
+            drawMenu("menu-switch");
+        };
+        menus.options.elements.controlCenterTrains.onclick = function () {
+            beforeOptionsMenuChange();
+            gui.controlCenter = (!gui.controlCenter || controlCenter.showCarCenter) && !gui.konamiOverlay && !onlineConnection.stop;
             controlCenter.showCarCenter = false;
             if (gui.infoOverlay) {
-                drawInfoOverlayMenu("items-change");
+                drawMenu("items-change");
             }
-        });
-        elementControlCenterCars === null || elementControlCenterCars === void 0 ? void 0 : elementControlCenterCars.addEventListener("click", function () {
-            commonOnOptionsMenuClick();
-            gui.controlCenter = (!gui.controlCenter || !controlCenter.showCarCenter) && !gui.konamiOverlay && !onlineGame.stop;
+        };
+        menus.options.elements.controlCenterCars.onclick = function () {
+            beforeOptionsMenuChange();
+            gui.controlCenter = (!gui.controlCenter || !controlCenter.showCarCenter) && !gui.konamiOverlay && !onlineConnection.stop;
             controlCenter.showCarCenter = true;
             if (gui.infoOverlay) {
-                drawInfoOverlayMenu("items-change");
+                drawMenu("items-change");
             }
-        });
-        element3DViewToggle === null || element3DViewToggle === void 0 ? void 0 : element3DViewToggle.addEventListener("click", function () {
-            commonOnOptionsMenuClick();
+        };
+        menus.options.elements.view3DToggle.onclick = function () {
+            beforeOptionsMenuChange();
             gui.three = !gui.three;
             setGuiState("3d", gui.three);
             resetScale();
             resetTilt();
             set3DItems();
             calcMenusAndBackground("items-change");
-            if (getSetting("classicUI") && !classicUI.trainSwitch.selectedTrainDisplay.visible && !gui.demo && !gui.three) {
+            if (getSetting("classicUI") && !classicUI.trainSwitch.selectedTrainDisplay.visible && !gui.three) {
                 notify("#canvas-notifier", formatJSString(getString("appScreenTrainSelected", "."), getString(["appScreenTrainNames", trainParams.selected])), NotificationPriority.High, 1250, null, null, client.y + menus.outerContainer.height);
             }
-        });
-        element3DViewNightToggle === null || element3DViewNightToggle === void 0 ? void 0 : element3DViewNightToggle.addEventListener("click", function () {
-            commonOnOptionsMenuClick();
+        };
+        menus.options.elements.view3DNightToggle.onclick = function () {
+            beforeOptionsMenuChange();
             three.night = !three.night;
             background3D.animateBehind(true);
             setGuiState("3d-night", three.night);
-        });
-        element3DViewCameraSwitcherBackwards === null || element3DViewCameraSwitcherBackwards === void 0 ? void 0 : element3DViewCameraSwitcherBackwards.addEventListener("click", function () {
-            commonOnOptionsMenuClick();
+        };
+        menus.options.elements.view3DCameraSwitcherBackwards.onclick = function () {
+            beforeOptionsMenuChange();
             three.switchCamera(false);
-        });
-        element3DViewCameraSwitcherForwards === null || element3DViewCameraSwitcherForwards === void 0 ? void 0 : element3DViewCameraSwitcherForwards.addEventListener("click", function () {
-            commonOnOptionsMenuClick();
+        };
+        menus.options.elements.view3DCameraSwitcherForwards.onclick = function () {
+            beforeOptionsMenuChange();
             three.switchCamera(true);
-        });
+        };
+    }
+    if (state == "load" || state == "reload") {
         set3DItems();
+        if (currentMode == Modes.MULTIPLAYER) {
+            menus.options.elements.modeDemo.classList.add("mode-hidden");
+            menus.options.elements.modeMultiplayer.classList.add("mode-hidden");
+            menus.options.elements.modeSingleplayer.classList.remove("mode-hidden");
+            menus.options.elements.multiplayerChat.classList.remove("mode-hidden");
+        }
+        else {
+            menus.options.elements.modeDemo.classList.remove("mode-hidden");
+            menus.options.elements.modeMultiplayer.classList.remove("mode-hidden");
+            menus.options.elements.modeSingleplayer.classList.add("mode-hidden");
+            menus.options.elements.multiplayerChat.classList.add("mode-hidden");
+        }
     }
     menus.floating = false;
     menus.options.items = document.querySelectorAll("#canvas-options-inner > *:not(.hidden):not(.settings-hidden):not(.gui-hidden)");
-    if (menus.options.items.length > 0 && !gui.demo) {
+    if (menus.options.items.length > 0) {
         menus.small = !client.isSmall;
         menus.outerContainer.height = menus.small ? Math.max(25, Math.ceil(client.height / 25)) : Math.max(50, Math.ceil(client.height / 15));
         menus.outerContainer.element.style.display = "";
@@ -981,6 +833,10 @@ function calcMenusAndBackground(state) {
     }
     calcBackground();
     menus.outerContainer.width = background.width / client.devicePixelRatio;
+    if (window.innerWidth > window.innerHeight) {
+        var unsafeArea = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--unsafe-area-bottom"));
+        menus.outerContainer.width -= Math.min(background.width / client.devicePixelRatio / 20, unsafeArea);
+    }
     menus.innerWidthRelativeToItemLength = false;
     menus.innerWidth = ((getSetting("classicUI") && !gui.three) || menus.floating ? 0.5 : 1) * menus.outerContainer.width;
     var availableHeight = menus.floating ? client.y : menus.outerContainer.height;
@@ -1019,15 +875,12 @@ function calcMenusAndBackground(state) {
         menus.outerContainer.element.style.left = "unset";
         menus.outerContainer.element.style.right = "0px";
     }
-    if (state != "load" && gui.infoOverlay) {
-        drawInfoOverlayMenu(state);
-    }
-    else if (state != "load") {
-        drawOptionsMenu(state);
-    }
-    else if (state == "load") {
+    if (state == "load") {
         var event_1 = new CustomEvent("moroway-app-after-calc-options-menu-load");
         document.dispatchEvent(event_1);
+    }
+    else {
+        drawMenu(state);
     }
 }
 export function optionsMenuEditorAdd(id, title, icon, onClickFunction) {
@@ -1039,10 +892,10 @@ export function optionsMenuEditorAdd(id, title, icon, onClickFunction) {
     initTooltip(itemToAdd);
     itemToAddChild.textContent = icon;
     itemToAddChild.classList.add("material-icons");
-    itemToAdd.addEventListener("click", function () {
-        commonOnOptionsMenuClick();
+    itemToAdd.onclick = function () {
+        beforeOptionsMenuChange();
         onClickFunction();
-    });
+    };
     itemToAdd.appendChild(itemToAddChild);
     menus.options.container.elementInner.appendChild(itemToAdd);
     calcMenusAndBackground("items-change");
@@ -1167,10 +1020,10 @@ function getGesture(gesture) {
 function onMouseMove(event) {
     client.chosenInputMethod = "mouse";
     hardware.mouse.isMoving = true;
-    if (typeof movingTimeOut !== "undefined") {
-        window.clearTimeout(movingTimeOut);
+    if (movingTimeOut !== undefined && movingTimeOut !== null) {
+        clearTimeout(movingTimeOut);
     }
-    movingTimeOut = window.setTimeout(function () {
+    movingTimeOut = setTimeout(function () {
         hardware.mouse.isMoving = false;
     }, 5000);
     if (client.zoomAndTilt.realScale > 1 && ((!classicUI.pointInTransformerInput(event.clientX * client.devicePixelRatio, event.clientY * client.devicePixelRatio) && hardware.mouse.isHold) || hardware.mouse.isDrag)) {
@@ -1194,9 +1047,9 @@ function onMouseDown(event) {
     event.preventDefault();
     client.chosenInputMethod = "mouse";
     hardware.lastInputMouse = hardware.mouse.downTime = Date.now();
-    hardware.mouse.isHold = event.button == 0 && !gui.controlCenter && !gui.konamiOverlay && !onlineGame.stop;
-    controlCenter.mouse.hold = event.button == 0 && gui.controlCenter && !gui.konamiOverlay && !onlineGame.stop;
-    hardware.mouse.isWheelHold = event.button == 1 && !gui.controlCenter && !gui.konamiOverlay && !onlineGame.stop;
+    hardware.mouse.isHold = event.button == 0 && !gui.controlCenter && !gui.konamiOverlay && !onlineConnection.stop;
+    controlCenter.mouse.hold = event.button == 0 && gui.controlCenter && !gui.konamiOverlay && !onlineConnection.stop;
+    hardware.mouse.isWheelHold = event.button == 1 && !gui.controlCenter && !gui.konamiOverlay && !onlineConnection.stop;
     hardware.mouse.moveX = hardware.mouse.downX = event.clientX * client.devicePixelRatio;
     hardware.mouse.moveY = hardware.mouse.downY = event.clientY * client.devicePixelRatio;
 }
@@ -1207,9 +1060,9 @@ function onMouseUp(event) {
     hardware.mouse.upX = event.clientX * client.devicePixelRatio;
     hardware.mouse.upY = event.clientY * client.devicePixelRatio;
     hardware.mouse.upTime = Date.now();
-    controlCenter.mouse.clickEvent = event.button == 0 && gui.controlCenter && !gui.konamiOverlay && !onlineGame.stop;
+    controlCenter.mouse.clickEvent = event.button == 0 && gui.controlCenter && !gui.konamiOverlay && !onlineConnection.stop;
 }
-function onMouseEnter(event) {
+function onMouseEnter(_event) {
     client.chosenInputMethod = "mouse";
     hardware.mouse.out = false;
 }
@@ -1247,8 +1100,8 @@ function onMouseWheel(event) {
     }
     else {
         resetGestures();
-        hardware.mouse.wheelScrolls = !gui.controlCenter && !gui.konamiOverlay && !onlineGame.stop;
-        controlCenter.mouse.wheelScrolls = gui.controlCenter && !gui.konamiOverlay && !onlineGame.stop;
+        hardware.mouse.wheelScrolls = !gui.controlCenter && !gui.konamiOverlay && !onlineConnection.stop;
+        controlCenter.mouse.wheelScrolls = gui.controlCenter && !gui.konamiOverlay && !onlineConnection.stop;
         hardware.mouse.wheelX = event.clientX * client.devicePixelRatio;
         hardware.mouse.wheelY = event.clientY * client.devicePixelRatio;
         hardware.mouse.wheelScrollX = event.deltaX;
@@ -1259,12 +1112,12 @@ function onMouseWheel(event) {
 function onMouseRight(event) {
     event.preventDefault();
     client.chosenInputMethod = "mouse";
-    if (!controlCenter.showCarCenter && gui.controlCenter && !gui.konamiOverlay && !onlineGame.stop && (client.zoomAndTilt.realScale == 1 || gui.three)) {
+    if (!controlCenter.showCarCenter && gui.controlCenter && !gui.konamiOverlay && !onlineConnection.stop && (client.zoomAndTilt.realScale == 1 || gui.three)) {
         controlCenter.showCarCenter = true;
         notify("#canvas-notifier", getString("appScreenCarControlCenterTitle"), NotificationPriority.Low, 1000, null, null, client.y + menus.outerContainer.height);
     }
     else {
-        gui.controlCenter = !gui.controlCenter && !gui.konamiOverlay && !onlineGame.stop && (client.zoomAndTilt.realScale == 1 || gui.three);
+        gui.controlCenter = !gui.controlCenter && !gui.konamiOverlay && !onlineConnection.stop && (client.zoomAndTilt.realScale == 1 || gui.three);
         if (gui.controlCenter) {
             notify("#canvas-notifier", getString("appScreenControlCenterTitle"), NotificationPriority.Low, 1000, null, null, client.y + menus.outerContainer.height);
         }
@@ -1272,10 +1125,10 @@ function onMouseRight(event) {
         controlCenter.mouse.wheelScrolls = false;
     }
     if (gui.infoOverlay) {
-        drawInfoOverlayMenu("items-change");
+        drawMenu("items-change");
     }
 }
-function preventMouseZoomDuringLoad(event) {
+function preventEvent(event) {
     event.preventDefault();
 }
 function getTouchMove(event) {
@@ -1287,8 +1140,8 @@ function getTouchMove(event) {
         if (client.zoomAndTilt.realScale > 1 && Math.max(Math.abs(deltaX), Math.abs(deltaY)) > Math.min(canvas.width, canvas.height) / 30 && !classicUI.pointInTransformerInput(event.touches[0].clientX * client.devicePixelRatio, event.touches[0].clientY * client.devicePixelRatio)) {
             resetGestures();
             getGesture({ type: "swipe", deltaX: deltaX / 4, deltaY: deltaY / 4 });
-            if (typeof clickTimeOut !== "undefined") {
-                window.clearTimeout(clickTimeOut);
+            if (clickTimeOut !== undefined && clickTimeOut !== null) {
+                clearTimeout(clickTimeOut);
                 clickTimeOut = null;
             }
             hardware.mouse.isDrag = true;
@@ -1298,8 +1151,8 @@ function getTouchMove(event) {
     }
     else if (event.touches.length == 2) {
         resetGestures();
-        if (typeof clickTimeOut !== "undefined") {
-            window.clearTimeout(clickTimeOut);
+        if (clickTimeOut !== undefined && clickTimeOut !== null) {
+            clearTimeout(clickTimeOut);
             clickTimeOut = null;
         }
         var deltaX = -(hardware.mouse.moveX - event.touches[1].clientX * client.devicePixelRatio);
@@ -1341,8 +1194,8 @@ function getTouchMove(event) {
     }
     else {
         resetGestures();
-        if (typeof clickTimeOut !== "undefined") {
-            window.clearTimeout(clickTimeOut);
+        if (clickTimeOut !== undefined && clickTimeOut !== null) {
+            clearTimeout(clickTimeOut);
             clickTimeOut = null;
         }
     }
@@ -1354,24 +1207,24 @@ function getTouchStart(event) {
     var yTS = event.changedTouches[0].clientY * client.devicePixelRatio;
     if (event.touches.length == 1 && Math.max(hardware.mouse.moveX, xTS) < 1.1 * Math.min(hardware.mouse.moveX, xTS) && Math.max(hardware.mouse.moveY, yTS) < 1.1 * Math.min(hardware.mouse.moveY, yTS) && Date.now() - hardware.mouse.downTime < doubleTouchTime && Date.now() - hardware.mouse.upTime < doubleTouchTime && !classicUI.pointInTrainSwitchInput(xTS, yTS) && !classicUI.pointInTransformerInput(xTS, yTS)) {
         resetGestures();
-        if (typeof clickTimeOut !== "undefined") {
-            window.clearTimeout(clickTimeOut);
+        if (clickTimeOut !== undefined && clickTimeOut !== null) {
+            clearTimeout(clickTimeOut);
             clickTimeOut = null;
         }
         getGesture({ type: "doubletap", deltaX: xTS, deltaY: yTS });
     }
     else if (event.touches.length == 3) {
         resetGestures();
-        if (typeof clickTimeOut !== "undefined") {
-            window.clearTimeout(clickTimeOut);
+        if (clickTimeOut !== undefined && clickTimeOut !== null) {
+            clearTimeout(clickTimeOut);
             clickTimeOut = null;
         }
         controlCenter.mouse.prepare = true;
     }
     else {
         resetGestures();
-        if (event.touches.length > 1 && typeof clickTimeOut !== "undefined") {
-            window.clearTimeout(clickTimeOut);
+        if (event.touches.length > 1 && clickTimeOut !== undefined && clickTimeOut !== null) {
+            clearTimeout(clickTimeOut);
             clickTimeOut = null;
         }
         if (event.touches.length == 2) {
@@ -1380,8 +1233,8 @@ function getTouchStart(event) {
         hardware.lastInputTouch = hardware.mouse.downTime = Date.now();
         hardware.mouse.moveX = hardware.mouse.downX = xTS;
         hardware.mouse.moveY = hardware.mouse.downY = yTS;
-        hardware.mouse.isHold = event.touches.length == 1 && !gui.controlCenter && !gui.konamiOverlay && !onlineGame.stop;
-        controlCenter.mouse.hold = event.touches.length == 1 && gui.controlCenter && !gui.konamiOverlay && !onlineGame.stop;
+        hardware.mouse.isHold = event.touches.length == 1 && !gui.controlCenter && !gui.konamiOverlay && !onlineConnection.stop;
+        controlCenter.mouse.hold = event.touches.length == 1 && gui.controlCenter && !gui.konamiOverlay && !onlineConnection.stop;
     }
 }
 function getTouchEnd(event) {
@@ -1398,31 +1251,32 @@ function getTouchEnd(event) {
     hardware.mouse.upX = event.changedTouches[0].clientX * client.devicePixelRatio;
     hardware.mouse.upY = event.changedTouches[0].clientY * client.devicePixelRatio;
     hardware.mouse.upTime = Date.now();
-    controlCenter.mouse.clickEvent = gui.controlCenter && !gui.konamiOverlay && !onlineGame.stop;
+    controlCenter.mouse.clickEvent = gui.controlCenter && !gui.konamiOverlay && !onlineConnection.stop;
     if (controlCenter.mouse.prepare && event.touches.length == 0) {
-        if (!controlCenter.showCarCenter && gui.controlCenter && !gui.konamiOverlay && !onlineGame.stop && (client.zoomAndTilt.realScale == 1 || gui.three)) {
+        if (!controlCenter.showCarCenter && gui.controlCenter && !gui.konamiOverlay && !onlineConnection.stop && (client.zoomAndTilt.realScale == 1 || gui.three)) {
             controlCenter.showCarCenter = true;
             notify("#canvas-notifier", getString("appScreenCarControlCenterTitle"), NotificationPriority.Low, 1000, null, null, client.y + menus.outerContainer.height);
             controlCenter.mouse.clickEvent = controlCenter.mouse.hold = controlCenter.mouse.prepare = false;
         }
         else {
-            gui.controlCenter = !gui.controlCenter && !gui.konamiOverlay && !onlineGame.stop && (client.zoomAndTilt.realScale == 1 || gui.three);
+            gui.controlCenter = !gui.controlCenter && !gui.konamiOverlay && !onlineConnection.stop && (client.zoomAndTilt.realScale == 1 || gui.three);
             if (gui.controlCenter) {
                 notify("#canvas-notifier", getString("appScreenControlCenterTitle"), NotificationPriority.Low, 1000, null, null, client.y + menus.outerContainer.height);
             }
             controlCenter.mouse.clickEvent = controlCenter.mouse.hold = controlCenter.mouse.prepare = false;
         }
         if (gui.infoOverlay) {
-            drawInfoOverlayMenu("items-change");
+            drawMenu("items-change");
         }
     }
 }
-function getTouchCancel(event) {
+function getTouchCancel(_event) {
     resetGestures();
     client.chosenInputMethod = "touch";
     hardware.keyboard.keysHold = [];
 }
 function onKeyDown(event) {
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q;
     if (!client.hidden && !hardware.mouse.out) {
         if (!hardware.keyboard.keysHold[event.key]) {
             hardware.keyboard.keysHold[event.key] = {};
@@ -1433,81 +1287,96 @@ function onKeyDown(event) {
     if (event.key == "Tab" || event.key == "Enter") {
         event.preventDefault();
     }
-    if (event.key == "/" && event.target.tagName != "INPUT" && event.target.tagName != "TEXTAREA" && !gui.sidebarRight && !gui.textControl) {
-        event.preventDefault();
-        gui.textControl = true;
-        if (gui.infoOverlay) {
-            drawInfoOverlayMenu("hide-outer");
+    if (event.ctrlKey) {
+        if (event.key == "0" && client.zoomAndTilt.realScale > 1) {
+            event.preventDefault();
+            getGesture({ type: "doubletap", deltaX: client.zoomAndTilt.pinchX, deltaY: client.zoomAndTilt.pinchY });
         }
-        else {
-            drawOptionsMenu("hide-outer");
-        }
-        textControl.elements.output.textContent = textControl.execute();
-        textControl.elements.root.style.display = "block";
-        textControl.elements.input.focus();
-    }
-    else if ((event.key == "c" || event.key == "C") && !event.ctrlKey && event.target.tagName != "INPUT" && event.target.tagName != "TEXTAREA" && gui.three) {
-        event.preventDefault();
-        three.switchCamera(event.key == "c");
-    }
-    else if (event.ctrlKey && event.key == "0" && client.zoomAndTilt.realScale > 1) {
-        event.preventDefault();
-        getGesture({ type: "doubletap", deltaX: client.zoomAndTilt.pinchX, deltaY: client.zoomAndTilt.pinchY });
-    }
-    else if (event.ctrlKey && (event.key == "+" || event.key == "-")) {
-        event.preventDefault();
-        if (client.zoomAndTilt.realScale < client.zoomAndTilt.maxScale || event.key == "-") {
-            if (typeof client.zoomAndTilt.pinchHypot == "undefined") {
-                var deltaX = hardware.mouse.moveX;
-                var deltaY = hardware.mouse.moveY;
-                if (client.zoomAndTilt.realScale == 1) {
-                    getGesture({ type: "pinchinit", deltaX: deltaX, deltaY: deltaY, pinchOHypot: client.zoomAndTilt.realScale });
+        else if (event.key == "+" || event.key == "-") {
+            event.preventDefault();
+            if (client.zoomAndTilt.realScale < client.zoomAndTilt.maxScale || event.key == "-") {
+                if (typeof client.zoomAndTilt.pinchHypot == "undefined") {
+                    var deltaX = hardware.mouse.moveX;
+                    var deltaY = hardware.mouse.moveY;
+                    if (client.zoomAndTilt.realScale == 1) {
+                        getGesture({ type: "pinchinit", deltaX: deltaX, deltaY: deltaY, pinchOHypot: client.zoomAndTilt.realScale });
+                    }
+                    else {
+                        getGesture({ type: "pinchoffset", deltaX: deltaX, deltaY: deltaY, pinchOHypot: client.zoomAndTilt.realScale });
+                    }
+                }
+                var hypot = client.zoomAndTilt.realScale;
+                if (event.key == "+") {
+                    hypot *= client.zoomAndTilt.minScale;
                 }
                 else {
-                    getGesture({ type: "pinchoffset", deltaX: deltaX, deltaY: deltaY, pinchOHypot: client.zoomAndTilt.realScale });
+                    hypot /= client.zoomAndTilt.minScale;
                 }
+                getGesture({ type: "pinch", scale: hypot / client.zoomAndTilt.pinchHypot, deltaX: client.zoomAndTilt.pinchX, deltaY: client.zoomAndTilt.pinchY });
             }
-            var hypot = client.zoomAndTilt.realScale;
-            if (event.key == "+") {
-                hypot *= client.zoomAndTilt.minScale;
-            }
-            else {
-                hypot /= client.zoomAndTilt.minScale;
-            }
-            getGesture({ type: "pinch", scale: hypot / client.zoomAndTilt.pinchHypot, deltaX: client.zoomAndTilt.pinchX, deltaY: client.zoomAndTilt.pinchY });
         }
     }
-    else if ((event.key == "ArrowUp" && (konamiState === 0 || konamiState == 1)) || (event.key == "ArrowDown" && (konamiState == 2 || konamiState == 3)) || (event.key == "ArrowLeft" && (konamiState == 4 || konamiState == 6)) || (event.key == "ArrowRight" && (konamiState == 5 || konamiState == 7)) || (event.key == "b" && konamiState == 8)) {
-        if (typeof konamiTimeOut !== "undefined") {
-            window.clearTimeout(konamiTimeOut);
+    else if (event.target.tagName != "INPUT" && event.target.tagName != "TEXTAREA" && !gui.konamiOverlay) {
+        if (event.key == "/" && !gui.sidebarRight && !gui.textControl) {
+            event.preventDefault();
+            gui.textControl = true;
+            drawMenu("hide-outer");
+            textControl.elements.output.textContent = textControl.execute();
+            textControl.elements.root.style.display = "block";
+            textControl.elements.input.focus();
         }
-        konamiState++;
-        konamiTimeOut = window.setTimeout(function () {
-            konamiState = 0;
-        }, 500);
-    }
-    else if (event.key == "a" && konamiState == 9) {
-        if (typeof konamiTimeOut !== "undefined") {
-            window.clearTimeout(konamiTimeOut);
+        else if (event.key == " ") {
+            event.preventDefault();
+            (_c = (_b = (_a = menus.options) === null || _a === void 0 ? void 0 : _a.elements) === null || _b === void 0 ? void 0 : _b.view3DToggle) === null || _c === void 0 ? void 0 : _c.click();
         }
-        konamiState = -1;
-        gui.konamiOverlay = true;
-        drawBackground();
-        background3D.animateBehind(true);
-    }
-    else if (konamiState < 0 && (event.key == "Enter" || event.key == " " || event.key == "a" || event.key == "b")) {
-        konamiState = konamiState > -2 ? --konamiState : 0;
-        gui.konamiOverlay = false;
-        if (konamiState == 0) {
+        else if (event.key == "-") {
+            event.preventDefault();
+            (_f = (_e = (_d = menus.options) === null || _d === void 0 ? void 0 : _d.elements) === null || _e === void 0 ? void 0 : _e.controlCenterTrains) === null || _f === void 0 ? void 0 : _f.click();
+        }
+        else if (event.key == "_") {
+            event.preventDefault();
+            (_j = (_h = (_g = menus.options) === null || _g === void 0 ? void 0 : _g.elements) === null || _h === void 0 ? void 0 : _h.controlCenterCars) === null || _j === void 0 ? void 0 : _j.click();
+        }
+        else if (event.key == "c" && gui.three) {
+            event.preventDefault();
+            (_m = (_l = (_k = menus.options) === null || _k === void 0 ? void 0 : _k.elements) === null || _l === void 0 ? void 0 : _l.view3DCameraSwitcherForwards) === null || _m === void 0 ? void 0 : _m.click();
+        }
+        else if (event.key == "C" && gui.three) {
+            event.preventDefault();
+            (_q = (_p = (_o = menus.options) === null || _o === void 0 ? void 0 : _o.elements) === null || _p === void 0 ? void 0 : _p.view3DCameraSwitcherBackwards) === null || _q === void 0 ? void 0 : _q.click();
+        }
+        else if ((event.key == "ArrowUp" && (konamiState === 0 || konamiState == 1)) || (event.key == "ArrowDown" && (konamiState == 2 || konamiState == 3)) || (event.key == "ArrowLeft" && (konamiState == 4 || konamiState == 6)) || (event.key == "ArrowRight" && (konamiState == 5 || konamiState == 7)) || (event.key == "b" && konamiState == 8)) {
+            if (konamiTimeOut !== undefined && konamiTimeOut !== null) {
+                clearTimeout(konamiTimeOut);
+            }
+            konamiState++;
+            konamiTimeOut = setTimeout(function () {
+                konamiState = 0;
+            }, 500);
+        }
+        else if (event.key == "a" && konamiState == 9) {
+            if (konamiTimeOut !== undefined && konamiTimeOut !== null) {
+                clearTimeout(konamiTimeOut);
+            }
+            konamiState = -1;
+            gui.konamiOverlay = true;
             drawBackground();
             background3D.animateBehind(true);
         }
-    }
-    else if (konamiState > 0) {
-        if (typeof konamiTimeOut !== "undefined") {
-            window.clearTimeout(konamiTimeOut);
+        else if (konamiState < 0 && (event.key == "Enter" || event.key == "a" || event.key == "b")) {
+            konamiState = konamiState > -2 ? --konamiState : 0;
+            gui.konamiOverlay = false;
+            if (konamiState == 0) {
+                drawBackground();
+                background3D.animateBehind(true);
+            }
         }
-        konamiState = 0;
+        else if (konamiState > 0) {
+            if (konamiTimeOut !== undefined && konamiTimeOut !== null) {
+                clearTimeout(konamiTimeOut);
+            }
+            konamiState = 0;
+        }
     }
 }
 function onKeyUp(event) {
@@ -1522,7 +1391,7 @@ function onKeyUp(event) {
     hardware.keyboard.keysHold[event.key].ctrlKey = false;
 }
 function preventKeyZoomDuringLoad(event) {
-    if (event.ctrlKey && (event.key == "+" || event.key == "-" || event.key == "0")) {
+    if (event.key == "Escape" || (event.ctrlKey && (event.key == "+" || event.key == "-" || event.key == "0"))) {
         event.preventDefault();
     }
 }
@@ -1595,7 +1464,7 @@ function calcClassicUIElements() {
     if (classicUI.trainSwitch.selectedTrainDisplay.visible != currentSelectedTrainDisplayVisible) {
         classicUI.trainSwitch.selectedTrainDisplay.visible = currentSelectedTrainDisplayVisible;
         if (gui.infoOverlay) {
-            drawInfoOverlayMenu("items-change");
+            drawMenu("items-change");
         }
     }
     classicUI.trainSwitch.selectedTrainDisplay.font = tempFontSize + "px " + classicUI.trainSwitch.selectedTrainDisplay.fontFamily;
@@ -1707,20 +1576,23 @@ function calcControlCenter() {
 function resizeCars(oldBg) {
     cars.forEach(function (car) {
         car.speed *= background.width / oldBg.width;
-        car.x *= background.width / oldBg.width;
-        car.y *= background.height / oldBg.height;
         car.width *= background.width / oldBg.width;
         car.height *= background.height / oldBg.height;
+        car.x *= background.width / oldBg.width;
+        car.y *= background.height / oldBg.height;
     });
 }
 function requestResize() {
     function resize() {
+        if (modeSwitching) {
+            return;
+        }
         resized = true;
-        if (onlineGame.enabled) {
-            if (onlineGame.resizedTimeout != undefined && onlineGame.resizedTimeout != null) {
-                window.clearTimeout(onlineGame.resizedTimeout);
+        if (currentMode == Modes.MULTIPLAYER) {
+            if (multiplayerMode.resizedTimeout != undefined && multiplayerMode.resizedTimeout != null) {
+                clearTimeout(multiplayerMode.resizedTimeout);
             }
-            onlineGame.resized = true;
+            onlineConnection.resized = true;
         }
         resetScale();
         resetTilt();
@@ -1788,15 +1660,18 @@ function requestResize() {
             }
         });
     }
+    if (modeSwitching) {
+        return;
+    }
     if (resizeTimeout !== undefined && resizeTimeout !== null) {
-        window.clearTimeout(resizeTimeout);
+        clearTimeout(resizeTimeout);
     }
     if (resized) {
-        resizeTimeout = window.setTimeout(requestResize, 10);
+        resizeTimeout = setTimeout(requestResize, 10);
     }
     else {
         resize();
-        resizeTimeout = window.setTimeout(resize, 50);
+        resizeTimeout = setTimeout(resize, 50);
     }
 }
 /*******************************************
@@ -2048,8 +1923,8 @@ function drawObjects() {
                     hardware.mouse.isHold = false;
                 }
                 if ((hardware.lastInputTouch < hardware.lastInputMouse && hardware.mouse.downTime - hardware.mouse.upTime > 0 && context.isPointInPath(hardware.mouse.upX, hardware.mouse.upY) && context.isPointInPath(hardware.mouse.downX, hardware.mouse.downY) && hardware.mouse.downTime - hardware.mouse.upTime < doubleClickTime && !hardware.mouse.lastClickDoubleClick) || (hardware.lastInputTouch > hardware.lastInputMouse && context.isPointInPath(hardware.mouse.downX, hardware.mouse.downY) && Date.now() - hardware.mouse.downTime > longTouchTime)) {
-                    if (typeof clickTimeOut !== "undefined") {
-                        window.clearTimeout(clickTimeOut);
+                    if (clickTimeOut !== undefined && clickTimeOut !== null) {
+                        clearTimeout(clickTimeOut);
                         clickTimeOut = null;
                     }
                     if (hardware.lastInputTouch > hardware.lastInputMouse) {
@@ -2063,11 +1938,11 @@ function drawObjects() {
                     }
                 }
                 else {
-                    if (typeof clickTimeOut !== "undefined") {
-                        window.clearTimeout(clickTimeOut);
+                    if (clickTimeOut !== undefined && clickTimeOut !== null) {
+                        clearTimeout(clickTimeOut);
                         clickTimeOut = null;
                     }
-                    clickTimeOut = window.setTimeout(function () {
+                    clickTimeOut = setTimeout(function () {
                         clickTimeOut = null;
                         if (hardware.lastInputTouch > hardware.lastInputMouse) {
                             hardware.mouse.isHold = false;
@@ -2174,7 +2049,7 @@ function drawObjects() {
                 carParams.autoModeInit = false;
             }
             var points = { x: [], y: [], angle: [] };
-            var arrLen = carParams.wayNo * 20;
+            var arrLen = carParams.wayNo * 23;
             var abstrNo = Math.ceil(arrLen * 0.05);
             var cCars = copyJSObject(cars);
             for (var i = 0; i < cCars.length; i++) {
@@ -2289,10 +2164,10 @@ function drawObjects() {
             for (var i = 0; i < cCars.length; i++) {
                 for (var k = 0; k < cCars.length; k++) {
                     if (i != k && carCollisionCourse(i, false) && carCollisionCourse(k, false)) {
-                        if (gui.demo) {
-                            window.sessionStorage.removeItem("demoCars");
-                            window.sessionStorage.removeItem("demoCarParams");
-                            window.sessionStorage.removeItem("demoBg");
+                        if (currentMode == Modes.DEMO) {
+                            sessionStorage.removeItem("demoCars");
+                            sessionStorage.removeItem("demoCarParams");
+                            sessionStorage.removeItem("demoBg");
                         }
                         else {
                             notify("#canvas-notifier", getString("appScreenCarAutoModeCrash", "."), NotificationPriority.High, 5000, null, null, client.height);
@@ -2309,10 +2184,10 @@ function drawObjects() {
                 }
             });
             if (collStopQuantity == cars.length) {
-                if (gui.demo) {
-                    window.sessionStorage.removeItem("demoCars");
-                    window.sessionStorage.removeItem("demoCarParams");
-                    window.sessionStorage.removeItem("demoBg");
+                if (currentMode == Modes.DEMO) {
+                    sessionStorage.removeItem("demoCars");
+                    sessionStorage.removeItem("demoCarParams");
+                    sessionStorage.removeItem("demoBg");
                 }
                 else {
                     notify("#canvas-notifier", getString("appScreenCarAutoModeCrash", "."), NotificationPriority.High, 5000, null, null, client.height);
@@ -2431,8 +2306,8 @@ function drawObjects() {
                 hardware.mouse.isHold = false;
             }
             if ((hardware.lastInputTouch < hardware.lastInputMouse && hardware.mouse.downTime - hardware.mouse.upTime > 0 && context.isPointInPath(hardware.mouse.upX, hardware.mouse.upY) && context.isPointInPath(hardware.mouse.downX, hardware.mouse.downY) && hardware.mouse.downTime - hardware.mouse.upTime < doubleClickTime && !hardware.mouse.lastClickDoubleClick) || (hardware.lastInputTouch > hardware.lastInputMouse && context.isPointInPath(hardware.mouse.downX, hardware.mouse.downY) && Date.now() - hardware.mouse.downTime > longTouchTime)) {
-                if (typeof clickTimeOut !== "undefined") {
-                    window.clearTimeout(clickTimeOut);
+                if (clickTimeOut !== undefined && clickTimeOut !== null) {
+                    clearTimeout(clickTimeOut);
                     clickTimeOut = null;
                 }
                 if (hardware.lastInputTouch > hardware.lastInputMouse) {
@@ -2449,11 +2324,11 @@ function drawObjects() {
                 }
             }
             else {
-                if (typeof clickTimeOut !== "undefined") {
-                    window.clearTimeout(clickTimeOut);
+                if (clickTimeOut !== undefined && clickTimeOut !== null) {
+                    clearTimeout(clickTimeOut);
                     clickTimeOut = null;
                 }
-                clickTimeOut = window.setTimeout(function () {
+                clickTimeOut = setTimeout(function () {
                     clickTimeOut = null;
                     if (hardware.lastInputTouch > hardware.lastInputMouse) {
                         hardware.mouse.isHold = false;
@@ -2487,11 +2362,11 @@ function drawObjects() {
             if (context.isPointInPath(hardware.mouse.moveX, hardware.mouse.moveY) && !hardware.mouse.isDrag) {
                 hardware.mouse.cursor = "pointer";
                 if (hardware.mouse.isHold) {
-                    if (typeof clickTimeOut !== "undefined") {
-                        window.clearTimeout(clickTimeOut);
+                    if (clickTimeOut !== undefined && clickTimeOut !== null) {
+                        clearTimeout(clickTimeOut);
                         clickTimeOut = null;
                     }
-                    clickTimeOut = window.setTimeout(function () {
+                    clickTimeOut = setTimeout(function () {
                         clickTimeOut = null;
                         hardware.mouse.isHold = false;
                         if (carParams.autoModeOff) {
@@ -2569,29 +2444,27 @@ function drawObjects() {
         return ((canvas.height * client.zoomAndTilt.realScale) / 2 - canvas.height / 2) / client.zoomAndTilt.realScale + y / client.zoomAndTilt.realScale - client.zoomAndTilt.offsetY / client.zoomAndTilt.realScale;
     }
     /////GENERAL/////
+    if (modeSwitching) {
+        return;
+    }
     var startTime = Date.now();
+    drawing = true;
     var lastClickDoubleClick = hardware.mouse.lastClickDoubleClick;
     var wasHold = hardware.mouse.isHold;
     frameNo++;
     if (frameNo % 1000000 === 0) {
-        notify("#canvas-notifier", formatJSString(getString("appScreenAMillionFrames", "."), frameNo / 1000000), NotificationPriority.Default, 5000, null, null, client.y + menus.outerContainer.height);
+        notify("#canvas-notifier", formatJSString(getString("appScreenAMillionFrames", "."), frameNo / 1000000), NotificationPriority.Default, 10000, null, null, client.y + menus.outerContainer.height);
     }
     if (client.zoomAndTilt.realScale != client.zoomAndTilt.realScaleOld || client.zoomAndTilt.offsetX != client.zoomAndTilt.offsetXOld || client.zoomAndTilt.offsetY != client.zoomAndTilt.offsetYOld) {
         client.zoomAndTilt.realScaleOld = client.zoomAndTilt.realScale;
         client.zoomAndTilt.offsetXOld = client.zoomAndTilt.offsetX;
         client.zoomAndTilt.offsetYOld = client.zoomAndTilt.offsetY;
         drawBackground();
-        if (client.zoomAndTilt.realScale != 1 && gui.infoOverlay) {
-            drawInfoOverlayMenu("hide-outer");
-        }
-        else if (client.zoomAndTilt.realScale != 1) {
-            drawOptionsMenu("hide-outer");
-        }
-        else if (gui.infoOverlay && !gui.textControl) {
-            drawInfoOverlayMenu("show");
+        if (client.zoomAndTilt.realScale != 1) {
+            drawMenu("hide-outer");
         }
         else if (!gui.textControl) {
-            drawOptionsMenu("show");
+            drawMenu("show");
         }
     }
     hardware.mouse.cursor = hardware.mouse.isDrag ? "move" : "default";
@@ -2666,7 +2539,7 @@ function drawObjects() {
         getGesture({ type: "tilt", deltaX: deltaX, deltaY: deltaY });
     }
     /////CARS/////
-    if (!onlineGame.stop) {
+    if (!onlineConnection.stop) {
         calcCars();
     }
     if (gui.three) {
@@ -2788,14 +2661,14 @@ function drawObjects() {
                 cars3D[i].mesh.position.set(three.calcScale() * ((car.x - background.width / 2) / background.width), three.calcScale() * (-(car.y - background.height / 2) / background.width) + three.calcPositionY(), cars3D[i].positionZ);
                 cars3D[i].mesh.rotation.z = -car.displayAngle;
             }
-            if (!gui.demo && cars3D[i] && cars3D[i].meshParkingLot) {
+            if (currentMode != Modes.DEMO && cars3D[i] && cars3D[i].meshParkingLot) {
                 cars3D[i].meshParkingLot.visible = !carParams.init && ((carParams.autoModeOff && cars[i].cType == "normal" && !cars[i].move) || (!carParams.autoModeOff && !carParams.autoModeRuns && !carParams.isBackToRoot));
                 cars3D[i].meshParkingLot.material.color.setHex(carParams.autoModeOff ? cars[i].hexColor : "0xffeeef");
             }
         });
         if (three.cameraMode == ThreeCameraModes.FOLLOW_CAR) {
             if (typeof three.followObject != "number" || !Number.isInteger(three.followObject) || three.followObject < 0 || three.followObject > cars.length - 1) {
-                three.followObject = gui.demo ? Math.floor(Math.random() * cars.length) : 0;
+                three.followObject = currentMode == Modes.DEMO ? Math.floor(Math.random() * cars.length) : 0;
             }
             if ((!carParams.autoModeOff && carParams.isBackToRoot) || (carParams.autoModeOff && (cars[three.followObject].backToInit || cars[three.followObject].backwardsState > 0))) {
                 background3D.animateBehind(false, (cars[three.followObject].displayAngle - Math.PI) / (2 * Math.PI));
@@ -2816,7 +2689,7 @@ function drawObjects() {
             var rad = Math.PI / 2;
             three.followCamera.rotateOnAxis(axis, rad);
             three.renderer.render(three.scene, three.followCamera);
-            if (!gui.demo && !gui.controlCenter && !gui.konamiOverlay && !onlineGame.waitingClock.visible) {
+            if (currentMode != Modes.DEMO && !gui.controlCenter && !gui.konamiOverlay && !multiplayerMode.waitingClock.visible) {
                 contextForeground.save();
                 contextForeground.translate(three.followCamControls.x, three.followCamControls.y + three.followCamControls.textSize);
                 contextForeground.font = three.followCamControls.font;
@@ -2909,7 +2782,7 @@ function drawObjects() {
         }
         else if (three.cameraMode == ThreeCameraModes.FOLLOW_TRAIN) {
             if (typeof three.followObject != "number" || !Number.isInteger(three.followObject) || three.followObject < 0 || three.followObject > trains.length - 1) {
-                three.followObject = gui.demo ? Math.floor(Math.random() * trains.length) : 0;
+                three.followObject = currentMode == Modes.DEMO ? Math.floor(Math.random() * trains.length) : 0;
             }
             var object = trains[three.followObject].standardDirection || trains[three.followObject].cars.length == 0 ? trains[three.followObject] : trains[three.followObject].cars[trains[three.followObject].cars.length - 1];
             var object3D = trains[three.followObject].standardDirection || trains3D[three.followObject].cars.length == 0 ? trains3D[three.followObject] : trains3D[three.followObject].cars[trains3D[three.followObject].cars.length - 1];
@@ -2926,7 +2799,7 @@ function drawObjects() {
             var axis = new THREE.Vector3(1, 0, 0);
             var rad = Math.PI / 2;
             three.followCamera.rotateOnAxis(axis, rad);
-            if (!gui.demo && !gui.controlCenter && !gui.konamiOverlay && !onlineGame.waitingClock.visible) {
+            if (currentMode != Modes.DEMO && !gui.controlCenter && !gui.konamiOverlay && !multiplayerMode.waitingClock.visible) {
                 contextForeground.save();
                 contextForeground.translate(three.followCamControls.x, three.followCamControls.y);
                 contextForeground.beginPath();
@@ -3017,12 +2890,12 @@ function drawObjects() {
                 }
             }
         }
-        else if (gui.demo) {
+        else if (currentMode == Modes.DEMO) {
             var rotation = (Math.random() / 500) * (three.demoRotationSpeedFac / 100);
             three.scene.rotation.x += three.demoRotationFacX * rotation;
             three.scene.rotation.y += three.demoRotationFacY * rotation;
         }
-        if (!gui.demo) {
+        if (currentMode != Modes.DEMO) {
             Object.keys(switches).forEach(function (key) {
                 Object.keys(switches[key]).forEach(function (currentKey) {
                     function getFadeColor(fadeProgress, maxColor) {
@@ -3101,8 +2974,8 @@ function drawObjects() {
                     }
                 }
                 else if (hardware.mouse.isHold && raycasterDown.intersectObjects(three.mainGroup.children).length == 0 && ((hardware.lastInputTouch < hardware.lastInputMouse && hardware.mouse.downTime - hardware.mouse.upTime > 0 && hardware.mouse.downTime - hardware.mouse.upTime < doubleClickTime && !hardware.mouse.lastClickDoubleClick && raycasterUp.intersectObjects(three.mainGroup.children).length == 0) || (hardware.lastInputTouch > hardware.lastInputMouse && Date.now() - hardware.mouse.downTime > longTouchTime))) {
-                    if (typeof clickTimeOut !== "undefined") {
-                        window.clearTimeout(clickTimeOut);
+                    if (clickTimeOut !== undefined && clickTimeOut !== null) {
+                        clearTimeout(clickTimeOut);
                         clickTimeOut = null;
                     }
                     hardware.mouse.isHold = false;
@@ -3204,7 +3077,7 @@ function drawObjects() {
             });
         }
         /////TAX OFFICE/////
-        if (getSetting("burnTheTaxOffice") && !onlineGame.waitingClock.visible) {
+        if (getSetting("burnTheTaxOffice") && !multiplayerMode.waitingClock.visible) {
             //General (BEGIN)
             contextForeground.save();
             contextForeground.translate(background.x, background.y);
@@ -3417,8 +3290,8 @@ function drawObjects() {
             contextForeground.restore();
             if ((wasInSwitchPath || (classicUI.pointInTrainSwitchInputImage(hardware.mouse.wheelX, hardware.mouse.wheelY) && hardware.mouse.wheelScrollY !== 0 && hardware.mouse.wheelScrolls) || classicUI.pointInTrainSwitchInputImage(hardware.mouse.moveX, hardware.mouse.moveY)) && !hardware.mouse.isDrag) {
                 hardware.mouse.cursor = "pointer";
-                if (typeof movingTimeOut !== "undefined") {
-                    window.clearTimeout(movingTimeOut);
+                if (movingTimeOut !== undefined && movingTimeOut !== null) {
+                    clearTimeout(movingTimeOut);
                 }
                 if ((hardware.mouse.wheelScrollY !== 0 && hardware.mouse.wheelScrolls) || hardware.mouse.isHold) {
                     if (hardware.mouse.wheelScrollY !== 0 && hardware.mouse.wheelScrolls) {
@@ -3454,7 +3327,7 @@ function drawObjects() {
                 if (!classicUI.transformer.directionInput.visible) {
                     classicUI.transformer.directionInput.visible = true;
                     if (gui.infoOverlay) {
-                        drawInfoOverlayMenu("items-change");
+                        drawMenu("items-change");
                     }
                 }
                 contextForeground.save();
@@ -3493,8 +3366,8 @@ function drawObjects() {
                     contextForeground.restore();
                 }
                 if (classicUI.pointInTransformerDirectionInput(hardware.mouse.moveX, hardware.mouse.moveY) && !trains[trainParams.selected].move && !hardware.mouse.isDrag) {
-                    if (typeof movingTimeOut !== "undefined") {
-                        window.clearTimeout(movingTimeOut);
+                    if (movingTimeOut !== undefined && movingTimeOut !== null) {
+                        clearTimeout(movingTimeOut);
                     }
                     hardware.mouse.cursor = "pointer";
                     if (hardware.mouse.isHold) {
@@ -3508,7 +3381,7 @@ function drawObjects() {
                 if (classicUI.transformer.directionInput.visible) {
                     classicUI.transformer.directionInput.visible = false;
                     if (gui.infoOverlay) {
-                        drawInfoOverlayMenu("items-change");
+                        drawMenu("items-change");
                     }
                 }
             }
@@ -3555,8 +3428,8 @@ function drawObjects() {
             contextForeground.restore();
             contextForeground.restore();
             if ((isMouseMoveInWheelInput && hardware.mouse.isHold) || (isMouseWheelInWheelInput && hardware.mouse.wheelScrollY !== 0 && hardware.mouse.wheelScrolls)) {
-                if (typeof movingTimeOut !== "undefined") {
-                    window.clearTimeout(movingTimeOut);
+                if (movingTimeOut !== undefined && movingTimeOut !== null) {
+                    clearTimeout(movingTimeOut);
                 }
                 var x = classicUI.transformer.x + classicUI.transformer.width / 2 + classicUI.transformer.wheelInput.diffY * Math.sin(classicUI.transformer.angle);
                 var y = classicUI.transformer.y + classicUI.transformer.height / 2 - classicUI.transformer.wheelInput.diffY * Math.cos(classicUI.transformer.angle);
@@ -3665,11 +3538,11 @@ function drawObjects() {
                 contextForeground.beginPath();
                 contextForeground.arc(background.x + switches[key][side].x, background.y + switches[key][side].y, switchParams.radius, 0, 2 * Math.PI);
                 if (hardware.mouse.isHold && contextForeground.isPointInPath(hardware.mouse.moveX, hardware.mouse.moveY) && !inTrain) {
-                    if (typeof clickTimeOut !== "undefined") {
-                        window.clearTimeout(clickTimeOut);
+                    if (clickTimeOut !== undefined && clickTimeOut !== null) {
+                        clearTimeout(clickTimeOut);
                         clickTimeOut = null;
                     }
-                    clickTimeOut = window.setTimeout(function () {
+                    clickTimeOut = setTimeout(function () {
                         clickTimeOut = null;
                         hardware.mouse.isHold = false;
                         switchActions.turn(key, side);
@@ -3936,18 +3809,20 @@ function drawObjects() {
             context.arc(switches.innerWide.left.x + background.x, switches.innerWide.left.y * switchParams.beforeFac + background.y, background.width / 100, 0, 2 * Math.PI);
             context.fill();
             context.restore();
-            context.save();
-            context.strokeStyle = "orange";
-            context.lineWidth = 3;
-            context.beginPath();
-            context.moveTo(switches.sidings2.left.x + background.x - background.width / 20, switches.sidings2.left.y + background.y + switchParams.beforeAddSidings[0]);
-            context.lineTo(switches.sidings2.left.x + background.x, switches.sidings2.left.y + background.y + switchParams.beforeAddSidings[0]);
-            context.stroke();
-            context.beginPath();
-            context.moveTo(switches.sidings3.left.x + background.x - background.width / 20, switches.sidings3.left.y + background.y + switchParams.beforeAddSidings[1]);
-            context.lineTo(switches.sidings3.left.x + background.x, switches.sidings3.left.y + background.y + switchParams.beforeAddSidings[1]);
-            context.stroke();
-            context.restore();
+            if (switchParams.beforeAddSidings && switchParams.beforeAddSidings.length >= 2) {
+                context.save();
+                context.strokeStyle = "orange";
+                context.lineWidth = 3;
+                context.beginPath();
+                context.moveTo(switches.sidings2.left.x + background.x - background.width / 20, switches.sidings2.left.y + background.y + switchParams.beforeAddSidings[0]);
+                context.lineTo(switches.sidings2.left.x + background.x, switches.sidings2.left.y + background.y + switchParams.beforeAddSidings[0]);
+                context.stroke();
+                context.beginPath();
+                context.moveTo(switches.sidings3.left.x + background.x - background.width / 20, switches.sidings3.left.y + background.y + switchParams.beforeAddSidings[1]);
+                context.lineTo(switches.sidings3.left.x + background.x, switches.sidings3.left.y + background.y + switchParams.beforeAddSidings[1]);
+                context.stroke();
+                context.restore();
+            }
             context.lineWidth = 2;
             context.fillStyle = "black";
             context.strokeStyle = "black";
@@ -4119,7 +3994,7 @@ function drawObjects() {
             gui.controlCenter = false;
             controlCenter.mouse.wheelScrolls = false;
             if (gui.infoOverlay) {
-                drawInfoOverlayMenu("items-change");
+                drawMenu("items-change");
             }
         }
         /////CONTROL CENTER/Cars/////
@@ -4488,10 +4363,10 @@ function drawObjects() {
         controlCenter.showCarCenter = false;
         gui.controlCenter = false;
     }
-    /////Online Game Waiting Animation/////
-    if (onlineGame.stop) {
+    /////Multiplayer Mode/Waiting Animation/////
+    if (onlineConnection.stop) {
         hardware.mouse.cursor = "default";
-        onlineGame.waitingClock.draw();
+        multiplayerMode.waitingClock.draw();
     }
     /////BACKGROUND/Margins-2////
     if (konamiState < 0) {
@@ -4528,7 +4403,7 @@ function drawObjects() {
     }
     /////CURSOR/////
     if (gui.three) {
-        canvasForeground.style.cursor = client.chosenInputMethod != "mouse" || gui.demo ? "none" : hardware.mouse.cursor;
+        canvasForeground.style.cursor = client.chosenInputMethod != "mouse" || currentMode == Modes.DEMO ? "none" : hardware.mouse.cursor;
     }
     else {
         if (getSetting("cursorascircle") && client.chosenInputMethod == "mouse" && (hardware.mouse.isMoving || hardware.mouse.isHold || client.zoomAndTilt.realScale > 1)) {
@@ -4545,24 +4420,25 @@ function drawObjects() {
             contextForeground.fill();
             contextForeground.restore();
         }
-        canvasForeground.style.cursor = client.chosenInputMethod != "mouse" || getSetting("cursorascircle") || gui.demo ? "none" : hardware.mouse.cursor;
+        canvasForeground.style.cursor = client.chosenInputMethod != "mouse" || getSetting("cursorascircle") || currentMode == Modes.DEMO ? "none" : hardware.mouse.cursor;
     }
     hardware.mouse.wheelScrolls = false;
     if (lastClickDoubleClick == hardware.mouse.lastClickDoubleClick && wasHold) {
         hardware.mouse.lastClickDoubleClick = false;
     }
+    drawing = false;
     /////REPAINT/////
     if (drawTimeout !== undefined && drawTimeout !== null) {
-        window.clearTimeout(drawTimeout);
+        clearTimeout(drawTimeout);
     }
     if (!client.hidden) {
         var restTime = drawInterval - (Date.now() - startTime);
         if (restTime <= 0) {
-            window.requestAnimationFrame(drawObjects);
+            requestAnimationFrame(drawObjects);
         }
         else {
-            drawTimeout = window.setTimeout(function () {
-                window.requestAnimationFrame(drawObjects);
+            drawTimeout = setTimeout(function () {
+                requestAnimationFrame(drawObjects);
             }, restTime);
         }
     }
@@ -4572,8 +4448,8 @@ function actionSync(objectName, index, params, notification, notificationOnlyFor
     if (params === void 0) { params = undefined; }
     if (notification === void 0) { notification = undefined; }
     if (notificationOnlyForOthers === void 0) { notificationOnlyForOthers = false; }
-    if (onlineGame.enabled) {
-        if (!onlineGame.stop) {
+    if (currentMode == Modes.MULTIPLAYER) {
+        if (!onlineConnection.stop) {
             onlineConnection.send("action", JSON.stringify({
                 objectName: objectName,
                 index: index,
@@ -4600,486 +4476,106 @@ function actionSync(objectName, index, params, notification, notificationOnlyFor
     }
 }
 /*******************************************
- *               Variables                *
+ *                Constants                *
  ******************************************/
-var animateWorker = new Worker("./src/jsm/scripting_worker_animate.js", { type: "module" });
+//Font
 var defaultFont = "Roboto, sans-serif";
-var frameNo = 0;
-var canvas;
-var canvasGesture;
-var canvasBackground;
-var canvasSemiForeground;
-var canvasForeground;
-var context;
-var contextGesture;
-var contextBackground;
-var contextSemiForeground;
-var contextForeground;
-var drawInterval;
-var drawTimeout;
-var movingTimeOut;
-var clickTimeOut;
+//Gesture Delays
 var longTouchTime = 350;
 var longTouchWaitTime = longTouchTime + 50;
 var doubleTouchTime = 250;
 var doubleTouchWaitTime = doubleTouchTime + 50;
 var doubleClickTime = 200;
 var doubleClickWaitTime = doubleClickTime + 50;
-var konamiState = 0;
-var konamiTimeOut;
-var gui = {};
-var pics = [
-    { id: 0, extension: "png" },
-    { id: 1, extension: "png" },
-    { id: 2, extension: "png" },
-    { id: 3, extension: "png" },
-    { id: 4, extension: "png" },
-    { id: 5, extension: "png" },
-    { id: 6, extension: "png" },
-    { id: 7, extension: "png" },
-    { id: 8, extension: "png" },
-    { id: 9, extension: "jpg" },
-    { id: 10, extension: "png" },
-    { id: 11, extension: "png" },
-    { id: 12, extension: "png" },
-    { id: 13, extension: "png" },
-    { id: 14, extension: "png" },
-    { id: 15, extension: "png" },
-    { id: 16, extension: "png" },
-    { id: 17, extension: "png" },
-    { id: 18, extension: "png" },
-    { id: 19, extension: "png" },
-    { id: 20, extension: "png" },
-    { id: 21, extension: "png" },
-    { id: 22, extension: "png" },
-    { id: 23, extension: "png" },
-    { id: 24, extension: "png" },
-    { id: 25, extension: "png" },
-    { id: 26, extension: "png" },
-    { id: 27, extension: "png" },
-    { id: 28, extension: "png" },
-    { id: 29, extension: "png" },
-    { id: 30, extension: "png" },
-    { id: 31, extension: "png" },
-    { id: 32, extension: "png" },
-    { id: 33, extension: "png" },
-    { id: 34, extension: "png" },
-    { id: 35, extension: "png" },
-    { id: 36, extension: "png" },
-    { id: 37, extension: "png" },
-    { id: 38, extension: "png" },
-    { id: 39, extension: "png" }
-];
+//Background
 var background = { src: 9, secondLayer: 10 };
-var oldBackground;
-var background3D = { flat: { src: "assets/3d/background-flat.jpg" }, three: { src: "background-3d.gltf" } };
-var audio = {};
-var trains;
-var trains3D = [];
-var rotationPoints;
-var trainParams;
-var trainActions = {
-    checkRange: function (i) {
-        return i >= 0 && i < trains.length;
+var background3D = { flat: { src: "background-flat" }, three: { src: "background-3d" } };
+//Loading animation
+var loadingAnimation = {
+    updateProgress: function (progress) {
+        progress = Math.min(progress, 100);
+        if (this.elementProgressText && this.elementProgressBar) {
+            this.elementProgressText.textContent = progress + "%";
+            this.elementProgressBar.style.left = -100 + progress + "%";
+        }
     },
-    checkReady: function () {
-        return !gui.demo && !onlineGame.stop;
+    init: function () {
+        this.element = document.querySelector("#loading-anim");
+        this.elementBranding = document.querySelector("#branding");
+        this.elementBrandingImageAnimation = document.querySelector("#branding img");
+        var element = this.elementBrandingImageAnimation;
+        this.brandingImageAnimation = {
+            start: function () {
+                if (element) {
+                    var filter_1 = "blur(1px) saturate(5) sepia(1) hue-rotate({{0}}deg)";
+                    element.style.transition = "filter 0.08s";
+                    element.style.filter = formatJSString(filter_1, Math.random() * 260 + 100);
+                    if (this.interval) {
+                        clearInterval(this.interval);
+                    }
+                    this.interval = setInterval(function () {
+                        element.style.filter = formatJSString(filter_1, Math.random() * 260 + 100);
+                    }, 10);
+                }
+            },
+            stop: function () {
+                if (this.interval) {
+                    clearInterval(this.interval);
+                }
+                if (element) {
+                    element.style.filter = "unset";
+                }
+            }
+        };
+        this.elementProgress = document.querySelector("#percent");
+        this.elementProgressText = document.querySelector("#percent #percent-text");
+        this.elementProgressBar = document.querySelector("#percent #percent-progress");
+        this.elementSnake = document.querySelector("#snake");
     },
-    checkAll: function (i) {
-        return this.checkRange(i) && this.checkReady();
+    show: function (animate) {
+        var _a, _b, _c;
+        if (this.element) {
+            this.element.classList.remove("hidden");
+            this.element.style.transition = "unset";
+            this.element.style.opacity = "unset";
+        }
+        (_a = this.elementBranding) === null || _a === void 0 ? void 0 : _a.classList.remove("hidden");
+        (_b = this.elementProgress) === null || _b === void 0 ? void 0 : _b.classList.add("hidden");
+        //Show progress bar if app loads slowly
+        var element = this.elementProgress;
+        var elementProgressHide = function () {
+            element === null || element === void 0 ? void 0 : element.classList.remove("hidden");
+        };
+        this.showProgressTimeout = setTimeout(elementProgressHide, 2500);
+        (_c = this.elementSnake) === null || _c === void 0 ? void 0 : _c.classList.remove("hidden");
+        if (animate) {
+            this.brandingImageAnimation.start();
+        }
     },
-    start: function (i, speed, notificationOnlyForOthers) {
-        if (notificationOnlyForOthers === void 0) { notificationOnlyForOthers = false; }
-        if (!this.checkAll(i) || trains[i].crash || trains[i].accelerationSpeed > 0 || speed <= 0 || speed > 100) {
-            return false;
-        }
-        if (trains[i].move) {
-            actionSync("trains", i, [{ accelerationSpeed: (trains[i].accelerationSpeed *= -1) }, { speedInPercent: speed }, { accelerationSpeedCustom: 1 }], [{ getString: ["appScreenObjectStarts", "."] }, { getString: [["appScreenTrainNames", i]] }], notificationOnlyForOthers);
-        }
-        else {
-            actionSync("trains", i, [{ move: true }, { accelerationSpeed: 0 }, { speedInPercent: speed }, { accelerationSpeedCustom: 1 }], [{ getString: ["appScreenObjectStarts", "."] }, { getString: [["appScreenTrainNames", i]] }], notificationOnlyForOthers);
-        }
-        return true;
+    hide: function () {
+        var _a;
+        this.brandingImageAnimation.stop();
+        (_a = this.element) === null || _a === void 0 ? void 0 : _a.classList.add("hidden");
     },
-    stop: function (i, notificationOnlyForOthers) {
-        if (notificationOnlyForOthers === void 0) { notificationOnlyForOthers = false; }
-        if (!this.checkAll(i) || trains[i].accelerationSpeed <= 0) {
-            return false;
+    fade: function (fadeOutFunction) {
+        var _a, _b;
+        if (this.showProgressTimeout != undefined && this.showProgressTimeout != null) {
+            clearTimeout(this.showProgressTimeout);
         }
-        actionSync("trains", i, [{ accelerationSpeed: (trains[i].accelerationSpeed *= -1) }], [{ getString: ["appScreenObjectStops", "."] }, { getString: [["appScreenTrainNames", i]] }], notificationOnlyForOthers);
-        return true;
-    },
-    changeDirection: function (i, highlight, notificationOnlyForOthers) {
-        if (highlight === void 0) { highlight = false; }
-        if (notificationOnlyForOthers === void 0) { notificationOnlyForOthers = false; }
-        if (!this.checkAll(i) || trains[i].accelerationSpeed > 0 || Math.abs(trains[i].accelerationSpeed) >= 0.2) {
-            return false;
-        }
-        if (highlight) {
-            actionSync("trains", i, [{ move: false }, { standardDirection: !trains[i].standardDirection }, { lastDirectionChange: frameNo }], [{ getString: ["appScreenObjectChangesDirection", "."] }, { getString: [["appScreenTrainNames", i]] }], notificationOnlyForOthers);
-        }
-        else {
-            actionSync("trains", i, [{ move: false }, { standardDirection: !trains[i].standardDirection }], [{ getString: ["appScreenObjectChangesDirection", "."] }, { getString: [["appScreenTrainNames", i]] }], notificationOnlyForOthers);
-        }
-        return true;
-    },
-    setSpeed: function (i, speed, notificationOnlyForOthers) {
-        if (notificationOnlyForOthers === void 0) { notificationOnlyForOthers = false; }
-        if (!this.checkAll(i) || speed < 0 || speed > 100) {
-            return false;
-        }
-        if (speed < trainParams.minSpeed) {
-            return this.stop(i, notificationOnlyForOthers);
-        }
-        if (trains[i].accelerationSpeed <= 0) {
-            return this.start(i, speed, notificationOnlyForOthers);
-        }
-        if (trains[i].speedInPercent != speed) {
-            var accSpeed = trains[i].currentSpeedInPercent / speed;
-            actionSync("trains", i, [{ accelerationSpeedCustom: accSpeed }, { speedInPercent: speed }]);
-        }
-        return true;
-    }
-};
-var switches = {
-    inner2outer: { left: { turned: false, angles: { normal: 1.01 * Math.PI, turned: 0.941 * Math.PI } }, right: { turned: false, angles: { normal: 1.5 * Math.PI, turned: 1.56 * Math.PI } } },
-    outer2inner: { left: { turned: false, angles: { normal: 0.25 * Math.PI, turned: 0.2 * Math.PI } }, right: { turned: false, angles: { normal: 0.27 * Math.PI, turned: 0.35 * Math.PI } } },
-    innerWide: { left: { turned: false, angles: { normal: 1.44 * Math.PI, turned: 1.37 * Math.PI } }, right: { turned: false, angles: { normal: 1.02 * Math.PI, turned: 1.1 * Math.PI } } },
-    outerAltState3: { left: { turned: true, angles: { normal: 1.75 * Math.PI, turned: 1.85 * Math.PI } }, right: { turned: true, angles: { normal: 0.75 * Math.PI, turned: 0.65 * Math.PI } } },
-    sidings1: { left: { turned: false, angles: { normal: 1.75 * Math.PI, turned: 1.7 * Math.PI } } },
-    sidings2: { left: { turned: false, angles: { normal: 1.65 * Math.PI, turned: 1.72 * Math.PI } } },
-    sidings3: { left: { turned: false, angles: { normal: 1.65 * Math.PI, turned: 1.73 * Math.PI } } },
-    outerRightSiding: { left: { turned: false, angles: { normal: 1.71 * Math.PI, turned: 1.76 * Math.PI } } },
-    outerRightSidingTurn: { left: { turned: false, angles: { normal: 1.7 * Math.PI, turned: 1.75 * Math.PI } } }
-};
-var switches3D = {};
-var switchParams = {
-    showDuration: 11,
-    showDurationFade: 33,
-    showDurationEnd: 44,
-    set: function () {
-        switchParams.radius = 0.02 * background.width;
-    }
-};
-var switchActions = {
-    turn: function (key, side) {
-        if (onlineGame.enabled) {
-            actionSync("switches", [key, side], [{ turned: !switches[key][side].turned }], [{ getString: ["appScreenSwitchTurns", "."] }]);
-        }
-        else {
-            switches[key][side].turned = !switches[key][side].turned;
-            switches[key][side].lastStateChange = frameNo;
-            animateWorker.postMessage({ k: "switches", switches: switches });
-            notify("#canvas-notifier", getString("appScreenSwitchTurns", "."), NotificationPriority.Default, 500, null, null, client.y + menus.outerContainer.height, NotificationChannel.TrainSwitches);
-        }
-        if (existsAudio("switch")) {
-            stopAudio("switch");
-        }
-        if (audio.active) {
-            startAudio("switch", null, false);
+        (_a = this.elementProgress) === null || _a === void 0 ? void 0 : _a.classList.add("hidden");
+        (_b = this.elementSnake) === null || _b === void 0 ? void 0 : _b.classList.add("hidden");
+        var fadeOutTime = 1.5;
+        if (this.element) {
+            this.element.style.transition = "opacity " + fadeOutTime + "s ease-in";
+            this.element.style.opacity = "0";
+            setTimeout(function () {
+                loadingAnimation.hide();
+                fadeOutFunction();
+            }, fadeOutTime * 900);
         }
     }
 };
-var cars = [
-    { src: 16, fac: 0.02, speed: 0.0008, startFrameFac: 0.65, angles: { start: Math.PI, normal: 0 }, hexColor: "0xff0000" },
-    { src: 17, fac: 0.02, speed: 0.001, startFrameFac: 0.335, angles: { start: 0, normal: Math.PI }, hexColor: "0xffffff" },
-    { src: 0, fac: 0.0202, speed: 0.00082, startFrameFac: 0.65, angles: { start: Math.PI, normal: 0 }, hexColor: "0xffee00" }
-];
-var cars3D = [];
-var carPaths = [
-    {
-        start: [{ type: "curve_right", x: [0.29, 0.29], y: [0.38, 0.227] }],
-        normal: [
-            { type: "curve_hright", x: [0.29, 0.29], y: [0.227, 0.347] },
-            { type: "linear_vertical", x: [0, 0], y: [0, 0] },
-            { type: "curve_hright2", x: [0, 0], y: [0.282, 0.402] },
-            { type: "curve_l2r", x: [0, 0.25], y: [0.402, 0.412] },
-            { type: "linear", x: [0.25, 0.225], y: [0.412, 0.412] },
-            { type: "curve_right", x: [0.225, 0.225], y: [0.412, 0.227] },
-            { type: "linear", x: [0.225, 0.29], y: [0.227, 0.227] }
-        ]
-    },
-    {
-        start: [
-            { type: "curve_left", x: [0.26, 0.26], y: [0.3, 0.198] },
-            { type: "curve_r2l", x: [0.26, 0.216], y: [0.198, 0.197] }
-        ],
-        normal: [
-            { type: "curve_left", x: [0.216, 0.216], y: [0.197, 0.419] },
-            { type: "linear", x: [0.216, 0.246], y: [0.419, 419] },
-            { type: "curve_r2l", x: [0.246, 0.286], y: [0.419, 0.43] },
-            { type: "linear", x: [0.286, 0.31], y: [0.43, 0.43] },
-            { type: "curve_hleft", x: [0.31, 0.31], y: [0.43, 0.33] },
-            { type: "linear_vertical", x: [0, 0], y: [0, 0] },
-            { type: "curve_hleft2", x: [0, 0], y: [0.347, 0.197] },
-            { type: "linear", x: [0, 0.216], y: [0.197, 0.197] },
-            { type: "curve_left", x: [0.216, 0.216], y: [0.197, 0.419] },
-            { type: "linear", x: [0.216, 0.246], y: [0.419, 419] },
-            { type: "curve_r2l", x: [0.246, 0.276], y: [0.419, 0.434] },
-            { type: "linear", x: [0.276, 0.38], y: [0.434, 434] },
-            { type: "curve_l2r", x: [0.38, 0.46], y: [0.434, 0.419] },
-            { type: "linear", x: [0.46, 0.631], y: [0.419, 0.419] },
-            { type: "curve_r2l", x: [0.631, 0.665], y: [0.419, 0.43] },
-            { type: "curve_left", x: [0.665, 0.665], y: [0.43, 0.322] },
-            { type: "curve_l2r", x: [0.665, 0.59], y: [0.322, 0.39] },
-            { type: "linear", x: [0.59, 0.339], y: [0.39, 0.39] },
-            { type: "curve_hright", x: [0.339, 0.339], y: [0.39, 0.32] },
-            { type: "linear_vertical", x: [0, 0], y: [0, 0] },
-            { type: "curve_hleft2", x: [0, 0], y: [0.347, 0.197] },
-            { type: "linear", x: [0, 0.216], y: [0.197, 0.197] }
-        ]
-    },
-    {
-        start: [
-            { type: "curve_right", x: [0.2773, 0.2773], y: [0.38, 0.227] },
-            { type: "linear", x: [0.2773, 0.29], y: [0.227, 0.227] }
-        ],
-        normal: [
-            { type: "curve_hright", x: [0.29, 0.29], y: [0.227, 0.347] },
-            { type: "linear_vertical", x: [0, 0], y: [0, 0] },
-            { type: "curve_hleft2", x: [0, 0], y: [0.299, 0.419] },
-            { type: "linear", x: [0, 0.631], y: [0.419, 0.419] },
-            { type: "curve_r2l", x: [0.631, 0.665], y: [0.419, 0.43] },
-            { type: "curve_left", x: [0.665, 0.665], y: [0.43, 0.322] },
-            { type: "curve_l2r", x: [0.665, 0.59], y: [0.322, 0.39] },
-            { type: "linear", x: [0.59, 0.339], y: [0.39, 0.39] },
-            { type: "curve_l2r", x: [0.339, 0.25], y: [0.39, 0.412] },
-            { type: "linear", x: [0.25, 0.225], y: [0.412, 0.412] },
-            { type: "curve_right", x: [0.225, 0.225], y: [0.412, 0.227] },
-            { type: "linear", x: [0.225, 0.29], y: [0.227, 0.227] }
-        ]
-    }
-];
-var carWays = [];
-var carParams = { init: true, wayNo: 7 };
-var carActions = {
-    auto: {
-        checkReady: function () {
-            return !gui.demo && !onlineGame.stop;
-        },
-        start: function () {
-            if (this.checkReady() && carParams.init) {
-                carParams.init = false;
-                carParams.autoModeOff = false;
-                carParams.autoModeRuns = true;
-                carParams.autoModeInit = true;
-                notify("#canvas-notifier", formatJSString(getString("appScreenCarAutoModeChange", "."), getString("appScreenCarAutoModeInit")), NotificationPriority.Default, 500, null, null, client.y + menus.outerContainer.height);
-                return true;
-            }
-            return false;
-        },
-        end: function () {
-            if (this.checkReady() && !carParams.autoModeOff && !carParams.isBackToRoot) {
-                carParams.autoModeRuns = true;
-                carParams.isBackToRoot = true;
-                notify("#canvas-notifier", getString("appScreenCarAutoModeParking", "."), NotificationPriority.Default, 750, null, null, client.y + menus.outerContainer.height);
-                return true;
-            }
-            return false;
-        },
-        pause: function () {
-            if (!this.checkReady() || !carParams.autoModeRuns) {
-                return false;
-            }
-            carParams.autoModeRuns = false;
-            notify("#canvas-notifier", formatJSString(getString("appScreenCarAutoModeChange", "."), getString("appScreenCarAutoModePause")), NotificationPriority.Default, 500, null, null, client.y + menus.outerContainer.height);
-            return true;
-        },
-        resume: function () {
-            if (!this.checkReady() || carParams.autoModeRuns || carParams.autoModeOff) {
-                return false;
-            }
-            carParams.autoModeRuns = true;
-            carParams.autoModeInit = true;
-            notify("#canvas-notifier", formatJSString(getString("appScreenCarAutoModeChange", "."), getString("appScreenCarAutoModeInit")), NotificationPriority.Default, 500, null, null, client.y + menus.outerContainer.height);
-            return true;
-        }
-    },
-    manual: {
-        checkRange: function (car) {
-            return car >= 0 && car < cars.length;
-        },
-        checkReady: function () {
-            return !gui.demo && !onlineGame.stop;
-        },
-        checkAll: function (car) {
-            return this.checkRange(car) && this.checkReady();
-        },
-        start: function (car) {
-            if (!this.checkAll(car) || carCollisionCourse(car, false) || (!carParams.init && !carParams.autoModeOff) || cars[car].move) {
-                return false;
-            }
-            cars[car].move = true;
-            cars[car].parking = false;
-            cars[car].backwardsState = 0;
-            cars[car].backToInit = false;
-            carParams.init = false;
-            carParams.autoModeOff = true;
-            notify("#canvas-notifier", formatJSString(getString("appScreenObjectStarts", "."), getString(["appScreenCarNames", car])), NotificationPriority.Default, 500, null, null, client.y + menus.outerContainer.height);
-            return true;
-        },
-        stop: function (car) {
-            if (!this.checkAll(car) || !carParams.autoModeOff || !cars[car].move) {
-                return false;
-            }
-            cars[car].move = false;
-            cars[car].parking = false;
-            cars[car].backwardsState = 0;
-            cars[car].backToInit = false;
-            carParams.init = false;
-            carParams.autoModeOff = true;
-            notify("#canvas-notifier", formatJSString(getString("appScreenObjectStops", "."), getString(["appScreenCarNames", car])), NotificationPriority.Default, 500, null, null, client.y + menus.outerContainer.height);
-            return true;
-        },
-        backwards: function (car) {
-            if (!this.checkAll(car) || !carParams.autoModeOff || cars[car].move || cars[car].backwardsState !== 0 || cars[car].parking) {
-                return false;
-            }
-            cars[car].lastDirectionChange = frameNo;
-            cars[car].backwardsState = 1;
-            cars[car].backToInit = false;
-            if (carCollisionCourse(car, false)) {
-                return false;
-            }
-            cars[car].move = true;
-            notify("#canvas-notifier", formatJSString(getString("appScreenCarStepsBack", "."), getString(["appScreenCarNames", car])), NotificationPriority.Default, 750, null, null, client.y + menus.outerContainer.height);
-            return true;
-        },
-        park: function (car) {
-            if (!this.checkAll(car) || carCollisionCourse(car, false, -1) || !carParams.autoModeOff || cars[car].move || cars[car].parking) {
-                return false;
-            }
-            cars[car].move = true;
-            cars[car].backToInit = true;
-            notify("#canvas-notifier", formatJSString(getString("appScreenCarParking", "."), getString(["appScreenCarNames", car])), NotificationPriority.Default, 500, null, null, client.y + menus.outerContainer.height);
-            return true;
-        }
-    }
-};
-var taxOffice = {
-    params: {
-        number: 45,
-        frameNo: 6,
-        frameProbability: 0.6,
-        fire: { x: 0.07, y: 0.06, size: 0.000833, color: { red: { red: 200, green: 0, blue: 0, alpha: 0.4 }, yellow: { red: 255, green: 160, blue: 0, alpha: 1 }, probability: 0.8 } },
-        smoke: { x: 0.07, y: 0.06, size: 0.02, color: { red: 130, green: 120, blue: 130, alpha: 0.3 } },
-        blueLights: {
-            frameNo: 16,
-            cars: [
-                { frameNo: 0, x: [-0.0105, -0.0026], y: [0.175, 0.0045], size: 0.0008 },
-                { frameNo: 3, x: [0.0275, -0.00275], y: [0.1472, 0.0092], size: 0.001 },
-                { frameNo: 5, x: [0.0568, 0.0008], y: [0.177, 0.0148], size: 0.001 }
-            ]
-        }
-    }
-};
-var classicUI = {
-    trainSwitch: { src: 11, srcFill: 31, selectedTrainDisplay: { fontFamily: defaultFont } },
-    transformer: { src: 12, onSrc: 13, readySrc: 23, angle: Math.PI / 5, wheelInput: { src: 14, angle: 0, maxAngle: 1.5 * Math.PI }, directionInput: { srcStandardDirection: 24, srcNotStandardDirection: 15 } },
-    ready: function (displayOnly) {
-        if (displayOnly === void 0) { displayOnly = false; }
-        return getSetting("classicUI") && !(gui.controlCenter || gui.konamiOverlay || gui.three || gui.demo || onlineGame.waitingClock.visible || canvasGesture == undefined || contextGesture == undefined) && (displayOnly || !onlineGame.stop);
-    },
-    pointInTransformerImage: function (x, y) {
-        if (!classicUI.ready()) {
-            return false;
-        }
-        if (classicUI.transformer.angle == undefined || classicUI.transformer.x == undefined || classicUI.transformer.y == undefined || classicUI.transformer.width == undefined || classicUI.transformer.height == undefined) {
-            return false;
-        }
-        contextGesture.setTransform(client.zoomAndTilt.realScale, 0, 0, client.zoomAndTilt.realScale, (-(client.zoomAndTilt.realScale - 1) * canvasGesture.width) / 2 + client.zoomAndTilt.offsetX, (-(client.zoomAndTilt.realScale - 1) * canvasGesture.height) / 2 + client.zoomAndTilt.offsetY);
-        contextGesture.translate(classicUI.transformer.x + classicUI.transformer.width / 2, classicUI.transformer.y + classicUI.transformer.height / 2);
-        contextGesture.rotate(classicUI.transformer.angle);
-        contextGesture.beginPath();
-        contextGesture.rect(-classicUI.transformer.width / 2, -classicUI.transformer.height / 2, classicUI.transformer.width, classicUI.transformer.height);
-        if (contextGesture.isPointInPath(x, y)) {
-            return true;
-        }
-        return false;
-    },
-    pointInTransformerWheelInput: function (x, y) {
-        if (!classicUI.pointInTransformerImage(x, y)) {
-            return false;
-        }
-        if (classicUI.transformer.wheelInput.diffY == undefined || classicUI.transformer.wheelInput.angle == undefined || classicUI.transformer.wheelInput.width == undefined || classicUI.transformer.wheelInput.height == undefined) {
-            return false;
-        }
-        contextGesture.setTransform(client.zoomAndTilt.realScale, 0, 0, client.zoomAndTilt.realScale, (-(client.zoomAndTilt.realScale - 1) * canvasGesture.width) / 2 + client.zoomAndTilt.offsetX, (-(client.zoomAndTilt.realScale - 1) * canvasGesture.height) / 2 + client.zoomAndTilt.offsetY);
-        contextGesture.translate(classicUI.transformer.x + classicUI.transformer.width / 2, classicUI.transformer.y + classicUI.transformer.height / 2);
-        contextGesture.rotate(classicUI.transformer.angle);
-        contextGesture.translate(0, -classicUI.transformer.wheelInput.diffY);
-        contextGesture.rotate(classicUI.transformer.wheelInput.angle);
-        contextGesture.beginPath();
-        contextGesture.rect(-classicUI.transformer.wheelInput.width / 2, -classicUI.transformer.wheelInput.height / 2, classicUI.transformer.wheelInput.width, classicUI.transformer.wheelInput.height);
-        if (contextGesture.isPointInPath(x, y)) {
-            return true;
-        }
-        return false;
-    },
-    pointInTransformerDirectionInput: function (x, y) {
-        if (!classicUI.pointInTransformerImage(x, y)) {
-            return false;
-        }
-        if (classicUI.transformer.directionInput.diffX == undefined || classicUI.transformer.directionInput.diffY == undefined || classicUI.transformer.directionInput.width == undefined || classicUI.transformer.directionInput.height == undefined) {
-            return false;
-        }
-        contextGesture.setTransform(client.zoomAndTilt.realScale, 0, 0, client.zoomAndTilt.realScale, (-(client.zoomAndTilt.realScale - 1) * canvasGesture.width) / 2 + client.zoomAndTilt.offsetX, (-(client.zoomAndTilt.realScale - 1) * canvasGesture.height) / 2 + client.zoomAndTilt.offsetY);
-        contextGesture.translate(classicUI.transformer.x + classicUI.transformer.width / 2, classicUI.transformer.y + classicUI.transformer.height / 2);
-        contextGesture.rotate(classicUI.transformer.angle);
-        contextGesture.translate(classicUI.transformer.directionInput.diffX, classicUI.transformer.directionInput.diffY);
-        contextGesture.beginPath();
-        contextGesture.rect(-classicUI.transformer.directionInput.width / 2, -classicUI.transformer.directionInput.height / 2, classicUI.transformer.directionInput.width, classicUI.transformer.directionInput.height);
-        if (contextGesture.isPointInPath(x, y)) {
-            return true;
-        }
-        return false;
-    },
-    pointInTransformerInput: function (x, y) {
-        return classicUI.pointInTransformerWheelInput(x, y) || classicUI.pointInTransformerDirectionInput(x, y);
-    },
-    pointInTrainSwitchInputImage: function (x, y) {
-        if (!classicUI.ready()) {
-            return false;
-        }
-        if (classicUI.trainSwitch.angle == undefined || classicUI.trainSwitch.x == undefined || classicUI.trainSwitch.y == undefined || classicUI.trainSwitch.width == undefined || classicUI.trainSwitch.height == undefined) {
-            return false;
-        }
-        contextGesture.setTransform(client.zoomAndTilt.realScale, 0, 0, client.zoomAndTilt.realScale, (-(client.zoomAndTilt.realScale - 1) * canvasGesture.width) / 2 + client.zoomAndTilt.offsetX, (-(client.zoomAndTilt.realScale - 1) * canvasGesture.height) / 2 + client.zoomAndTilt.offsetY);
-        contextGesture.translate(classicUI.trainSwitch.x + classicUI.trainSwitch.width / 2, classicUI.trainSwitch.y + classicUI.trainSwitch.height / 2);
-        contextGesture.rotate(classicUI.trainSwitch.angle);
-        contextGesture.beginPath();
-        contextGesture.rect(-classicUI.trainSwitch.width / 2, -classicUI.trainSwitch.height / 2, classicUI.trainSwitch.width, classicUI.trainSwitch.height);
-        if (contextGesture.isPointInPath(x, y)) {
-            return true;
-        }
-        return false;
-    },
-    pointInTrainSwitchInputText: function (x, y) {
-        if (!classicUI.ready()) {
-            return false;
-        }
-        if (!classicUI.trainSwitch.selectedTrainDisplay.visible) {
-            return false;
-        }
-        if (classicUI.trainSwitch.selectedTrainDisplay.x == undefined || classicUI.trainSwitch.selectedTrainDisplay.y == undefined || classicUI.trainSwitch.selectedTrainDisplay.width == undefined || classicUI.trainSwitch.selectedTrainDisplay.height == undefined) {
-            return false;
-        }
-        contextGesture.setTransform(client.zoomAndTilt.realScale, 0, 0, client.zoomAndTilt.realScale, (-(client.zoomAndTilt.realScale - 1) * canvasGesture.width) / 2 + client.zoomAndTilt.offsetX, (-(client.zoomAndTilt.realScale - 1) * canvasGesture.height) / 2 + client.zoomAndTilt.offsetY);
-        contextGesture.beginPath();
-        contextGesture.rect(classicUI.trainSwitch.selectedTrainDisplay.x, classicUI.trainSwitch.selectedTrainDisplay.y, classicUI.trainSwitch.selectedTrainDisplay.width, classicUI.trainSwitch.selectedTrainDisplay.height);
-        if (contextGesture.isPointInPath(x, y)) {
-            return true;
-        }
-        return false;
-    },
-    pointInTrainSwitchInput: function (x, y) {
-        return classicUI.pointInTrainSwitchInputImage(x, y) || classicUI.pointInTrainSwitchInputText(x, y);
-    }
-};
-var controlCenter = { showCarCenter: false, fontFamily: defaultFont, mouse: {} };
-var hardware = { mouse: { moveX: 0, moveY: 0, downX: 0, downY: 0, downTime: 0, upX: 0, upY: 0, upTime: 0, isMoving: false, isHold: false, cursor: "default" }, keyboard: { keysHold: [] } };
-var client = { devicePixelRatio: 1, zoomAndTilt: { maxScale: 6, minScale: 1.2 } };
-var menus = {};
+//Text control
 var textControl = {
     elements: {},
     validateSubcommand: function (command, args) {
@@ -5315,11 +4811,8 @@ var textControl = {
         exit: {
             action: function () {
                 textControl.elements.root.style.display = "";
-                if (gui.infoOverlay && client.zoomAndTilt.realScale == 1) {
-                    drawInfoOverlayMenu("show");
-                }
-                else if (client.zoomAndTilt.realScale == 1) {
-                    drawOptionsMenu("show");
+                if (client.zoomAndTilt.realScale == 1) {
+                    drawMenu("show");
                 }
                 gui.textControl = false;
                 return "";
@@ -5327,207 +4820,267 @@ var textControl = {
         }
     }
 };
-var onlineGame = {
-    animateInterval: 40,
-    syncInterval: 10000,
-    excludeFromSync: { t: ["width", "height", "assetFlip", "lastDirectionChange", "crash", "src", "trainSwitchSrc", "flickerFacFront", "flickerFacFrontOffset", "flickerFacBack", "flickerFacBackOffset", "fac", "margin", "bogieDistance", "accelerationSpeedStartFac", "accelerationSpeedFac", "speed", "speedFac", "wheels", "cars"], tc: ["width", "height", "assetFlip", "konamiUseTrainIcon", "src", "fac", "bogieDistance", "wheels"] },
-    chatSticker: 7,
-    resized: false,
-    waitingClock: {
-        init: function () {
-            var initialZoom = 0.45;
-            onlineGame.waitingClock.initTime = Date.now();
-            onlineGame.waitingClock.zoom = initialZoom;
-            onlineGame.waitingClock.secondHandBackwards = false;
-        },
-        draw: function () {
-            if (Date.now() - onlineGame.waitingClock.initTime < 5000) {
-                return;
-            }
-            onlineGame.waitingClock.visible = onlineGame.stop;
-            //WAITING CLOCK/GLOBAL/SETUP/1
-            contextForeground.save();
-            contextForeground.translate(canvasForeground.width / 2, canvasForeground.height / 2);
-            contextForeground.translate(0, (-menus.outerContainer.height * client.devicePixelRatio) / 2);
-            var size = Math.min(background.width, background.height);
-            var radius = size / 2.2;
-            //WAITING CLOCK/STATIC/BACKGROUND
-            contextForeground.save();
-            var bgGradient = contextForeground.createRadialGradient(0, 0, radius * onlineGame.waitingClock.zoom, 0, 0, radius * 2);
-            bgGradient.addColorStop(0, "rgba(239,224,227,1)");
-            bgGradient.addColorStop(0.1, "rgba(239,224,227,0.3)");
-            bgGradient.addColorStop(1, "rgba(100,92,130,0.3)");
-            contextForeground.fillStyle = bgGradient;
-            contextForeground.globalAlpha = 0.6;
-            contextForeground.fillStyle = bgGradient;
-            contextForeground.fillRect(-canvasForeground.width / 2, -canvasForeground.height / 2 + (menus.outerContainer.height * client.devicePixelRatio) / 2, canvasForeground.width, canvasForeground.height);
-            contextForeground.restore();
-            //WAITING CLOCK/GLOBAL/SCALE
-            contextForeground.scale(onlineGame.waitingClock.zoom, onlineGame.waitingClock.zoom);
-            //WAITING CLOCK/STATIC/CLOCK FACE
-            var circleWidth = size / 20;
-            contextForeground.beginPath();
-            contextForeground.arc(0, 0, radius - circleWidth / 4, 0, Math.PI * 2);
-            contextForeground.lineWidth = circleWidth / 2;
-            contextForeground.strokeStyle = "rgba(0,0,0,0.7)";
-            contextForeground.stroke();
-            for (var i = 0; i < 60; i++) {
-                var rectWidth = size / 70;
-                var rectHeight = size / 25;
-                if (i % 5 == 0) {
-                    rectWidth *= 2;
-                    rectHeight *= 2.5;
-                }
-                if (i % 15 == 0) {
-                    rectHeight *= 1.2;
-                }
-                var angle = (Math.PI * 2 * i) / 60;
-                contextForeground.save();
-                contextForeground.fillStyle = "rgba(15,15,15,0.5)";
-                contextForeground.translate(radius * Math.sin(angle), radius * Math.cos(angle));
-                contextForeground.rotate(-angle);
-                contextForeground.fillRect(-rectWidth / 2, -rectHeight - circleWidth / 1.5, rectWidth, rectHeight);
-                contextForeground.restore();
-            }
-            //WAITING CLOCK/DYNAMIC/CLOCK HANDS
-            var date = new Date();
-            //WAITING CLOCK/DYNAMIC/CLOCK HAND/HOURS
-            var hours = date.getHours() + date.getMinutes() / 60 + date.getSeconds() / 3600;
-            if (hours > 12) {
-                hours -= 12;
-            }
-            var rectWidth = size / 28;
-            var rectHeight = size / 4;
-            var angle = (Math.PI * 2 * hours) / 12;
-            contextForeground.save();
-            contextForeground.rotate(angle);
-            contextForeground.save();
-            contextForeground.globalCompositeOperation = "destination-out";
-            contextForeground.fillStyle = "white";
-            contextForeground.fillRect(-rectWidth / 2, -rectHeight, rectWidth, rectHeight);
-            contextForeground.restore();
-            contextForeground.fillStyle = "rgba(0,0,0,0.5)";
-            contextForeground.fillRect(-rectWidth / 2, -rectHeight, rectWidth, rectHeight);
-            contextForeground.restore();
-            //WAITING CLOCK/DYNAMIC/CLOCK HAND/MINUTES
-            var minutes = date.getMinutes();
-            var rectWidth = size / 30;
-            var rectHeight = size / 3;
-            var angle = (Math.PI * 2 * minutes) / 60;
-            contextForeground.save();
-            contextForeground.rotate(angle);
-            contextForeground.save();
-            contextForeground.globalCompositeOperation = "destination-out";
-            contextForeground.fillStyle = "white";
-            contextForeground.fillRect(-rectWidth / 2, -rectHeight, rectWidth, rectHeight);
-            contextForeground.restore();
-            contextForeground.fillStyle = "rgba(0,0,0,0.5)";
-            contextForeground.fillRect(-rectWidth / 2, -rectHeight, rectWidth, rectHeight);
-            contextForeground.restore();
-            //WAITING CLOCK/DYNAMIC/CLOCK HAND/SECONDS
-            var seconds = date.getSeconds() + date.getMilliseconds() / 1000;
-            var rectWidth = size / 100;
-            var rectHeight = size / 2.95;
-            var angle = Math.min(2 * Math.PI, (Math.PI * 2 * seconds) / 58);
-            if (Math.round(angle * 100) % Math.round(Math.PI * 100) == 0) {
-                onlineGame.waitingClock.secondHandBackwards = konamiState < 0;
-            }
-            if (onlineGame.waitingClock.secondHandBackwards) {
-                angle = Math.PI * 2 - angle;
-            }
-            contextForeground.save();
-            contextForeground.rotate(angle);
-            contextForeground.save();
-            contextForeground.globalCompositeOperation = "destination-out";
-            contextForeground.fillStyle = "white";
-            contextForeground.fillRect(-rectWidth / 2, -rectHeight, rectWidth, rectHeight);
-            contextForeground.restore();
-            contextForeground.fillStyle = "rgba(139,0,0,0.5)";
-            contextForeground.fillRect(-rectWidth / 2, -rectHeight, rectWidth, rectHeight);
-            contextForeground.restore();
-            var rectWidth = size / 55;
-            var rectHeight = size / 8;
-            contextForeground.save();
-            contextForeground.rotate(angle);
-            contextForeground.save();
-            contextForeground.globalCompositeOperation = "destination-out";
-            contextForeground.fillStyle = "white";
-            contextForeground.fillRect(-rectWidth / 2, 0, rectWidth, rectHeight);
-            contextForeground.restore();
-            contextForeground.fillStyle = "rgba(139,0,0,0.5)";
-            contextForeground.fillRect(-rectWidth / 2, 0, rectWidth, rectHeight);
-            contextForeground.restore();
-            //WAITING CLOCK/STATIC/CLOCK HANDS
-            contextForeground.save();
-            contextForeground.globalCompositeOperation = "destination-out";
-            contextForeground.beginPath();
-            contextForeground.arc(0, 0, size / 30, 0, Math.PI * 2);
-            contextForeground.fillStyle = "white";
-            contextForeground.fill();
-            contextForeground.restore();
-            contextForeground.beginPath();
-            contextForeground.arc(0, 0, size / 30, 0, Math.PI * 2);
-            contextForeground.fillStyle = "rgba(0,0,0,0.5)";
-            contextForeground.fill();
-            contextForeground.beginPath();
-            contextForeground.arc(0, 0, size / 60, 0, Math.PI * 2);
-            contextForeground.fillStyle = "rgba(192,192,192,0.5)";
-            contextForeground.fill();
-            contextForeground.beginPath();
-            contextForeground.arc(0, 0, size / 120, 0, Math.PI * 2);
-            contextForeground.fillStyle = "rgba(0,0,0,0.5)";
-            contextForeground.fill();
-            //WAITING CLOCK/GLOBAL/SETUP/2
-            contextForeground.restore();
-            onlineGame.waitingClock.zoom *= 1.0375;
-            if (onlineGame.waitingClock.zoom > 1) {
-                onlineGame.waitingClock.zoom = 1;
-            }
-        }
-    }
-};
-var onlineConnection = {
-    serverURI: getServerLink(Protocols.WebSocket) + "/multiplay",
-    send: function (mode, message) {
-        if (onlineConnection.socket && onlineConnection.socket.readyState == WebSocket.OPEN) {
-            onlineConnection.socket.send(JSON.stringify({
-                mode: mode,
-                data: message
-            }));
-        }
-        else if (APP_DATA.debug) {
-            console.error("Websocket: Error sending message");
-        }
-    }
-};
-var resizeTimeout;
-var resized = false;
+//Control center
+var controlCenter = { showCarCenter: false, fontFamily: defaultFont, mouse: {} };
+//Demo mode
 var demoMode = {
+    leaveKeyUp: function (event) {
+        if (event.key == "Escape") {
+            switchMode(Modes.SINGLEPLAYER);
+        }
+    },
     leaveTimeMin: 1500,
     leaveTimeoutStart: function () {
         if (demoMode.leaveTimeout != undefined && demoMode.leaveTimeout != null) {
-            window.clearTimeout(demoMode.leaveTimeout);
+            clearTimeout(demoMode.leaveTimeout);
         }
-        demoMode.leaveTimeout = window.setTimeout(function () {
-            switchMode();
+        demoMode.leaveTimeout = setTimeout(function () {
+            switchMode(Modes.SINGLEPLAYER);
         }, demoMode.leaveTimeMin);
     },
     leaveTimeoutEnd: function () {
         if (demoMode.leaveTimeout != undefined && demoMode.leaveTimeout != null) {
-            window.clearTimeout(demoMode.leaveTimeout);
+            clearTimeout(demoMode.leaveTimeout);
         }
     },
     reload: function () {
-        followLink(window.location.href, "_self", LinkStates.InternalReload);
+        switchMode(Modes.DEMO);
     }
 };
-var debug = { paint: true };
+//Media
+var audio = {};
+var audioControl = {
+    init: function () {
+        function createAudio(destinationName, destinationIndex, buffer, volume) {
+            var gainNode = audio.context.createGain();
+            gainNode.gain.value = volume;
+            gainNode.connect(audio.context.destination);
+            if (typeof destinationIndex == "number") {
+                audio.gainNode[destinationName][destinationIndex] = gainNode;
+                audio.buffer[destinationName][destinationIndex] = buffer;
+            }
+            else {
+                audio.gainNode[destinationName] = gainNode;
+                audio.buffer[destinationName] = buffer;
+            }
+        }
+        function createTrainAudio(cTrainNumber) {
+            try {
+                fetch("./assets/audio_asset_" + cTrainNumber + "." + soundFileExtension)
+                    .then(function (response) {
+                    if (response.ok) {
+                        return response.arrayBuffer();
+                    }
+                    throw new Error("response not ok");
+                })
+                    .then(function (response) {
+                    audio.context.decodeAudioData(response, function (buffer) {
+                        createAudio("train", cTrainNumber, buffer, 0);
+                    });
+                })
+                    .catch(function (error) {
+                    if (APP_DATA.debug) {
+                        console.error("Fetch-Error:", error);
+                    }
+                });
+            }
+            catch (e) {
+                if (APP_DATA.debug) {
+                    console.error(e);
+                }
+            }
+        }
+        var soundFileExtension = "ogg";
+        if (trains) {
+            audio.context = new AudioContext();
+            audio.buffer = {};
+            audio.buffer.train = [];
+            audio.gainNode = {};
+            audio.gainNode.train = [];
+            audio.source = {};
+            audio.source.train = [];
+            try {
+                fetch("./assets/audio_asset_crash." + soundFileExtension)
+                    .then(function (response) {
+                    return response.arrayBuffer();
+                })
+                    .catch(function (error) {
+                    if (APP_DATA.debug) {
+                        console.error("Fetch-Error:", error);
+                    }
+                })
+                    .then(function (response) {
+                    audio.context.decodeAudioData(response, function (buffer) {
+                        createAudio("trainCrash", null, buffer, 1);
+                    });
+                });
+            }
+            catch (e) {
+                if (APP_DATA.debug) {
+                    console.error(e);
+                }
+            }
+            try {
+                fetch("./assets/audio_asset_switch." + soundFileExtension)
+                    .then(function (response) {
+                    return response.arrayBuffer();
+                })
+                    .catch(function (error) {
+                    if (APP_DATA.debug) {
+                        console.error("Fetch-Error:", error);
+                    }
+                })
+                    .then(function (response) {
+                    audio.context.decodeAudioData(response, function (buffer) {
+                        createAudio("switch", null, buffer, 1);
+                    });
+                });
+            }
+            catch (e) {
+                if (APP_DATA.debug) {
+                    console.error(e);
+                }
+            }
+            for (var i = 0; i < trains.length; i++) {
+                createTrainAudio(i);
+            }
+        }
+    },
+    playAndPauseAll: function () {
+        if (typeof audio.context == "object") {
+            var play = audioControl.mayPlay();
+            if (play && audio.context.state == "suspended") {
+                audio.context.resume();
+            }
+            else if (!play && audio.context.state == "running") {
+                audio.context.suspend();
+            }
+            return true;
+        }
+        return false;
+    },
+    mayPlay: function () {
+        return audio.active && currentMode != Modes.DEMO && !client.hidden && !onlineConnection.paused;
+    },
+    existsObject: function (destinationName, destinationIndex) {
+        if (destinationIndex === void 0) { destinationIndex = undefined; }
+        if (typeof audio.context == "object") {
+            if (typeof destinationIndex == "number") {
+                if (typeof audio.source[destinationName][destinationIndex] == "object") {
+                    return true;
+                }
+            }
+            else {
+                if (typeof audio.source[destinationName] == "object") {
+                    return true;
+                }
+            }
+        }
+        return false;
+    },
+    startObject: function (destinationName, destinationIndex, loop) {
+        if (typeof audio.context == "object") {
+            var source = audio.context.createBufferSource();
+            source.loop = loop;
+            if (typeof destinationIndex == "number") {
+                if (typeof audio.buffer[destinationName][destinationIndex] == "object" && typeof audio.gainNode[destinationName][destinationIndex] == "object") {
+                    source.buffer = audio.buffer[destinationName][destinationIndex];
+                    source.connect(audio.gainNode[destinationName][destinationIndex]);
+                    audio.source[destinationName][destinationIndex] = source;
+                }
+                else {
+                    return false;
+                }
+            }
+            else {
+                if (typeof audio.buffer[destinationName] == "object" && typeof audio.gainNode[destinationName] == "object") {
+                    source.buffer = audio.buffer[destinationName];
+                    source.connect(audio.gainNode[destinationName]);
+                    audio.source[destinationName] = source;
+                }
+                else {
+                    return false;
+                }
+            }
+            source.start();
+            return true;
+        }
+        return false;
+    },
+    setObjectVolume: function (destinationName, destinationIndex, volume) {
+        if (typeof audio.context == "object") {
+            var gainNode;
+            if (typeof destinationIndex == "number") {
+                gainNode = audio.gainNode[destinationName][destinationIndex];
+            }
+            else {
+                gainNode = audio.gainNode[destinationName];
+            }
+            if (typeof gainNode == "object" && volume != undefined) {
+                gainNode.gain.value = Math.round(volume) / 100;
+                return true;
+            }
+        }
+        return false;
+    },
+    stopObject: function (destinationName, destinationIndex) {
+        if (destinationIndex === void 0) { destinationIndex = undefined; }
+        if (typeof audio.context == "object") {
+            if (typeof destinationIndex == "number") {
+                if (typeof audio.source[destinationName][destinationIndex] == "object") {
+                    audio.source[destinationName][destinationIndex].stop();
+                    delete audio.source[destinationName][destinationIndex];
+                    return true;
+                }
+            }
+            else {
+                if (typeof audio.source[destinationName] == "object") {
+                    audio.source[destinationName].stop();
+                    delete audio.source[destinationName];
+                    return true;
+                }
+            }
+        }
+        return false;
+    },
+    stopAll: function () {
+        if (audio.source) {
+            Object.keys(audio.source).forEach(function (name) {
+                var value = audio.source[name];
+                if (typeof value != "object") {
+                    return;
+                }
+                if (Array.isArray(value)) {
+                    value.forEach(function (_element, index) {
+                        audioControl.stopObject(name, index);
+                    });
+                }
+                else {
+                    audioControl.stopObject(name, undefined);
+                }
+            });
+        }
+    }
+};
+//3D view
 var three = {
     calcScale: function () {
         return background.height / client.devicePixelRatio / client.height;
     },
     calcPositionY: function () {
         return ((client.height - (background.y * 2 + background.height) / client.devicePixelRatio) / client.height) * (background.height / background.width / 2);
+    },
+    cloneNode: function (src, cloneMaterial) {
+        if (cloneMaterial === void 0) { cloneMaterial = false; }
+        var target = src.clone();
+        if (cloneMaterial) {
+            target.traverse(function (node) {
+                if (node.isMesh) {
+                    node.material = node.material.clone();
+                }
+            });
+        }
+        return target;
     },
     switchCamera: function (forwards) {
         if (forwards === void 0) { forwards = true; }
@@ -5660,604 +5213,1420 @@ var three = {
         dragging: false
     }
 };
+//Debug view
+var debug = { paint: true };
+//Client and input configuration
+var hardware = { mouse: { moveX: 0, moveY: 0, downX: 0, downY: 0, downTime: 0, upX: 0, upY: 0, upTime: 0, isMoving: false, isHold: false, cursor: "default" }, keyboard: { keysHold: [] } };
+var client = { devicePixelRatio: 1, zoomAndTilt: { maxScale: 6, minScale: 1.2 } };
+//Action definitions
+var trainActions = {
+    checkRange: function (i) {
+        return i >= 0 && i < trains.length;
+    },
+    checkReady: function () {
+        return currentMode != Modes.DEMO && !onlineConnection.stop;
+    },
+    checkAll: function (i) {
+        return this.checkRange(i) && this.checkReady();
+    },
+    start: function (i, speed, notificationOnlyForOthers) {
+        if (notificationOnlyForOthers === void 0) { notificationOnlyForOthers = false; }
+        if (!this.checkAll(i) || trains[i].crash || trains[i].accelerationSpeed > 0 || speed <= 0 || speed > 100) {
+            return false;
+        }
+        if (trains[i].move) {
+            actionSync("trains", i, [{ accelerationSpeed: (trains[i].accelerationSpeed *= -1) }, { speedInPercent: speed }, { accelerationSpeedCustom: 1 }], [{ getString: ["appScreenObjectStarts", "."] }, { getString: [["appScreenTrainNames", i]] }], notificationOnlyForOthers);
+        }
+        else {
+            actionSync("trains", i, [{ move: true }, { accelerationSpeed: 0 }, { speedInPercent: speed }, { accelerationSpeedCustom: 1 }], [{ getString: ["appScreenObjectStarts", "."] }, { getString: [["appScreenTrainNames", i]] }], notificationOnlyForOthers);
+        }
+        return true;
+    },
+    stop: function (i, notificationOnlyForOthers) {
+        if (notificationOnlyForOthers === void 0) { notificationOnlyForOthers = false; }
+        if (!this.checkAll(i) || trains[i].accelerationSpeed <= 0) {
+            return false;
+        }
+        actionSync("trains", i, [{ accelerationSpeed: (trains[i].accelerationSpeed *= -1) }], [{ getString: ["appScreenObjectStops", "."] }, { getString: [["appScreenTrainNames", i]] }], notificationOnlyForOthers);
+        return true;
+    },
+    changeDirection: function (i, highlight, notificationOnlyForOthers) {
+        if (highlight === void 0) { highlight = false; }
+        if (notificationOnlyForOthers === void 0) { notificationOnlyForOthers = false; }
+        if (!this.checkAll(i) || trains[i].accelerationSpeed > 0 || Math.abs(trains[i].accelerationSpeed) >= 0.2) {
+            return false;
+        }
+        if (highlight) {
+            actionSync("trains", i, [{ move: false }, { standardDirection: !trains[i].standardDirection }, { lastDirectionChange: frameNo }], [{ getString: ["appScreenObjectChangesDirection", "."] }, { getString: [["appScreenTrainNames", i]] }], notificationOnlyForOthers);
+        }
+        else {
+            actionSync("trains", i, [{ move: false }, { standardDirection: !trains[i].standardDirection }], [{ getString: ["appScreenObjectChangesDirection", "."] }, { getString: [["appScreenTrainNames", i]] }], notificationOnlyForOthers);
+        }
+        return true;
+    },
+    setSpeed: function (i, speed, notificationOnlyForOthers) {
+        if (notificationOnlyForOthers === void 0) { notificationOnlyForOthers = false; }
+        if (!this.checkAll(i) || speed < 0 || speed > 100) {
+            return false;
+        }
+        if (speed < trainParams.minSpeed) {
+            return this.stop(i, notificationOnlyForOthers);
+        }
+        if (trains[i].accelerationSpeed <= 0) {
+            return this.start(i, speed, notificationOnlyForOthers);
+        }
+        if (trains[i].speedInPercent != speed) {
+            var accSpeed = trains[i].currentSpeedInPercent / speed;
+            actionSync("trains", i, [{ accelerationSpeedCustom: accSpeed }, { speedInPercent: speed }]);
+        }
+        return true;
+    }
+};
+var switchActions = {
+    turn: function (key, side) {
+        if (currentMode == Modes.MULTIPLAYER) {
+            actionSync("switches", [key, side], [{ turned: !switches[key][side].turned }], [{ getString: ["appScreenSwitchTurns", "."] }]);
+        }
+        else {
+            switches[key][side].turned = !switches[key][side].turned;
+            switches[key][side].lastStateChange = frameNo;
+            animateWorker.postMessage({ k: "switches", switches: switches });
+            notify("#canvas-notifier", getString("appScreenSwitchTurns", "."), NotificationPriority.Default, 500, null, null, client.y + menus.outerContainer.height, NotificationChannel.TrainSwitches);
+        }
+        if (audioControl.existsObject("switch")) {
+            audioControl.stopObject("switch");
+        }
+        if (audioControl.mayPlay()) {
+            audioControl.startObject("switch", null, false);
+        }
+    }
+};
+var carActions = {
+    auto: {
+        checkReady: function () {
+            return currentMode != Modes.DEMO && !onlineConnection.stop;
+        },
+        start: function () {
+            if (this.checkReady() && carParams.init) {
+                carParams.init = false;
+                carParams.autoModeOff = false;
+                carParams.autoModeRuns = true;
+                carParams.autoModeInit = true;
+                notify("#canvas-notifier", formatJSString(getString("appScreenCarAutoModeChange", "."), getString("appScreenCarAutoModeInit")), NotificationPriority.Default, 500, null, null, client.y + menus.outerContainer.height);
+                return true;
+            }
+            return false;
+        },
+        end: function () {
+            if (this.checkReady() && !carParams.autoModeOff && !carParams.isBackToRoot) {
+                carParams.autoModeRuns = true;
+                carParams.isBackToRoot = true;
+                notify("#canvas-notifier", getString("appScreenCarAutoModeParking", "."), NotificationPriority.Default, 750, null, null, client.y + menus.outerContainer.height);
+                return true;
+            }
+            return false;
+        },
+        pause: function () {
+            if (!this.checkReady() || !carParams.autoModeRuns) {
+                return false;
+            }
+            carParams.autoModeRuns = false;
+            notify("#canvas-notifier", formatJSString(getString("appScreenCarAutoModeChange", "."), getString("appScreenCarAutoModePause")), NotificationPriority.Default, 500, null, null, client.y + menus.outerContainer.height);
+            return true;
+        },
+        resume: function () {
+            if (!this.checkReady() || carParams.autoModeRuns || carParams.autoModeOff) {
+                return false;
+            }
+            carParams.autoModeRuns = true;
+            carParams.autoModeInit = true;
+            notify("#canvas-notifier", formatJSString(getString("appScreenCarAutoModeChange", "."), getString("appScreenCarAutoModeInit")), NotificationPriority.Default, 500, null, null, client.y + menus.outerContainer.height);
+            return true;
+        }
+    },
+    manual: {
+        checkRange: function (car) {
+            return car >= 0 && car < cars.length;
+        },
+        checkReady: function () {
+            return currentMode != Modes.DEMO && !onlineConnection.stop;
+        },
+        checkAll: function (car) {
+            return this.checkRange(car) && this.checkReady();
+        },
+        start: function (car) {
+            if (!this.checkAll(car) || carCollisionCourse(car, false) || (!carParams.init && !carParams.autoModeOff) || cars[car].move) {
+                return false;
+            }
+            cars[car].move = true;
+            cars[car].parking = false;
+            cars[car].backwardsState = 0;
+            cars[car].backToInit = false;
+            carParams.init = false;
+            carParams.autoModeOff = true;
+            notify("#canvas-notifier", formatJSString(getString("appScreenObjectStarts", "."), getString(["appScreenCarNames", car])), NotificationPriority.Default, 500, null, null, client.y + menus.outerContainer.height);
+            return true;
+        },
+        stop: function (car) {
+            if (!this.checkAll(car) || !carParams.autoModeOff || !cars[car].move) {
+                return false;
+            }
+            cars[car].move = false;
+            cars[car].parking = false;
+            cars[car].backwardsState = 0;
+            cars[car].backToInit = false;
+            carParams.init = false;
+            carParams.autoModeOff = true;
+            notify("#canvas-notifier", formatJSString(getString("appScreenObjectStops", "."), getString(["appScreenCarNames", car])), NotificationPriority.Default, 500, null, null, client.y + menus.outerContainer.height);
+            return true;
+        },
+        backwards: function (car) {
+            if (!this.checkAll(car) || !carParams.autoModeOff || cars[car].move || cars[car].backwardsState !== 0 || cars[car].parking) {
+                return false;
+            }
+            cars[car].lastDirectionChange = frameNo;
+            cars[car].backwardsState = 1;
+            cars[car].backToInit = false;
+            if (carCollisionCourse(car, false)) {
+                return false;
+            }
+            cars[car].move = true;
+            notify("#canvas-notifier", formatJSString(getString("appScreenCarStepsBack", "."), getString(["appScreenCarNames", car])), NotificationPriority.Default, 750, null, null, client.y + menus.outerContainer.height);
+            return true;
+        },
+        park: function (car) {
+            if (!this.checkAll(car) || carCollisionCourse(car, false, -1) || !carParams.autoModeOff || cars[car].move || cars[car].parking) {
+                return false;
+            }
+            cars[car].move = true;
+            cars[car].backToInit = true;
+            notify("#canvas-notifier", formatJSString(getString("appScreenCarParking", "."), getString(["appScreenCarNames", car])), NotificationPriority.Default, 500, null, null, client.y + menus.outerContainer.height);
+            return true;
+        }
+    }
+};
+/*******************************************
+ *                Variables                *
+ ******************************************/
+//Canvas and drawing
+var canvas;
+var canvasGesture;
+var canvasBackground;
+var canvasSemiForeground;
+var canvasForeground;
+var context;
+var contextGesture;
+var contextBackground;
+var contextSemiForeground;
+var contextForeground;
+var drawInterval;
+var drawTimeout;
+var drawing = false;
+//Multithreading
+var animateWorker;
+//Animation Counter
+var frameNo = 0;
+//Media
+var pics;
+var objects3D;
+//Resize
+var resizeTimeout;
+var resized = false;
+//Modes
+var currentMode;
+var modeSwitchingTimeout;
+var modeSwitchingReloadTimeout;
+var modeSwitching = true;
+//Background
+var oldBackground;
+//Trains
+var trains;
+var trains3D;
+var rotationPoints;
+var trainParams;
+//Switches
+var switches;
+var switches3D;
+var switchParams;
+//Cars
+var cars;
+var cars3D;
+var carWays;
+var carParams;
+//Tax office
+var taxOffice;
+//Classic UI
+var classicUI;
+//GUI configuration
+var gui;
+var menus = {};
+var konamiState = 0;
+var konamiTimeOut;
+//Multiplayer mode
+var multiplayerMode = {
+    animateInterval: 40,
+    syncInterval: 10000,
+    excludeFromSync: { t: ["width", "height", "assetFlip", "lastDirectionChange", "crash", "src", "trainSwitchSrc", "flickerFacFront", "flickerFacFrontOffset", "flickerFacBack", "flickerFacBackOffset", "fac", "margin", "bogieDistance", "accelerationSpeedStartFac", "accelerationSpeedFac", "speed", "speedFac", "wheels", "cars"], tc: ["width", "height", "assetFlip", "konamiUseTrainIcon", "src", "fac", "bogieDistance", "wheels"] },
+    chatSticker: 7,
+    serverURI: getServerLink(Protocols.WebSocket) + "/multiplay",
+    waitingClock: {
+        init: function () {
+            var initialZoom = 0.45;
+            multiplayerMode.waitingClock.initTime = Date.now();
+            multiplayerMode.waitingClock.zoom = initialZoom;
+            multiplayerMode.waitingClock.secondHandBackwards = false;
+        },
+        draw: function () {
+            if (Date.now() - multiplayerMode.waitingClock.initTime < 5000) {
+                return;
+            }
+            multiplayerMode.waitingClock.visible = onlineConnection.stop;
+            //WAITING CLOCK/GLOBAL/SETUP/1
+            contextForeground.save();
+            contextForeground.translate(canvasForeground.width / 2, canvasForeground.height / 2);
+            contextForeground.translate(0, (-menus.outerContainer.height * client.devicePixelRatio) / 2);
+            var size = Math.min(background.width, background.height);
+            var radius = size / 2.2;
+            //WAITING CLOCK/STATIC/BACKGROUND
+            contextForeground.save();
+            var bgGradient = contextForeground.createRadialGradient(0, 0, radius * multiplayerMode.waitingClock.zoom, 0, 0, radius * 2);
+            bgGradient.addColorStop(0, "rgba(239,224,227,1)");
+            bgGradient.addColorStop(0.1, "rgba(239,224,227,0.3)");
+            bgGradient.addColorStop(1, "rgba(100,92,130,0.3)");
+            contextForeground.fillStyle = bgGradient;
+            contextForeground.globalAlpha = 0.6;
+            contextForeground.fillStyle = bgGradient;
+            contextForeground.fillRect(-canvasForeground.width / 2, -canvasForeground.height / 2 + (menus.outerContainer.height * client.devicePixelRatio) / 2, canvasForeground.width, canvasForeground.height);
+            contextForeground.restore();
+            //WAITING CLOCK/GLOBAL/SCALE
+            contextForeground.scale(multiplayerMode.waitingClock.zoom, multiplayerMode.waitingClock.zoom);
+            //WAITING CLOCK/STATIC/CLOCK FACE
+            var circleWidth = size / 20;
+            contextForeground.beginPath();
+            contextForeground.arc(0, 0, radius - circleWidth / 4, 0, Math.PI * 2);
+            contextForeground.lineWidth = circleWidth / 2;
+            contextForeground.strokeStyle = "rgba(0,0,0,0.7)";
+            contextForeground.stroke();
+            for (var i = 0; i < 60; i++) {
+                var rectWidth = size / 70;
+                var rectHeight = size / 25;
+                if (i % 5 == 0) {
+                    rectWidth *= 2;
+                    rectHeight *= 2.5;
+                }
+                if (i % 15 == 0) {
+                    rectHeight *= 1.2;
+                }
+                var angle = (Math.PI * 2 * i) / 60;
+                contextForeground.save();
+                contextForeground.fillStyle = "rgba(15,15,15,0.5)";
+                contextForeground.translate(radius * Math.sin(angle), radius * Math.cos(angle));
+                contextForeground.rotate(-angle);
+                contextForeground.fillRect(-rectWidth / 2, -rectHeight - circleWidth / 1.5, rectWidth, rectHeight);
+                contextForeground.restore();
+            }
+            //WAITING CLOCK/DYNAMIC/CLOCK HANDS
+            var date = new Date();
+            //WAITING CLOCK/DYNAMIC/CLOCK HAND/HOURS
+            var hours = date.getHours() + date.getMinutes() / 60 + date.getSeconds() / 3600;
+            if (hours > 12) {
+                hours -= 12;
+            }
+            var rectWidth = size / 28;
+            var rectHeight = size / 4;
+            var angle = (Math.PI * 2 * hours) / 12;
+            contextForeground.save();
+            contextForeground.rotate(angle);
+            contextForeground.save();
+            contextForeground.globalCompositeOperation = "destination-out";
+            contextForeground.fillStyle = "white";
+            contextForeground.fillRect(-rectWidth / 2, -rectHeight, rectWidth, rectHeight);
+            contextForeground.restore();
+            contextForeground.fillStyle = "rgba(0,0,0,0.5)";
+            contextForeground.fillRect(-rectWidth / 2, -rectHeight, rectWidth, rectHeight);
+            contextForeground.restore();
+            //WAITING CLOCK/DYNAMIC/CLOCK HAND/MINUTES
+            var minutes = date.getMinutes();
+            var rectWidth = size / 30;
+            var rectHeight = size / 3;
+            var angle = (Math.PI * 2 * minutes) / 60;
+            contextForeground.save();
+            contextForeground.rotate(angle);
+            contextForeground.save();
+            contextForeground.globalCompositeOperation = "destination-out";
+            contextForeground.fillStyle = "white";
+            contextForeground.fillRect(-rectWidth / 2, -rectHeight, rectWidth, rectHeight);
+            contextForeground.restore();
+            contextForeground.fillStyle = "rgba(0,0,0,0.5)";
+            contextForeground.fillRect(-rectWidth / 2, -rectHeight, rectWidth, rectHeight);
+            contextForeground.restore();
+            //WAITING CLOCK/DYNAMIC/CLOCK HAND/SECONDS
+            var seconds = date.getSeconds() + date.getMilliseconds() / 1000;
+            var rectWidth = size / 100;
+            var rectHeight = size / 2.95;
+            var angle = Math.min(2 * Math.PI, (Math.PI * 2 * seconds) / 58);
+            if (Math.round(angle * 100) % Math.round(Math.PI * 100) == 0) {
+                multiplayerMode.waitingClock.secondHandBackwards = konamiState < 0;
+            }
+            if (multiplayerMode.waitingClock.secondHandBackwards) {
+                angle = Math.PI * 2 - angle;
+            }
+            contextForeground.save();
+            contextForeground.rotate(angle);
+            contextForeground.save();
+            contextForeground.globalCompositeOperation = "destination-out";
+            contextForeground.fillStyle = "white";
+            contextForeground.fillRect(-rectWidth / 2, -rectHeight, rectWidth, rectHeight);
+            contextForeground.restore();
+            contextForeground.fillStyle = "rgba(139,0,0,0.5)";
+            contextForeground.fillRect(-rectWidth / 2, -rectHeight, rectWidth, rectHeight);
+            contextForeground.restore();
+            var rectWidth = size / 55;
+            var rectHeight = size / 8;
+            contextForeground.save();
+            contextForeground.rotate(angle);
+            contextForeground.save();
+            contextForeground.globalCompositeOperation = "destination-out";
+            contextForeground.fillStyle = "white";
+            contextForeground.fillRect(-rectWidth / 2, 0, rectWidth, rectHeight);
+            contextForeground.restore();
+            contextForeground.fillStyle = "rgba(139,0,0,0.5)";
+            contextForeground.fillRect(-rectWidth / 2, 0, rectWidth, rectHeight);
+            contextForeground.restore();
+            //WAITING CLOCK/STATIC/CLOCK HANDS
+            contextForeground.save();
+            contextForeground.globalCompositeOperation = "destination-out";
+            contextForeground.beginPath();
+            contextForeground.arc(0, 0, size / 30, 0, Math.PI * 2);
+            contextForeground.fillStyle = "white";
+            contextForeground.fill();
+            contextForeground.restore();
+            contextForeground.beginPath();
+            contextForeground.arc(0, 0, size / 30, 0, Math.PI * 2);
+            contextForeground.fillStyle = "rgba(0,0,0,0.5)";
+            contextForeground.fill();
+            contextForeground.beginPath();
+            contextForeground.arc(0, 0, size / 60, 0, Math.PI * 2);
+            contextForeground.fillStyle = "rgba(192,192,192,0.5)";
+            contextForeground.fill();
+            contextForeground.beginPath();
+            contextForeground.arc(0, 0, size / 120, 0, Math.PI * 2);
+            contextForeground.fillStyle = "rgba(0,0,0,0.5)";
+            contextForeground.fill();
+            //WAITING CLOCK/GLOBAL/SETUP/2
+            contextForeground.restore();
+            multiplayerMode.waitingClock.zoom *= 1.0375;
+            if (multiplayerMode.waitingClock.zoom > 1) {
+                multiplayerMode.waitingClock.zoom = 1;
+            }
+        }
+    }
+};
+var onlineConnection = {};
+//Client and input configuration
+var movingTimeOut;
+var clickTimeOut;
 /*******************************************
  *            Event Listeners              *
  ******************************************/
-window.addEventListener("load", function () {
-    function initialDisplay() {
-        function resetForElem(parent, elem, to) {
-            if (to === void 0) { to = ""; }
-            var elements = parent.childNodes;
-            for (var i = 0; i < elements.length; i++) {
-                if (elements[i].nodeName.substr(0, 1) != "#") {
-                    elements[i].style.display = elements[i] == elem ? to : "none";
-                }
+function prepareInit(selectedMode) {
+    function setMode() {
+        if (selectedMode == undefined) {
+            //Default mode
+            currentMode = Modes.SINGLEPLAYER;
+            //Demo by settings
+            if (getSetting("startDemoMode")) {
+                currentMode = Modes.DEMO;
+            }
+            //Determine mode
+            var queryStringMode = getQueryStringValue("mode");
+            if (Object.values(Modes).includes(queryStringMode)) {
+                currentMode = queryStringMode;
             }
         }
-        function destroy(toDestroyElements) {
-            if (typeof toDestroyElements == "object") {
-                if (!Array.isArray(toDestroyElements)) {
-                    toDestroyElements = [toDestroyElements];
-                }
-                toDestroyElements.forEach(function (toDestroy) {
-                    if (toDestroy != null) {
-                        toDestroy.parentNode.removeChild(toDestroy);
-                    }
-                });
+        else {
+            currentMode = selectedMode;
+        }
+        document.body.style.cursor = "";
+        if (currentMode == Modes.MULTIPLAYER) {
+            if (!("WebSocket" in window)) {
+                notify("#canvas-notifier", getString("appScreenTeamplayNoWebsocket", "!", "upper"), NotificationPriority.High, 6000, null, null, client.y + menus.outerContainer.height);
+                currentMode = Modes.SINGLEPLAYER;
             }
         }
-        function defineCarParams() {
-            function defineCarWays(cType, isFirst, i, j, obj, currentObjectInput, stateNullAgain) {
-                if (j === void 0) { j = 0; }
-                if (obj === void 0) { obj = []; }
-                if (currentObjectInput === void 0) { currentObjectInput = undefined; }
-                if (stateNullAgain === void 0) { stateNullAgain = false; }
-                function curve_right(p) {
-                    if (p.x[0] != p.x[1]) {
-                        p.x[1] = p.x[0];
+        else if (currentMode == Modes.DEMO) {
+            document.body.style.cursor = "none";
+            demoMode.standalone = getQueryStringValue("demo-standalone") == "1";
+        }
+    }
+    //Reset GUI
+    gui = {};
+    //Reconfigure mode
+    setMode();
+    //Show loading image
+    loadingAnimation.init();
+    loadingAnimation.show(currentMode != Modes.SINGLEPLAYER);
+}
+function init(state) {
+    var _a;
+    if (state === void 0) { state = "reload"; }
+    function defineCarWays() {
+        function defineCarWay(cType, isFirst, i, j, obj, currentObjectInput, stateNullAgain) {
+            if (j === void 0) { j = 0; }
+            if (obj === void 0) { obj = []; }
+            if (currentObjectInput === void 0) { currentObjectInput = undefined; }
+            if (stateNullAgain === void 0) { stateNullAgain = false; }
+            function curve_right(p) {
+                if (p.x[0] != p.x[1]) {
+                    p.x[1] = p.x[0];
+                }
+                var radius = Math.abs(p.y[0] - p.y[1]) / 2;
+                var arc = Math.abs(currentObject.angle) * radius;
+                arc += currentObject.speed;
+                currentObject.angle = arc / radius;
+                var chord = 2 * radius * Math.sin(currentObject.angle / 2);
+                var gamma = Math.PI / 2 - (Math.PI - currentObject.angle) / 2;
+                var x = Math.cos(gamma) * chord;
+                var y = Math.sin(gamma) * chord;
+                currentObject.x = p.y[1] < p.y[0] ? x + p.x[1] : x + p.x[0];
+                currentObject.y = p.y[1] < p.y[0] ? y + p.y[1] : y + p.y[0];
+                if (p.y[1] > p.y[0]) {
+                    if (arc >= Math.PI * radius || currentObject.angle >= Math.PI) {
+                        currentObject.x = p.x[1];
+                        currentObject.y = p.y[1];
+                        currentObject.angle = Math.PI;
+                        testShortcutToParking();
+                        currentObject.state = ++currentObject.state >= carPaths[i][cType].length ? (carPaths[i][cType].length == 1 ? -1 : 0) : currentObject.state;
                     }
-                    var radius = Math.abs(p.y[0] - p.y[1]) / 2;
-                    var arc = Math.abs(currentObject.angle) * radius;
-                    arc += currentObject.speed;
-                    currentObject.angle = arc / radius;
-                    var chord = 2 * radius * Math.sin(currentObject.angle / 2);
-                    var gamma = Math.PI / 2 - (Math.PI - currentObject.angle) / 2;
-                    var x = Math.cos(gamma) * chord;
-                    var y = Math.sin(gamma) * chord;
-                    currentObject.x = p.y[1] < p.y[0] ? x + p.x[1] : x + p.x[0];
-                    currentObject.y = p.y[1] < p.y[0] ? y + p.y[1] : y + p.y[0];
-                    if (p.y[1] > p.y[0]) {
-                        if (arc >= Math.PI * radius || currentObject.angle >= Math.PI) {
-                            currentObject.x = p.x[1];
-                            currentObject.y = p.y[1];
-                            currentObject.angle = Math.PI;
+                }
+                else {
+                    if (arc >= 2 * Math.PI * radius || currentObject.angle >= 2 * Math.PI) {
+                        currentObject.x = p.x[1];
+                        currentObject.y = p.y[1];
+                        currentObject.angle = 0;
+                        testShortcutToParking();
+                        currentObject.state = ++currentObject.state >= carPaths[i][cType].length ? (carPaths[i][cType].length == 1 ? -1 : 0) : currentObject.state;
+                    }
+                }
+                currentObject.displayAngle = currentObject.angle;
+            }
+            function curve_left(p) {
+                if (p.x[0] != p.x[1]) {
+                    p.x[1] = p.x[0];
+                }
+                var radius = Math.abs(p.y[0] - p.y[1]) / 2;
+                var arc = Math.abs(currentObject.angle) * radius;
+                arc += currentObject.speed;
+                currentObject.angle = arc / radius;
+                var chord = 2 * radius * Math.sin(currentObject.angle / 2);
+                var gamma = Math.PI / 2 - (Math.PI - currentObject.angle) / 2;
+                var x = Math.cos(gamma) * chord;
+                var y = Math.sin(gamma) * chord;
+                currentObject.x = p.y[1] < p.y[0] ? p.x[0] + x : p.x[1] + x;
+                currentObject.y = p.y[1] < p.y[0] ? p.y[0] - y : p.y[1] - y;
+                if (p.y[1] > p.y[0]) {
+                    if (arc >= 2 * Math.PI * radius || currentObject.angle >= 2 * Math.PI) {
+                        currentObject.x = p.x[1];
+                        currentObject.y = p.y[1];
+                        currentObject.angle = 0;
+                        testShortcutToParking();
+                        currentObject.state = ++currentObject.state >= carPaths[i][cType].length ? (carPaths[i][cType].length == 1 ? -1 : 0) : currentObject.state;
+                    }
+                }
+                else {
+                    if (arc >= Math.PI * radius || currentObject.angle >= Math.PI) {
+                        currentObject.x = p.x[1];
+                        currentObject.y = p.y[1];
+                        currentObject.angle = Math.PI;
+                        testShortcutToParking();
+                        currentObject.state = ++currentObject.state >= carPaths[i][cType].length ? (carPaths[i][cType].length == 1 ? -1 : 0) : currentObject.state;
+                    }
+                }
+                currentObject.displayAngle = -currentObject.angle;
+            }
+            function testShortcutToParking() {
+                if (carPaths[i][cType][currentObject.state].x[1] == carPaths[i]["start"][carPaths[i]["start"].length - 1].x[1] && carPaths[i][cType][currentObject.state].y[1] == carPaths[i]["start"][carPaths[i]["start"].length - 1].y[1]) {
+                    currentObject.shortcutToParking = true;
+                }
+            }
+            var currentObject;
+            if (typeof currentObjectInput == "undefined") {
+                currentObject = copyJSObject(cars[i]);
+                currentObject.speed = cars[i].speedFac * background.width;
+                currentObject.state = 0;
+                currentObject.angle = currentObject.displayAngle = cars[i].angles[cType];
+                currentObject.x = carPaths[i][cType][0].x[0];
+                currentObject.y = carPaths[i][cType][0].y[0];
+            }
+            else {
+                currentObject = currentObjectInput;
+            }
+            obj[j] = {};
+            obj[j].x = currentObject.x;
+            obj[j].y = currentObject.y;
+            if (currentObject.shortcutToParking) {
+                obj[j].shortcutToParking = true;
+                currentObject.shortcutToParking = false;
+            }
+            while (currentObject.displayAngle < 0) {
+                currentObject.displayAngle += Math.PI * 2;
+            }
+            while (currentObject.displayAngle >= Math.PI * 2) {
+                currentObject.displayAngle -= Math.PI * 2;
+            }
+            obj[j].angle = currentObject.displayAngle;
+            switch (carPaths[i][cType][currentObject.state].type) {
+                case "linear":
+                    currentObject.angle = currentObject.angle < Math.PI / 2 ? 0 : Math.PI;
+                    currentObject.x += currentObject.speed * (currentObject.angle < Math.PI / 2 ? 1 : -1);
+                    if (currentObject.angle < Math.PI / 2) {
+                        if (currentObject.x >= carPaths[i][cType][currentObject.state].x[1]) {
+                            currentObject.x = carPaths[i][cType][currentObject.state].x[1];
                             testShortcutToParking();
                             currentObject.state = ++currentObject.state >= carPaths[i][cType].length ? (carPaths[i][cType].length == 1 ? -1 : 0) : currentObject.state;
                         }
                     }
                     else {
-                        if (arc >= 2 * Math.PI * radius || currentObject.angle >= 2 * Math.PI) {
-                            currentObject.x = p.x[1];
-                            currentObject.y = p.y[1];
-                            currentObject.angle = 0;
+                        if (currentObject.x <= carPaths[i][cType][currentObject.state].x[1]) {
+                            currentObject.x = carPaths[i][cType][currentObject.state].x[1];
                             testShortcutToParking();
                             currentObject.state = ++currentObject.state >= carPaths[i][cType].length ? (carPaths[i][cType].length == 1 ? -1 : 0) : currentObject.state;
                         }
                     }
                     currentObject.displayAngle = currentObject.angle;
-                }
-                function curve_left(p) {
-                    if (p.x[0] != p.x[1]) {
-                        p.x[1] = p.x[0];
-                    }
-                    var radius = Math.abs(p.y[0] - p.y[1]) / 2;
-                    var arc = Math.abs(currentObject.angle) * radius;
-                    arc += currentObject.speed;
-                    currentObject.angle = arc / radius;
-                    var chord = 2 * radius * Math.sin(currentObject.angle / 2);
-                    var gamma = Math.PI / 2 - (Math.PI - currentObject.angle) / 2;
-                    var x = Math.cos(gamma) * chord;
-                    var y = Math.sin(gamma) * chord;
-                    currentObject.x = p.y[1] < p.y[0] ? p.x[0] + x : p.x[1] + x;
-                    currentObject.y = p.y[1] < p.y[0] ? p.y[0] - y : p.y[1] - y;
-                    if (p.y[1] > p.y[0]) {
-                        if (arc >= 2 * Math.PI * radius || currentObject.angle >= 2 * Math.PI) {
-                            currentObject.x = p.x[1];
-                            currentObject.y = p.y[1];
-                            currentObject.angle = 0;
+                    break;
+                case "linear_vertical":
+                    currentObject.angle = currentObject.angle < Math.PI ? 0.5 * Math.PI : 1.5 * Math.PI;
+                    currentObject.y += currentObject.speed * (currentObject.angle < Math.PI ? 1 : -1);
+                    if (currentObject.angle < Math.PI) {
+                        if (currentObject.y >= carPaths[i][cType][currentObject.state].y[1]) {
+                            currentObject.y = carPaths[i][cType][currentObject.state].y[1];
                             testShortcutToParking();
                             currentObject.state = ++currentObject.state >= carPaths[i][cType].length ? (carPaths[i][cType].length == 1 ? -1 : 0) : currentObject.state;
                         }
                     }
                     else {
-                        if (arc >= Math.PI * radius || currentObject.angle >= Math.PI) {
-                            currentObject.x = p.x[1];
-                            currentObject.y = p.y[1];
-                            currentObject.angle = Math.PI;
+                        if (currentObject.y <= carPaths[i][cType][currentObject.state].y[1]) {
+                            currentObject.y = carPaths[i][cType][currentObject.state].y[1];
                             testShortcutToParking();
                             currentObject.state = ++currentObject.state >= carPaths[i][cType].length ? (carPaths[i][cType].length == 1 ? -1 : 0) : currentObject.state;
                         }
                     }
-                    currentObject.displayAngle = -currentObject.angle;
-                }
-                function testShortcutToParking() {
-                    if (carPaths[i][cType][currentObject.state].x[1] == carPaths[i]["start"][carPaths[i]["start"].length - 1].x[1] && carPaths[i][cType][currentObject.state].y[1] == carPaths[i]["start"][carPaths[i]["start"].length - 1].y[1]) {
-                        currentObject.shortcutToParking = true;
+                    currentObject.displayAngle = currentObject.angle;
+                    break;
+                case "curve_right":
+                    curve_right(carPaths[i][cType][currentObject.state]);
+                    break;
+                case "curve_left":
+                    curve_left(carPaths[i][cType][currentObject.state]);
+                    break;
+                case "curve_r2l":
+                    var p = copyJSObject(carPaths[i][cType][currentObject.state]);
+                    if (carPaths[i][cType][currentObject.state].y[0] < carPaths[i][cType][currentObject.state].y[1]) {
+                        var dx = (carPaths[i][cType][currentObject.state].x[1] - carPaths[i][cType][currentObject.state].x[0]) / 2;
+                        var dy = (carPaths[i][cType][currentObject.state].y[1] - carPaths[i][cType][currentObject.state].y[0]) / 2;
+                        if (currentObject.angle <= Math.PI) {
+                            p.y[1] = carPaths[i][cType][currentObject.state].y[0] + 2 * ((Math.pow(dy, 2) + Math.pow(dx, 2)) / (2 * dy));
+                            curve_right(p);
+                            if (currentObject.y >= carPaths[i][cType][currentObject.state].y[0] + (carPaths[i][cType][currentObject.state].y[1] - carPaths[i][cType][currentObject.state].y[0]) / 2) {
+                                var diff = currentObject.angle - (Math.PI * 45) / 180;
+                                currentObject.angle = (Math.PI * 315) / 180 - diff;
+                                currentObject.x = carPaths[i][cType][currentObject.state].x[0] - (carPaths[i][cType][currentObject.state].x[0] - carPaths[i][cType][currentObject.state].x[1]) / 2;
+                                currentObject.y = carPaths[i][cType][currentObject.state].y[0] + (carPaths[i][cType][currentObject.state].y[1] - carPaths[i][cType][currentObject.state].y[0]) / 2;
+                            }
+                        }
+                        else {
+                            p.x[0] = carPaths[i][cType][currentObject.state].x[1];
+                            p.y[0] = carPaths[i][cType][currentObject.state].y[1] - 2 * ((Math.pow(dy, 2) + Math.pow(dx, 2)) / (2 * dy));
+                            curve_left(p);
+                        }
                     }
-                }
-                var currentObject;
-                if (typeof currentObjectInput == "undefined") {
-                    currentObject = copyJSObject(cars[i]);
-                    currentObject.state = 0;
-                    currentObject.angle = currentObject.displayAngle = cars[i].angles[cType];
-                    currentObject.x = carPaths[i][cType][0].x[0];
-                    currentObject.y = carPaths[i][cType][0].y[0];
-                }
-                else {
-                    currentObject = currentObjectInput;
-                }
-                obj[j] = {};
-                obj[j].x = currentObject.x;
-                obj[j].y = currentObject.y;
-                if (currentObject.shortcutToParking) {
-                    obj[j].shortcutToParking = true;
-                    currentObject.shortcutToParking = false;
-                }
-                while (currentObject.displayAngle < 0) {
-                    currentObject.displayAngle += Math.PI * 2;
-                }
-                while (currentObject.displayAngle >= Math.PI * 2) {
-                    currentObject.displayAngle -= Math.PI * 2;
-                }
-                obj[j].angle = currentObject.displayAngle;
-                switch (carPaths[i][cType][currentObject.state].type) {
-                    case "linear":
-                        currentObject.angle = currentObject.angle < Math.PI / 2 ? 0 : Math.PI;
-                        currentObject.x += currentObject.speed * (currentObject.angle < Math.PI / 2 ? 1 : -1);
-                        if (currentObject.angle < Math.PI / 2) {
-                            if (currentObject.x >= carPaths[i][cType][currentObject.state].x[1]) {
-                                currentObject.x = carPaths[i][cType][currentObject.state].x[1];
-                                testShortcutToParking();
-                                currentObject.state = ++currentObject.state >= carPaths[i][cType].length ? (carPaths[i][cType].length == 1 ? -1 : 0) : currentObject.state;
+                    else {
+                        var dx = (carPaths[i][cType][currentObject.state].x[0] - carPaths[i][cType][currentObject.state].x[1]) / 2;
+                        var dy = (carPaths[i][cType][currentObject.state].y[0] - carPaths[i][cType][currentObject.state].y[1]) / 2;
+                        if (currentObject.angle >= Math.PI) {
+                            p.y[1] = carPaths[i][cType][currentObject.state].y[0] - 2 * ((Math.pow(dy, 2) + Math.pow(dx, 2)) / (2 * dy));
+                            curve_right(p);
+                            if (currentObject.y <= carPaths[i][cType][currentObject.state].y[0] - (carPaths[i][cType][currentObject.state].y[0] - carPaths[i][cType][currentObject.state].y[1]) / 2) {
+                                var diff = currentObject.angle - (Math.PI * 225) / 180;
+                                currentObject.angle = (Math.PI * 135) / 180 - diff;
+                                currentObject.x = carPaths[i][cType][currentObject.state].x[0] + (carPaths[i][cType][currentObject.state].x[1] - carPaths[i][cType][currentObject.state].x[0]) / 2;
+                                currentObject.y = carPaths[i][cType][currentObject.state].y[0] - (carPaths[i][cType][currentObject.state].y[0] - carPaths[i][cType][currentObject.state].y[1]) / 2;
                             }
                         }
                         else {
-                            if (currentObject.x <= carPaths[i][cType][currentObject.state].x[1]) {
-                                currentObject.x = carPaths[i][cType][currentObject.state].x[1];
-                                testShortcutToParking();
-                                currentObject.state = ++currentObject.state >= carPaths[i][cType].length ? (carPaths[i][cType].length == 1 ? -1 : 0) : currentObject.state;
-                            }
+                            p.x[0] = carPaths[i][cType][currentObject.state].x[1];
+                            p.y[0] = carPaths[i][cType][currentObject.state].y[1] + 2 * ((Math.pow(dy, 2) + Math.pow(dx, 2)) / (2 * dy));
+                            curve_left(p);
                         }
-                        currentObject.displayAngle = currentObject.angle;
-                        break;
-                    case "linear_vertical":
-                        currentObject.angle = currentObject.angle < Math.PI ? 0.5 * Math.PI : 1.5 * Math.PI;
-                        currentObject.y += currentObject.speed * (currentObject.angle < Math.PI ? 1 : -1);
-                        if (currentObject.angle < Math.PI) {
-                            if (currentObject.y >= carPaths[i][cType][currentObject.state].y[1]) {
-                                currentObject.y = carPaths[i][cType][currentObject.state].y[1];
-                                testShortcutToParking();
-                                currentObject.state = ++currentObject.state >= carPaths[i][cType].length ? (carPaths[i][cType].length == 1 ? -1 : 0) : currentObject.state;
-                            }
-                        }
-                        else {
-                            if (currentObject.y <= carPaths[i][cType][currentObject.state].y[1]) {
-                                currentObject.y = carPaths[i][cType][currentObject.state].y[1];
-                                testShortcutToParking();
-                                currentObject.state = ++currentObject.state >= carPaths[i][cType].length ? (carPaths[i][cType].length == 1 ? -1 : 0) : currentObject.state;
-                            }
-                        }
-                        currentObject.displayAngle = currentObject.angle;
-                        break;
-                    case "curve_right":
-                        curve_right(carPaths[i][cType][currentObject.state]);
-                        break;
-                    case "curve_left":
-                        curve_left(carPaths[i][cType][currentObject.state]);
-                        break;
-                    case "curve_r2l":
-                        var p = copyJSObject(carPaths[i][cType][currentObject.state]);
-                        if (carPaths[i][cType][currentObject.state].y[0] < carPaths[i][cType][currentObject.state].y[1]) {
-                            var dx = (carPaths[i][cType][currentObject.state].x[1] - carPaths[i][cType][currentObject.state].x[0]) / 2;
-                            var dy = (carPaths[i][cType][currentObject.state].y[1] - carPaths[i][cType][currentObject.state].y[0]) / 2;
-                            if (currentObject.angle <= Math.PI) {
-                                p.y[1] = carPaths[i][cType][currentObject.state].y[0] + 2 * ((Math.pow(dy, 2) + Math.pow(dx, 2)) / (2 * dy));
-                                curve_right(p);
-                                if (currentObject.y >= carPaths[i][cType][currentObject.state].y[0] + (carPaths[i][cType][currentObject.state].y[1] - carPaths[i][cType][currentObject.state].y[0]) / 2) {
-                                    var diff = currentObject.angle - (Math.PI * 45) / 180;
-                                    currentObject.angle = (Math.PI * 315) / 180 - diff;
-                                    currentObject.x = carPaths[i][cType][currentObject.state].x[0] - (carPaths[i][cType][currentObject.state].x[0] - carPaths[i][cType][currentObject.state].x[1]) / 2;
-                                    currentObject.y = carPaths[i][cType][currentObject.state].y[0] + (carPaths[i][cType][currentObject.state].y[1] - carPaths[i][cType][currentObject.state].y[0]) / 2;
-                                }
-                            }
-                            else {
-                                p.x[0] = carPaths[i][cType][currentObject.state].x[1];
-                                p.y[0] = carPaths[i][cType][currentObject.state].y[1] - 2 * ((Math.pow(dy, 2) + Math.pow(dx, 2)) / (2 * dy));
-                                curve_left(p);
-                            }
-                        }
-                        else {
-                            var dx = (carPaths[i][cType][currentObject.state].x[0] - carPaths[i][cType][currentObject.state].x[1]) / 2;
-                            var dy = (carPaths[i][cType][currentObject.state].y[0] - carPaths[i][cType][currentObject.state].y[1]) / 2;
-                            if (currentObject.angle >= Math.PI) {
-                                p.y[1] = carPaths[i][cType][currentObject.state].y[0] - 2 * ((Math.pow(dy, 2) + Math.pow(dx, 2)) / (2 * dy));
-                                curve_right(p);
-                                if (currentObject.y <= carPaths[i][cType][currentObject.state].y[0] - (carPaths[i][cType][currentObject.state].y[0] - carPaths[i][cType][currentObject.state].y[1]) / 2) {
-                                    var diff = currentObject.angle - (Math.PI * 225) / 180;
-                                    currentObject.angle = (Math.PI * 135) / 180 - diff;
-                                    currentObject.x = carPaths[i][cType][currentObject.state].x[0] + (carPaths[i][cType][currentObject.state].x[1] - carPaths[i][cType][currentObject.state].x[0]) / 2;
-                                    currentObject.y = carPaths[i][cType][currentObject.state].y[0] - (carPaths[i][cType][currentObject.state].y[0] - carPaths[i][cType][currentObject.state].y[1]) / 2;
-                                }
-                            }
-                            else {
-                                p.x[0] = carPaths[i][cType][currentObject.state].x[1];
-                                p.y[0] = carPaths[i][cType][currentObject.state].y[1] + 2 * ((Math.pow(dy, 2) + Math.pow(dx, 2)) / (2 * dy));
-                                curve_left(p);
-                            }
-                        }
-                        break;
-                    case "curve_l2r":
-                        if (carPaths[i][cType][currentObject.state].y[0] < carPaths[i][cType][currentObject.state].y[1]) {
-                            var dx = (carPaths[i][cType][currentObject.state].x[0] - carPaths[i][cType][currentObject.state].x[1]) / 2;
-                            var dy = (carPaths[i][cType][currentObject.state].y[1] - carPaths[i][cType][currentObject.state].y[0]) / 2;
-                            var p = copyJSObject(carPaths[i][cType][currentObject.state]);
-                            if (currentObject.angle >= Math.PI) {
-                                p.y[1] = carPaths[i][cType][currentObject.state].y[0] + 2 * ((Math.pow(dy, 2) + Math.pow(dx, 2)) / (2 * dy));
-                                curve_left(p);
-                                if (currentObject.y >= carPaths[i][cType][currentObject.state].y[0] + (carPaths[i][cType][currentObject.state].y[1] - carPaths[i][cType][currentObject.state].y[0]) / 2) {
-                                    var diff = currentObject.angle - (Math.PI * 225) / 180;
-                                    currentObject.angle = (Math.PI * 135) / 180 - diff;
-                                    currentObject.x = carPaths[i][cType][currentObject.state].x[0] - (carPaths[i][cType][currentObject.state].x[0] - carPaths[i][cType][currentObject.state].x[1]) / 2;
-                                    currentObject.y = carPaths[i][cType][currentObject.state].y[0] + (carPaths[i][cType][currentObject.state].y[1] - carPaths[i][cType][currentObject.state].y[0]) / 2;
-                                }
-                            }
-                            else {
-                                p.x[0] = carPaths[i][cType][currentObject.state].x[1];
-                                p.y[0] = carPaths[i][cType][currentObject.state].y[1] - 2 * ((Math.pow(dy, 2) + Math.pow(dx, 2)) / (2 * dy));
-                                curve_right(p);
-                            }
-                        }
-                        else {
-                            var dx = (carPaths[i][cType][currentObject.state].x[1] - carPaths[i][cType][currentObject.state].x[0]) / 2;
-                            var dy = (carPaths[i][cType][currentObject.state].y[0] - carPaths[i][cType][currentObject.state].y[1]) / 2;
-                            var p = copyJSObject(carPaths[i][cType][currentObject.state]);
-                            if (currentObject.angle <= Math.PI) {
-                                p.y[1] = carPaths[i][cType][currentObject.state].y[0] - 2 * ((Math.pow(dy, 2) + Math.pow(dx, 2)) / (2 * dy));
-                                curve_left(p);
-                                if (currentObject.y <= carPaths[i][cType][currentObject.state].y[0] - (carPaths[i][cType][currentObject.state].y[0] - carPaths[i][cType][currentObject.state].y[1]) / 2) {
-                                    var diff = currentObject.angle - (Math.PI * 45) / 180;
-                                    currentObject.angle = (Math.PI * 315) / 180 - diff;
-                                    currentObject.x = carPaths[i][cType][currentObject.state].x[0] + (carPaths[i][cType][currentObject.state].x[1] - carPaths[i][cType][currentObject.state].x[0]) / 2;
-                                    currentObject.y = carPaths[i][cType][currentObject.state].y[0] - (carPaths[i][cType][currentObject.state].y[0] - carPaths[i][cType][currentObject.state].y[1]) / 2;
-                                }
-                            }
-                            else {
-                                p.x[0] = carPaths[i][cType][currentObject.state].x[1];
-                                p.y[0] = carPaths[i][cType][currentObject.state].y[1] + 2 * ((Math.pow(dy, 2) + Math.pow(dx, 2)) / (2 * dy));
-                                curve_right(p);
-                            }
-                        }
-                        break;
-                    case "curve_hright":
-                        var p = copyJSObject(carPaths[i][cType][currentObject.state]);
-                        curve_right(p);
-                        if (p.y[1] > p.y[0]) {
-                            if (currentObject.angle >= 0.5 * Math.PI) {
-                                currentObject.x = p.x[1] + (p.y[1] - p.y[0]) / 2;
-                                currentObject.y = p.y[1] - (p.y[1] - p.y[0]) / 2;
-                                currentObject.angle = currentObject.displayAngle = 0.5 * Math.PI;
-                                testShortcutToParking();
-                                currentObject.state = ++currentObject.state >= carPaths[i][cType].length ? (carPaths[i][cType].length == 1 ? -1 : 0) : currentObject.state;
-                            }
-                        }
-                        else {
-                            if (currentObject.angle >= 1.5 * Math.PI) {
-                                currentObject.x = p.x[1] - (p.y[0] - p.y[1]) / 2;
-                                currentObject.y = p.y[1] + (p.y[0] - p.y[1]) / 2;
-                                currentObject.angle = currentObject.displayAngle = 1.5 * Math.PI;
-                                testShortcutToParking();
-                                currentObject.state = ++currentObject.state >= carPaths[i][cType].length ? (carPaths[i][cType].length == 1 ? -1 : 0) : currentObject.state;
-                            }
-                        }
-                        break;
-                    case "curve_hleft":
-                        var p = copyJSObject(carPaths[i][cType][currentObject.state]);
-                        curve_left(p);
-                        if (p.y[1] > p.y[0]) {
-                            //TODO: Add definition
-                        }
-                        else {
-                            if (currentObject.angle >= 0.5 * Math.PI) {
-                                currentObject.x = p.x[1] + (p.y[0] - p.y[1]) / 2;
-                                currentObject.y = p.y[1] + (p.y[0] - p.y[1]) / 2;
-                                currentObject.angle = currentObject.displayAngle = 1.5 * Math.PI;
-                                testShortcutToParking();
-                                currentObject.state = ++currentObject.state >= carPaths[i][cType].length ? (carPaths[i][cType].length == 1 ? -1 : 0) : currentObject.state;
-                            }
-                        }
-                        break;
-                    case "curve_hright2":
-                        curve_right(carPaths[i][cType][currentObject.state]);
-                        break;
-                    case "curve_hleft2":
-                        if (currentObject.angle == 0.5 * Math.PI || currentObject.angle == 1.5 * Math.PI) {
-                            currentObject.angle = 2 * Math.PI - currentObject.angle;
-                        }
-                        curve_left(carPaths[i][cType][currentObject.state]);
-                        break;
-                }
-                if (!stateNullAgain && (currentObject.state > 0 || currentObject.state == -1)) {
-                    stateNullAgain = true;
-                    if (isFirst) {
-                        cars[i].startFrame = cars[i].counter = Math.floor(cars[i].startFrameFac * j);
                     }
-                }
-                return (currentObject.state === 0 || currentObject.state == -1) && stateNullAgain ? obj : defineCarWays(cType, isFirst, i, ++j, obj, currentObject, stateNullAgain);
+                    break;
+                case "curve_l2r":
+                    if (carPaths[i][cType][currentObject.state].y[0] < carPaths[i][cType][currentObject.state].y[1]) {
+                        var dx = (carPaths[i][cType][currentObject.state].x[0] - carPaths[i][cType][currentObject.state].x[1]) / 2;
+                        var dy = (carPaths[i][cType][currentObject.state].y[1] - carPaths[i][cType][currentObject.state].y[0]) / 2;
+                        var p = copyJSObject(carPaths[i][cType][currentObject.state]);
+                        if (currentObject.angle >= Math.PI) {
+                            p.y[1] = carPaths[i][cType][currentObject.state].y[0] + 2 * ((Math.pow(dy, 2) + Math.pow(dx, 2)) / (2 * dy));
+                            curve_left(p);
+                            if (currentObject.y >= carPaths[i][cType][currentObject.state].y[0] + (carPaths[i][cType][currentObject.state].y[1] - carPaths[i][cType][currentObject.state].y[0]) / 2) {
+                                var diff = currentObject.angle - (Math.PI * 225) / 180;
+                                currentObject.angle = (Math.PI * 135) / 180 - diff;
+                                currentObject.x = carPaths[i][cType][currentObject.state].x[0] - (carPaths[i][cType][currentObject.state].x[0] - carPaths[i][cType][currentObject.state].x[1]) / 2;
+                                currentObject.y = carPaths[i][cType][currentObject.state].y[0] + (carPaths[i][cType][currentObject.state].y[1] - carPaths[i][cType][currentObject.state].y[0]) / 2;
+                            }
+                        }
+                        else {
+                            p.x[0] = carPaths[i][cType][currentObject.state].x[1];
+                            p.y[0] = carPaths[i][cType][currentObject.state].y[1] - 2 * ((Math.pow(dy, 2) + Math.pow(dx, 2)) / (2 * dy));
+                            curve_right(p);
+                        }
+                    }
+                    else {
+                        var dx = (carPaths[i][cType][currentObject.state].x[1] - carPaths[i][cType][currentObject.state].x[0]) / 2;
+                        var dy = (carPaths[i][cType][currentObject.state].y[0] - carPaths[i][cType][currentObject.state].y[1]) / 2;
+                        var p = copyJSObject(carPaths[i][cType][currentObject.state]);
+                        if (currentObject.angle <= Math.PI) {
+                            p.y[1] = carPaths[i][cType][currentObject.state].y[0] - 2 * ((Math.pow(dy, 2) + Math.pow(dx, 2)) / (2 * dy));
+                            curve_left(p);
+                            if (currentObject.y <= carPaths[i][cType][currentObject.state].y[0] - (carPaths[i][cType][currentObject.state].y[0] - carPaths[i][cType][currentObject.state].y[1]) / 2) {
+                                var diff = currentObject.angle - (Math.PI * 45) / 180;
+                                currentObject.angle = (Math.PI * 315) / 180 - diff;
+                                currentObject.x = carPaths[i][cType][currentObject.state].x[0] + (carPaths[i][cType][currentObject.state].x[1] - carPaths[i][cType][currentObject.state].x[0]) / 2;
+                                currentObject.y = carPaths[i][cType][currentObject.state].y[0] - (carPaths[i][cType][currentObject.state].y[0] - carPaths[i][cType][currentObject.state].y[1]) / 2;
+                            }
+                        }
+                        else {
+                            p.x[0] = carPaths[i][cType][currentObject.state].x[1];
+                            p.y[0] = carPaths[i][cType][currentObject.state].y[1] + 2 * ((Math.pow(dy, 2) + Math.pow(dx, 2)) / (2 * dy));
+                            curve_right(p);
+                        }
+                    }
+                    break;
+                case "curve_hright":
+                    var p = copyJSObject(carPaths[i][cType][currentObject.state]);
+                    curve_right(p);
+                    if (p.y[1] > p.y[0]) {
+                        if (currentObject.angle >= 0.5 * Math.PI) {
+                            currentObject.x = p.x[1] + (p.y[1] - p.y[0]) / 2;
+                            currentObject.y = p.y[1] - (p.y[1] - p.y[0]) / 2;
+                            currentObject.angle = currentObject.displayAngle = 0.5 * Math.PI;
+                            testShortcutToParking();
+                            currentObject.state = ++currentObject.state >= carPaths[i][cType].length ? (carPaths[i][cType].length == 1 ? -1 : 0) : currentObject.state;
+                        }
+                    }
+                    else {
+                        if (currentObject.angle >= 1.5 * Math.PI) {
+                            currentObject.x = p.x[1] - (p.y[0] - p.y[1]) / 2;
+                            currentObject.y = p.y[1] + (p.y[0] - p.y[1]) / 2;
+                            currentObject.angle = currentObject.displayAngle = 1.5 * Math.PI;
+                            testShortcutToParking();
+                            currentObject.state = ++currentObject.state >= carPaths[i][cType].length ? (carPaths[i][cType].length == 1 ? -1 : 0) : currentObject.state;
+                        }
+                    }
+                    break;
+                case "curve_hleft":
+                    var p = copyJSObject(carPaths[i][cType][currentObject.state]);
+                    curve_left(p);
+                    if (p.y[1] > p.y[0]) {
+                        //TODO: Add definition
+                    }
+                    else {
+                        if (currentObject.angle >= 0.5 * Math.PI) {
+                            currentObject.x = p.x[1] + (p.y[0] - p.y[1]) / 2;
+                            currentObject.y = p.y[1] + (p.y[0] - p.y[1]) / 2;
+                            currentObject.angle = currentObject.displayAngle = 1.5 * Math.PI;
+                            testShortcutToParking();
+                            currentObject.state = ++currentObject.state >= carPaths[i][cType].length ? (carPaths[i][cType].length == 1 ? -1 : 0) : currentObject.state;
+                        }
+                    }
+                    break;
+                case "curve_hright2":
+                    curve_right(carPaths[i][cType][currentObject.state]);
+                    break;
+                case "curve_hleft2":
+                    if (currentObject.angle == 0.5 * Math.PI || currentObject.angle == 1.5 * Math.PI) {
+                        currentObject.angle = 2 * Math.PI - currentObject.angle;
+                    }
+                    curve_left(carPaths[i][cType][currentObject.state]);
+                    break;
             }
+            if (!stateNullAgain && (currentObject.state > 0 || currentObject.state == -1)) {
+                stateNullAgain = true;
+                if (isFirst) {
+                    cars[i].startFrame = cars[i].counter = Math.floor(cars[i].startFrameFac * j);
+                }
+            }
+            return (currentObject.state === 0 || currentObject.state == -1) && stateNullAgain ? obj : defineCarWay(cType, isFirst, i, ++j, obj, currentObject, stateNullAgain);
+        }
+        var carPaths = [
+            {
+                start: [{ type: "curve_right", x: [0.29, 0.29], y: [0.38, 0.227] }],
+                normal: [
+                    { type: "curve_hright", x: [0.29, 0.29], y: [0.227, 0.347] },
+                    { type: "linear_vertical", x: [0, 0], y: [0, 0] },
+                    { type: "curve_hright2", x: [0, 0], y: [0.282, 0.402] },
+                    { type: "curve_l2r", x: [0, 0.25], y: [0.402, 0.412] },
+                    { type: "linear", x: [0.25, 0.225], y: [0.412, 0.412] },
+                    { type: "curve_right", x: [0.225, 0.225], y: [0.412, 0.227] },
+                    { type: "linear", x: [0.225, 0.29], y: [0.227, 0.227] }
+                ]
+            },
+            {
+                start: [
+                    { type: "curve_left", x: [0.26, 0.26], y: [0.3, 0.198] },
+                    { type: "curve_r2l", x: [0.26, 0.216], y: [0.198, 0.197] }
+                ],
+                normal: [
+                    { type: "curve_left", x: [0.216, 0.216], y: [0.197, 0.419] },
+                    { type: "linear", x: [0.216, 0.246], y: [0.419, 419] },
+                    { type: "curve_r2l", x: [0.246, 0.286], y: [0.419, 0.43] },
+                    { type: "linear", x: [0.286, 0.31], y: [0.43, 0.43] },
+                    { type: "curve_hleft", x: [0.31, 0.31], y: [0.43, 0.33] },
+                    { type: "linear_vertical", x: [0, 0], y: [0, 0] },
+                    { type: "curve_hleft2", x: [0, 0], y: [0.347, 0.197] },
+                    { type: "linear", x: [0, 0.216], y: [0.197, 0.197] },
+                    { type: "curve_left", x: [0.216, 0.216], y: [0.197, 0.419] },
+                    { type: "linear", x: [0.216, 0.246], y: [0.419, 419] },
+                    { type: "curve_r2l", x: [0.246, 0.276], y: [0.419, 0.434] },
+                    { type: "linear", x: [0.276, 0.38], y: [0.434, 434] },
+                    { type: "curve_l2r", x: [0.38, 0.46], y: [0.434, 0.419] },
+                    { type: "linear", x: [0.46, 0.631], y: [0.419, 0.419] },
+                    { type: "curve_r2l", x: [0.631, 0.665], y: [0.419, 0.43] },
+                    { type: "curve_left", x: [0.665, 0.665], y: [0.43, 0.322] },
+                    { type: "curve_l2r", x: [0.665, 0.59], y: [0.322, 0.39] },
+                    { type: "linear", x: [0.59, 0.339], y: [0.39, 0.39] },
+                    { type: "curve_hright", x: [0.339, 0.339], y: [0.39, 0.32] },
+                    { type: "linear_vertical", x: [0, 0], y: [0, 0] },
+                    { type: "curve_hleft2", x: [0, 0], y: [0.347, 0.197] },
+                    { type: "linear", x: [0, 0.216], y: [0.197, 0.197] }
+                ]
+            },
+            {
+                start: [
+                    { type: "curve_right", x: [0.2773, 0.2773], y: [0.38, 0.227] },
+                    { type: "linear", x: [0.2773, 0.29], y: [0.227, 0.227] }
+                ],
+                normal: [
+                    { type: "curve_hright", x: [0.29, 0.29], y: [0.227, 0.347] },
+                    { type: "linear_vertical", x: [0, 0], y: [0, 0] },
+                    { type: "curve_hleft2", x: [0, 0], y: [0.299, 0.419] },
+                    { type: "linear", x: [0, 0.631], y: [0.419, 0.419] },
+                    { type: "curve_r2l", x: [0.631, 0.665], y: [0.419, 0.43] },
+                    { type: "curve_left", x: [0.665, 0.665], y: [0.43, 0.322] },
+                    { type: "curve_l2r", x: [0.665, 0.59], y: [0.322, 0.39] },
+                    { type: "linear", x: [0.59, 0.339], y: [0.39, 0.39] },
+                    { type: "curve_l2r", x: [0.339, 0.25], y: [0.39, 0.412] },
+                    { type: "linear", x: [0.25, 0.225], y: [0.412, 0.412] },
+                    { type: "curve_right", x: [0.225, 0.225], y: [0.412, 0.227] },
+                    { type: "linear", x: [0.225, 0.29], y: [0.227, 0.227] }
+                ]
+            }
+        ];
+        cars.forEach(function (car) {
+            car.collStop = true;
+            car.collStopNo = [];
+        });
+        for (var i = 0; i < cars.length; i++) {
+            var types = Object.keys(carPaths[i]);
+            for (var cTypeNo = 0; cTypeNo < types.length; cTypeNo++) {
+                var cType = types[cTypeNo];
+                carPaths[i][cType].forEach(function (cPoint) {
+                    for (var k = 0; k < cPoint.x.length && k < cPoint.y.length; k++) {
+                        cPoint.x[k] *= background.width;
+                        cPoint.y[k] *= background.height;
+                    }
+                });
+                for (var j = 0; j < carPaths[i][cType].length; j++) {
+                    for (var k = 0; k < carPaths[i][cType][j].type.length; k++) {
+                        switch (carPaths[i][cType][j].type) {
+                            case "linear_vertical":
+                                carPaths[i][cType][j].x[0] = carPaths[i][cType][j].x[1] = carPaths[i][cType][j - 1].x[1] + Math.abs((carPaths[i][cType][j - 1].y[1] - carPaths[i][cType][j - 1].y[0]) / 2) * (carPaths[i][cType][j - 1].type == "curve_hright" ? 1 : -1) * (carPaths[i][cType][j - 1].y[1] > carPaths[i][cType][j - 1].y[0] ? 1 : -1);
+                                carPaths[i][cType][j].y[0] = carPaths[i][cType][j - 1].y[0] + (carPaths[i][cType][j - 1].y[1] - carPaths[i][cType][j - 1].y[0]) / 2;
+                                carPaths[i][cType][j].y[1] = carPaths[i][cType][j + 1].y[1] + (carPaths[i][cType][j + 1].y[0] - carPaths[i][cType][j + 1].y[1]) / 2;
+                                break;
+                            case "curve_hright2":
+                                var x0 = carPaths[i][cType][j - 1].x[0] - (carPaths[i][cType][j].y[1] - carPaths[i][cType][j].y[0]) / 2;
+                                carPaths[i][cType][j].x = [x0, x0];
+                                carPaths[i][cType][j + 1 >= carPaths[i][cType].length ? 0 : j + 1].x[0] = x0;
+                                break;
+                            case "curve_hleft2":
+                                var x0 = carPaths[i][cType][j - 1].x[0] - (carPaths[i][cType][j].y[0] - carPaths[i][cType][j].y[1]) / 2;
+                                carPaths[i][cType][j].x = [x0, x0];
+                                carPaths[i][cType][j + 1 >= carPaths[i][cType].length ? 0 : j + 1].x[0] = x0;
+                                break;
+                        }
+                    }
+                }
+                if (typeof carWays[i] == "undefined") {
+                    carWays[i] = {};
+                }
+                try {
+                    carWays[i][cType] = defineCarWay(cType, (typeof carPaths[i].start == "undefined" && cType == "normal") || cType == "start", i);
+                }
+                catch (e) {
+                    carWays = cars = cars3D = [];
+                    if (three.cameraMode == ThreeCameraModes.FOLLOW_CAR) {
+                        three.cameraMode = ThreeCameraModes.BIRDS_EYE;
+                    }
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+    if (state == "reload") {
+        //Reset multiplayer mode
+        (_a = onlineConnection.socket) === null || _a === void 0 ? void 0 : _a.close();
+        //Reset timeouts
+        if (drawTimeout !== undefined && drawTimeout !== null) {
+            clearTimeout(drawTimeout);
+        }
+        if (resizeTimeout !== undefined && resizeTimeout !== null) {
+            clearTimeout(resizeTimeout);
+        }
+        if (movingTimeOut !== undefined && movingTimeOut !== null) {
+            clearTimeout(movingTimeOut);
+        }
+        if (clickTimeOut !== undefined && clickTimeOut !== null) {
+            clearTimeout(clickTimeOut);
+        }
+        if (konamiTimeOut !== undefined && konamiTimeOut !== null) {
+            clearTimeout(konamiTimeOut);
+        }
+        if (demoMode.leaveTimeout != undefined && demoMode.leaveTimeout != null) {
+            clearTimeout(demoMode.leaveTimeout);
+        }
+        if (demoMode.reloadTimeout != undefined && demoMode.reloadTimeout != null) {
+            clearTimeout(demoMode.reloadTimeout);
+        }
+        if (demoMode.reloadOnExitTimeout != undefined && demoMode.reloadOnExitTimeout != null) {
+            clearTimeout(demoMode.reloadOnExitTimeout);
+        }
+        if (multiplayerMode.resizedTimeout !== undefined && multiplayerMode.resizedTimeout !== null) {
+            clearTimeout(multiplayerMode.resizedTimeout);
+        }
+        if (multiplayerMode.syncRequestTimeout !== undefined && multiplayerMode.syncRequestTimeout !== null) {
+            clearTimeout(multiplayerMode.syncRequestTimeout);
+        }
+        if (menus.infoOverlay.textTimeout != undefined && menus.infoOverlay.textTimeout != null) {
+            clearTimeout(menus.infoOverlay.textTimeout);
+        }
+        //Reset all canvases
+        canvas.style.display = "none";
+        canvasGesture.style.display = "none";
+        canvasBackground.style.display = "none";
+        canvasSemiForeground.style.display = "none";
+        background3D.behind.style.display = "none";
+        if (background3D.behindClone) {
+            background3D.behindClone.remove();
+        }
+        three.renderer.domElement.style.display = "none";
+        //Reset three scene
+        while (three.scene.children.length > 0) {
+            three.scene.remove(three.scene.children[0]);
+        }
+        //Reset previous event listeners
+        //Load
+        document.removeEventListener("contextmenu", preventEvent);
+        document.removeEventListener("wheel", preventEvent);
+        document.removeEventListener("keydown", preventKeyZoomDuringLoad);
+        document.removeEventListener("keyup", preventKeyZoomDuringLoad);
+        window.removeEventListener("resize", requestResize);
+        //Normal mode
+        document.removeEventListener("keydown", onKeyDown);
+        document.removeEventListener("keyup", onKeyUp);
+        canvasForeground.removeEventListener("touchmove", getTouchMove);
+        canvasForeground.removeEventListener("touchstart", getTouchStart);
+        canvasForeground.removeEventListener("touchend", getTouchEnd);
+        canvasForeground.removeEventListener("touchcancel", getTouchCancel);
+        canvasForeground.removeEventListener("mousemove", onMouseMove);
+        canvasForeground.removeEventListener("mousedown", onMouseDown);
+        canvasForeground.removeEventListener("mouseup", onMouseUp);
+        canvasForeground.removeEventListener("mouseout", onMouseOut);
+        canvasForeground.removeEventListener("mouseenter", onMouseEnter);
+        canvasForeground.removeEventListener("contextmenu", onMouseRight);
+        canvasForeground.removeEventListener("wheel", onMouseWheel);
+        //Demo mode
+        document.removeEventListener("keyup", demoMode.leaveKeyUp);
+        document.removeEventListener("touchstart", demoMode.leaveTimeoutStart);
+        document.removeEventListener("touchend", demoMode.leaveTimeoutEnd);
+        document.removeEventListener("touchcancel", demoMode.leaveTimeoutEnd);
+        document.removeEventListener("mousedown", demoMode.leaveTimeoutStart);
+        document.removeEventListener("mouseup", demoMode.leaveTimeoutEnd);
+        document.removeEventListener("mouseout", demoMode.leaveTimeoutEnd);
+        //Reset konami state
+        konamiState = 0;
+        //Reset gestures
+        resetAll();
+        //Reset resize
+        resized = false;
+    }
+    //Default multiplayer mode
+    onlineConnection = {
+        send: function (mode, message) {
+            if (onlineConnection.socket && onlineConnection.socket.readyState == WebSocket.OPEN) {
+                onlineConnection.socket.send(JSON.stringify({
+                    mode: mode,
+                    data: message
+                }));
+            }
+            else if (APP_DATA.debug) {
+                console.error("Websocket: Error sending message");
+            }
+        }
+    };
+    trainParams.selected = Math.floor(Math.random() * trains.length);
+    //Audio context
+    audioControl.playAndPauseAll();
+    //Default switches
+    var switchParamsDefault = {
+        showDuration: 11,
+        showDurationFade: 33,
+        showDurationEnd: 44,
+        set: function () {
+            switchParams.radius = 0.02 * background.width;
+        }
+    };
+    var switchesDefault = {
+        inner2outer: { left: { turned: false, angles: { normal: 1.01 * Math.PI, turned: 0.941 * Math.PI } }, right: { turned: false, angles: { normal: 1.5 * Math.PI, turned: 1.56 * Math.PI } } },
+        outer2inner: { left: { turned: false, angles: { normal: 0.25 * Math.PI, turned: 0.2 * Math.PI } }, right: { turned: false, angles: { normal: 0.27 * Math.PI, turned: 0.35 * Math.PI } } },
+        innerWide: { left: { turned: false, angles: { normal: 1.44 * Math.PI, turned: 1.37 * Math.PI } }, right: { turned: false, angles: { normal: 1.02 * Math.PI, turned: 1.1 * Math.PI } } },
+        outerAltState3: { left: { turned: true, angles: { normal: 1.75 * Math.PI, turned: 1.85 * Math.PI } }, right: { turned: true, angles: { normal: 0.75 * Math.PI, turned: 0.65 * Math.PI } } },
+        sidings1: { left: { turned: false, angles: { normal: 1.75 * Math.PI, turned: 1.7 * Math.PI } } },
+        sidings2: { left: { turned: false, angles: { normal: 1.65 * Math.PI, turned: 1.72 * Math.PI } } },
+        sidings3: { left: { turned: false, angles: { normal: 1.65 * Math.PI, turned: 1.73 * Math.PI } } },
+        outerRightSiding: { left: { turned: false, angles: { normal: 1.71 * Math.PI, turned: 1.76 * Math.PI } } },
+        outerRightSidingTurn: { left: { turned: false, angles: { normal: 1.7 * Math.PI, turned: 1.75 * Math.PI } } }
+    };
+    switches = switchesDefault;
+    switches3D = {};
+    switchParams = switchParamsDefault;
+    //Default cars
+    var carParamsDefault = { init: true, wayNo: 6 };
+    var carsDefault = [
+        { src: 16, fac: 0.02, speedFac: 0.0008, startFrameFac: 0.65, angles: { start: Math.PI, normal: 0 }, hexColor: "0xff0000" },
+        { src: 17, fac: 0.02, speedFac: 0.001, startFrameFac: 0.335, angles: { start: 0, normal: Math.PI }, hexColor: "0xffffff" },
+        { src: 0, fac: 0.0202, speedFac: 0.00082, startFrameFac: 0.65, angles: { start: Math.PI, normal: 0 }, hexColor: "0xffee00" }
+    ];
+    carParams = carParamsDefault;
+    carWays = [];
+    cars = carsDefault;
+    cars3D = [];
+    //Default Classic UI
+    var classicUIDefault = {
+        trainSwitch: { src: 11, srcFill: 31, selectedTrainDisplay: { fontFamily: defaultFont } },
+        transformer: { src: 12, onSrc: 13, readySrc: 23, angle: Math.PI / 5, wheelInput: { src: 14, angle: 0, maxAngle: 1.5 * Math.PI }, directionInput: { srcStandardDirection: 24, srcNotStandardDirection: 15 } },
+        ready: function (displayOnly) {
+            if (displayOnly === void 0) { displayOnly = false; }
+            return getSetting("classicUI") && !(gui.controlCenter || gui.konamiOverlay || gui.three || currentMode == Modes.DEMO || multiplayerMode.waitingClock.visible || canvasGesture == undefined || contextGesture == undefined) && (displayOnly || !onlineConnection.stop);
+        },
+        pointInTransformerImage: function (x, y) {
+            if (!classicUI.ready()) {
+                return false;
+            }
+            if (classicUI.transformer.angle == undefined || classicUI.transformer.x == undefined || classicUI.transformer.y == undefined || classicUI.transformer.width == undefined || classicUI.transformer.height == undefined) {
+                return false;
+            }
+            contextGesture.setTransform(client.zoomAndTilt.realScale, 0, 0, client.zoomAndTilt.realScale, (-(client.zoomAndTilt.realScale - 1) * canvasGesture.width) / 2 + client.zoomAndTilt.offsetX, (-(client.zoomAndTilt.realScale - 1) * canvasGesture.height) / 2 + client.zoomAndTilt.offsetY);
+            contextGesture.translate(classicUI.transformer.x + classicUI.transformer.width / 2, classicUI.transformer.y + classicUI.transformer.height / 2);
+            contextGesture.rotate(classicUI.transformer.angle);
+            contextGesture.beginPath();
+            contextGesture.rect(-classicUI.transformer.width / 2, -classicUI.transformer.height / 2, classicUI.transformer.width, classicUI.transformer.height);
+            if (contextGesture.isPointInPath(x, y)) {
+                return true;
+            }
+            return false;
+        },
+        pointInTransformerWheelInput: function (x, y) {
+            if (!classicUI.pointInTransformerImage(x, y)) {
+                return false;
+            }
+            if (classicUI.transformer.wheelInput.diffY == undefined || classicUI.transformer.wheelInput.angle == undefined || classicUI.transformer.wheelInput.width == undefined || classicUI.transformer.wheelInput.height == undefined) {
+                return false;
+            }
+            contextGesture.setTransform(client.zoomAndTilt.realScale, 0, 0, client.zoomAndTilt.realScale, (-(client.zoomAndTilt.realScale - 1) * canvasGesture.width) / 2 + client.zoomAndTilt.offsetX, (-(client.zoomAndTilt.realScale - 1) * canvasGesture.height) / 2 + client.zoomAndTilt.offsetY);
+            contextGesture.translate(classicUI.transformer.x + classicUI.transformer.width / 2, classicUI.transformer.y + classicUI.transformer.height / 2);
+            contextGesture.rotate(classicUI.transformer.angle);
+            contextGesture.translate(0, -classicUI.transformer.wheelInput.diffY);
+            contextGesture.rotate(classicUI.transformer.wheelInput.angle);
+            contextGesture.beginPath();
+            contextGesture.rect(-classicUI.transformer.wheelInput.width / 2, -classicUI.transformer.wheelInput.height / 2, classicUI.transformer.wheelInput.width, classicUI.transformer.wheelInput.height);
+            if (contextGesture.isPointInPath(x, y)) {
+                return true;
+            }
+            return false;
+        },
+        pointInTransformerDirectionInput: function (x, y) {
+            if (!classicUI.pointInTransformerImage(x, y)) {
+                return false;
+            }
+            if (classicUI.transformer.directionInput.diffX == undefined || classicUI.transformer.directionInput.diffY == undefined || classicUI.transformer.directionInput.width == undefined || classicUI.transformer.directionInput.height == undefined) {
+                return false;
+            }
+            contextGesture.setTransform(client.zoomAndTilt.realScale, 0, 0, client.zoomAndTilt.realScale, (-(client.zoomAndTilt.realScale - 1) * canvasGesture.width) / 2 + client.zoomAndTilt.offsetX, (-(client.zoomAndTilt.realScale - 1) * canvasGesture.height) / 2 + client.zoomAndTilt.offsetY);
+            contextGesture.translate(classicUI.transformer.x + classicUI.transformer.width / 2, classicUI.transformer.y + classicUI.transformer.height / 2);
+            contextGesture.rotate(classicUI.transformer.angle);
+            contextGesture.translate(classicUI.transformer.directionInput.diffX, classicUI.transformer.directionInput.diffY);
+            contextGesture.beginPath();
+            contextGesture.rect(-classicUI.transformer.directionInput.width / 2, -classicUI.transformer.directionInput.height / 2, classicUI.transformer.directionInput.width, classicUI.transformer.directionInput.height);
+            if (contextGesture.isPointInPath(x, y)) {
+                return true;
+            }
+            return false;
+        },
+        pointInTransformerInput: function (x, y) {
+            return classicUI.pointInTransformerWheelInput(x, y) || classicUI.pointInTransformerDirectionInput(x, y);
+        },
+        pointInTrainSwitchInputImage: function (x, y) {
+            if (!classicUI.ready()) {
+                return false;
+            }
+            if (classicUI.trainSwitch.angle == undefined || classicUI.trainSwitch.x == undefined || classicUI.trainSwitch.y == undefined || classicUI.trainSwitch.width == undefined || classicUI.trainSwitch.height == undefined) {
+                return false;
+            }
+            contextGesture.setTransform(client.zoomAndTilt.realScale, 0, 0, client.zoomAndTilt.realScale, (-(client.zoomAndTilt.realScale - 1) * canvasGesture.width) / 2 + client.zoomAndTilt.offsetX, (-(client.zoomAndTilt.realScale - 1) * canvasGesture.height) / 2 + client.zoomAndTilt.offsetY);
+            contextGesture.translate(classicUI.trainSwitch.x + classicUI.trainSwitch.width / 2, classicUI.trainSwitch.y + classicUI.trainSwitch.height / 2);
+            contextGesture.rotate(classicUI.trainSwitch.angle);
+            contextGesture.beginPath();
+            contextGesture.rect(-classicUI.trainSwitch.width / 2, -classicUI.trainSwitch.height / 2, classicUI.trainSwitch.width, classicUI.trainSwitch.height);
+            if (contextGesture.isPointInPath(x, y)) {
+                return true;
+            }
+            return false;
+        },
+        pointInTrainSwitchInputText: function (x, y) {
+            if (!classicUI.ready()) {
+                return false;
+            }
+            if (!classicUI.trainSwitch.selectedTrainDisplay.visible) {
+                return false;
+            }
+            if (classicUI.trainSwitch.selectedTrainDisplay.x == undefined || classicUI.trainSwitch.selectedTrainDisplay.y == undefined || classicUI.trainSwitch.selectedTrainDisplay.width == undefined || classicUI.trainSwitch.selectedTrainDisplay.height == undefined) {
+                return false;
+            }
+            contextGesture.setTransform(client.zoomAndTilt.realScale, 0, 0, client.zoomAndTilt.realScale, (-(client.zoomAndTilt.realScale - 1) * canvasGesture.width) / 2 + client.zoomAndTilt.offsetX, (-(client.zoomAndTilt.realScale - 1) * canvasGesture.height) / 2 + client.zoomAndTilt.offsetY);
+            contextGesture.beginPath();
+            contextGesture.rect(classicUI.trainSwitch.selectedTrainDisplay.x, classicUI.trainSwitch.selectedTrainDisplay.y, classicUI.trainSwitch.selectedTrainDisplay.width, classicUI.trainSwitch.selectedTrainDisplay.height);
+            if (contextGesture.isPointInPath(x, y)) {
+                return true;
+            }
+            return false;
+        },
+        pointInTrainSwitchInput: function (x, y) {
+            return classicUI.pointInTrainSwitchInputImage(x, y) || classicUI.pointInTrainSwitchInputText(x, y);
+        }
+    };
+    classicUI = classicUIDefault;
+    //Default animations
+    var taxOfficeDefault = {
+        params: {
+            number: 45,
+            frameNo: 6,
+            frameProbability: 0.6,
+            fire: { x: 0.07, y: 0.06, size: 0.000833, color: { red: { red: 200, green: 0, blue: 0, alpha: 0.4 }, yellow: { red: 255, green: 160, blue: 0, alpha: 1 }, probability: 0.8 } },
+            smoke: { x: 0.07, y: 0.06, size: 0.02, color: { red: 130, green: 120, blue: 130, alpha: 0.3 } },
+            blueLights: {
+                frameNo: 16,
+                cars: [
+                    { frameNo: 0, x: [-0.0105, -0.0026], y: [0.175, 0.0045], size: 0.0008 },
+                    { frameNo: 3, x: [0.0275, -0.00275], y: [0.1472, 0.0092], size: 0.001 },
+                    { frameNo: 5, x: [0.0568, 0.0008], y: [0.177, 0.0148], size: 0.001 }
+                ]
+            }
+        }
+    };
+    taxOffice = taxOfficeDefault;
+    //GUI State
+    var queryString3D = getQueryStringValue("gui-3d");
+    if (queryString3D == "0" || queryString3D == "1") {
+        gui.three = getGuiState("3d", queryString3D == "1");
+    }
+    else {
+        gui.three = getGuiState("3d");
+    }
+    var queryString3DNight = getQueryStringValue("gui-3d-night");
+    if (queryString3DNight == "0" || queryString3DNight == "1") {
+        three.night = getGuiState("3d-night", queryString3DNight == "1");
+    }
+    else {
+        three.night = getGuiState("3d-night");
+    }
+    var queryString3DCamMode = getQueryStringValue("gui-3d-cam-mode");
+    three.cameraMode = getGuiState("3d-cam-mode", queryString3DCamMode);
+    var queryString3DFollowObject = getQueryStringValue("gui-3d-follow-object");
+    three.followObject = currentMode == Modes.DEMO ? -1 : getGuiState("3d-follow-object", parseInt(queryString3DFollowObject, 10));
+    three.demoRotationSpeedFac = getGuiState("3d-rotation-speed", parseInt(getQueryStringValue("gui-demo-3d-rotation-speed-percent"), 10));
+    if (currentMode == Modes.DEMO) {
+        var queryStringDemoRandom = getQueryStringValue("gui-demo-random");
+        var randomDemoMode;
+        if (queryStringDemoRandom == "0" || queryStringDemoRandom == "1") {
+            randomDemoMode = getGuiState("demo-random", queryStringDemoRandom == "1");
+        }
+        else {
+            randomDemoMode = getGuiState("demo-random");
+        }
+        if (randomDemoMode) {
+            gui.three = Math.random() < 0.6;
+            three.night = Math.random() < 0.5;
+            var cameraModes = Object.values(ThreeCameraModes);
+            three.cameraMode = cameraModes[Math.floor(Math.random() * cameraModes.length)];
+            three.demoRotationSpeedFac = Math.floor(Math.random() * 101);
+        }
+        var queryStringDemoExitTimeout = parseInt(getQueryStringValue("exit-timeout"), 10);
+        if (typeof queryStringDemoExitTimeout == "number" && Number.isInteger(queryStringDemoExitTimeout) && queryStringDemoExitTimeout > 0) {
+            demoMode.exitAppDelay = queryStringDemoExitTimeout * 60000;
+        }
+    }
+    //Input handling
+    hardware.lastInputMouse = hardware.lastInputTouch = 0;
+    document.addEventListener("contextmenu", preventEvent, { passive: false });
+    document.addEventListener("wheel", preventEvent, { passive: false });
+    document.addEventListener("keydown", preventKeyZoomDuringLoad, { passive: false });
+    document.addEventListener("keyup", preventKeyZoomDuringLoad, { passive: false });
+    //Prepare game
+    if (currentMode != Modes.MULTIPLAYER) {
+        var elements = document.querySelectorAll("#content > *:not(#game), #game > *:not(#game-gameplay)");
+        for (var i = 0; i < elements.length; i++) {
+            elements[i].style.display = "none";
+        }
+        elements = document.querySelectorAll("#content > #game, #game > #game-gameplay");
+        for (i = 0; i < elements.length; i++) {
+            elements[i].style.display = "block";
+        }
+    }
+    if (getSetting("saveGame")) {
+        updateSavedGame();
+    }
+    else {
+        removeSavedGame();
+    }
+    measureViewSpace();
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    calcMenusAndBackground(state);
+    var savedGameBg = localStorage.getItem("morowayAppSavedGame_v-" + getVersionCode() + "_Bg");
+    var savedGameTrains = localStorage.getItem("morowayAppSavedGame_v-" + getVersionCode() + "_Trains");
+    var savedGameSwitches = localStorage.getItem("morowayAppSavedGame_v-" + getVersionCode() + "_Switches");
+    var savedGameCars = localStorage.getItem("morowayAppSavedGame_v-" + getVersionCode() + "_Cars");
+    var savedGameCarParams = localStorage.getItem("morowayAppSavedGame_v-" + getVersionCode() + "_CarParams");
+    var savedGameBgSession = sessionStorage.getItem("demoBg");
+    var savedGameCarsSession = sessionStorage.getItem("demoCars");
+    var savedGameCarParamsSession = sessionStorage.getItem("demoCarParams");
+    //Cars
+    if (defineCarWays()) {
+        if (getSetting("saveGame") && currentMode == Modes.SINGLEPLAYER && savedGameCars != null && savedGameCarParams != null && savedGameBg != null) {
+            /* UPDATE: v9.0.0 */
+            var carColors = [];
+            for (var i = 0; i < cars.length; i++) {
+                carColors[i] = cars[i].hexColor;
+            }
+            /* END UPDATE: v9.0.0 */
+            cars = JSON.parse(savedGameCars);
+            /* UPDATE: v9.0.0 */
+            for (var i = 0; i < cars.length; i++) {
+                cars[i].hexColor = carColors[i];
+            }
+            /* END UPDATE: v9.0.0 */
+            carParams = JSON.parse(savedGameCarParams);
+            resizeCars(JSON.parse(savedGameBg));
+        }
+        else if (currentMode == Modes.DEMO && savedGameCarsSession != null && savedGameCarParamsSession != null && savedGameBgSession != null) {
+            cars = JSON.parse(savedGameCarsSession);
+            carParams = JSON.parse(savedGameCarParamsSession);
+            resizeCars(JSON.parse(savedGameBgSession));
+        }
+        else {
             cars.forEach(function (car, i) {
-                car.speed *= background.width;
-                car.collStop = true;
-                car.collStopNo = [];
+                car.speed = car.speedFac * background.width;
+                car.width = car.fac * background.width;
+                car.height = car.fac * (pics[car.src].height * (background.width / pics[car.src].width));
+                car.cType = typeof carWays[i].start == "undefined" ? "normal" : "start";
+                car.displayAngle = carWays[i][car.cType][car.counter].angle;
+                car.x = carWays[i][car.cType][car.counter].x;
+                car.y = carWays[i][car.cType][car.counter].y;
+                car.backToInit = false;
+                car.parking = true;
                 if (i === 0) {
                     carParams.lowestSpeedNo = i;
                 }
                 else if (car.speed < cars[carParams.lowestSpeedNo].speed) {
                     carParams.lowestSpeedNo = i;
                 }
-            });
-            for (var i = 0; i < cars.length; i++) {
-                var types = Object.keys(carPaths[i]);
-                for (var cTypeNo = 0; cTypeNo < types.length; cTypeNo++) {
-                    var cType = types[cTypeNo];
-                    carPaths[i][cType].forEach(function (cPoint) {
-                        for (var k = 0; k < cPoint.x.length && k < cPoint.y.length; k++) {
-                            cPoint.x[k] *= background.width;
-                            cPoint.y[k] *= background.height;
-                        }
-                    });
-                    for (var j = 0; j < carPaths[i][cType].length; j++) {
-                        for (var k = 0; k < carPaths[i][cType][j].type.length; k++) {
-                            switch (carPaths[i][cType][j].type) {
-                                case "linear_vertical":
-                                    carPaths[i][cType][j].x[0] = carPaths[i][cType][j].x[1] = carPaths[i][cType][j - 1].x[1] + Math.abs((carPaths[i][cType][j - 1].y[1] - carPaths[i][cType][j - 1].y[0]) / 2) * (carPaths[i][cType][j - 1].type == "curve_hright" ? 1 : -1) * (carPaths[i][cType][j - 1].y[1] > carPaths[i][cType][j - 1].y[0] ? 1 : -1);
-                                    carPaths[i][cType][j].y[0] = carPaths[i][cType][j - 1].y[0] + (carPaths[i][cType][j - 1].y[1] - carPaths[i][cType][j - 1].y[0]) / 2;
-                                    carPaths[i][cType][j].y[1] = carPaths[i][cType][j + 1].y[1] + (carPaths[i][cType][j + 1].y[0] - carPaths[i][cType][j + 1].y[1]) / 2;
-                                    break;
-                                case "curve_hright2":
-                                    var x0 = carPaths[i][cType][j - 1].x[0] - (carPaths[i][cType][j].y[1] - carPaths[i][cType][j].y[0]) / 2;
-                                    carPaths[i][cType][j].x = [x0, x0];
-                                    carPaths[i][cType][j + 1 >= carPaths[i][cType].length ? 0 : j + 1].x[0] = x0;
-                                    break;
-                                case "curve_hleft2":
-                                    var x0 = carPaths[i][cType][j - 1].x[0] - (carPaths[i][cType][j].y[0] - carPaths[i][cType][j].y[1]) / 2;
-                                    carPaths[i][cType][j].x = [x0, x0];
-                                    carPaths[i][cType][j + 1 >= carPaths[i][cType].length ? 0 : j + 1].x[0] = x0;
-                                    break;
-                            }
-                        }
-                    }
-                    if (typeof carWays[i] == "undefined") {
-                        carWays[i] = {};
-                    }
-                    try {
-                        carWays[i][cType] = defineCarWays(cType, (typeof carPaths[i].start == "undefined" && cType == "normal") || cType == "start", i);
-                    }
-                    catch (e) {
-                        return false;
-                    }
-                }
-            }
-            return true;
-        }
-        function placeCarsAtInitialPositions() {
-            for (var i = 0; i < cars.length; i++) {
-                cars[i].width = cars[i].fac * background.width;
-                cars[i].height = cars[i].fac * (pics[cars[i].src].height * (background.width / pics[cars[i].src].width));
-                cars[i].cType = typeof carWays[i].start == "undefined" ? "normal" : "start";
-                cars[i].displayAngle = carWays[i][cars[i].cType][cars[i].counter].angle;
-                cars[i].x = carWays[i][cars[i].cType][cars[i].counter].x;
-                cars[i].y = carWays[i][cars[i].cType][cars[i].counter].y;
-                cars[i].backToInit = false;
-                cars[i].parking = true;
                 if (i === 0) {
                     carParams.thickestCar = i;
                 }
-                else if (cars[i].height > cars[carParams.thickestCar].height) {
+                else if (car.height > cars[carParams.thickestCar].height) {
                     carParams.thickestCar = i;
                 }
+            });
+            if (currentMode == Modes.DEMO) {
+                carParams.init = false;
+                carParams.autoModeOff = false;
+                carParams.autoModeRuns = true;
+                carParams.autoModeInit = true;
             }
         }
-        context.clearRect(0, 0, canvas.width, canvas.height);
-        calcMenusAndBackground("load");
-        switchParams.set();
-        var savedGameBg = window.localStorage.getItem("morowayAppSavedGame_v-" + getVersionCode() + "_Bg");
-        var savedGameTrains = window.localStorage.getItem("morowayAppSavedGame_v-" + getVersionCode() + "_Trains");
-        var savedGameSwitches = window.localStorage.getItem("morowayAppSavedGame_v-" + getVersionCode() + "_Switches");
-        var savedGameCars = window.localStorage.getItem("morowayAppSavedGame_v-" + getVersionCode() + "_Cars");
-        var savedGameCarParams = window.localStorage.getItem("morowayAppSavedGame_v-" + getVersionCode() + "_CarParams");
-        var savedGameBgSession = window.sessionStorage.getItem("demoBg");
-        var savedGameCarsSession = window.sessionStorage.getItem("demoCars");
-        var savedGameCarParamsSession = window.sessionStorage.getItem("demoCarParams");
-        //Cars
-        if (defineCarParams()) {
-            if (getSetting("saveGame") && !onlineGame.enabled && !gui.demo && savedGameCars != null && savedGameCarParams != null && savedGameBg != null) {
-                /* UPDATE: v9.0.0 */
-                var carColors = [];
-                for (var i = 0; i < cars.length; i++) {
-                    carColors[i] = cars[i].hexColor;
-                }
-                /* END UPDATE: v9.0.0 */
-                cars = JSON.parse(savedGameCars);
-                /* UPDATE: v9.0.0 */
-                for (var i = 0; i < cars.length; i++) {
-                    cars[i].hexColor = carColors[i];
-                }
-                /* END UPDATE: v9.0.0 */
-                carParams = JSON.parse(savedGameCarParams);
-                resizeCars(JSON.parse(savedGameBg));
+    }
+    //TAX OFFICE
+    taxOffice.fire = [];
+    taxOffice.smoke = [];
+    taxOffice.params.fire.x *= background.width;
+    taxOffice.params.fire.y *= background.height;
+    taxOffice.params.fire.size *= background.width;
+    taxOffice.params.smoke.x *= background.width;
+    taxOffice.params.smoke.y *= background.height;
+    taxOffice.params.smoke.size *= background.width;
+    for (var i = 0; i < taxOffice.params.number; i++) {
+        taxOffice.fire[i] = {};
+        taxOffice.smoke[i] = {};
+        if (Math.random() >= taxOffice.params.fire.color.probability) {
+            taxOffice.fire[i].color = "rgba(" + taxOffice.params.fire.color.yellow.red + "," + taxOffice.params.fire.color.yellow.green + "," + taxOffice.params.fire.color.yellow.blue + "," + taxOffice.params.fire.color.yellow.alpha * Math.random() + ")";
+        }
+        else {
+            taxOffice.fire[i].color = "rgba(" + taxOffice.params.fire.color.red.red + "," + taxOffice.params.fire.color.red.green + "," + taxOffice.params.fire.color.red.blue + "," + taxOffice.params.fire.color.red.alpha * Math.random() + ")";
+        }
+        taxOffice.fire[i].x = Math.random() * taxOffice.params.fire.x;
+        taxOffice.fire[i].y = Math.random() * taxOffice.params.fire.y;
+        taxOffice.fire[i].size = Math.random() * taxOffice.params.fire.size;
+        taxOffice.smoke[i].color = "rgba(" + taxOffice.params.smoke.color.red + "," + taxOffice.params.smoke.color.green + "," + taxOffice.params.smoke.color.blue + "," + taxOffice.params.smoke.color.alpha * Math.random() + ")";
+        taxOffice.smoke[i].x = Math.random() * taxOffice.params.smoke.x;
+        taxOffice.smoke[i].y = Math.random() * taxOffice.params.smoke.y;
+        taxOffice.smoke[i].size = Math.random() * taxOffice.params.smoke.size;
+    }
+    for (var i = 0; i < taxOffice.params.blueLights.cars.length; i++) {
+        taxOffice.params.blueLights.cars[i].x[0] *= background.width;
+        taxOffice.params.blueLights.cars[i].x[1] *= background.width;
+        taxOffice.params.blueLights.cars[i].y[0] *= background.height;
+        taxOffice.params.blueLights.cars[i].y[1] *= background.height;
+        taxOffice.params.blueLights.cars[i].size *= background.width;
+    }
+    //Text Control
+    textControl.elements.root = document.querySelector("#text-control");
+    textControl.elements.input = textControl.elements.root.querySelector("#text-control-input input");
+    textControl.elements.output = textControl.elements.root.querySelector("#text-control-output");
+    textControl.elements.input.onkeydown = function (event) {
+        if (event.key == "Enter") {
+            var commandsInput = textControl.elements.input.value.replace(/\s+/g, " ").replace(/\s+$/, "").replace(/^\s+/, "");
+            var commands = commandsInput.split(" ");
+            var command = commands.shift();
+            textControl.elements.input.value = "";
+            if (!Object.keys(textControl.commands).includes(command)) {
+                command = "/";
             }
-            else if (gui.demo && savedGameCarsSession != null && savedGameCarParamsSession != null && savedGameBgSession != null) {
-                cars = JSON.parse(savedGameCarsSession);
-                carParams = JSON.parse(savedGameCarParamsSession);
-                resizeCars(JSON.parse(savedGameBgSession));
-            }
-            else {
-                placeCarsAtInitialPositions();
-                if (gui.demo) {
-                    carParams.init = false;
-                    carParams.autoModeOff = false;
-                    carParams.autoModeRuns = true;
-                    carParams.autoModeInit = true;
+            textControl.elements.output.textContent = textControl.commands[command].action(commands);
+        }
+    };
+    //Switches
+    switchParams.set();
+    if (getSetting("saveGame") && currentMode == Modes.SINGLEPLAYER && savedGameTrains != null && savedGameSwitches != null && savedGameBg != null) {
+        var savedSwitches = JSON.parse(savedGameSwitches);
+        Object.keys(savedSwitches).forEach(function (key) {
+            Object.keys(savedSwitches[key]).forEach(function (side) {
+                switches[key][side].turned = savedSwitches[key][side];
+            });
+        });
+    }
+    else if (currentMode == Modes.DEMO) {
+        Object.keys(switches).forEach(function (key) {
+            Object.keys(switches[key]).forEach(function (side) {
+                if (key == "inner2outer" || key == "outer2inner") {
+                    switches[key][side].turned = false;
                 }
+                else {
+                    switches[key][side].turned = Math.random() > 0.4;
+                }
+            });
+        });
+    }
+    //Three.js
+    three.scene = new THREE.Scene();
+    three.mainGroup = new THREE.Group();
+    three.mainGroup.name = "main_group";
+    three.scene.add(three.mainGroup);
+    three.renderer = new THREE.WebGLRenderer({ alpha: true });
+    THREE.ColorManagement.enabled = false;
+    three.renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
+    three.renderer.setClearColor(0xffffff, 0);
+    document.querySelector("#game-gameplay").insertBefore(three.renderer.domElement, document.querySelector("#canvas-menus"));
+    three.renderer.domElement.id = "game-gameplay-three";
+    three.ambientLightNight = 0.25 * Math.PI;
+    three.ambientLightDay = 0.75 * Math.PI;
+    three.ambientLight = new THREE.AmbientLight(0xfffefe, three.night ? three.ambientLightNight : three.ambientLightDay);
+    three.scene.add(three.ambientLight);
+    three.directionalLight = new THREE.DirectionalLight(0xeedfdf, 0.45 * Math.PI);
+    three.directionalLight.position.set((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, 1);
+    three.scene.add(three.directionalLight);
+    three.directionalLightXFac = Math.round(Math.random()) * 2 - 1;
+    three.directionalLightYFac = Math.round(Math.random()) * 2 - 1;
+    three.animateLights = function () {
+        var add = 0.001;
+        var addX = add * three.directionalLightXFac;
+        var addY = add * three.directionalLightYFac;
+        three.directionalLight.position.x += addX;
+        three.directionalLight.position.y += addY;
+        if (three.directionalLight.position.x >= 1) {
+            three.directionalLight.position.x = 1;
+            three.directionalLightXFac = -1;
+        }
+        else if (three.directionalLight.position.x <= -1) {
+            three.directionalLight.position.x = -1;
+            three.directionalLightXFac = 1;
+        }
+        if (three.directionalLight.position.y >= 1) {
+            three.directionalLight.position.y = 1;
+            three.directionalLightYFac = -1;
+        }
+        else if (three.directionalLight.position.y <= -1) {
+            three.directionalLight.position.y = -1;
+            three.directionalLightYFac = 1;
+        }
+        var add = 0.005 * Math.PI;
+        if (three.night) {
+            if (three.ambientLight.intensity > three.ambientLightNight) {
+                three.ambientLight.intensity -= add;
+            }
+            if (three.ambientLight.intensity < three.ambientLightNight) {
+                three.ambientLight.intensity = three.ambientLightNight;
             }
         }
         else {
-            carWays = cars = [];
-            if (three.cameraMode == ThreeCameraModes.FOLLOW_CAR) {
-                three.cameraMode = ThreeCameraModes.BIRDS_EYE;
+            if (three.ambientLight.intensity < three.ambientLightDay) {
+                three.ambientLight.intensity += add;
+            }
+            if (three.ambientLight.intensity > three.ambientLightDay) {
+                three.ambientLight.intensity = three.ambientLightDay;
             }
         }
-        //TAX OFFICE
-        taxOffice.fire = [];
-        taxOffice.smoke = [];
-        taxOffice.params.fire.x *= background.width;
-        taxOffice.params.fire.y *= background.height;
-        taxOffice.params.fire.size *= background.width;
-        taxOffice.params.smoke.x *= background.width;
-        taxOffice.params.smoke.y *= background.height;
-        taxOffice.params.smoke.size *= background.width;
-        for (var i = 0; i < taxOffice.params.number; i++) {
-            taxOffice.fire[i] = {};
-            taxOffice.smoke[i] = {};
-            if (Math.random() >= taxOffice.params.fire.color.probability) {
-                taxOffice.fire[i].color = "rgba(" + taxOffice.params.fire.color.yellow.red + "," + taxOffice.params.fire.color.yellow.green + "," + taxOffice.params.fire.color.yellow.blue + "," + taxOffice.params.fire.color.yellow.alpha * Math.random() + ")";
-            }
-            else {
-                taxOffice.fire[i].color = "rgba(" + taxOffice.params.fire.color.red.red + "," + taxOffice.params.fire.color.red.green + "," + taxOffice.params.fire.color.red.blue + "," + taxOffice.params.fire.color.red.alpha * Math.random() + ")";
-            }
-            taxOffice.fire[i].x = Math.random() * taxOffice.params.fire.x;
-            taxOffice.fire[i].y = Math.random() * taxOffice.params.fire.y;
-            taxOffice.fire[i].size = Math.random() * taxOffice.params.fire.size;
-            taxOffice.smoke[i].color = "rgba(" + taxOffice.params.smoke.color.red + "," + taxOffice.params.smoke.color.green + "," + taxOffice.params.smoke.color.blue + "," + taxOffice.params.smoke.color.alpha * Math.random() + ")";
-            taxOffice.smoke[i].x = Math.random() * taxOffice.params.smoke.x;
-            taxOffice.smoke[i].y = Math.random() * taxOffice.params.smoke.y;
-            taxOffice.smoke[i].size = Math.random() * taxOffice.params.smoke.size;
-        }
-        for (var i = 0; i < taxOffice.params.blueLights.cars.length; i++) {
-            taxOffice.params.blueLights.cars[i].x[0] *= background.width;
-            taxOffice.params.blueLights.cars[i].x[1] *= background.width;
-            taxOffice.params.blueLights.cars[i].y[0] *= background.height;
-            taxOffice.params.blueLights.cars[i].y[1] *= background.height;
-            taxOffice.params.blueLights.cars[i].size *= background.width;
-        }
-        //Text Control
-        textControl.elements.root = document.querySelector("#text-control");
-        textControl.elements.input = textControl.elements.root.querySelector("#text-control-input input");
-        textControl.elements.output = textControl.elements.root.querySelector("#text-control-output");
-        textControl.elements.input.addEventListener("keydown", function (event) {
-            if (event.key == "Enter") {
-                var commandsInput = textControl.elements.input.value.replace(/\s+/g, " ").replace(/\s+$/, "").replace(/^\s+/, "");
-                var commands = commandsInput.split(" ");
-                var command = commands.shift();
-                textControl.elements.input.value = "";
-                if (!Object.keys(textControl.commands).includes(command)) {
-                    command = "/";
-                }
-                textControl.elements.output.textContent = textControl.commands[command].action(commands);
-            }
+    };
+    if (objects3D[background3D.flat.src]) {
+        var material = new THREE.MeshLambertMaterial({
+            map: objects3D[background3D.flat.src].clone(),
+            reflectivity: 1
         });
-        //Switches
-        if (getSetting("saveGame") && !onlineGame.enabled && !gui.demo && savedGameTrains != null && savedGameSwitches != null && savedGameBg != null) {
-            var savedSwitches = JSON.parse(savedGameSwitches);
-            Object.keys(savedSwitches).forEach(function (key) {
-                Object.keys(savedSwitches[key]).forEach(function (side) {
-                    switches[key][side].turned = savedSwitches[key][side];
-                });
-            });
-        }
-        else if (gui.demo) {
-            Object.keys(switches).forEach(function (key) {
-                Object.keys(switches[key]).forEach(function (side) {
-                    if (key == "inner2outer" || key == "outer2inner") {
-                        switches[key][side].turned = false;
-                    }
-                    else {
-                        switches[key][side].turned = Math.random() > 0.4;
-                    }
-                });
-            });
-        }
-        //Three.js
-        three.scene = new THREE.Scene();
-        three.mainGroup = new THREE.Group();
-        three.mainGroup.name = "main_group";
-        three.scene.add(three.mainGroup);
-        three.renderer = new THREE.WebGLRenderer({ alpha: true });
-        THREE.ColorManagement.enabled = false;
-        three.renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
-        three.renderer.setClearColor(0xffffff, 0);
-        document.querySelector("#game-gameplay").insertBefore(three.renderer.domElement, document.querySelector("#canvas-menus"));
-        three.renderer.domElement.id = "game-gameplay-three";
-        three.ambientLightNight = 0.25 * Math.PI;
-        three.ambientLightDay = 0.75 * Math.PI;
-        three.ambientLight = new THREE.AmbientLight(0xfffefe, three.night ? three.ambientLightNight : three.ambientLightDay);
-        three.scene.add(three.ambientLight);
-        three.directionalLight = new THREE.DirectionalLight(0xeedfdf, 0.45 * Math.PI);
-        three.directionalLight.position.set((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, 1);
-        three.scene.add(three.directionalLight);
-        three.directionalLightXFac = Math.round(Math.random()) * 2 - 1;
-        three.directionalLightYFac = Math.round(Math.random()) * 2 - 1;
-        three.animateLights = function () {
-            var add = 0.001;
-            var addX = add * three.directionalLightXFac;
-            var addY = add * three.directionalLightYFac;
-            three.directionalLight.position.x += addX;
-            three.directionalLight.position.y += addY;
-            if (three.directionalLight.position.x >= 1) {
-                three.directionalLight.position.x = 1;
-                three.directionalLightXFac = -1;
-            }
-            else if (three.directionalLight.position.x <= -1) {
-                three.directionalLight.position.x = -1;
-                three.directionalLightXFac = 1;
-            }
-            if (three.directionalLight.position.y >= 1) {
-                three.directionalLight.position.y = 1;
-                three.directionalLightYFac = -1;
-            }
-            else if (three.directionalLight.position.y <= -1) {
-                three.directionalLight.position.y = -1;
-                three.directionalLightYFac = 1;
-            }
-            var add = 0.005 * Math.PI;
-            if (three.night) {
-                if (three.ambientLight.intensity > three.ambientLightNight) {
-                    three.ambientLight.intensity -= add;
-                }
-                if (three.ambientLight.intensity < three.ambientLightNight) {
-                    three.ambientLight.intensity = three.ambientLightNight;
-                }
-            }
-            else {
-                if (three.ambientLight.intensity < three.ambientLightDay) {
-                    three.ambientLight.intensity += add;
-                }
-                if (three.ambientLight.intensity > three.ambientLightDay) {
-                    three.ambientLight.intensity = three.ambientLightDay;
-                }
-            }
+        var geometry = new THREE.PlaneGeometry(1, background.height / background.width);
+        background3D.flat.mesh = new THREE.Mesh(geometry, material);
+        background3D.flat.resize = function () {
+            var scale = three.calcScale();
+            background3D.flat.mesh.scale.x = scale;
+            background3D.flat.mesh.scale.y = scale;
+            background3D.flat.mesh.position.set(0, three.calcPositionY(), 0);
         };
-        var loaderTexture = new THREE.TextureLoader();
-        loaderTexture.load(background3D.flat.src, function (texture) {
-            var material = new THREE.MeshStandardMaterial({
-                map: texture,
-                roughness: 0.85,
-                metalness: 0.15
-            });
-            var geometry = new THREE.PlaneGeometry(1, background.height / background.width);
-            background3D.flat.mesh = new THREE.Mesh(geometry, material);
-            background3D.flat.resize = function () {
-                var scale = three.calcScale();
-                background3D.flat.mesh.scale.x = scale;
-                background3D.flat.mesh.scale.y = scale;
-                background3D.flat.mesh.position.set(0, three.calcPositionY(), 0);
-            };
-            background3D.flat.resize();
-            three.mainGroup.add(background3D.flat.mesh);
-        });
-        var loaderGLTF = new GLTFLoader();
-        loaderGLTF.setPath("assets/3d/background-3d/").load(background3D.three.src, function (gltf) {
-            background3D.three.mesh = gltf.scene;
-            background3D.three.resize = function () {
-                var scale = three.calcScale();
-                background3D.three.mesh.scale.x = scale;
-                background3D.three.mesh.scale.y = scale;
-                background3D.three.mesh.scale.z = scale;
-                background3D.three.mesh.position.set(0, three.calcPositionY(), 0);
-            };
-            background3D.three.resize();
-            three.mainGroup.add(background3D.three.mesh);
-        });
+        background3D.flat.resize();
+        three.mainGroup.add(background3D.flat.mesh);
+    }
+    if (background3D.three.src) {
+        background3D.three.mesh = three.cloneNode(objects3D[background3D.three.src]);
+        background3D.three.resize = function () {
+            var scale = three.calcScale();
+            background3D.three.mesh.scale.x = scale;
+            background3D.three.mesh.scale.y = scale;
+            background3D.three.mesh.scale.z = scale;
+            background3D.three.mesh.position.set(0, three.calcPositionY(), 0);
+        };
+        background3D.three.resize();
+        three.mainGroup.add(background3D.three.mesh);
+    }
+    if (state == "load") {
         background3D.behind = document.getElementById("game-gameplay-three-bg");
         background3D.animateBehind = function (reset, forceFac) {
             if (reset === void 0) { reset = false; }
@@ -6357,34 +6726,61 @@ window.addEventListener("load", function () {
                 background3D.behindClone.style.transform = "translateX(" + (1 - background3D.animateBehindFac) * background3D.behind.offsetWidth + "px)";
             }
         };
-        three.camera = new THREE.PerspectiveCamera(60, client.width / client.height, 0.1, 10);
-        three.camera.position.set(0, 0, 1);
-        three.camera.zoom = three.zoom;
-        three.camera.aspect = client.width / client.height;
-        three.camera.updateProjectionMatrix();
-        three.followCamera = new THREE.PerspectiveCamera(45, client.width / client.height, 0.001, 1);
-        three.followCamera.zoom = 1;
-        three.followCamera.updateProjectionMatrix();
-        three.activeCamera = three.cameraMode == ThreeCameraModes.BIRDS_EYE ? three.camera : three.followCamera;
-        if (gui.demo) {
-            three.demoRotationFacX = Math.round(Math.random()) * 2 - 1;
-            three.demoRotationFacY = Math.round(Math.random()) * 2 - 1;
-        }
-        if (APP_DATA.debug && debug.paint) {
-            var axesHelper = new THREE.AxesHelper(15);
-            three.scene.add(axesHelper);
-        }
-        //Animate Worker
+    }
+    three.camera = new THREE.PerspectiveCamera(60, client.width / client.height, 0.1, 10);
+    three.camera.position.set(0, 0, 1);
+    three.camera.zoom = three.zoom;
+    three.camera.aspect = client.width / client.height;
+    three.camera.updateProjectionMatrix();
+    three.followCamera = new THREE.PerspectiveCamera(45, client.width / client.height, 0.001, 1);
+    three.followCamera.zoom = 1;
+    three.followCamera.updateProjectionMatrix();
+    three.activeCamera = three.cameraMode == ThreeCameraModes.BIRDS_EYE ? three.camera : three.followCamera;
+    if (currentMode == Modes.DEMO) {
+        three.demoRotationFacX = Math.round(Math.random()) * 2 - 1;
+        three.demoRotationFacY = Math.round(Math.random()) * 2 - 1;
+    }
+    if (APP_DATA.debug && debug.paint) {
+        var axesHelper = new THREE.AxesHelper(15);
+        three.scene.add(axesHelper);
+    }
+    if (currentMode == Modes.SINGLEPLAYER && getSetting("saveGame") && savedGameTrains != null && savedGameSwitches != null && savedGameBg != null) {
+        animateWorker.postMessage({ k: "go", background: background, switches: switches, savedTrains: JSON.parse(savedGameTrains), savedBg: JSON.parse(savedGameBg) });
+    }
+    else {
+        animateWorker.postMessage({ k: "go", background: background, switches: switches });
+    }
+}
+window.addEventListener("load", function () {
+    function initAnimateWorker() {
+        //Animation worker
+        animateWorker = new Worker("./src/jsm/scripting_worker_animate.js", { type: "module" });
         animateWorker.onerror = function () {
             notify("#canvas-notifier", getString("generalIsFail", "!", "upper"), NotificationPriority.High, 950, null, null, client.height);
-            window.setTimeout(function () {
+            setTimeout(function () {
                 followLink("error#animate", "_self", LinkStates.InternalHtml);
             }, 1000);
         };
         animateWorker.onmessage = function (message) {
-            if (message.data.k == "getTrainPics") {
+            if (message.data.k == "ready") {
                 trainParams = message.data.trainParams;
                 trains = message.data.trains;
+                if (currentMode == Modes.MULTIPLAYER) {
+                    var chatControlsReactionsTrain = document.querySelector("#chat #chat-msg-trains-inner");
+                    chatControlsReactionsTrain.innerHTML = "";
+                    for (var stickerTrain = 0; stickerTrain < trains.length; stickerTrain++) {
+                        var elem = document.createElement("img");
+                        elem.src = "./assets/chat_train_" + stickerTrain + ".png";
+                        elem.alt = getString(["appScreenTrainNames", stickerTrain]);
+                        elem.dataset.tooltip = getString(["appScreenTrainNames", stickerTrain]);
+                        initTooltip(elem);
+                        elem.dataset.stickerNumber = stickerTrain.toString();
+                        elem.onclick = function (event) {
+                            onlineConnection.send("chat-msg", "{{stickerTrain=" + event.target.dataset.stickerNumber + "}}");
+                        };
+                        chatControlsReactionsTrain.appendChild(elem);
+                    }
+                }
                 var trainPics = [];
                 for (var i = 0; i < trains.length; i++) {
                     trainPics[i] = {};
@@ -6397,209 +6793,187 @@ window.addEventListener("load", function () {
                         trainPics[i].cars[j].width = pics[trains[i].cars[j].src].width;
                     }
                 }
-                if (onlineGame.enabled) {
-                    var chatTrainContainer = document.querySelector("#chat #chat-msg-trains-inner");
-                    for (var stickerTrain = 0; stickerTrain < trains.length; stickerTrain++) {
-                        var elem = document.createElement("img");
-                        elem.src = "./assets/chat_train_" + stickerTrain + ".png";
-                        elem.alt = getString(["appScreenTrainNames", stickerTrain]);
-                        elem.dataset.tooltip = getString(["appScreenTrainNames", stickerTrain]);
-                        initTooltip(elem);
-                        elem.dataset.stickerNumber = stickerTrain.toString();
-                        elem.addEventListener("click", function (event) {
-                            onlineConnection.send("chat-msg", "{{stickerTrain=" + event.target.dataset.stickerNumber + "}}");
-                        });
-                        chatTrainContainer.appendChild(elem);
-                    }
-                }
-                if (getSetting("saveGame") && !onlineGame.enabled && !gui.demo && savedGameTrains != null && savedGameSwitches != null && savedGameBg != null) {
-                    animateWorker.postMessage({ k: "setTrainPics", trainPics: trainPics, savedTrains: JSON.parse(savedGameTrains), savedBg: JSON.parse(savedGameBg) });
-                }
-                else {
-                    animateWorker.postMessage({ k: "setTrainPics", trainPics: trainPics });
-                }
+                animateWorker.postMessage({ k: "set", trainPics: trainPics });
             }
-            else if (message.data.k == "ready") {
-                if (onlineGame.enabled) {
-                    var chatNotify_1 = document.querySelector("#tp-chat-notifier");
-                    var chat_1 = document.querySelector("#chat");
-                    var chatClose = document.querySelector("#chat #chat-close");
-                    var chatControls_1 = document.querySelector("#chat #chat-controls");
-                    var chatInnerContainer_1 = document.querySelector("#chat #chat-inner");
-                    var chatInner_1 = document.querySelector("#chat #chat-inner-messages");
-                    var chatInnerNone_1 = document.querySelector("#chat #chat-no-messages");
-                    var chatScrollToBottom_1 = document.querySelector("#chat #chat-scroll-to-bottom");
-                    var chatSendInner_1 = document.querySelectorAll("#chat #chat-send > *");
-                    var chatSend = document.querySelector("#chat #chat-msg-send-button");
-                    var chatMsg_1 = document.querySelector("#chat #chat-msg-send-text");
-                    var chatReactions_1 = document.querySelector("#chat #chat-msg-reactions");
-                    var chatSmileyContainer = document.querySelector("#chat #chat-msg-smileys-inner");
-                    var smileyElements_1 = chatSmileyContainer.querySelectorAll("button");
-                    var chatStickerContainer = document.querySelector("#chat #chat-msg-stickers-inner");
-                    var chatClear_1 = document.querySelector("#chat #chat-clear");
-                    chatScrollToBottom_1.toggleDisplay = function () {
-                        if (chatInner_1.lastChild != null) {
-                            chatScrollToBottom_1.style.display = chatInnerContainer_1.scrollHeight > chatInnerContainer_1.offsetHeight && chatInnerContainer_1.scrollHeight - chatInnerContainer_1.scrollTop > chatInnerContainer_1.offsetHeight + chatInner_1.lastChild.offsetHeight ? "flex" : "";
-                            chatScrollToBottom_1.style.top = Math.max(0, chatInnerContainer_1.offsetHeight - chatScrollToBottom_1.offsetHeight - 50) + "px";
+            else if (message.data.k == "set") {
+                init(message.data.state);
+            }
+            else if (message.data.k == "go") {
+                var chatNotify_1 = document.querySelector("#tp-chat-notifier");
+                var chat_1 = document.querySelector("#chat");
+                var chatInner_1 = chat_1.querySelector("#chat-inner");
+                var chatInnerNone_1 = chatInner_1.querySelector("#chat-no-messages");
+                var chatInnerMessages_1 = chatInner_1.querySelector("#chat-inner-messages");
+                var chatInnerScrollToBottom_1 = chatInner_1.querySelector("#chat-scroll-to-bottom");
+                var chatControls_1 = chat_1.querySelector("#chat-controls");
+                var chatControlsInner_1 = chatControls_1.querySelectorAll("#chat-send > *");
+                var chatControlsReactions_1 = chatControls_1.querySelector("#chat-msg-reactions");
+                var chatControlsReactionsSmiley = chatControlsReactions_1.querySelector("#chat-msg-smileys-inner");
+                var chatControlsReactionsSmileyButtons_1 = chatControlsReactionsSmiley.querySelectorAll("button");
+                var chatControlsReactionsSticker = chatControlsReactions_1.querySelector("#chat-msg-stickers-inner");
+                var chatControlsSendMsg_1 = chatControls_1.querySelector("#chat-msg-send-text");
+                var chatControlsSendButton = chatControls_1.querySelector("#chat-msg-send-button");
+                var chatControlsNavClose = chat_1.querySelector("#chat-close");
+                var chatControlsNavClear_1 = chat_1.querySelector("#chat-clear");
+                chatInnerScrollToBottom_1.toggleDisplay = function () {
+                    if (chatInnerMessages_1.lastChild != null) {
+                        chatInnerScrollToBottom_1.style.display = chatInner_1.scrollHeight > chatInner_1.offsetHeight && chatInner_1.scrollHeight - chatInner_1.scrollTop > chatInner_1.offsetHeight + chatInnerMessages_1.lastChild.offsetHeight ? "flex" : "";
+                        chatInnerScrollToBottom_1.style.top = Math.max(0, chatInner_1.offsetHeight - chatInnerScrollToBottom_1.offsetHeight - 50) + "px";
+                    }
+                    else {
+                        chatInnerScrollToBottom_1.style.display = "";
+                    }
+                };
+                chat_1.resizeChat = function () {
+                    chatInner_1.style.maxHeight = Math.max(50, Math.min(client.height, chat_1.offsetHeight) - chatControls_1.offsetHeight) + "px";
+                    chatInnerScrollToBottom_1.toggleDisplay();
+                };
+                window.addEventListener("resize", chat_1.resizeChat);
+                chat_1.openChat = function () {
+                    if (typeof chatNotify_1.hide == "function") {
+                        chatNotify_1.hide(chatNotify_1, true);
+                    }
+                    chat_1.style.display = "block";
+                    gui.sidebarRight = true;
+                    drawMenu("invisible");
+                    chat_1.resizeChat();
+                };
+                chat_1.closeChat = function () {
+                    chat_1.style.display = "";
+                    gui.sidebarRight = false;
+                    drawMenu("visible");
+                };
+                window.addEventListener("keyup", function (event) {
+                    if (event.key === "Escape") {
+                        chat_1.closeChat();
+                    }
+                });
+                chatInner_1.onscroll = chatInnerScrollToBottom_1.toggleDisplay;
+                chatNotify_1.onclick = chat_1.openChat;
+                chatControlsNavClose.onclick = chat_1.closeChat;
+                chatControlsSendButton.onclick = function () {
+                    if (chatControlsSendMsg_1.value != "") {
+                        onlineConnection.send("chat-msg", chatControlsSendMsg_1.value);
+                        chatControlsSendMsg_1.value = "";
+                    }
+                };
+                chatControlsSendMsg_1.onkeyup = function (event) {
+                    if (chatControlsSendMsg_1.value != "") {
+                        if (event.key === "Enter") {
+                            onlineConnection.send("chat-msg", chatControlsSendMsg_1.value);
+                            chatControlsSendMsg_1.value = "";
                         }
-                        else {
-                            chatScrollToBottom_1.style.display = "";
+                    }
+                };
+                for (var cSI = 0; cSI < chatControlsInner_1.length; cSI++) {
+                    chatControlsInner_1[cSI].querySelector(".chat-send-toggle").onclick = function (event) {
+                        var target = event.target;
+                        var elem = target.parentNode.querySelector(".chat-send-inner");
+                        var display = getComputedStyle(elem).getPropertyValue("display");
+                        for (var cSI = 0; cSI < chatControlsInner_1.length; cSI++) {
+                            chatControlsInner_1[cSI].querySelector(".chat-send-inner").style.display = "none";
                         }
-                    };
-                    chat_1.resizeChat = function () {
-                        chatInnerContainer_1.style.maxHeight = Math.max(50, Math.min(client.height, chat_1.offsetHeight) - chatControls_1.offsetHeight) + "px";
-                        chatScrollToBottom_1.toggleDisplay();
-                    };
-                    window.addEventListener("resize", chat_1.resizeChat);
-                    chat_1.openChat = function () {
-                        if (typeof chatNotify_1.hide == "function") {
-                            chatNotify_1.hide(chatNotify_1, true);
-                        }
-                        chat_1.style.display = "block";
-                        gui.sidebarRight = true;
-                        drawOptionsMenu("invisible");
+                        elem.style.display = display == "none" ? "block" : "none";
                         chat_1.resizeChat();
-                    };
-                    chat_1.closeChat = function () {
-                        chat_1.style.display = "";
-                        gui.sidebarRight = false;
-                        drawOptionsMenu("visible");
-                    };
-                    window.addEventListener("keyup", function (event) {
-                        if (event.key === "Escape") {
-                            chat_1.closeChat();
-                        }
-                    });
-                    chatInner_1.parentNode.addEventListener("scroll", function () {
-                        chatScrollToBottom_1.toggleDisplay();
-                    });
-                    chatNotify_1.addEventListener("click", chat_1.openChat);
-                    chatClose.addEventListener("click", chat_1.closeChat);
-                    chatSend.addEventListener("click", function () {
-                        if (chatMsg_1.value != "") {
-                            onlineConnection.send("chat-msg", chatMsg_1.value);
-                            chatMsg_1.value = "";
-                        }
-                    });
-                    chatMsg_1.addEventListener("keyup", function (event) {
-                        if (chatMsg_1.value != "") {
-                            if (event.key === "Enter") {
-                                onlineConnection.send("chat-msg", chatMsg_1.value);
-                                chatMsg_1.value = "";
+                        var smileySupport = true;
+                        for (var smiley = 1; smiley < chatControlsReactionsSmileyButtons_1.length; smiley++) {
+                            if (chatControlsReactionsSmileyButtons_1[smiley].offsetWidth != chatControlsReactionsSmileyButtons_1[smiley - 1].offsetWidth) {
+                                smileySupport = false;
+                                break;
                             }
                         }
-                    });
-                    for (var cSI = 0; cSI < chatSendInner_1.length; cSI++) {
-                        chatSendInner_1[cSI].querySelector(".chat-send-toggle").addEventListener("click", function (event) {
-                            var target = event.target;
-                            var elem = target.parentNode.querySelector(".chat-send-inner");
-                            var display = window.getComputedStyle(elem).getPropertyValue("display");
-                            for (var cSI = 0; cSI < chatSendInner_1.length; cSI++) {
-                                chatSendInner_1[cSI].querySelector(".chat-send-inner").style.display = "none";
-                            }
-                            elem.style.display = display == "none" ? "block" : "none";
-                            chat_1.resizeChat();
-                            var smileySupport = true;
-                            for (var smiley = 1; smiley < smileyElements_1.length; smiley++) {
-                                if (smileyElements_1[smiley].offsetWidth != smileyElements_1[smiley - 1].offsetWidth) {
-                                    smileySupport = false;
-                                    break;
+                        if (!smileySupport) {
+                            notify("#canvas-notifier", getString("appScreenTeamplayChatNoEmojis"), NotificationPriority.High, 6000, null, null, client.y + menus.outerContainer.height);
+                        }
+                    };
+                }
+                for (var smiley = 0; smiley < chatControlsReactionsSmileyButtons_1.length; smiley++) {
+                    chatControlsReactionsSmileyButtons_1[smiley].onclick = function (event) {
+                        var target = event.target;
+                        onlineConnection.send("chat-msg", target.textContent);
+                    };
+                }
+                chatControlsReactionsSticker.innerHTML = "";
+                for (var sticker = 0; sticker < multiplayerMode.chatSticker; sticker++) {
+                    var elem = document.createElement("img");
+                    elem.src = "./assets/chat_sticker_" + sticker + ".png";
+                    elem.dataset.stickerNumber = sticker.toString();
+                    elem.onclick = function (event) {
+                        var target = event.target;
+                        onlineConnection.send("chat-msg", "{{sticker=" + target.dataset.stickerNumber + "}}");
+                    };
+                    chatControlsReactionsSticker.appendChild(elem);
+                }
+                chatControlsNavClear_1.clearChat = function () {
+                    chatInnerMessages_1.innerHTML = "";
+                    chatInnerNone_1.style.display = "";
+                    chatControlsReactions_1.style.display = "none";
+                    chatInnerScrollToBottom_1.toggleDisplay();
+                };
+                chatControlsNavClear_1.clearChat();
+                chatControlsNavClear_1.onclick = chatControlsNavClear_1.clearChat;
+                chatInnerScrollToBottom_1.onclick = function () {
+                    if (chatInnerMessages_1.lastChild != null) {
+                        chatInnerMessages_1.lastChild.scrollIntoView();
+                        chatInnerScrollToBottom_1.toggleDisplay();
+                    }
+                };
+                document.querySelector("#setup #setup-exit").onclick = function () {
+                    switchMode(Modes.SINGLEPLAYER);
+                };
+                if (currentMode == Modes.MULTIPLAYER) {
+                    onlineConnection.connect = function () {
+                        function resetForElement(parent, elem, to) {
+                            if (to === void 0) { to = ""; }
+                            var elements = parent.childNodes;
+                            for (var i = 0; i < elements.length; i++) {
+                                if (elements[i].nodeName.substr(0, 1) != "#") {
+                                    elements[i].style.display = elements[i] == elem ? to : "none";
                                 }
                             }
-                            if (!smileySupport) {
-                                notify("#canvas-notifier", getString("appScreenTeamplayChatNoEmojis"), NotificationPriority.High, 6000, null, null, client.y + menus.outerContainer.height);
-                            }
-                        });
-                    }
-                    for (var smiley = 0; smiley < smileyElements_1.length; smiley++) {
-                        smileyElements_1[smiley].addEventListener("click", function (event) {
-                            var target = event.target;
-                            onlineConnection.send("chat-msg", target.textContent);
-                        });
-                    }
-                    for (var sticker = 0; sticker < onlineGame.chatSticker; sticker++) {
-                        var elem = document.createElement("img");
-                        elem.src = "./assets/chat_sticker_" + sticker + ".png";
-                        elem.dataset.stickerNumber = sticker.toString();
-                        elem.addEventListener("click", function (event) {
-                            var target = event.target;
-                            onlineConnection.send("chat-msg", "{{sticker=" + target.dataset.stickerNumber + "}}");
-                        });
-                        chatStickerContainer.appendChild(elem);
-                    }
-                    chatClear_1.clearChat = function () {
-                        var chat2Clear = document.querySelectorAll(".chat-inner-container");
-                        if (chat2Clear.length != 0) {
-                            for (var clearNo = 0; clearNo < chat2Clear.length; clearNo++) {
-                                destroy(chat2Clear[clearNo]);
-                            }
                         }
-                        chatInnerNone_1.style.display = "";
-                        chatReactions_1.style.display = "none";
-                        chatScrollToBottom_1.toggleDisplay();
-                    };
-                    chatClear_1.addEventListener("click", chatClear_1.clearChat);
-                    chatScrollToBottom_1.addEventListener("click", function () {
-                        if (chatInner_1.lastChild != null) {
-                            chatInner_1.lastChild.scrollIntoView();
-                            chatScrollToBottom_1.toggleDisplay();
-                        }
-                    });
-                    document.querySelector("#setup #setup-exit").addEventListener("click", function () {
-                        switchMode();
-                    });
-                    onlineConnection.connect = function () {
-                        function hideLoadingAnimation() {
-                            window.clearInterval(loadingAnimElemChangingFilter);
-                            destroy([document.querySelector("#branding"), document.querySelector("#snake"), document.querySelector("#percent")]);
+                        function endLoading() {
+                            loadingAnimation.hide();
                             chat_1.closeChat();
-                            chatClear_1.clearChat();
+                            chatControlsNavClear_1.clearChat();
                         }
                         function showStartGame(teamNum) {
-                            hideLoadingAnimation();
-                            document.addEventListener("visibilitychange", function () {
-                                if (document.visibilityState == "hidden") {
-                                    onlineConnection.send("pause-request");
-                                }
-                                else {
-                                    onlineConnection.send("resume-request");
-                                }
-                            });
+                            endLoading();
                             var parent = document.querySelector("#content");
                             var elem = parent.querySelector("#game");
-                            resetForElem(parent, elem, "block");
+                            resetForElement(parent, elem, "block");
                             var parent = document.querySelector("#game");
                             var elem = parent.querySelector("#game-start");
                             elem.querySelector("#game-start-text").textContent = formatJSString(getString("appScreenTeamplayGameStart"), teamNum);
-                            resetForElem(parent, elem);
+                            resetForElement(parent, elem);
                             elem.querySelector("#game-start-button").onclick = function () {
                                 onlineConnection.send("start");
                             };
                         }
                         function showNewGameLink() {
-                            hideLoadingAnimation();
-                            playAndPauseAudio();
+                            endLoading();
+                            audioControl.playAndPauseAll();
                             var parent = document.querySelector("#content");
                             var elem = parent.querySelector("#setup");
-                            resetForElem(parent, elem, "block");
+                            resetForElement(parent, elem, "block");
                             var parent = document.querySelector("#setup-inner-content");
                             var elem = parent.querySelector("#setup-create");
-                            resetForElem(parent, elem);
+                            resetForElement(parent, elem);
                             var elem = document.querySelector("#setup #setup-create #setup-create-link");
-                            elem.addEventListener("click", function () {
-                                switchMode("multiplay");
-                            });
+                            elem.onclick = function () {
+                                switchMode(Modes.MULTIPLAYER, { id: "", key: "" });
+                            };
                             var elem = document.querySelector("#setup #setup-create #setup-create-escape");
-                            elem.addEventListener("click", function () {
-                                switchMode();
-                            });
+                            elem.onclick = function () {
+                                switchMode(Modes.SINGLEPLAYER);
+                            };
                         }
                         function getPlayerNameFromInput() {
                             var elem = document.querySelector("#setup-init-name");
                             var name = elem.value;
                             var nameCheck = name.replace(/[^a-zA-Z0-9]/g, "");
                             if (name.length > 0 && name == nameCheck) {
-                                window.sessionStorage.setItem("playername", name);
+                                sessionStorage.setItem("playername", name);
                                 return name;
                             }
                             else {
@@ -6611,16 +6985,16 @@ window.addEventListener("load", function () {
                             onlineConnection.send("init", name);
                         }
                         function sendSyncRequest() {
-                            if (!onlineGame.syncing) {
-                                if (onlineGame.resized) {
-                                    if (onlineGame.syncRequest !== undefined && onlineGame.syncRequest !== null) {
-                                        window.clearTimeout(onlineGame.syncRequest);
+                            if (!onlineConnection.syncing) {
+                                if (onlineConnection.resized) {
+                                    if (multiplayerMode.syncRequestTimeout !== undefined && multiplayerMode.syncRequestTimeout !== null) {
+                                        clearTimeout(multiplayerMode.syncRequestTimeout);
                                     }
-                                    if (onlineGame.locomotive) {
-                                        onlineGame.syncRequest = window.setTimeout(sendSyncRequest, onlineGame.syncInterval);
+                                    if (onlineConnection.locomotive) {
+                                        multiplayerMode.syncRequestTimeout = setTimeout(sendSyncRequest, multiplayerMode.syncInterval);
                                     }
                                 }
-                                else if (!onlineGame.paused) {
+                                else if (!onlineConnection.paused) {
                                     var number = 0;
                                     number += trains.length;
                                     trains.forEach(function (train) {
@@ -6636,7 +7010,7 @@ window.addEventListener("load", function () {
                             task.o = "s";
                             var obj = copyJSObject(switches);
                             task.d = obj;
-                            if (!onlineGame.resized) {
+                            if (!onlineConnection.resized) {
                                 onlineConnection.send("sync-task", JSON.stringify(task));
                             }
                             for (var i = 0; i < trains.length; i++) {
@@ -6652,7 +7026,7 @@ window.addEventListener("load", function () {
                                 obj.y = (obj.y - background.y) / background.height;
                                 obj.width = obj.width / background.width;
                                 obj.height = obj.height / background.height;
-                                onlineGame.excludeFromSync[task.o].forEach(function (key) {
+                                multiplayerMode.excludeFromSync[task.o].forEach(function (key) {
                                     delete obj[key];
                                 });
                                 if (obj.circleFamily != null) {
@@ -6676,7 +7050,7 @@ window.addEventListener("load", function () {
                                     delete obj.circle;
                                 }
                                 task.d = obj;
-                                if (!onlineGame.resized) {
+                                if (!onlineConnection.resized) {
                                     onlineConnection.send("sync-task", JSON.stringify(task));
                                 }
                                 for (var j = 0; j < trains[i].cars.length; j++) {
@@ -6692,26 +7066,25 @@ window.addEventListener("load", function () {
                                     obj.y = (obj.y - background.y) / background.height;
                                     obj.width = obj.width / background.width;
                                     obj.height = obj.height / background.height;
-                                    onlineGame.excludeFromSync[task.o].forEach(function (key) {
+                                    multiplayerMode.excludeFromSync[task.o].forEach(function (key) {
                                         delete obj[key];
                                     });
                                     task.d = obj;
-                                    if (!onlineGame.resized) {
+                                    if (!onlineConnection.resized) {
                                         onlineConnection.send("sync-task", JSON.stringify(task));
                                     }
                                 }
                             }
                         }
-                        onlineConnection.socket = new WebSocket(onlineConnection.serverURI);
+                        onlineConnection.socket = new WebSocket(multiplayerMode.serverURI);
                         onlineConnection.socket.onopen = function () {
-                            window.addEventListener("error", function () {
-                                onlineConnection.socket.close();
-                            });
                             onlineConnection.send("hello", (APP_DATA.version.major + APP_DATA.version.minor / 10).toString());
                         };
                         onlineConnection.socket.onclose = function () {
-                            showNewGameLink();
-                            notify("#canvas-notifier", getString("appScreenTeamplayGameEnded", "."), NotificationPriority.High, 900, null, null, client.height);
+                            if (currentMode == Modes.MULTIPLAYER) {
+                                showNewGameLink();
+                                notify("#canvas-notifier", getString("appScreenTeamplayGameEnded", "."), NotificationPriority.High, 900, null, null, client.height);
+                            }
                         };
                         onlineConnection.socket.onmessage = function (message) {
                             var ERROR_LEVEL_OKAY = 0;
@@ -6733,7 +7106,7 @@ window.addEventListener("load", function () {
                                 case "hello":
                                     if (json.errorLevel === ERROR_LEVEL_ERROR) {
                                         document.querySelector("#content").style.display = "none";
-                                        window.setTimeout(function () {
+                                        setTimeout(function () {
                                             followLink("error#tp-update", "_self", LinkStates.InternalHtml);
                                         }, 1000);
                                         notify("#canvas-notifier", getString("appScreenTeamplayUpdateError", "!"), NotificationPriority.High, 6000, null, null, client.height);
@@ -6744,41 +7117,41 @@ window.addEventListener("load", function () {
                                         }
                                         var parent = document.querySelector("#content");
                                         var elem = parent.querySelector("#setup");
-                                        resetForElem(parent, elem, "block");
-                                        if (window.sessionStorage.getItem("playername") != null) {
-                                            sendPlayerName(window.sessionStorage.getItem("playername"));
+                                        resetForElement(parent, elem, "block");
+                                        if (sessionStorage.getItem("playername") != null) {
+                                            sendPlayerName(sessionStorage.getItem("playername"));
                                         }
                                         else {
-                                            hideLoadingAnimation();
+                                            endLoading();
                                             parent = document.querySelector("#setup-inner-content");
                                             elem = parent.querySelector("#setup-init");
-                                            resetForElem(parent, elem);
-                                            elem.querySelector("#setup-init-button").addEventListener("click", function (event) {
+                                            resetForElement(parent, elem);
+                                            elem.querySelector("#setup-init-button").onclick = function (_event) {
                                                 var name = getPlayerNameFromInput();
                                                 if (name !== false) {
                                                     sendPlayerName(name);
                                                 }
-                                            });
-                                            elem.querySelector("#setup-init-name").addEventListener("keyup", function (event) {
+                                            };
+                                            elem.querySelector("#setup-init-name").onkeyup = function (event) {
                                                 if (event.key === "Enter") {
                                                     var name = getPlayerNameFromInput();
                                                     if (name !== false) {
                                                         sendPlayerName(name);
                                                     }
                                                 }
-                                            });
+                                            };
                                             elem.querySelector("#setup-init-name").focus();
                                         }
                                     }
                                     break;
                                 case "init":
                                     if (json.errorLevel === ERROR_LEVEL_OKAY) {
-                                        onlineGame.sessionId = json.sessionId;
-                                        if (onlineGame.gameId == "" || onlineGame.gameKey == "") {
+                                        onlineConnection.sessionId = json.sessionId;
+                                        if (onlineConnection.gameId == "" || onlineConnection.gameKey == "") {
                                             onlineConnection.send("connect");
                                         }
                                         else {
-                                            onlineConnection.send("join", JSON.stringify({ key: onlineGame.gameKey, id: onlineGame.gameId }));
+                                            onlineConnection.send("join", JSON.stringify({ key: onlineConnection.gameKey, id: onlineConnection.gameId }));
                                         }
                                     }
                                     else {
@@ -6790,15 +7163,15 @@ window.addEventListener("load", function () {
                                     break;
                                 case "connect":
                                     if (json.errorLevel === ERROR_LEVEL_OKAY) {
-                                        onlineGame.locomotive = true;
+                                        onlineConnection.locomotive = true;
                                         var connectData = JSON.parse(json.data);
-                                        onlineGame.gameId = connectData.id;
-                                        onlineGame.gameKey = connectData.key;
-                                        hideLoadingAnimation();
+                                        onlineConnection.gameId = connectData.id;
+                                        onlineConnection.gameKey = connectData.key;
+                                        endLoading();
                                         var parent = document.querySelector("#setup-inner-content");
                                         var elem = parent.querySelector("#setup-start");
-                                        resetForElem(parent, elem);
-                                        elem.querySelector("#setup-start-gamelink").textContent = getShareLink(onlineGame.gameId, onlineGame.gameKey);
+                                        resetForElement(parent, elem);
+                                        elem.querySelector("#setup-start-gamelink").textContent = getShareLink(onlineConnection.gameId, onlineConnection.gameKey);
                                         elem.querySelector("#setup-start-button").onclick = function () {
                                             copy("#setup #setup-start #setup-start-gamelink", null, function () {
                                                 notify("#canvas-notifier", getString("appScreenTeamplaySetupStartButtonError", "!"), NotificationPriority.High, 6000, null, null, client.height);
@@ -6813,9 +7186,9 @@ window.addEventListener("load", function () {
                                     }
                                     break;
                                 case "join":
-                                    if (json.sessionId == onlineGame.sessionId) {
+                                    if (json.sessionId == onlineConnection.sessionId) {
                                         if (json.errorLevel === ERROR_LEVEL_OKAY) {
-                                            onlineGame.locomotive = false;
+                                            onlineConnection.locomotive = false;
                                             showStartGame(json.data);
                                         }
                                         else {
@@ -6847,29 +7220,29 @@ window.addEventListener("load", function () {
                                     else {
                                         switch (json.data) {
                                             case "wait":
-                                                if (json.sessionId == onlineGame.sessionId) {
+                                                if (json.sessionId == onlineConnection.sessionId) {
                                                     var parent = document.querySelector("#game");
                                                     var elem = parent.querySelector("#game-wait");
-                                                    resetForElem(parent, elem);
+                                                    resetForElement(parent, elem);
                                                 }
                                                 else {
                                                     notify("#canvas-notifier", getString("appScreenTeamplayTeammateReady", "?"), NotificationPriority.Default, 1000, null, null, client.height);
                                                 }
                                                 break;
                                             case "run":
-                                                onlineGame.stop = false;
-                                                onlineGame.paused = false;
-                                                onlineGame.syncing = false;
-                                                onlineGame.waitingClock.visible = false;
-                                                if (onlineGame.syncRequest !== undefined && onlineGame.syncRequest !== null) {
-                                                    window.clearTimeout(onlineGame.syncRequest);
+                                                onlineConnection.stop = false;
+                                                onlineConnection.paused = false;
+                                                onlineConnection.syncing = false;
+                                                multiplayerMode.waitingClock.visible = false;
+                                                if (multiplayerMode.syncRequestTimeout !== undefined && multiplayerMode.syncRequestTimeout !== null) {
+                                                    clearTimeout(multiplayerMode.syncRequestTimeout);
                                                 }
-                                                if (onlineGame.locomotive) {
-                                                    onlineGame.syncRequest = window.setTimeout(sendSyncRequest, onlineGame.syncInterval);
+                                                if (onlineConnection.locomotive) {
+                                                    multiplayerMode.syncRequestTimeout = setTimeout(sendSyncRequest, multiplayerMode.syncInterval);
                                                 }
                                                 var parent = document.querySelector("#game");
                                                 var elem = parent.querySelector("#game-gameplay");
-                                                resetForElem(parent, elem);
+                                                resetForElement(parent, elem);
                                                 calcMenusAndBackground("resize");
                                                 break;
                                         }
@@ -6888,17 +7261,17 @@ window.addEventListener("load", function () {
                                             }
                                         });
                                         var notifyStr = formatJSString.apply(null, notifyArr);
-                                        if (onlineGame.sessionId != json.sessionId) {
+                                        if (onlineConnection.sessionId != json.sessionId) {
                                             notifyStr = json.sessionName + ": " + notifyStr;
                                         }
-                                        if (onlineGame.sessionId != json.sessionId || !input_1.notificationOnlyForOthers) {
+                                        if (onlineConnection.sessionId != json.sessionId || !input_1.notificationOnlyForOthers) {
                                             notify("#canvas-notifier", notifyStr, NotificationPriority.Default, 1000, null, null, client.y + menus.outerContainer.height);
                                         }
                                     }
                                     switch (input_1.objectName) {
                                         case "trains":
-                                            if (onlineGame.sessionId != json.sessionId) {
-                                                onlineGame.excludeFromSync["t"].forEach(function (key) {
+                                            if (onlineConnection.sessionId != json.sessionId) {
+                                                multiplayerMode.excludeFromSync["t"].forEach(function (key) {
                                                     input_1.params.forEach(function (param, paramNo) {
                                                         if (Object.keys(param)[0] == key) {
                                                             delete input_1.params[paramNo];
@@ -6909,11 +7282,11 @@ window.addEventListener("load", function () {
                                             animateWorker.postMessage({ k: "train", i: input_1.index, params: input_1.params });
                                             break;
                                         case "train-crash":
-                                            if (onlineGame.syncRequest !== undefined && onlineGame.syncRequest !== null) {
-                                                window.clearTimeout(onlineGame.syncRequest);
+                                            if (multiplayerMode.syncRequestTimeout !== undefined && multiplayerMode.syncRequestTimeout !== null) {
+                                                clearTimeout(multiplayerMode.syncRequestTimeout);
                                             }
-                                            if (onlineGame.locomotive) {
-                                                onlineGame.syncRequest = window.setTimeout(sendSyncRequest, 200);
+                                            if (onlineConnection.locomotive) {
+                                                multiplayerMode.syncRequestTimeout = setTimeout(sendSyncRequest, 200);
                                             }
                                             break;
                                         case "switches":
@@ -6932,23 +7305,23 @@ window.addEventListener("load", function () {
                                     }
                                     break;
                                 case "sync-request":
-                                    onlineGame.syncingCounter = 0;
-                                    onlineGame.syncingCounterFinal = parseInt(json.data, 10);
-                                    if (!onlineGame.stop) {
-                                        onlineGame.waitingClock.init();
-                                        onlineGame.stop = true;
+                                    onlineConnection.syncingCounter = 0;
+                                    onlineConnection.syncingCounterFinal = parseInt(json.data, 10);
+                                    if (!onlineConnection.stop) {
+                                        multiplayerMode.waitingClock.init();
+                                        onlineConnection.stop = true;
                                     }
-                                    onlineGame.syncing = true;
+                                    onlineConnection.syncing = true;
                                     animateWorker.postMessage({ k: "sync-request" });
                                     break;
                                 case "sync-ready":
-                                    if (onlineGame.locomotive) {
+                                    if (onlineConnection.locomotive) {
                                         sendSyncData();
                                     }
                                     break;
                                 case "sync-task":
-                                    if (onlineGame.syncing) {
-                                        onlineGame.syncingCounter++;
+                                    if (onlineConnection.syncing) {
+                                        onlineConnection.syncingCounter++;
                                         var task_1 = JSON.parse(json.data);
                                         switch (task_1.o) {
                                             case "t":
@@ -6966,57 +7339,57 @@ window.addEventListener("load", function () {
                                                 animateWorker.postMessage({ k: "switches", switches: switches });
                                                 break;
                                         }
-                                        if (onlineGame.syncingCounter == onlineGame.syncingCounterFinal) {
+                                        if (onlineConnection.syncingCounter == onlineConnection.syncingCounterFinal) {
                                             onlineConnection.send("sync-done");
                                         }
                                     }
                                     break;
                                 case "sync-done":
-                                    onlineGame.stop = onlineGame.paused;
-                                    onlineGame.syncing = false;
-                                    if (!onlineGame.stop) {
-                                        onlineGame.waitingClock.visible = false;
+                                    onlineConnection.stop = onlineConnection.paused;
+                                    onlineConnection.syncing = false;
+                                    if (!onlineConnection.stop) {
+                                        multiplayerMode.waitingClock.visible = false;
                                     }
                                     if (json.errorLevel !== ERROR_LEVEL_OKAY) {
                                         notify("#canvas-notifier", getString("appScreenTeamplaySyncError", "."), NotificationPriority.High, 900, null, null, client.y + menus.outerContainer.height);
                                     }
-                                    if (!onlineGame.paused) {
-                                        if (onlineGame.syncRequest !== undefined && onlineGame.syncRequest !== null) {
-                                            window.clearTimeout(onlineGame.syncRequest);
+                                    if (!onlineConnection.paused) {
+                                        if (multiplayerMode.syncRequestTimeout !== undefined && multiplayerMode.syncRequestTimeout !== null) {
+                                            clearTimeout(multiplayerMode.syncRequestTimeout);
                                         }
-                                        if (onlineGame.locomotive) {
-                                            onlineGame.syncRequest = window.setTimeout(sendSyncRequest, onlineGame.syncInterval);
+                                        if (onlineConnection.locomotive) {
+                                            multiplayerMode.syncRequestTimeout = setTimeout(sendSyncRequest, multiplayerMode.syncInterval);
                                         }
                                         animateWorker.postMessage({ k: "resume" });
                                     }
                                     break;
                                 case "pause":
-                                    if (onlineGame.syncRequest !== undefined && onlineGame.syncRequest !== null) {
-                                        window.clearTimeout(onlineGame.syncRequest);
+                                    if (multiplayerMode.syncRequestTimeout !== undefined && multiplayerMode.syncRequestTimeout !== null) {
+                                        clearTimeout(multiplayerMode.syncRequestTimeout);
                                     }
-                                    if (!onlineGame.stop) {
-                                        onlineGame.waitingClock.init();
-                                        onlineGame.stop = true;
+                                    if (!onlineConnection.stop) {
+                                        multiplayerMode.waitingClock.init();
+                                        onlineConnection.stop = true;
                                     }
-                                    onlineGame.paused = true;
-                                    playAndPauseAudio();
+                                    onlineConnection.paused = true;
+                                    audioControl.playAndPauseAll();
                                     animateWorker.postMessage({ k: "pause" });
                                     notify("#canvas-notifier", getString("appScreenTeamplayGamePaused", "."), NotificationPriority.High, 900, null, null, client.y + menus.outerContainer.height);
                                     break;
                                 case "resume":
-                                    if (onlineGame.paused) {
-                                        if (onlineGame.syncRequest !== undefined && onlineGame.syncRequest !== null) {
-                                            window.clearTimeout(onlineGame.syncRequest);
+                                    if (onlineConnection.paused) {
+                                        if (multiplayerMode.syncRequestTimeout !== undefined && multiplayerMode.syncRequestTimeout !== null) {
+                                            clearTimeout(multiplayerMode.syncRequestTimeout);
                                         }
-                                        if (onlineGame.locomotive) {
-                                            onlineGame.syncRequest = window.setTimeout(sendSyncRequest, onlineGame.syncInterval);
+                                        if (onlineConnection.locomotive) {
+                                            multiplayerMode.syncRequestTimeout = setTimeout(sendSyncRequest, multiplayerMode.syncInterval);
                                         }
-                                        onlineGame.stop = onlineGame.syncing;
-                                        onlineGame.paused = false;
-                                        if (!onlineGame.stop) {
-                                            onlineGame.waitingClock.visible = false;
+                                        onlineConnection.stop = onlineConnection.syncing;
+                                        onlineConnection.paused = false;
+                                        if (!onlineConnection.stop) {
+                                            multiplayerMode.waitingClock.visible = false;
                                         }
-                                        playAndPauseAudio();
+                                        audioControl.playAndPauseAll();
                                         notify("#canvas-notifier", getString("appScreenTeamplayGameResumed", "."), NotificationPriority.High, 900, null, null, client.y + menus.outerContainer.height);
                                         animateWorker.postMessage({ k: "resume" });
                                     }
@@ -7026,19 +7399,19 @@ window.addEventListener("load", function () {
                                     break;
                                 case "chat-msg":
                                     chatInnerNone_1.style.display = "none";
-                                    chatReactions_1.style.display = "";
+                                    chatControlsReactions_1.style.display = "";
                                     var chatInnerContainerMsg = document.createElement("div");
-                                    var chatInnerPlayerName = document.createElement(onlineGame.sessionId != json.sessionId ? "i" : "b");
+                                    var chatInnerPlayerName = document.createElement(onlineConnection.sessionId != json.sessionId ? "i" : "b");
                                     var chatInnerMessageImg = document.createElement("img");
                                     var chatInnerMessage = document.createElement("p");
                                     var chatInnerSeparator = document.createElement("br");
                                     chatInnerContainerMsg.className = "chat-inner-container";
-                                    chatInnerPlayerName.textContent = (onlineGame.sessionId != json.sessionId ? json.sessionName : json.sessionName + " (" + getString("appScreenTeamplayChatMe") + ")") + " - " + new Date().toLocaleTimeString();
+                                    chatInnerPlayerName.textContent = (onlineConnection.sessionId != json.sessionId ? json.sessionName : json.sessionName + " (" + getString("appScreenTeamplayChatMe") + ")") + " - " + new Date().toLocaleTimeString();
                                     var isSticker = json.data.match(/^\{\{sticker=[0-9]+\}\}$/);
                                     var isTrainSticker = json.data.match(/^\{\{stickerTrain=[0-9]+\}\}$/);
                                     if (isSticker || isTrainSticker) {
                                         var stickerNumber = json.data.replace(/[^0-9]/g, "");
-                                        if ((isSticker && stickerNumber < onlineGame.chatSticker) || (isTrainSticker && stickerNumber < trains.length)) {
+                                        if ((isSticker && stickerNumber < multiplayerMode.chatSticker) || (isTrainSticker && stickerNumber < trains.length)) {
                                             chatInnerMessageImg.src = "./assets/chat_" + (isTrainSticker ? "train_" : "sticker_") + stickerNumber + ".png";
                                             chatInnerMessageImg.className = isTrainSticker ? "train-sticker" : "sticker";
                                             json.data = isTrainSticker ? getString(["appScreenTrainIcons", parseInt(stickerNumber, 10)]) + " " + getString(["appScreenTrainNames", parseInt(stickerNumber, 10)]) : formatJSString(getString("appScreenTeamplayChatStickerNote"), getString(["appScreenTeamplayChatStickerEmojis", parseInt(stickerNumber, 10)]));
@@ -7056,8 +7429,8 @@ window.addEventListener("load", function () {
                                     if (!isSticker) {
                                         chatInnerContainerMsg.appendChild(chatInnerMessage);
                                     }
-                                    chatInner_1.appendChild(chatInnerContainerMsg);
-                                    if (onlineGame.sessionId != json.sessionId && chat_1.style.display == "") {
+                                    chatInnerMessages_1.appendChild(chatInnerContainerMsg);
+                                    if (onlineConnection.sessionId != json.sessionId && chat_1.style.display == "") {
                                         notify("#tp-chat-notifier", json.sessionName + ": " + json.data, NotificationPriority.Default, 4000, null, null, client.height, NotificationChannel.MultiplayerChat + json.sessionId);
                                     }
                                     chat_1.resizeChat();
@@ -7074,39 +7447,32 @@ window.addEventListener("load", function () {
                             }, getString("appScreenFurtherInformation"), client.height);
                         };
                     };
-                    onlineGame.gameId = getQueryString("id");
-                    onlineGame.gameKey = getQueryString("key");
-                    document.getElementById("setup").addEventListener("mousemove", function (event) {
+                    onlineConnection.gameId = getQueryStringValue("id");
+                    onlineConnection.gameKey = getQueryStringValue("key");
+                    document.getElementById("setup").onmousemove = function (event) {
                         document.getElementById("setup-ball").style.left = event.pageX + "px";
                         document.getElementById("setup-ball").style.top = event.pageY + "px";
-                    });
-                    document.getElementById("setup").addEventListener("mouseout", function (event) {
+                    };
+                    document.getElementById("setup").onmouseout = function (_event) {
                         document.getElementById("setup-ball").style.left = "-1vw";
                         document.getElementById("setup-ball").style.top = "-1vw";
-                    });
+                    };
                     onlineConnection.connect();
                 }
-                else {
-                    document.addEventListener("visibilitychange", function () {
-                        if (document.visibilityState == "hidden") {
-                            animateWorker.postMessage({ k: "pause" });
-                        }
-                        else {
-                            animateWorker.postMessage({ k: "resume" });
-                        }
-                    });
-                }
                 //Initialize trains
+                switches = message.data.switches;
                 rotationPoints = message.data.rotationPoints;
                 trains = message.data.trains;
+                trains3D = [];
                 trains.forEach(function (train, i) {
+                    var _a, _b, _c, _d;
                     var trainCallback = function (downIntersects, upIntersects) {
                         if (hardware.lastInputTouch < hardware.lastInputMouse) {
                             hardware.mouse.isHold = false;
                         }
                         if ((hardware.lastInputTouch < hardware.lastInputMouse && hardware.mouse.downTime - hardware.mouse.upTime > 0 && upIntersects && downIntersects && hardware.mouse.downTime - hardware.mouse.upTime < doubleClickTime && !hardware.mouse.lastClickDoubleClick) || (hardware.lastInputTouch > hardware.lastInputMouse && downIntersects && Date.now() - hardware.mouse.downTime > longTouchTime)) {
-                            if (typeof clickTimeOut !== "undefined") {
-                                window.clearTimeout(clickTimeOut);
+                            if (clickTimeOut !== undefined && clickTimeOut !== null) {
+                                clearTimeout(clickTimeOut);
                                 clickTimeOut = null;
                             }
                             if (hardware.lastInputTouch > hardware.lastInputMouse) {
@@ -7120,11 +7486,11 @@ window.addEventListener("load", function () {
                             }
                         }
                         else {
-                            if (typeof clickTimeOut !== "undefined") {
-                                window.clearTimeout(clickTimeOut);
+                            if (clickTimeOut !== undefined && clickTimeOut !== null) {
+                                clearTimeout(clickTimeOut);
                                 clickTimeOut = null;
                             }
-                            clickTimeOut = window.setTimeout(function () {
+                            clickTimeOut = setTimeout(function () {
                                 clickTimeOut = null;
                                 if (hardware.lastInputTouch > hardware.lastInputMouse) {
                                     hardware.mouse.isHold = false;
@@ -7142,10 +7508,8 @@ window.addEventListener("load", function () {
                     };
                     //Three.js
                     trains3D[i] = {};
-                    var loaderGLTF = new GLTFLoader();
-                    loaderGLTF.setPath("assets/3d/").load("asset" + train.src + ".glb", function (gltf) {
-                        var _a, _b, _c, _d;
-                        trains3D[i].mesh = gltf.scene;
+                    if (objects3D[train.src]) {
+                        trains3D[i].mesh = three.cloneNode(objects3D[train.src], true);
                         trains3D[i].resize = function () {
                             var scale = three.calcScale();
                             trains3D[i].mesh.scale.set(scale * (trains[i].width / background.width), scale * (trains[i].width / background.width), scale * (trains[i].width / background.width));
@@ -7174,31 +7538,28 @@ window.addEventListener("load", function () {
                         trains3D[i].resize();
                         trains3D[i].mesh.callback = trainCallback;
                         three.mainGroup.add(trains3D[i].mesh);
-                        if ((_b = (_a = train.wheels) === null || _a === void 0 ? void 0 : _a.front) === null || _b === void 0 ? void 0 : _b.use3d) {
-                            loaderGLTF.setPath("assets/3d/").load("asset" + train.src + "_front.glb", function (gltf) {
-                                trains3D[i].meshFront = {};
-                                trains3D[i].meshFront.left = gltf.scene;
-                                trains3D[i].meshFront.right = trains3D[i].meshFront.left.clone();
-                                trains3D[i].resize();
-                                trains3D[i].meshFront.left.callback = trainCallback;
-                                trains3D[i].meshFront.right.callback = trainCallback;
-                                three.mainGroup.add(trains3D[i].meshFront.left);
-                                three.mainGroup.add(trains3D[i].meshFront.right);
-                            });
+                        if (((_b = (_a = train.wheels) === null || _a === void 0 ? void 0 : _a.front) === null || _b === void 0 ? void 0 : _b.use3d) && objects3D[train.src + "_front"]) {
+                            trains3D[i].meshFront = {};
+                            trains3D[i].meshFront.left = three.cloneNode(objects3D[train.src + "_front"], true);
+                            trains3D[i].meshFront.right = three.cloneNode(objects3D[train.src + "_front"], true);
+                            trains3D[i].resize();
+                            trains3D[i].meshFront.left.callback = trainCallback;
+                            trains3D[i].meshFront.right.callback = trainCallback;
+                            three.mainGroup.add(trains3D[i].meshFront.left);
+                            three.mainGroup.add(trains3D[i].meshFront.right);
                         }
-                        if ((_d = (_c = train.wheels) === null || _c === void 0 ? void 0 : _c.back) === null || _d === void 0 ? void 0 : _d.use3d) {
-                            loaderGLTF.setPath("assets/3d/").load("asset" + train.src + "_back.glb", function (gltf) {
-                                trains3D[i].meshBack = {};
-                                trains3D[i].meshBack.left = gltf.scene;
-                                trains3D[i].meshBack.right = trains3D[i].meshBack.left.clone();
-                                trains3D[i].resize();
-                                trains3D[i].meshBack.left.callback = trainCallback;
-                                trains3D[i].meshBack.right.callback = trainCallback;
-                                three.mainGroup.add(trains3D[i].meshBack.left);
-                                three.mainGroup.add(trains3D[i].meshBack.right);
-                            });
+                        if (((_d = (_c = train.wheels) === null || _c === void 0 ? void 0 : _c.back) === null || _d === void 0 ? void 0 : _d.use3d) && objects3D[train.src + "_back"]) {
+                            trains3D[i].meshBack = {};
+                            trains3D[i].meshBack.left = three.cloneNode(objects3D[train.src + "_back"], true);
+                            trains3D[i].meshBack.right = three.cloneNode(objects3D[train.src + "_back"], true);
+                            trains3D[i].resize();
+                            trains3D[i].meshBack.left.callback = trainCallback;
+                            trains3D[i].meshBack.right.callback = trainCallback;
+                            three.mainGroup.add(trains3D[i].meshBack.left);
+                            three.mainGroup.add(trains3D[i].meshBack.right);
                         }
-                    }, null, function () {
+                    }
+                    else {
                         var height3D = 0.0125;
                         trains3D[i].resize = function () {
                             if (three.mainGroup.getObjectByName("train_" + i)) {
@@ -7213,14 +7574,13 @@ window.addEventListener("load", function () {
                             three.mainGroup.add(trains3D[i].mesh);
                         };
                         trains3D[i].resize();
-                    });
+                    }
                     trains3D[i].cars = [];
                     train.cars.forEach(function (car, j) {
+                        var _a, _b, _c, _d;
                         trains3D[i].cars[j] = {};
-                        var loaderGLTF = new GLTFLoader();
-                        loaderGLTF.setPath("assets/3d/").load("asset" + car.src + ".glb", function (gltf) {
-                            var _a, _b, _c, _d;
-                            trains3D[i].cars[j].mesh = gltf.scene;
+                        if (objects3D[car.src]) {
+                            trains3D[i].cars[j].mesh = three.cloneNode(objects3D[car.src], true);
                             trains3D[i].cars[j].resize = function () {
                                 var scale = three.calcScale();
                                 trains3D[i].cars[j].mesh.scale.set(scale * (trains[i].cars[j].width / background.width), scale * (trains[i].cars[j].width / background.width), scale * (trains[i].cars[j].width / background.width));
@@ -7249,31 +7609,28 @@ window.addEventListener("load", function () {
                             trains3D[i].cars[j].resize();
                             trains3D[i].cars[j].mesh.callback = trainCallback;
                             three.mainGroup.add(trains3D[i].cars[j].mesh);
-                            if ((_b = (_a = car.wheels) === null || _a === void 0 ? void 0 : _a.front) === null || _b === void 0 ? void 0 : _b.use3d) {
-                                loaderGLTF.setPath("assets/3d/").load("asset" + car.src + "_front.glb", function (gltf) {
-                                    trains3D[i].cars[j].meshFront = {};
-                                    trains3D[i].cars[j].meshFront.left = gltf.scene;
-                                    trains3D[i].cars[j].meshFront.right = trains3D[i].cars[j].meshFront.left.clone();
-                                    trains3D[i].cars[j].resize();
-                                    trains3D[i].cars[j].meshFront.left.callback = trainCallback;
-                                    trains3D[i].cars[j].meshFront.right.callback = trainCallback;
-                                    three.mainGroup.add(trains3D[i].cars[j].meshFront.left);
-                                    three.mainGroup.add(trains3D[i].cars[j].meshFront.right);
-                                });
+                            if (((_b = (_a = car.wheels) === null || _a === void 0 ? void 0 : _a.front) === null || _b === void 0 ? void 0 : _b.use3d) && objects3D[car.src + "_front"]) {
+                                trains3D[i].cars[j].meshFront = {};
+                                trains3D[i].cars[j].meshFront.left = three.cloneNode(objects3D[car.src + "_front"], true);
+                                trains3D[i].cars[j].meshFront.right = three.cloneNode(objects3D[car.src + "_front"], true);
+                                trains3D[i].cars[j].resize();
+                                trains3D[i].cars[j].meshFront.left.callback = trainCallback;
+                                trains3D[i].cars[j].meshFront.right.callback = trainCallback;
+                                three.mainGroup.add(trains3D[i].cars[j].meshFront.left);
+                                three.mainGroup.add(trains3D[i].cars[j].meshFront.right);
                             }
-                            if ((_d = (_c = car.wheels) === null || _c === void 0 ? void 0 : _c.back) === null || _d === void 0 ? void 0 : _d.use3d) {
-                                loaderGLTF.setPath("assets/3d/").load("asset" + car.src + "_back.glb", function (gltf) {
-                                    trains3D[i].cars[j].meshBack = {};
-                                    trains3D[i].cars[j].meshBack.left = gltf.scene;
-                                    trains3D[i].cars[j].meshBack.right = trains3D[i].cars[j].meshBack.left.clone();
-                                    trains3D[i].cars[j].resize();
-                                    trains3D[i].cars[j].meshBack.left.callback = trainCallback;
-                                    trains3D[i].cars[j].meshBack.right.callback = trainCallback;
-                                    three.mainGroup.add(trains3D[i].cars[j].meshBack.left);
-                                    three.mainGroup.add(trains3D[i].cars[j].meshBack.right);
-                                });
+                            if (((_d = (_c = car.wheels) === null || _c === void 0 ? void 0 : _c.back) === null || _d === void 0 ? void 0 : _d.use3d) && objects3D[car.src + "_back"]) {
+                                trains3D[i].cars[j].meshBack = {};
+                                trains3D[i].cars[j].meshBack.left = three.cloneNode(objects3D[car.src + "_back"], true);
+                                trains3D[i].cars[j].meshBack.right = three.cloneNode(objects3D[car.src + "_back"], true);
+                                trains3D[i].cars[j].resize();
+                                trains3D[i].cars[j].meshBack.left.callback = trainCallback;
+                                trains3D[i].cars[j].meshBack.right.callback = trainCallback;
+                                three.mainGroup.add(trains3D[i].cars[j].meshBack.left);
+                                three.mainGroup.add(trains3D[i].cars[j].meshBack.right);
                             }
-                        }, null, function () {
+                        }
+                        else {
                             var height3D = 0.01;
                             trains3D[i].cars[j].resize = function () {
                                 if (three.mainGroup.getObjectByName("train_" + i + "_car_" + j)) {
@@ -7288,7 +7645,7 @@ window.addEventListener("load", function () {
                                 three.mainGroup.add(trains3D[i].cars[j].mesh);
                             };
                             trains3D[i].cars[j].resize();
-                        });
+                        }
                     });
                 });
                 cars.forEach(function (car, i) {
@@ -7297,8 +7654,8 @@ window.addEventListener("load", function () {
                             hardware.mouse.isHold = false;
                         }
                         if ((hardware.lastInputTouch < hardware.lastInputMouse && hardware.mouse.downTime - hardware.mouse.upTime > 0 && upIntersects && downIntersects && hardware.mouse.downTime - hardware.mouse.upTime < doubleClickTime && !hardware.mouse.lastClickDoubleClick) || (hardware.lastInputTouch > hardware.lastInputMouse && downIntersects && Date.now() - hardware.mouse.downTime > longTouchTime)) {
-                            if (typeof clickTimeOut !== "undefined") {
-                                window.clearTimeout(clickTimeOut);
+                            if (clickTimeOut !== undefined && clickTimeOut !== null) {
+                                clearTimeout(clickTimeOut);
                                 clickTimeOut = null;
                             }
                             if (hardware.lastInputTouch > hardware.lastInputMouse) {
@@ -7315,11 +7672,11 @@ window.addEventListener("load", function () {
                             }
                         }
                         else {
-                            if (typeof clickTimeOut !== "undefined") {
-                                window.clearTimeout(clickTimeOut);
+                            if (clickTimeOut !== undefined && clickTimeOut !== null) {
+                                clearTimeout(clickTimeOut);
                                 clickTimeOut = null;
                             }
-                            clickTimeOut = window.setTimeout(function () {
+                            clickTimeOut = setTimeout(function () {
                                 clickTimeOut = null;
                                 if (hardware.lastInputTouch > hardware.lastInputMouse) {
                                     hardware.mouse.isHold = false;
@@ -7344,36 +7701,6 @@ window.addEventListener("load", function () {
                         }
                     };
                     cars3D[i] = {};
-                    var loaderGLTF = new GLTFLoader();
-                    loaderGLTF.setPath("assets/3d/").load("asset" + car.src + ".glb", function (gltf) {
-                        cars3D[i].mesh = gltf.scene;
-                        cars3D[i].resize = function () {
-                            var scale = three.calcScale();
-                            cars3D[i].mesh.scale.set(scale * (cars[i].width / background.width), scale * (cars[i].width / background.width), scale * (cars[i].width / background.width));
-                            cars3D[i].mesh.position.set(0, 0, 0);
-                            cars3D[i].positionZ = new THREE.Box3().setFromObject(cars3D[i].mesh).getSize(new THREE.Vector3()).z / 2;
-                            cars3D[i].resizeParkingLot();
-                        };
-                        cars3D[i].resize();
-                        cars3D[i].mesh.callback = carCallback;
-                        three.mainGroup.add(cars3D[i].mesh);
-                    }, null, function () {
-                        var height3D = 0.005;
-                        cars3D[i].resize = function () {
-                            if (three.mainGroup.getObjectByName("car_" + i)) {
-                                three.mainGroup.remove(cars3D[i].mesh);
-                            }
-                            var scale = three.calcScale();
-                            cars3D[i].mesh = new THREE.Mesh(new THREE.BoxGeometry(scale * (cars[i].width / background.width), scale * (cars[i].height / background.height / 2), scale * height3D), new THREE.MeshBasicMaterial({ color: 0xaaaa00, transparent: true, opacity: 0.5 }));
-                            cars3D[i].mesh.position.set(0, 0, 0);
-                            cars3D[i].positionZ = (scale * height3D) / 2;
-                            cars3D[i].mesh.callback = carCallback;
-                            cars3D[i].mesh.name = "car_" + i;
-                            three.mainGroup.add(cars3D[i].mesh);
-                            cars3D[i].resizeParkingLot();
-                        };
-                        cars3D[i].resize();
-                    });
                     var radius = 0.0036;
                     var height3D = 0.0005;
                     cars3D[i].meshParkingLot = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, height3D, 48), new THREE.MeshBasicMaterial({ color: 0xffffff, opacity: 0.5, transparent: true }));
@@ -7393,9 +7720,39 @@ window.addEventListener("load", function () {
                     };
                     cars3D[i].meshParkingLot.visible = false;
                     cars3D[i].resizeParkingLot();
+                    if (objects3D[car.src]) {
+                        cars3D[i].mesh = three.cloneNode(objects3D[car.src]);
+                        cars3D[i].resize = function () {
+                            var scale = three.calcScale();
+                            cars3D[i].mesh.scale.set(scale * (cars[i].width / background.width), scale * (cars[i].width / background.width), scale * (cars[i].width / background.width));
+                            cars3D[i].mesh.position.set(0, 0, 0);
+                            cars3D[i].positionZ = new THREE.Box3().setFromObject(cars3D[i].mesh).getSize(new THREE.Vector3()).z / 2;
+                            cars3D[i].resizeParkingLot();
+                        };
+                        cars3D[i].resize();
+                        cars3D[i].mesh.callback = carCallback;
+                        three.mainGroup.add(cars3D[i].mesh);
+                    }
+                    else {
+                        var height3D = 0.005;
+                        cars3D[i].resize = function () {
+                            if (three.mainGroup.getObjectByName("car_" + i)) {
+                                three.mainGroup.remove(cars3D[i].mesh);
+                            }
+                            var scale = three.calcScale();
+                            cars3D[i].mesh = new THREE.Mesh(new THREE.BoxGeometry(scale * (cars[i].width / background.width), scale * (cars[i].height / background.height / 2), scale * height3D), new THREE.MeshBasicMaterial({ color: 0xaaaa00, transparent: true, opacity: 0.5 }));
+                            cars3D[i].mesh.position.set(0, 0, 0);
+                            cars3D[i].positionZ = (scale * height3D) / 2;
+                            cars3D[i].mesh.callback = carCallback;
+                            cars3D[i].mesh.name = "car_" + i;
+                            three.mainGroup.add(cars3D[i].mesh);
+                            cars3D[i].resizeParkingLot();
+                        };
+                        cars3D[i].resize();
+                    }
                     three.mainGroup.add(cars3D[i].meshParkingLot);
                 });
-                if (!gui.demo) {
+                if (currentMode != Modes.DEMO) {
                     Object.keys(switches).forEach(function (key) {
                         switches3D[key] = {};
                         Object.keys(switches[key]).forEach(function (currentKey) {
@@ -7404,11 +7761,11 @@ window.addEventListener("load", function () {
                             var length = radius * 1.25;
                             var height3D = 0.0005;
                             var meshCallback = function () {
-                                if (typeof clickTimeOut !== "undefined") {
-                                    window.clearTimeout(clickTimeOut);
+                                if (clickTimeOut !== undefined && clickTimeOut !== null) {
+                                    clearTimeout(clickTimeOut);
                                     clickTimeOut = null;
                                 }
-                                clickTimeOut = window.setTimeout(function () {
+                                clickTimeOut = setTimeout(function () {
                                     clickTimeOut = null;
                                     hardware.mouse.isHold = false;
                                     switchActions.turn(key, currentKey);
@@ -7451,51 +7808,48 @@ window.addEventListener("load", function () {
                 //Calc and show UI
                 calcClassicUIElements();
                 calcControlCenter();
-                drawOptionsMenu("show");
+                drawMenu("menu-switch");
                 document.fonts.ready.then(function () {
                     //Recalc canvas fonts (font loading may take longer than resize)
                     calcClassicUIElements();
                     calcControlCenter();
                     three.followCamControls.recalc();
                 });
+                //Reset mode switch block
+                if (modeSwitchingReloadTimeout !== undefined && modeSwitchingReloadTimeout !== null) {
+                    clearTimeout(modeSwitchingReloadTimeout);
+                }
+                modeSwitching = false;
                 //Trigger resize
                 window.addEventListener("resize", requestResize);
                 requestResize();
                 //Initialize canvas
                 drawInterval = message.data.animateInterval;
                 drawObjects();
-                document.addEventListener("visibilitychange", function () {
-                    if (document.visibilityState != "hidden") {
-                        if (drawTimeout !== undefined && drawTimeout !== null) {
-                            window.clearTimeout(drawTimeout);
-                        }
-                        drawObjects();
-                    }
-                });
                 //Gestures
-                if (gui.demo) {
+                if (currentMode == Modes.DEMO) {
                     var demoModeTimeoutDelay_1 = 90000;
-                    window.setTimeout(function () {
+                    demoMode.reloadTimeout = setTimeout(function () {
                         if (carParams.autoModeRuns) {
-                            window.sessionStorage.setItem("demoCars", JSON.stringify(cars));
-                            window.sessionStorage.setItem("demoCarParams", JSON.stringify(carParams));
-                            window.sessionStorage.setItem("demoBg", JSON.stringify(background));
+                            sessionStorage.setItem("demoCars", JSON.stringify(cars));
+                            sessionStorage.setItem("demoCarParams", JSON.stringify(carParams));
+                            sessionStorage.setItem("demoBg", JSON.stringify(background));
                         }
-                        if (Object.hasOwn(demoMode, "exitTimeout")) {
+                        if (Object.hasOwn(demoMode, "exitAppDelay")) {
                             var elapsedTime = demoModeTimeoutDelay_1;
-                            var storedElapsedTime = parseInt(window.sessionStorage.getItem("demoElapsedTime"), 10);
+                            var storedElapsedTime = parseInt(sessionStorage.getItem("demoElapsedTime"), 10);
                             if (Number.isInteger(storedElapsedTime)) {
                                 elapsedTime += storedElapsedTime;
                             }
-                            if (elapsedTime >= demoMode.exitTimeout) {
-                                window.sessionStorage.removeItem("demoElapsedTime");
+                            if (elapsedTime >= demoMode.exitAppDelay) {
+                                sessionStorage.removeItem("demoElapsedTime");
                                 SYSTEM_TOOLS.exitApp();
-                                window.setTimeout(function () {
+                                demoMode.reloadOnExitTimeout = setTimeout(function () {
                                     demoMode.reload();
                                 }, 500);
                             }
                             else {
-                                window.sessionStorage.setItem("demoElapsedTime", JSON.stringify(elapsedTime));
+                                sessionStorage.setItem("demoElapsedTime", JSON.stringify(elapsedTime));
                                 demoMode.reload();
                             }
                         }
@@ -7504,11 +7858,7 @@ window.addEventListener("load", function () {
                         }
                     }, demoModeTimeoutDelay_1);
                     if (!demoMode.standalone) {
-                        document.addEventListener("keyup", function (event) {
-                            if (event.key == "Escape") {
-                                switchMode();
-                            }
-                        });
+                        document.addEventListener("keyup", demoMode.leaveKeyUp);
                         document.addEventListener("touchstart", demoMode.leaveTimeoutStart, { passive: false });
                         document.addEventListener("touchend", demoMode.leaveTimeoutEnd, { passive: false });
                         document.addEventListener("touchcancel", demoMode.leaveTimeoutEnd, { passive: false });
@@ -7531,44 +7881,43 @@ window.addEventListener("load", function () {
                     canvasForeground.addEventListener("wheel", onMouseWheel, { passive: false });
                     document.addEventListener("keydown", onKeyDown);
                     document.addEventListener("keyup", onKeyUp);
-                    document.removeEventListener("wheel", preventMouseZoomDuringLoad);
+                    document.removeEventListener("contextmenu", preventEvent);
+                    document.removeEventListener("wheel", preventEvent);
                     document.removeEventListener("keydown", preventKeyZoomDuringLoad);
                 }
                 document.removeEventListener("keyup", preventKeyZoomDuringLoad);
-                //Show everything
-                var timeWait = 0.5;
-                var timeLoad = 1.5;
-                if (gui.demo) {
-                    window.clearInterval(loadingAnimElemChangingFilter);
+                var state_1 = message.data.state;
+                //Ready event
+                if (state_1 == "load") {
+                    var event_2 = new CustomEvent("moroway-app-ready");
+                    document.dispatchEvent(event_2);
                 }
-                window.setTimeout(function () {
-                    destroy([document.querySelector("#snake"), document.querySelector("#percent")]);
-                    var event = new CustomEvent("moroway-app-ready");
-                    document.dispatchEvent(event);
-                    var toHide = document.querySelector("#branding");
-                    if (toHide != null && !onlineGame.enabled) {
-                        toHide.style.transition = "opacity " + timeLoad + "s ease-in";
-                        toHide.style.opacity = "0";
-                        window.setTimeout(function () {
-                            var localAppData = getLocalAppDataCopy();
-                            if (getSetting("classicUI") && !classicUI.trainSwitch.selectedTrainDisplay.visible && !gui.demo && !gui.three) {
-                                notify("#canvas-notifier", formatJSString(getString("appScreenTrainSelected", "."), getString(["appScreenTrainNames", trainParams.selected]), getString("appScreenTrainSelectedAuto", " ")), NotificationPriority.High, 3000, null, null, client.y + menus.outerContainer.height);
-                            }
-                            else if (localAppData != null && (localAppData.version.major < APP_DATA.version.major || (localAppData.version.major == APP_DATA.version.major && localAppData.version.minor < APP_DATA.version.minor)) && !gui.demo) {
-                                var event_2 = new CustomEvent("moroway-app-update-notification", { detail: { notifyMinHeight: client.y + menus.outerContainer.height } });
-                                document.dispatchEvent(event_2);
-                            }
-                            else if (!gui.demo) {
-                                var event_3 = new CustomEvent("moroway-app-ready-notification", { detail: { notifyMinHeight: client.y + menus.outerContainer.height } });
-                                document.dispatchEvent(event_3);
-                            }
-                            setLocalAppDataCopy();
-                            destroy(toHide);
-                        }, timeLoad * 900);
-                    }
-                }, timeWait * 1000);
+                //Show app
+                if (currentMode == Modes.DEMO) {
+                    loadingAnimation.hide();
+                }
+                else if (currentMode == Modes.SINGLEPLAYER) {
+                    loadingAnimation.fade(function () {
+                        var localAppData = getLocalAppDataCopy();
+                        if (getSetting("classicUI") && !classicUI.trainSwitch.selectedTrainDisplay.visible && !gui.three) {
+                            notify("#canvas-notifier", formatJSString(getString("appScreenTrainSelected", "."), getString(["appScreenTrainNames", trainParams.selected]), getString("appScreenTrainSelectedAuto", " ")), NotificationPriority.High, 3000, null, null, client.y + menus.outerContainer.height);
+                        }
+                        else if (state_1 == "load" && localAppData != null && (localAppData.version.major < APP_DATA.version.major || (localAppData.version.major == APP_DATA.version.major && localAppData.version.minor < APP_DATA.version.minor))) {
+                            var event_3 = new CustomEvent("moroway-app-update-notification", { detail: { notifyMinHeight: client.y + menus.outerContainer.height } });
+                            document.dispatchEvent(event_3);
+                        }
+                        else if (state_1 == "load") {
+                            var event_4 = new CustomEvent("moroway-app-ready-notification", { detail: { notifyMinHeight: client.y + menus.outerContainer.height } });
+                            document.dispatchEvent(event_4);
+                        }
+                        setLocalAppDataCopy();
+                    });
+                }
             }
             else if (message.data.k == "setTrains") {
+                if (message.data.switches) {
+                    switches = message.data.switches;
+                }
                 rotationPoints = message.data.rotationPoints;
                 message.data.trains.forEach(function (train, i) {
                     trains[i].x = train.x;
@@ -7621,17 +7970,17 @@ window.addEventListener("load", function () {
                         trains[i].cars[j].back.angle = car.back.angle;
                         trains[i].cars[j].wheels = car.wheels;
                     });
-                    if (train.move && !train.mute && audio.active) {
-                        if (!existsAudio("train", i)) {
-                            startAudio("train", i, true);
+                    if (train.move && !train.mute && audioControl.mayPlay()) {
+                        if (!audioControl.existsObject("train", i)) {
+                            audioControl.startObject("train", i, true);
                         }
                         if (train.currentSpeedInPercent == undefined) {
                             train.currentSpeedInPercent = 0;
                         }
-                        setAudioVolume("train", i, train.volume);
+                        audioControl.setObjectVolume("train", i, train.volume);
                     }
-                    else if (existsAudio("train", i)) {
-                        stopAudio("train", i);
+                    else if (audioControl.existsObject("train", i)) {
+                        audioControl.stopObject("train", i);
                     }
                 });
                 if (message.data.resized) {
@@ -7645,19 +7994,19 @@ window.addEventListener("load", function () {
                             }
                         });
                     });
-                    if (!gui.demo) {
+                    if (currentMode != Modes.DEMO) {
                         Object.keys(switches).forEach(function (key) {
                             Object.keys(switches[key]).forEach(function (currentKey) {
                                 switches3D[key][currentKey].resize();
                             });
                         });
                     }
-                    if (onlineGame.enabled) {
-                        if (onlineGame.resizedTimeout != undefined && onlineGame.resizedTimeout != null) {
-                            window.clearTimeout(onlineGame.resizedTimeout);
+                    if (currentMode == Modes.MULTIPLAYER) {
+                        if (multiplayerMode.resizedTimeout != undefined && multiplayerMode.resizedTimeout != null) {
+                            clearTimeout(multiplayerMode.resizedTimeout);
                         }
-                        onlineGame.resizedTimeout = window.setTimeout(function () {
-                            onlineGame.resized = false;
+                        multiplayerMode.resizedTimeout = setTimeout(function () {
+                            onlineConnection.resized = false;
                         }, 3000);
                     }
                     resized = false;
@@ -7669,15 +8018,12 @@ window.addEventListener("load", function () {
             else if (message.data.k == "trainCrash") {
                 actionSync("trains", message.data.i, [{ move: false }], [{ getString: ["appScreenObjectHasCrashed", "."] }, { getString: [["appScreenTrainNames", message.data.i]] }, { getString: [["appScreenTrainNames", message.data.j]] }]);
                 actionSync("train-crash");
-                if (existsAudio("trainCrash")) {
-                    stopAudio("trainCrash");
+                if (audioControl.existsObject("trainCrash")) {
+                    audioControl.stopObject("trainCrash");
                 }
-                if (audio.active) {
-                    startAudio("trainCrash", null, false);
+                if (audioControl.mayPlay()) {
+                    audioControl.startObject("trainCrash", null, false);
                 }
-            }
-            else if (message.data.k == "switches") {
-                switches = message.data.switches;
             }
             else if (message.data.k == "sync-ready") {
                 rotationPoints = message.data.rotationPoints;
@@ -7685,9 +8031,9 @@ window.addEventListener("load", function () {
                 onlineConnection.send("sync-ready");
             }
             else if (message.data.k == "save-game") {
-                if (getSetting("saveGame") && !onlineGame.enabled && !gui.demo) {
+                if (getSetting("saveGame") && currentMode == Modes.SINGLEPLAYER) {
                     try {
-                        window.localStorage.setItem("morowayAppSavedGame_v-" + getVersionCode() + "_Trains", JSON.stringify(message.data.saveTrains));
+                        localStorage.setItem("morowayAppSavedGame_v-" + getVersionCode() + "_Trains", JSON.stringify(message.data.saveTrains));
                         var saveSwitches = {};
                         Object.keys(switches).forEach(function (key) {
                             saveSwitches[key] = {};
@@ -7695,12 +8041,12 @@ window.addEventListener("load", function () {
                                 saveSwitches[key][side] = switches[key][side].turned;
                             });
                         });
-                        window.localStorage.setItem("morowayAppSavedGame_v-" + getVersionCode() + "_Switches", JSON.stringify(saveSwitches));
+                        localStorage.setItem("morowayAppSavedGame_v-" + getVersionCode() + "_Switches", JSON.stringify(saveSwitches));
                         if (cars.length == carWays.length && cars.length > 0) {
-                            window.localStorage.setItem("morowayAppSavedGame_v-" + getVersionCode() + "_Cars", JSON.stringify(cars));
-                            window.localStorage.setItem("morowayAppSavedGame_v-" + getVersionCode() + "_CarParams", JSON.stringify(carParams));
+                            localStorage.setItem("morowayAppSavedGame_v-" + getVersionCode() + "_Cars", JSON.stringify(cars));
+                            localStorage.setItem("morowayAppSavedGame_v-" + getVersionCode() + "_CarParams", JSON.stringify(carParams));
                         }
-                        window.localStorage.setItem("morowayAppSavedGame_v-" + getVersionCode() + "_Bg", JSON.stringify(background));
+                        localStorage.setItem("morowayAppSavedGame_v-" + getVersionCode() + "_Bg", JSON.stringify(background));
                     }
                     catch (e) {
                         if (APP_DATA.debug) {
@@ -7726,81 +8072,43 @@ window.addEventListener("load", function () {
                 debug.trainReady = true;
             }
         };
-        animateWorker.postMessage({ k: "start", background: background, switches: switches, online: onlineGame.enabled, onlineInterval: onlineGame.animateInterval, demo: gui.demo });
+        animateWorker.postMessage({ k: "ready", state: "load", online: currentMode == Modes.MULTIPLAYER, onlineInterval: multiplayerMode.animateInterval, demo: currentMode == Modes.DEMO });
     }
-    function loadingImageAnimation() {
-        var loadingAnimElem = document.querySelector("#branding img");
-        var loadingAnimElemDefaultFilter = "blur(1px) saturate(5) sepia(1) hue-rotate({{0}}deg)";
-        loadingAnimElem.style.transition = "filter 0.08s";
-        loadingAnimElem.style.filter = formatJSString(loadingAnimElemDefaultFilter, Math.random() * 260 + 100);
-        return window.setInterval(function () {
-            loadingAnimElem.style.filter = formatJSString(loadingAnimElemDefaultFilter, Math.random() * 260 + 100);
-        }, 10);
-    }
-    var loadingAnimElemChangingFilter;
-    var queryStringMode = getQueryString("mode");
-    //Set mode: demo
-    gui.demo = queryStringMode == "demo" || queryStringMode == "demoStandalone" || (getSetting("startDemoMode") && queryStringMode == "");
-    if (gui.demo) {
-        document.body.style.cursor = "none";
-        loadingAnimElemChangingFilter = loadingImageAnimation();
-        demoMode.standalone = queryStringMode == "demoStandalone";
-    }
-    //Set mode: multiplay
-    if (queryStringMode == "multiplay") {
-        if ("WebSocket" in window) {
-            onlineGame.enabled = true;
-            loadingAnimElemChangingFilter = loadingImageAnimation();
-        }
-        else {
-            onlineGame.enabled = false;
-            notify("#canvas-notifier", getString("appScreenTeamplayNoWebsocket", "!", "upper"), NotificationPriority.High, 6000, null, null, client.y + menus.outerContainer.height);
-        }
-    }
-    else {
-        onlineGame.enabled = false;
-    }
-    //GUI State
-    var queryString3D = getQueryString("gui-3d");
-    if (queryString3D == "0" || queryString3D == "1") {
-        gui.three = getGuiState("3d", queryString3D == "1");
-    }
-    else {
-        gui.three = getGuiState("3d");
-    }
-    var queryString3DNight = getQueryString("gui-3d-night");
-    if (queryString3DNight == "0" || queryString3DNight == "1") {
-        three.night = getGuiState("3d-night", queryString3DNight == "1");
-    }
-    else {
-        three.night = getGuiState("3d-night");
-    }
-    var queryString3DCamMode = getQueryString("gui-3d-cam-mode");
-    three.cameraMode = getGuiState("3d-cam-mode", queryString3DCamMode);
-    var queryString3DFollowObject = getQueryString("gui-3d-follow-object");
-    three.followObject = gui.demo ? -1 : getGuiState("3d-follow-object", parseInt(queryString3DFollowObject, 10));
-    three.demoRotationSpeedFac = getGuiState("3d-rotation-speed", parseInt(getQueryString("gui-demo-3d-rotation-speed-percent"), 10));
-    if (gui.demo) {
-        var queryStringDemoRandom = getQueryString("gui-demo-random");
-        var randomDemoMode;
-        if (queryStringDemoRandom == "0" || queryStringDemoRandom == "1") {
-            randomDemoMode = getGuiState("demo-random", queryStringDemoRandom == "1");
-        }
-        else {
-            randomDemoMode = getGuiState("demo-random");
-        }
-        if (randomDemoMode) {
-            gui.three = Math.random() < 0.6;
-            three.night = Math.random() < 0.5;
-            var cameraModes = Object.values(ThreeCameraModes);
-            three.cameraMode = cameraModes[Math.floor(Math.random() * cameraModes.length)];
-            three.demoRotationSpeedFac = Math.floor(Math.random() * 101);
-        }
-        var queryStringDemoExitTimeout = parseInt(getQueryString("exit-timeout"), 10);
-        if (typeof queryStringDemoExitTimeout == "number" && Number.isInteger(queryStringDemoExitTimeout) && queryStringDemoExitTimeout > 0) {
-            demoMode.exitTimeout = queryStringDemoExitTimeout * 60000;
+    function onVisibilityChange() {
+        client.hidden = document.visibilityState == "hidden";
+        resetGestures();
+        hardware.keyboard.keysHold = [];
+        audioControl.playAndPauseAll();
+        SYSTEM_TOOLS.keepAlive(!client.hidden);
+        if (!modeSwitching) {
+            if (!client.hidden) {
+                if (drawTimeout !== undefined && drawTimeout !== null) {
+                    clearTimeout(drawTimeout);
+                }
+                drawObjects();
+            }
+            if (currentMode == Modes.MULTIPLAYER) {
+                if (client.hidden) {
+                    onlineConnection.send("pause-request");
+                }
+                else {
+                    onlineConnection.send("resume-request");
+                }
+            }
+            else {
+                if (client.hidden) {
+                    animateWorker.postMessage({ k: "pause" });
+                }
+                else {
+                    animateWorker.postMessage({ k: "resume" });
+                }
+            }
         }
     }
+    prepareInit();
+    //Visibility handling
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    onVisibilityChange();
     //Initialize canvases and contexts
     canvas = document.querySelector("canvas#game-gameplay-main");
     canvasGesture = document.querySelector("canvas#game-gameplay-gesture");
@@ -7812,71 +8120,205 @@ window.addEventListener("load", function () {
     contextBackground = canvasBackground.getContext("2d");
     contextSemiForeground = canvasSemiForeground.getContext("2d");
     contextForeground = canvasForeground.getContext("2d");
-    //Input handling
-    hardware.lastInputMouse = hardware.lastInputTouch = 0;
-    document.addEventListener("wheel", preventMouseZoomDuringLoad, { passive: false });
-    document.addEventListener("keydown", preventKeyZoomDuringLoad, { passive: false });
-    document.addEventListener("keyup", preventKeyZoomDuringLoad, { passive: false });
-    //Visibility handling
-    document.addEventListener("visibilitychange", onVisibilityChange);
-    onVisibilityChange();
-    document.addEventListener("visibilitychange", keepScreenAlive);
-    keepScreenAlive();
-    //Prepare game
-    if (!onlineGame.enabled) {
-        var elements = document.querySelectorAll("#content > *:not(#game), #game > *:not(#game-gameplay)");
-        for (var i = 0; i < elements.length; i++) {
-            elements[i].style.display = "none";
+    //Load media
+    var finalLoadNo = 0;
+    var currentLoadNo = 0;
+    //Load 3d objects
+    var defaultObjects3D = [
+        { object: "background-flat.jpg", path: "assets/3d/", id: "background-flat", type: "texture" },
+        { object: "background-3d.gltf", path: "assets/3d/background-3d/", id: "background-3d", type: "mesh" },
+        { object: "asset0.glb", path: "assets/3d/", id: "0", type: "mesh" },
+        { object: "asset1.glb", path: "assets/3d/", id: "1", type: "mesh" },
+        { object: "asset2.glb", path: "assets/3d/", id: "2", type: "mesh" },
+        { object: "asset3.glb", path: "assets/3d/", id: "3", type: "mesh" },
+        { object: "asset4.glb", path: "assets/3d/", id: "4", type: "mesh" },
+        { object: "asset5.glb", path: "assets/3d/", id: "5", type: "mesh" },
+        { object: "asset6.glb", path: "assets/3d/", id: "6", type: "mesh" },
+        { object: "asset7.glb", path: "assets/3d/", id: "7", type: "mesh" },
+        { object: "asset8.glb", path: "assets/3d/", id: "8", type: "mesh" },
+        { object: "asset16.glb", path: "assets/3d/", id: "16", type: "mesh" },
+        { object: "asset17.glb", path: "assets/3d/", id: "17", type: "mesh" },
+        { object: "asset18.glb", path: "assets/3d/", id: "18", type: "mesh" },
+        { object: "asset19.glb", path: "assets/3d/", id: "19", type: "mesh" },
+        { object: "asset20.glb", path: "assets/3d/", id: "20", type: "mesh" },
+        { object: "asset21.glb", path: "assets/3d/", id: "21", type: "mesh" },
+        { object: "asset22.glb", path: "assets/3d/", id: "22", type: "mesh" },
+        { object: "asset33.glb", path: "assets/3d/", id: "33", type: "mesh" },
+        { object: "asset34.glb", path: "assets/3d/", id: "34", type: "mesh" },
+        { object: "asset35.glb", path: "assets/3d/", id: "35", type: "mesh" },
+        { object: "asset36.glb", path: "assets/3d/", id: "36", type: "mesh" },
+        { object: "asset37.glb", path: "assets/3d/", id: "37", type: "mesh" },
+        { object: "asset2_front.glb", path: "assets/3d/", id: "2_front", type: "mesh" },
+        { object: "asset3_front.glb", path: "assets/3d/", id: "3_front", type: "mesh" },
+        { object: "asset4_front.glb", path: "assets/3d/", id: "4_front", type: "mesh" },
+        { object: "asset5_front.glb", path: "assets/3d/", id: "5_front", type: "mesh" },
+        { object: "asset6_front.glb", path: "assets/3d/", id: "6_front", type: "mesh" },
+        { object: "asset7_front.glb", path: "assets/3d/", id: "7_front", type: "mesh" },
+        { object: "asset8_front.glb", path: "assets/3d/", id: "8_front", type: "mesh" },
+        { object: "asset18_front.glb", path: "assets/3d/", id: "18_front", type: "mesh" },
+        { object: "asset19_front.glb", path: "assets/3d/", id: "19_front", type: "mesh" },
+        { object: "asset20_front.glb", path: "assets/3d/", id: "20_front", type: "mesh" },
+        { object: "asset21_front.glb", path: "assets/3d/", id: "21_front", type: "mesh" },
+        { object: "asset22_front.glb", path: "assets/3d/", id: "22_front", type: "mesh" },
+        { object: "asset34_front.glb", path: "assets/3d/", id: "34_front", type: "mesh" },
+        { object: "asset35_front.glb", path: "assets/3d/", id: "35_front", type: "mesh" },
+        { object: "asset36_front.glb", path: "assets/3d/", id: "36_front", type: "mesh" },
+        { object: "asset37_front.glb", path: "assets/3d/", id: "37_front", type: "mesh" },
+        { object: "asset2_back.glb", path: "assets/3d/", id: "2_back", type: "mesh" },
+        { object: "asset3_back.glb", path: "assets/3d/", id: "3_back", type: "mesh" },
+        { object: "asset4_back.glb", path: "assets/3d/", id: "4_back", type: "mesh" },
+        { object: "asset5_back.glb", path: "assets/3d/", id: "5_back", type: "mesh" },
+        { object: "asset6_back.glb", path: "assets/3d/", id: "6_back", type: "mesh" },
+        { object: "asset7_back.glb", path: "assets/3d/", id: "7_back", type: "mesh" },
+        { object: "asset8_back.glb", path: "assets/3d/", id: "8_back", type: "mesh" },
+        { object: "asset18_back.glb", path: "assets/3d/", id: "18_back", type: "mesh" },
+        { object: "asset19_back.glb", path: "assets/3d/", id: "19_back", type: "mesh" },
+        { object: "asset20_back.glb", path: "assets/3d/", id: "20_back", type: "mesh" },
+        { object: "asset21_back.glb", path: "assets/3d/", id: "21_back", type: "mesh" },
+        { object: "asset22_back.glb", path: "assets/3d/", id: "22_back", type: "mesh" },
+        { object: "asset34_back.glb", path: "assets/3d/", id: "34_back", type: "mesh" },
+        { object: "asset35_back.glb", path: "assets/3d/", id: "35_back", type: "mesh" },
+        { object: "asset36_back.glb", path: "assets/3d/", id: "36_back", type: "mesh" },
+        { object: "asset37_back.glb", path: "assets/3d/", id: "37_back", type: "mesh" }
+    ];
+    objects3D = [];
+    finalLoadNo += defaultObjects3D.length;
+    defaultObjects3D.forEach(function (object3D) {
+        if (object3D.type == "mesh") {
+            var loaderGLTF = new GLTFLoader();
+            loaderGLTF.setPath(object3D.path).load(object3D.object, function (gltf) {
+                objects3D[object3D.id] = gltf.scene;
+                currentLoadNo++;
+                var progressPercent = Math.round(100 * (currentLoadNo / finalLoadNo));
+                loadingAnimation.updateProgress(progressPercent);
+                if (currentLoadNo == finalLoadNo) {
+                    //Initialize content
+                    initAnimateWorker();
+                }
+            }, null, function () {
+                objects3D[object3D.id] = null;
+                currentLoadNo++;
+                var progressPercent = Math.round(100 * (currentLoadNo / finalLoadNo));
+                loadingAnimation.updateProgress(progressPercent);
+                if (currentLoadNo == finalLoadNo) {
+                    //Initialize content
+                    initAnimateWorker();
+                }
+            });
         }
-        elements = document.querySelectorAll("#content > #game, #game > #game-gameplay");
-        for (i = 0; i < elements.length; i++) {
-            elements[i].style.display = "block";
+        else if (object3D.type == "texture") {
+            var loaderTexture = new THREE.TextureLoader();
+            loaderTexture.setPath(object3D.path).load(object3D.object, function (texture) {
+                objects3D[object3D.id] = texture;
+                currentLoadNo++;
+                var progressPercent = Math.round(100 * (currentLoadNo / finalLoadNo));
+                loadingAnimation.updateProgress(progressPercent);
+                if (currentLoadNo == finalLoadNo) {
+                    //Initialize content
+                    initAnimateWorker();
+                }
+            }, null, function () {
+                objects3D[object3D.id] = null;
+                currentLoadNo++;
+                var progressPercent = Math.round(100 * (currentLoadNo / finalLoadNo));
+                loadingAnimation.updateProgress(progressPercent);
+                if (currentLoadNo == finalLoadNo) {
+                    //Initialize content
+                    initAnimateWorker();
+                }
+            });
         }
-    }
-    measureViewSpace();
-    if (getSetting("saveGame")) {
-        updateSavedGame();
-    }
-    else {
-        removeSavedGame();
-    }
-    //Show progress bar if app loads slowly
-    window.setTimeout(function () {
-        var toShowElements = [document.querySelector("#percent")];
-        toShowElements.forEach(function (toShow) {
-            if (toShow != null) {
-                toShow.style.display = "block";
-            }
-        });
-    }, 2500);
-    //Load app
-    var defaultPics = copyJSObject(pics);
-    var finalPicNo = defaultPics.length;
+    });
+    //Load images
+    var defaultPics = [
+        { id: 0, extension: "png" },
+        { id: 1, extension: "png" },
+        { id: 2, extension: "png" },
+        { id: 3, extension: "png" },
+        { id: 4, extension: "png" },
+        { id: 5, extension: "png" },
+        { id: 6, extension: "png" },
+        { id: 7, extension: "png" },
+        { id: 8, extension: "png" },
+        { id: 9, extension: "jpg" },
+        { id: 10, extension: "png" },
+        { id: 11, extension: "png" },
+        { id: 12, extension: "png" },
+        { id: 13, extension: "png" },
+        { id: 14, extension: "png" },
+        { id: 15, extension: "png" },
+        { id: 16, extension: "png" },
+        { id: 17, extension: "png" },
+        { id: 18, extension: "png" },
+        { id: 19, extension: "png" },
+        { id: 20, extension: "png" },
+        { id: 21, extension: "png" },
+        { id: 22, extension: "png" },
+        { id: 23, extension: "png" },
+        { id: 24, extension: "png" },
+        { id: 25, extension: "png" },
+        { id: 26, extension: "png" },
+        { id: 27, extension: "png" },
+        { id: 28, extension: "png" },
+        { id: 29, extension: "png" },
+        { id: 30, extension: "png" },
+        { id: 31, extension: "png" },
+        { id: 32, extension: "png" },
+        { id: 33, extension: "png" },
+        { id: 34, extension: "png" },
+        { id: 35, extension: "png" },
+        { id: 36, extension: "png" },
+        { id: 37, extension: "png" },
+        { id: 38, extension: "png" },
+        { id: 39, extension: "png" }
+    ];
     pics = [];
-    var loadNo = 0;
+    defaultObjects3D.length;
+    finalLoadNo += defaultPics.length;
     defaultPics.forEach(function (pic) {
         pics[pic.id] = new Image();
         pics[pic.id].src = "assets/asset" + pic.id + "." + pic.extension;
         pics[pic.id].onload = function () {
-            loadNo++;
-            var cPercent = Math.round(100 * (loadNo / finalPicNo));
-            var elementPercentText = document.querySelector("#percent #percent-text");
-            var elementPercentProgress = document.querySelector("#percent #percent-progress");
-            if (elementPercentText != null && elementPercentProgress != null) {
-                elementPercentText.textContent = cPercent + "%";
-                elementPercentProgress.style.left = -100 + cPercent + "%";
-            }
-            if (loadNo == finalPicNo) {
-                initialDisplay();
+            currentLoadNo++;
+            var progressPercent = Math.round(100 * (currentLoadNo / finalLoadNo));
+            loadingAnimation.updateProgress(progressPercent);
+            if (currentLoadNo == finalLoadNo) {
+                //Initialize content
+                initAnimateWorker();
             }
         };
         pics[pic.id].onerror = function () {
             notify("#canvas-notifier", getString("generalIsFail", "!", "upper"), NotificationPriority.High, 950, null, null, client.height);
-            window.setTimeout(function () {
+            setTimeout(function () {
                 followLink("error#pic", "_self", LinkStates.InternalHtml);
             }, 1000);
         };
     });
+});
+window.addEventListener("error", function () {
+    var _a;
+    (_a = onlineConnection.socket) === null || _a === void 0 ? void 0 : _a.close();
+    audioControl.stopAll();
+});
+window.addEventListener("popstate", function (event) {
+    if (event.state) {
+        var historyStateMode = event.state.mode;
+        if (Object.values(Modes).includes(historyStateMode)) {
+            switchMode(historyStateMode);
+        }
+        else {
+            switchMode(Modes.SINGLEPLAYER);
+        }
+    }
+    else {
+        var queryStringMode = getQueryStringValue("mode");
+        if (Object.values(Modes).includes(queryStringMode)) {
+            switchMode(queryStringMode);
+        }
+        else {
+            switchMode(Modes.SINGLEPLAYER);
+        }
+    }
 });
 document.addEventListener("DOMContentLoaded", function () {
     setHTMLStrings();

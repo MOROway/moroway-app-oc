@@ -17,7 +17,7 @@ export function followLink(input1, input2, input3) {
                 var id = input1.replace(/[/].*$/, "");
                 var key = input1.replace(/.*[/]([^/]+)([/])?$/, "$1");
                 if (input1.length > 0 && id.match(/^[0-9]+$/) !== null && key.match(/^[a-zA-Z0-9]+$/) !== null) {
-                    redirect += "?mode=multiplay&id=" + id + "&key=" + key;
+                    redirect += "?mode=multiplayer&id=" + id + "&key=" + key;
                 }
                 followLink(redirect, "_blank", LinkStates.InternalHtml);
             }
@@ -29,7 +29,6 @@ export function followLink(input1, input2, input3) {
             input2 = "_system";
             break;
         case LinkStates.InternalHtml:
-        case LinkStates.InternalReload:
             var hash, queryString;
             if (input1.includes("#")) {
                 hash = input1.substr(input1.indexOf("#"));

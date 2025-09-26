@@ -35,7 +35,7 @@ document.addEventListener("DOMContentLoaded", function () {
         followLink("./", "_self", LinkStates.InternalHtml);
     });
     document.getElementById("link_multiplayer").addEventListener("click", function () {
-        followLink("./?mode=multiplay", "_self", LinkStates.InternalHtml);
+        followLink("./?mode=multiplayer", "_self", LinkStates.InternalHtml);
     });
     document.getElementById("link_demo").addEventListener("click", function () {
         followLink("html_platform/start_demo_mode.html", "_self", LinkStates.InternalHtml);

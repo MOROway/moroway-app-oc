@@ -4,6 +4,13 @@
 *  Accent: rgb(210, 120, 27)  *
 ******************************/
 
+:root {
+    --unsafe-area-top: env(safe-area-inset-top);
+    --unsafe-area-bottom: env(safe-area-inset-bottom);
+    --unsafe-area-left: env(safe-area-inset-left);
+    --unsafe-area-right: env(safe-area-inset-right);
+}
+
 body {
     font-family: Roboto;
     text-align: center;
@@ -65,7 +72,7 @@ h2 {
 .tooltip-container {
     display: none;
     position: fixed;
-    z-index: 3000;
+    z-index: 600;
     max-width: 200px;
     padding: 0.75em;
     border-radius: 0.25em;
@@ -160,7 +167,7 @@ h2 {
 /* Top Header */
 .page-header {
     text-align: left;
-    z-index: 99;
+    z-index: 400;
     position: sticky;
     top: 0;
     margin: 0;
@@ -190,7 +197,7 @@ h2 {
 .notify {
     padding: 15px;
     margin: 0;
-    z-index: 100;
+    z-index: 200;
     position: fixed;
     background: rgb(48, 48, 48);
     left: 0;
@@ -312,7 +319,7 @@ h2 {
     width: 80vw;
     height: 80vh;
     height: calc(80vh - calc(100vh - 100%));
-    z-index: 2000;
+    z-index: 400;
     display: none;
     border: 10vw solid rgba(50, 50, 50, 0.5);
     border-top-width: 10vh;

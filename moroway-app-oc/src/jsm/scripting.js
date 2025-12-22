@@ -115,7 +115,7 @@ function showConfirmDialogLeaveMultiplayerMode() {
         if (confirmDialogYes != null) {
             confirmDialogYes.onclick = function () {
                 closeConfirmDialog();
-                switchMode(Modes.SINGLEPLAYER);
+                switchMode(Modes.SINGLEPLAYER, { id: "", key: "" });
             };
         }
         var confirmDialogNo = document.querySelector("#confirm-dialog #confirm-dialog-no");
@@ -811,7 +811,7 @@ function calcMenusAndBackground(state) {
     }
     menus.floating = false;
     menus.options.items = document.querySelectorAll("#canvas-options-inner > *:not(.hidden):not(.settings-hidden):not(.gui-hidden)");
-    if (menus.options.items.length > 0) {
+    if (currentMode != Modes.DEMO && menus.options.items.length > 0) {
         menus.small = !client.isSmall;
         menus.outerContainer.height = menus.small ? Math.max(25, Math.ceil(client.height / 25)) : Math.max(50, Math.ceil(client.height / 15));
         menus.outerContainer.element.style.display = "";
@@ -6919,7 +6919,7 @@ window.addEventListener("load", function () {
                     }
                 };
                 document.querySelector("#setup #setup-exit").onclick = function () {
-                    switchMode(Modes.SINGLEPLAYER);
+                    switchMode(Modes.SINGLEPLAYER, { id: "", key: "" });
                 };
                 if (currentMode == Modes.MULTIPLAYER) {
                     onlineConnection.connect = function () {
@@ -6965,7 +6965,7 @@ window.addEventListener("load", function () {
                             };
                             var elem = document.querySelector("#setup #setup-create #setup-create-escape");
                             elem.onclick = function () {
-                                switchMode(Modes.SINGLEPLAYER);
+                                switchMode(Modes.SINGLEPLAYER, { id: "", key: "" });
                             };
                         }
                         function getPlayerNameFromInput() {

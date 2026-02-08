@@ -1,5 +1,5 @@
 /**
- * Copyright 2025 Jonathan Herrmann-Engel
+ * Copyright 2026 Jonathan Herrmann-Engel
  * SPDX-License-Identifier: GPL-3.0-only
  */
 "use strict";
@@ -12,16 +12,16 @@ var APP_DATA = {
         // @ts-ignore
         minor: 3,
         // @ts-ignore
-        patch: 10,
+        patch: 12,
         // @ts-ignore
         beta: 0,
         date: {
             // @ts-ignore
-            year: 2025,
+            year: 2026,
             // @ts-ignore
-            month: 12,
+            month: 2,
             // @ts-ignore
-            day: 22
+            day: 8
         }
     },
     platform: "oc",

@@ -1,5 +1,5 @@
 /**
- * Copyright 2025 Jonathan Herrmann-Engel
+ * Copyright 2026 Jonathan Herrmann-Engel
  * SPDX-License-Identifier: GPL-3.0-only
  */
 "use strict";
@@ -1868,6 +1868,7 @@ var trainsDefault = [
         state: 1,
         flickerFacFront: 2.5,
         trainSwitchSrc: 25,
+        audioSrc: 0,
         cars: [
             { src: 2, fac: 0.06, bogieDistance: 0.15, wheels: { front: { use3d: true }, back: { use3d: true } } },
             { src: 2, fac: 0.06, bogieDistance: 0.15, wheels: { front: { use3d: true }, back: { use3d: true } } },
@@ -1889,6 +1890,7 @@ var trainsDefault = [
         flickerFacFront: 2.1,
         flickerFacBack: 2.1,
         trainSwitchSrc: 26,
+        audioSrc: 1,
         wheels: { front: { use3d: true }, back: { use3d: true } },
         cars: [
             { src: 5, fac: 0.11, bogieDistance: 0.15, wheels: { front: { use3d: true }, back: { use3d: true } } },
@@ -1896,7 +1898,7 @@ var trainsDefault = [
             { src: 4, fac: 0.093, bogieDistance: 0.15, assetFlip: true, konamiUseTrainIcon: true, wheels: { front: { use3d: true }, back: { use3d: true } } }
         ]
     },
-    { src: 8, fac: 0.068, speedFac: 1 / 375, accelerationSpeedStartFac: 0.04, accelerationSpeedFac: 1.01, circle: rotationPoints.inner.wide, circleFamily: rotationPoints.inner, circleStartPosDiv: 0.8, standardDirectionStartValue: true, bogieDistance: 0.04, state: 121, flickerFacFront: 2.4, flickerFacBack: 2.3, flickerFacFrontOffset: 2.82, flickerFacBackOffset: 2.75, trainSwitchSrc: 27, wheels: { front: { use3d: true, src2d: 39 }, back: { use3d: true, src2d: 38 } }, cars: [] },
+    { src: 8, fac: 0.068, speedFac: 1 / 375, accelerationSpeedStartFac: 0.04, accelerationSpeedFac: 1.01, circle: rotationPoints.inner.wide, circleFamily: rotationPoints.inner, circleStartPosDiv: 0.8, standardDirectionStartValue: true, bogieDistance: 0.04, state: 121, flickerFacFront: 2.4, flickerFacBack: 2.3, flickerFacFrontOffset: 2.82, flickerFacBackOffset: 2.75, trainSwitchSrc: 27, audioSrc: 2, wheels: { front: { use3d: true, src2d: 39 }, back: { use3d: true, src2d: 38 } }, cars: [] },
     {
         src: 7,
         fac: 0.1,
@@ -1913,6 +1915,7 @@ var trainsDefault = [
         flickerFacFront: 2.1,
         flickerFacBack: 2.1,
         trainSwitchSrc: 28,
+        audioSrc: 3,
         wheels: { front: { use3d: true }, back: { use3d: true } },
         cars: [
             { src: 6, fac: 0.1, bogieDistance: 0.15, wheels: { front: { use3d: true }, back: { use3d: true } } },
@@ -1936,6 +1939,7 @@ var trainsDefault = [
         flickerFacFront: 2.1,
         flickerFacBack: 2.1,
         trainSwitchSrc: 29,
+        audioSrc: 4,
         wheels: { front: { use3d: true }, back: { use3d: true } },
         cars: [
             { src: 21, fac: 0.043, bogieDistance: 0.15, wheels: { front: { use3d: true }, back: { use3d: true } } },
@@ -1956,6 +1960,7 @@ var trainsDefault = [
         state: 131,
         margin: 500,
         trainSwitchSrc: 30,
+        audioSrc: 5,
         wheels: { front: { use3d: true }, back: { use3d: true } },
         cars: [
             { src: 19, fac: 0.08, bogieDistance: 0.15, wheels: { front: { use3d: true }, back: { use3d: true } } },
@@ -1977,6 +1982,7 @@ var trainsDefault = [
         margin: 35,
         flickerFacFront: 2.1,
         trainSwitchSrc: 32,
+        audioSrc: 6,
         cars: [
             { src: 34, fac: 0.054, bogieDistance: 0.15, wheels: { front: { use3d: true }, back: { use3d: true } } },
             { src: 35, fac: 0.054, bogieDistance: 0.15, wheels: { front: { use3d: true }, back: { use3d: true } } },
@@ -2374,6 +2380,15 @@ onmessage = function (message) {
             trains[6].cars[3].wheels.front.use3d = true;
             trains[6].cars[3].wheels.back.use3d = true;
             /* END UPDATE: v10.1.1 */
+            /* UPDATE: v10.3.12 */
+            trains[0].audioSrc = 0;
+            trains[1].audioSrc = 1;
+            trains[2].audioSrc = 2;
+            trains[3].audioSrc = 3;
+            trains[4].audioSrc = 4;
+            trains[5].audioSrc = 5;
+            trains[6].audioSrc = 6;
+            /* END UPDATE: v10.3.12 */
         }
         else {
             placeTrainsAtInitialPositions();

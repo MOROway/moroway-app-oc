@@ -1,5 +1,5 @@
 /**
- * Copyright 2025 Jonathan Herrmann-Engel
+ * Copyright 2026 Jonathan Herrmann-Engel
  * SPDX-License-Identifier: GPL-3.0-only
  */
 "use strict";
@@ -402,7 +402,7 @@ function drawMenu(state) {
         }
         for (var i = 0; i < menu.items.length; i++) {
             menu.items[i].style.display = "";
-            var textItem = menu.items[i].querySelector("i") == undefined ? menu.items[i] : menu.items[i].querySelector("i");
+            var textItem = menu.items[i].querySelector("i") ? menu.items[i].querySelector("i") : menu.items[i];
             menu.items[i].style.width = menu.items[i].style.height = textItem.style.fontSize = textItem.style.lineHeight = itemSize + "px";
             if (gui.three) {
                 menu.items[i].style.textShadow = "-1px 0 black, 0 1px black, 1px 0 black, 0 -1px black";
@@ -578,6 +578,16 @@ function calcMenusAndBackground(state) {
             drawBackground();
         }
     }
+    function setMediaItems() {
+        if (audio.active) {
+            menus.options.elements.soundToggle.querySelector("i").textContent = "volume_up";
+            menus.options.elements.soundToggle.dataset.tooltip = formatJSString(getString("generalXAreY"), getString("appScreenSound"), getString("generalOn"));
+        }
+        else {
+            menus.options.elements.soundToggle.querySelector("i").textContent = "volume_off";
+            menus.options.elements.soundToggle.dataset.tooltip = formatJSString(getString("generalXAreY"), getString("appScreenSound"), getString("generalOff"));
+        }
+    }
     function set3DItems() {
         if (gui.three) {
             menus.options.elements.infoToggle.classList.add("gui-hidden");
@@ -640,10 +650,10 @@ function calcMenusAndBackground(state) {
     }
     if (getSetting("reduceOptMenuHideAudioToggle")) {
         menus.options.elements.soundToggle.classList.add("settings-hidden");
-        audio.active = false;
-        audioControl.playAndPauseAll();
-        menus.options.elements.soundToggle.querySelector("i").textContent = "volume_off";
-        menus.options.elements.soundToggle.dataset.tooltip = formatJSString(getString("generalXAreY"), getString("appScreenSound"), getString("generalOff"));
+        if (!getSetting("autoplayAudio")) {
+            audioControl.setActivation(false);
+            setMediaItems();
+        }
     }
     else {
         menus.options.elements.soundToggle.classList.remove("settings-hidden");
@@ -690,22 +700,10 @@ function calcMenusAndBackground(state) {
             beforeOptionsMenuChange();
             showConfirmDialogEnterDemoMode();
         };
-        menus.options.elements.soundToggle.dataset.tooltip = formatJSString(getString("generalXAreY"), getString("appScreenSound"), getString("generalOff"));
         menus.options.elements.soundToggle.onclick = function () {
             beforeOptionsMenuChange();
-            if (audio.context == undefined) {
-                audioControl.init();
-            }
-            audio.active = !audio.active;
-            audioControl.playAndPauseAll();
-            if (audio.active) {
-                menus.options.elements.soundToggle.querySelector("i").textContent = "volume_up";
-                menus.options.elements.soundToggle.dataset.tooltip = formatJSString(getString("generalXAreY"), getString("appScreenSound"), getString("generalOn"));
-            }
-            else {
-                menus.options.elements.soundToggle.querySelector("i").textContent = "volume_off";
-                menus.options.elements.soundToggle.dataset.tooltip = formatJSString(getString("generalXAreY"), getString("appScreenSound"), getString("generalOff"));
-            }
+            audioControl.setActivation(!audio.active);
+            setMediaItems();
         };
         menus.options.elements.modeSingleplayer.onclick = function () {
             beforeOptionsMenuChange();
@@ -795,6 +793,7 @@ function calcMenusAndBackground(state) {
         };
     }
     if (state == "load" || state == "reload") {
+        setMediaItems();
         set3DItems();
         if (currentMode == Modes.MULTIPLAYER) {
             menus.options.elements.modeDemo.classList.add("mode-hidden");
@@ -4891,6 +4890,10 @@ var audioControl = {
             }
         }
         var soundFileExtension = "ogg";
+        if (audio.context) {
+            audioControl.stopAll();
+            audio.context.close();
+        }
         if (trains) {
             audio.context = new AudioContext();
             audio.buffer = {};
@@ -4942,9 +4945,16 @@ var audioControl = {
                 }
             }
             for (var i = 0; i < trains.length; i++) {
-                createTrainAudio(i);
+                createTrainAudio(trains[i].audioSrc);
             }
         }
+    },
+    setActivation: function (activate) {
+        if (activate) {
+            audioControl.init();
+        }
+        audio.active = activate;
+        audioControl.playAndPauseAll();
     },
     playAndPauseAll: function () {
         if (typeof audio.context == "object") {
@@ -4960,7 +4970,7 @@ var audioControl = {
         return false;
     },
     mayPlay: function () {
-        return audio.active && currentMode != Modes.DEMO && !client.hidden && !onlineConnection.paused;
+        return audio.active && !client.hidden && !onlineConnection.paused;
     },
     existsObject: function (destinationName, destinationIndex) {
         if (destinationIndex === void 0) { destinationIndex = undefined; }
@@ -4971,7 +4981,7 @@ var audioControl = {
                 }
             }
             else {
-                if (typeof audio.source[destinationName] == "object") {
+                if (typeof audio.source[destinationName] == "object" && !Array.isArray(audio.source[destinationName])) {
                     return true;
                 }
             }
@@ -4979,6 +4989,9 @@ var audioControl = {
         return false;
     },
     startObject: function (destinationName, destinationIndex, loop) {
+        if (audioControl.existsObject(destinationName, destinationIndex)) {
+            return false;
+        }
         if (typeof audio.context == "object") {
             var source = audio.context.createBufferSource();
             source.loop = loop;
@@ -4993,7 +5006,7 @@ var audioControl = {
                 }
             }
             else {
-                if (typeof audio.buffer[destinationName] == "object" && typeof audio.gainNode[destinationName] == "object") {
+                if (typeof audio.buffer[destinationName] == "object" && typeof audio.gainNode[destinationName] == "object" && !Array.isArray(audio.buffer[destinationName]) && !Array.isArray(audio.gainNode[destinationName])) {
                     source.buffer = audio.buffer[destinationName];
                     source.connect(audio.gainNode[destinationName]);
                     audio.source[destinationName] = source;
@@ -5016,7 +5029,7 @@ var audioControl = {
             else {
                 gainNode = audio.gainNode[destinationName];
             }
-            if (typeof gainNode == "object" && volume != undefined) {
+            if (typeof gainNode == "object" && !Array.isArray(gainNode) && volume != undefined) {
                 gainNode.gain.value = Math.round(volume) / 100;
                 return true;
             }
@@ -5025,6 +5038,9 @@ var audioControl = {
     },
     stopObject: function (destinationName, destinationIndex) {
         if (destinationIndex === void 0) { destinationIndex = undefined; }
+        if (!audioControl.existsObject(destinationName, destinationIndex)) {
+            return false;
+        }
         if (typeof audio.context == "object") {
             if (typeof destinationIndex == "number") {
                 if (typeof audio.source[destinationName][destinationIndex] == "object") {
@@ -6177,8 +6193,6 @@ function init(state) {
         }
     };
     trainParams.selected = Math.floor(Math.random() * trains.length);
-    //Audio context
-    audioControl.playAndPauseAll();
     //Default switches
     var switchParamsDefault = {
         showDuration: 11,
@@ -6400,6 +6414,13 @@ function init(state) {
     }
     else {
         removeSavedGame();
+    }
+    //Audio context
+    if (state == "load") {
+        audioControl.setActivation(getSetting("autoplayAudio"));
+    }
+    else {
+        audioControl.setActivation(audio.active);
     }
     measureViewSpace();
     context.clearRect(0, 0, canvas.width, canvas.height);
@@ -7971,16 +7992,14 @@ window.addEventListener("load", function () {
                         trains[i].cars[j].wheels = car.wheels;
                     });
                     if (train.move && !train.mute && audioControl.mayPlay()) {
-                        if (!audioControl.existsObject("train", i)) {
-                            audioControl.startObject("train", i, true);
-                        }
+                        audioControl.startObject("train", trains[i].audioSrc, true);
                         if (train.currentSpeedInPercent == undefined) {
                             train.currentSpeedInPercent = 0;
                         }
-                        audioControl.setObjectVolume("train", i, train.volume);
+                        audioControl.setObjectVolume("train", trains[i].audioSrc, train.volume);
                     }
-                    else if (audioControl.existsObject("train", i)) {
-                        audioControl.stopObject("train", i);
+                    else {
+                        audioControl.stopObject("train", trains[i].audioSrc);
                     }
                 });
                 if (message.data.resized) {

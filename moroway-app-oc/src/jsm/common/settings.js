@@ -1,5 +1,5 @@
 /**
- * Copyright 2025 Jonathan Herrmann-Engel
+ * Copyright 2026 Jonathan Herrmann-Engel
  * SPDX-License-Identifier: GPL-3.0-only
  */
 "use strict";
@@ -7,6 +7,7 @@ import { APP_DATA } from "./app_data.js";
 import { NotificationPriority, notify } from "./notify.js";
 import { isGameSaved, removeSavedGame } from "./saved_game.js";
 import { CURRENT_LANG, getLanguageList, getString, setCurrentLang } from "./string_tools.js";
+import { SYSTEM_TOOLS } from "./system_tools.js";
 import { followLink, LinkStates } from "./web_tools.js";
 //SETTINGS
 export function getSettings() {
@@ -15,9 +16,9 @@ export function getSettings() {
         values = JSON.parse(window.localStorage.getItem(SETTINGS_NAME) || "{}");
     }
     catch (e) { }
-    var defaults = { showNotifications: true, classicUI: true, alwaysShowSelectedTrain: true, cursorascircle: true, burnTheTaxOffice: true, saveGame: true, reduceOptMenu: false, reduceOptMenuHideGraphicalInfoToggle: false, reduceOptMenuHideTrainControlCenter: false, reduceOptMenuHideCarControlCenter: false, reduceOptMenuHideAudioToggle: false, reduceOptMenuHideDemoMode: false, startDemoMode: false, lockOrientationLandscape: false, showVersionNoteAgain: false, reduceOptMenuHide3DViewToggle: false, reduceOptMenuHide3DViewNightToggle: false, reduceOptMenuHide3DViewCameraSwitcher: false, reduceOptMenuHideExit: false };
+    var defaults = { showNotifications: true, classicUI: true, alwaysShowSelectedTrain: true, cursorascircle: true, burnTheTaxOffice: true, saveGame: true, autoplayAudio: false, reduceOptMenu: false, reduceOptMenuHideGraphicalInfoToggle: false, reduceOptMenuHideTrainControlCenter: false, reduceOptMenuHideCarControlCenter: false, reduceOptMenuHideAudioToggle: false, reduceOptMenuHideDemoMode: false, startDemoMode: false, lockOrientationLandscape: false, showVersionNoteAgain: false, reduceOptMenuHide3DViewToggle: false, reduceOptMenuHide3DViewNightToggle: false, reduceOptMenuHide3DViewCameraSwitcher: false, reduceOptMenuHideExit: false };
     var dependencies = { alwaysShowSelectedTrain: ["classicUI"], reduceOptMenuHideGraphicalInfoToggle: ["reduceOptMenu"], reduceOptMenuHideTrainControlCenter: ["reduceOptMenu"], reduceOptMenuHideCarControlCenter: ["reduceOptMenu"], reduceOptMenuHideAudioToggle: ["reduceOptMenu"], reduceOptMenuHideDemoMode: ["reduceOptMenu"], reduceOptMenuHide3DViewToggle: ["reduceOptMenu"], reduceOptMenuHide3DViewNightToggle: ["reduceOptMenu"], reduceOptMenuHide3DViewCameraSwitcher: ["reduceOptMenu"], reduceOptMenuHideExit: ["reduceOptMenu"] };
-    var hardware = { cursorascircle: ["mouse"] };
+    var hardware = { cursorascircle: ["mouse"], autoplayAudio: ["autoplay"] };
     var platforms = { reduceOptMenuHideDemoMode: ["snap", "web", "windows"], reduceOptMenuHideExit: ["android"], startDemoMode: ["snap", "windows"], lockOrientationLandscape: ["android"], showVersionNoteAgain: ["android"] };
     Object.keys(defaults).forEach(function (key) {
         if (typeof values[key] !== "boolean") {
@@ -275,4 +276,7 @@ var SETTINGS_NAME = "morowayApp";
 var AVAILABLE_HARDWARE = [];
 if (window.matchMedia("(pointer: fine)").matches) {
     AVAILABLE_HARDWARE[AVAILABLE_HARDWARE.length] = "mouse";
+}
+if (SYSTEM_TOOLS.canAutoplayMedia()) {
+    AVAILABLE_HARDWARE[AVAILABLE_HARDWARE.length] = "autoplay";
 }

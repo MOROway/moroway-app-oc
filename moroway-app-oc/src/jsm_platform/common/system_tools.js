@@ -1,11 +1,12 @@
 /**
- * Copyright 2025 Jonathan Herrmann-Engel
+ * Copyright 2026 Jonathan Herrmann-Engel
  * SPDX-License-Identifier: GPL-3.0-only
  */
 "use strict";
 import { APP_DATA } from "../../jsm/common/app_data.js";
 import { followLink, LinkStates } from "../../jsm/common/web_tools.js";
 export var SYSTEM_TOOLS = {
+    canAutoplayMedia: function () { return true; },
     canExitApp: function () { return true; },
     exitApp: function () {
         // Cordova wrapper contains this function

@@ -26,9 +26,8 @@ function getGuiStates() {
     }
     return guiState;
 }
-export function getGuiState(item, overrideValue) {
-    if (overrideValue === void 0) { overrideValue = undefined; }
-    var value = getGuiStates()[item];
+export function getGuiState(item, overrideValue = undefined) {
+    const value = getGuiStates()[item];
     if (overrideValue !== undefined && validateGuiState(item, overrideValue)) {
         return overrideValue;
     }
@@ -41,46 +40,46 @@ export function getGuiState(item, overrideValue) {
     return undefined;
 }
 export function setGuiState(item, value) {
-    var guiState = getGuiStates();
+    const guiState = getGuiStates();
     if (validateGuiState(item, value)) {
         guiState[item] = value;
     }
     window.localStorage.setItem("morowayAppGuiState", JSON.stringify(guiState));
 }
-var items = {
+const items = {
     "3d": {
         default: false,
-        validate: function (test) {
+        validate(test) {
             return typeof test == "boolean";
         }
     },
     "3d-night": {
         default: false,
-        validate: function (test) {
+        validate(test) {
             return typeof test == "boolean";
         }
     },
     "3d-cam-mode": {
         default: ThreeCameraModes.BIRDS_EYE,
-        validate: function (test) {
+        validate(test) {
             return Object.values(ThreeCameraModes).includes(test);
         }
     },
     "3d-follow-object": {
         default: 0,
-        validate: function (test) {
+        validate(test) {
             return typeof test == "number" && Number.isInteger(test) && test >= 0;
         }
     },
     "3d-rotation-speed": {
         default: 50,
-        validate: function (test) {
+        validate(test) {
             return typeof test == "number" && !Number.isNaN(test) && test >= 0 && test <= 100;
         }
     },
     "demo-random": {
         default: false,
-        validate: function (test) {
+        validate(test) {
             return typeof test == "boolean";
         }
     }

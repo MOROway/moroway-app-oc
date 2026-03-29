@@ -9,37 +9,37 @@ import { SYSTEM_TOOLS } from "./common/system_tools.js";
 import { initTooltips } from "./common/tooltip.js";
 import { getQueryStringValue } from "./common/web_tools.js";
 document.addEventListener("DOMContentLoaded", function () {
-    var backButton = document.querySelector("#backOption");
+    const backButton = document.querySelector("#backOption");
     backButton.addEventListener("click", function () {
         SYSTEM_TOOLS.navigateBack();
     });
     setHTMLStrings();
     initTooltips();
-    var elementTitle = document.querySelector("#license-title");
-    var elementContent = document.querySelector("#license-content");
+    const elementTitle = document.querySelector("#license-title");
+    const elementContent = document.querySelector("#license-content");
     if (elementTitle && elementContent) {
-        var file = getQueryStringValue("license-file");
+        const file = getQueryStringValue("license-file");
         if ((file.startsWith(document.baseURI) || (!file.startsWith("/") && !file.includes("://"))) && (file.endsWith(".txt") || file.match(/([/]|^)[^.]+$/)) && !file.endsWith("/")) {
             fetch(file)
-                .then(function (response) {
+                .then((response) => {
                 if (response.ok && response.status == 200) {
                     return response.text();
                 }
             })
-                .then(function (text) {
+                .then((text) => {
                 if (text) {
-                    var textArray = text
+                    const textArray = text
                         .replace(/\r\n/g, "\n")
                         .replace(/\r/g, "\n")
                         .replace(/\n\n+/g, "\n\n")
                         .replace(/^\n+/g, "")
                         .split(/[\n]{2}/);
-                    for (var i = 0; i < textArray.length; i++) {
+                    for (let i = 0; i < textArray.length; i++) {
                         var currentTextArray = textArray[i].split(/[\n]/);
                         var element2Add = document.createElement("p");
-                        for (var i_1 = 0; i_1 < currentTextArray.length; i_1++) {
+                        for (let i = 0; i < currentTextArray.length; i++) {
                             var localElement2AddSpan = document.createElement("span");
-                            localElement2AddSpan.textContent = currentTextArray[i_1];
+                            localElement2AddSpan.textContent = currentTextArray[i];
                             element2Add.appendChild(localElement2AddSpan);
                             var localElement2AddBr = document.createElement("br");
                             element2Add.appendChild(localElement2AddBr);
@@ -57,7 +57,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     elementContent.textContent = getString("licenseScreenNotFound");
                 }
             })
-                .catch(function (error) {
+                .catch((error) => {
                 if (APP_DATA.debug) {
                     console.error("Fetch-Error:", error);
                 }

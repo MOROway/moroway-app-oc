@@ -16,10 +16,10 @@ export function getSettings() {
         values = JSON.parse(window.localStorage.getItem(SETTINGS_NAME) || "{}");
     }
     catch (e) { }
-    var defaults = { showNotifications: true, classicUI: true, alwaysShowSelectedTrain: true, cursorascircle: true, burnTheTaxOffice: true, saveGame: true, autoplayAudio: false, reduceOptMenu: false, reduceOptMenuHideGraphicalInfoToggle: false, reduceOptMenuHideTrainControlCenter: false, reduceOptMenuHideCarControlCenter: false, reduceOptMenuHideAudioToggle: false, reduceOptMenuHideDemoMode: false, startDemoMode: false, lockOrientationLandscape: false, showVersionNoteAgain: false, reduceOptMenuHide3DViewToggle: false, reduceOptMenuHide3DViewNightToggle: false, reduceOptMenuHide3DViewCameraSwitcher: false, reduceOptMenuHideExit: false };
-    var dependencies = { alwaysShowSelectedTrain: ["classicUI"], reduceOptMenuHideGraphicalInfoToggle: ["reduceOptMenu"], reduceOptMenuHideTrainControlCenter: ["reduceOptMenu"], reduceOptMenuHideCarControlCenter: ["reduceOptMenu"], reduceOptMenuHideAudioToggle: ["reduceOptMenu"], reduceOptMenuHideDemoMode: ["reduceOptMenu"], reduceOptMenuHide3DViewToggle: ["reduceOptMenu"], reduceOptMenuHide3DViewNightToggle: ["reduceOptMenu"], reduceOptMenuHide3DViewCameraSwitcher: ["reduceOptMenu"], reduceOptMenuHideExit: ["reduceOptMenu"] };
-    var hardware = { cursorascircle: ["mouse"], autoplayAudio: ["autoplay"] };
-    var platforms = { reduceOptMenuHideDemoMode: ["snap", "web", "windows"], reduceOptMenuHideExit: ["android"], startDemoMode: ["snap", "windows"], lockOrientationLandscape: ["android"], showVersionNoteAgain: ["android"] };
+    const defaults = { showNotifications: true, classicUI: true, alwaysShowSelectedTrain: true, cursorascircle: true, burnTheTaxOffice: true, saveGame: true, autoplayAudio: false, reduceOptMenu: false, reduceOptMenuHideGraphicalInfoToggle: false, reduceOptMenuHideTrainControlCenter: false, reduceOptMenuHideCarControlCenter: false, reduceOptMenuHideAudioToggle: false, reduceOptMenuHideDemoMode: false, startDemoMode: false, lockOrientationLandscape: false, showVersionNoteAgain: false, reduceOptMenuHide3DViewToggle: false, reduceOptMenuHide3DViewNightToggle: false, reduceOptMenuHide3DViewCameraSwitcher: false, reduceOptMenuHideExit: false };
+    const dependencies = { alwaysShowSelectedTrain: ["classicUI"], reduceOptMenuHideGraphicalInfoToggle: ["reduceOptMenu"], reduceOptMenuHideTrainControlCenter: ["reduceOptMenu"], reduceOptMenuHideCarControlCenter: ["reduceOptMenu"], reduceOptMenuHideAudioToggle: ["reduceOptMenu"], reduceOptMenuHideDemoMode: ["reduceOptMenu"], reduceOptMenuHide3DViewToggle: ["reduceOptMenu"], reduceOptMenuHide3DViewNightToggle: ["reduceOptMenu"], reduceOptMenuHide3DViewCameraSwitcher: ["reduceOptMenu"], reduceOptMenuHideExit: ["reduceOptMenu"] };
+    const hardware = { cursorascircle: ["mouse"], autoplayAudio: ["autoplay"] };
+    const platforms = { reduceOptMenuHideDemoMode: ["snap", "web", "windows"], reduceOptMenuHideExit: ["android"], startDemoMode: ["snap", "windows"], lockOrientationLandscape: ["android"], showVersionNoteAgain: ["android"] };
     Object.keys(defaults).forEach(function (key) {
         if (typeof values[key] !== "boolean") {
             values[key] = defaults[key];
@@ -33,7 +33,7 @@ export function getSettings() {
     return { values: values, dependencies: dependencies, hardware: hardware, platforms: platforms };
 }
 function isSettingActive(a) {
-    var settingsComplete = getSettings();
+    const settingsComplete = getSettings();
     var isSettingActive = true;
     if (settingsComplete.dependencies[a] != null) {
         settingsComplete.dependencies[a].forEach(function (key) {
@@ -45,7 +45,7 @@ function isSettingActive(a) {
     return isSettingActive;
 }
 function isHardwareAvailable(a) {
-    var settingsComplete = getSettings();
+    const settingsComplete = getSettings();
     var isHardwareAvailable = true;
     if (settingsComplete.hardware[a] != null) {
         settingsComplete.hardware[a].forEach(function (current) {
@@ -59,7 +59,7 @@ function isHardwareAvailable(a) {
     return isHardwareAvailable;
 }
 function isInPlatformList(a) {
-    var settingsComplete = getSettings();
+    const settingsComplete = getSettings();
     var isInPlatformList = true;
     if (settingsComplete.platforms[a] != null) {
         isInPlatformList = settingsComplete.platforms[a].indexOf(APP_DATA.platform) > -1;
@@ -126,8 +126,7 @@ export function setSettingsHTML(elem, standalone) {
             }
         }
     }
-    function changeSetting(event, idOnElement) {
-        if (idOnElement === void 0) { idOnElement = false; }
+    function changeSetting(event, idOnElement = false) {
         var id = idOnElement ? event.target.dataset.settingsId : event.target.parentNode.parentNode.dataset.settingsId;
         setSetting(id, !getSetting(id));
         displaySettingsOpts();
@@ -141,15 +140,15 @@ export function setSettingsHTML(elem, standalone) {
         standalone = true;
     }
     elem.classList.add("settings");
-    var root = document.createElement("ul");
-    var rootId = "settings-list-" + SETTINGS_NAME;
-    var existingRoot = elem.querySelector("#" + rootId);
+    const root = document.createElement("ul");
+    const rootId = "settings-list-" + SETTINGS_NAME;
+    const existingRoot = elem.querySelector("#" + rootId);
     if (existingRoot != undefined) {
         elem.removeChild(existingRoot);
     }
     root.className = "settings-list";
     root.id = rootId;
-    var settings = getSettings().values;
+    const settings = getSettings().values;
     for (var i = 0; i < Object.keys(settings).length; i++) {
         var opt = Object.keys(settings)[i];
         if (getString("optTitle_" + SETTINGS_NAME + "_" + opt) != "undefined") {
@@ -224,9 +223,9 @@ export function setSettingsHTML(elem, standalone) {
         }
     }
     elem.appendChild(root);
-    var root2 = document.createElement("div");
-    var rootId2 = "langoption";
-    var existingRoot2 = elem.querySelector("#" + rootId2);
+    const root2 = document.createElement("div");
+    const rootId2 = "langoption";
+    const existingRoot2 = elem.querySelector("#" + rootId2);
     if (existingRoot2 != undefined) {
         elem.removeChild(existingRoot2);
     }
@@ -236,7 +235,7 @@ export function setSettingsHTML(elem, standalone) {
     child.textContent = getString("optLangSelectInfo", ":");
     root2.appendChild(child);
     getLanguageList().forEach(function (val) {
-        var childButton = document.createElement("button");
+        let childButton = document.createElement("button");
         childButton.className = "langvalue";
         childButton.textContent = getString("langName", "", "", val);
         childButton.dataset.langCode = val;
@@ -256,7 +255,7 @@ export function setSettingsHTML(elem, standalone) {
     elem.appendChild(root2);
     displaySettingsOpts();
     displaySettingsButtons();
-    var event = new CustomEvent("moroway-app-after-set-settings-html", { detail: { elem: elem, standalone: standalone } });
+    const event = new CustomEvent("moroway-app-after-set-settings-html", { detail: { elem: elem, standalone: standalone } });
     document.dispatchEvent(event);
 }
 export function getSetting(key) {
@@ -272,8 +271,8 @@ export function setSetting(key, value) {
         window.localStorage.setItem(SETTINGS_NAME, JSON.stringify(settings));
     }
 }
-var SETTINGS_NAME = "morowayApp";
-var AVAILABLE_HARDWARE = [];
+const SETTINGS_NAME = "morowayApp";
+const AVAILABLE_HARDWARE = [];
 if (window.matchMedia("(pointer: fine)").matches) {
     AVAILABLE_HARDWARE[AVAILABLE_HARDWARE.length] = "mouse";
 }

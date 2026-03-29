@@ -11,7 +11,7 @@ import { initTooltips } from "./common/tooltip.js";
 import { followLink, getServerHTMLLink, getServerRedirectLink, handleServerJSONValues, LinkStates } from "./common/web_tools.js";
 document.addEventListener("DOMContentLoaded", function () {
     function getUserSystem() {
-        var shortStrings = ["Electron", "Edg", "Chrome", "Firefox", "Safari"];
+        const shortStrings = ["Electron", "Edg", "Chrome", "Firefox", "Safari"];
         for (var i = 0; i < shortStrings.length; i++) {
             var index = navigator.userAgent.indexOf(" " + shortStrings[i] + "/");
             if (index != -1) {
@@ -23,7 +23,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
         return navigator.userAgent;
     }
-    var backButton = document.querySelector("#backOption");
+    const backButton = document.querySelector("#backOption");
     backButton.addEventListener("click", function () {
         SYSTEM_TOOLS.navigateBack();
     });
@@ -53,7 +53,7 @@ document.addEventListener("DOMContentLoaded", function () {
         followLink(getServerHTMLLink("imprint"), "_blank", LinkStates.External);
     });
     handleServerJSONValues("imprint", function (res) {
-        var imprint = document.querySelector("#contact-imprint");
+        const imprint = document.querySelector("#contact-imprint");
         imprint.innerHTML = "<b>" + getString("helpScreenContactImprintTitle") + "</b>";
         Object.keys(res).forEach(function (key) {
             var span = document.createElement("span");
@@ -87,7 +87,7 @@ document.addEventListener("DOMContentLoaded", function () {
     document.querySelector("#website-link").addEventListener("click", function () {
         followLink(getServerRedirectLink("moroweb"), "_blank", LinkStates.External);
     });
-    var elements = document.querySelectorAll(".content");
+    const elements = document.querySelectorAll(".content");
     for (var i = 0; i < elements.length; i++) {
         var elemString = elements[i].dataset.stringidContent;
         var j = 0;
@@ -116,7 +116,7 @@ document.addEventListener("DOMContentLoaded", function () {
     document.querySelector("#general-whatsnew").addEventListener("click", function () {
         followLink("whatsnew/#newest", "_self", LinkStates.InternalHtml);
     });
-    var pics = document.querySelector("#website-pics");
+    const pics = document.querySelector("#website-pics");
     if (pics) {
         pics.style.display = "none";
         handleServerJSONValues("webpics", function (res) {

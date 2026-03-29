@@ -11,8 +11,8 @@ export function initTooltip(elem) {
     function activate() {
         tooltipContainer.classList.add("active");
         tooltipContainer.textContent = elem.dataset.tooltip;
-        var rect = elem.getBoundingClientRect();
-        var margin = tooltipContainer.offsetHeight * 0.2;
+        const rect = elem.getBoundingClientRect();
+        const margin = tooltipContainer.offsetHeight * 0.2;
         tooltipContainer.style.top = (rect.top - tooltipContainer.offsetHeight - margin >= 0 ? rect.top - tooltipContainer.offsetHeight - margin : rect.top + elem.offsetHeight + margin) + "px";
         tooltipContainer.style.left = (rect.left + tooltipContainer.offsetWidth <= window.innerWidth ? rect.left : window.innerWidth - tooltipContainer.offsetWidth - margin) + "px";
     }
@@ -39,12 +39,12 @@ export function initTooltip(elem) {
     }
 }
 export function initTooltips() {
-    var elementsTooltip = document.querySelectorAll("*[data-tooltip]");
-    for (var i = 0; i < elementsTooltip.length; i++) {
+    const elementsTooltip = document.querySelectorAll("*[data-tooltip]");
+    for (let i = 0; i < elementsTooltip.length; i++) {
         initTooltip(elementsTooltip[i]);
     }
 }
-var tooltipContainer = document.createElement("div");
+const tooltipContainer = document.createElement("div");
 tooltipContainer.classList.add("tooltip-container");
 document.addEventListener("DOMContentLoaded", function () {
     document.body.appendChild(tooltipContainer);

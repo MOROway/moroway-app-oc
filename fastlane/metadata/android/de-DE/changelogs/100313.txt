@@ -1,0 +1,3 @@
+Mehrspieler: Kurzes Fenster für automatische Neu-Konnektion nach Verbindungsverlust.
+Aktualisierung von Apache Cordova Android auf Version 15.0.0.
+Aktualisierte Abhängigkeiten.

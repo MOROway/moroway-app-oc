@@ -27,34 +27,33 @@ export function getShareLink(id, key) {
 export function getShareLinkServerName() {
     return "app.moroway.de";
 }
-export function getServerLink(protocol) {
-    if (protocol === void 0) { protocol = Protocols.Http; }
+export function getServerLink(protocol = Protocols.Http) {
     return protocol + "://herrmann-engel.de/projekte/moroway/moroway-app/server";
 }
 export function getServerRedirectLink(key) {
-    var SERVER_REDIRECT_LINK = getServerLink() + "/redirect_to/index.php";
+    const SERVER_REDIRECT_LINK = getServerLink() + "/redirect_to/index.php";
     return SERVER_REDIRECT_LINK + "?key=" + key + "&platform=" + APP_DATA.platform + "&lang=" + CURRENT_LANG;
 }
 export function getServerHTMLLink(key) {
-    var SERVER_HTML_LINK = getServerLink() + "/html_content/index.php";
+    const SERVER_HTML_LINK = getServerLink() + "/html_content/index.php";
     return SERVER_HTML_LINK + "?key=" + key + "&platform=" + APP_DATA.platform + "&lang=" + CURRENT_LANG + "&closeButton=auto";
 }
 export function getServerDataLink(path) {
-    var SERVER_DATA_LINK = getServerLink() + "/data";
+    const SERVER_DATA_LINK = getServerLink() + "/data";
     return SERVER_DATA_LINK + path;
 }
 export function handleServerJSONValues(key, func) {
-    var SERVER_JSON_LINK = getServerLink() + "/json_content/index.php";
+    const SERVER_JSON_LINK = getServerLink() + "/json_content/index.php";
     fetch(SERVER_JSON_LINK + "?key=" + key + "&platform=" + APP_DATA.platform + "&lang=" + CURRENT_LANG)
-        .then(function (response) {
+        .then((response) => {
         return response.json();
     })
-        .catch(function (error) {
+        .catch((error) => {
         if (APP_DATA.debug) {
             console.error("Fetch-Error:", error);
         }
     })
-        .then(function (response) {
+        .then((response) => {
         if (typeof response == "object" && response != null && typeof response.error == "undefined") {
             func(response);
         }
@@ -67,7 +66,7 @@ export function getServerNote(func) {
     function getServerNoteImage(id, background) {
         return getServerDataLink("/server-note/img/") + id + (background ? "-background-image" : "-image") + ".png";
     }
-    var serverNoteLastQuery = window.localStorage.getItem("morowayAppLastServerNoteLastQuery");
+    const serverNoteLastQuery = window.localStorage.getItem("morowayAppLastServerNoteLastQuery");
     if (serverNoteLastQuery == null || Date.now() - parseInt(serverNoteLastQuery, 10) >= 86400000 || window.localStorage.getItem("morowayAppLastServerNoteShowAgain") == "1") {
         window.localStorage.setItem("morowayAppLastServerNoteLastQuery", Date.now().toString());
         handleServerJSONValues("news-msg", function (serverMsg) {
@@ -95,34 +94,34 @@ export function showServerNote(serverNoteElementRoot) {
         }
         var showAgain = false;
         serverNoteElementRoot.classList.add("server-note");
-        var serverNoteElementMain = document.createElement("div");
+        const serverNoteElementMain = document.createElement("div");
         serverNoteElementMain.className = "server-note-main";
-        var serverNoteElementTitle = document.createElement("div");
+        const serverNoteElementTitle = document.createElement("div");
         serverNoteElementTitle.className = "server-note-title";
         serverNoteElementTitle.textContent = serverMsg.title;
-        var serverNoteElementInner = document.createElement("div");
+        const serverNoteElementInner = document.createElement("div");
         serverNoteElementInner.className = "server-note-inner";
-        var serverNoteElementText = document.createElement("div");
+        const serverNoteElementText = document.createElement("div");
         serverNoteElementText.className = "server-note-text";
         serverNoteElementText.textContent = serverMsg.text;
-        var serverNoteElementImageContainer = document.createElement("div");
+        const serverNoteElementImageContainer = document.createElement("div");
         serverNoteElementImageContainer.className = "server-note-img";
-        var serverNoteElementImage = document.createElement("img");
-        var serverNoteElementLater = document.createElement("div");
+        const serverNoteElementImage = document.createElement("img");
+        const serverNoteElementLater = document.createElement("div");
         serverNoteElementLater.className = "server-note-later";
-        var serverNoteElementLaterCheckBox = document.createElement("i");
+        const serverNoteElementLaterCheckBox = document.createElement("i");
         serverNoteElementLaterCheckBox.className = "server-note-later-box material-icons";
-        var serverNoteElementLaterCheckBoxLabel = document.createElement("span");
+        const serverNoteElementLaterCheckBoxLabel = document.createElement("span");
         serverNoteElementLaterCheckBoxLabel.textContent = getString("generalServerNoteButtonLater");
-        var serverNoteElementLaterInfo = document.createElement("div");
+        const serverNoteElementLaterInfo = document.createElement("div");
         serverNoteElementLaterInfo.className = "server-note-later-info";
         serverNoteElementLaterInfo.textContent = getString("generalServerNoteInfoLater");
-        var serverNoteElementButtons = document.createElement("div");
+        const serverNoteElementButtons = document.createElement("div");
         serverNoteElementButtons.className = "server-note-buttons";
-        var serverNoteElementButtonGo = document.createElement("div");
+        const serverNoteElementButtonGo = document.createElement("div");
         serverNoteElementButtonGo.className = "server-note-button-go";
         serverNoteElementButtonGo.textContent = getString("generalServerNoteButtonGo", "", "upper");
-        var serverNoteElementButtonNo = document.createElement("div");
+        const serverNoteElementButtonNo = document.createElement("div");
         serverNoteElementButtonNo.className = "server-note-button-no";
         serverNoteElementButtonNo.textContent = getString("generalOK", "", "upper");
         styleShowAgain();

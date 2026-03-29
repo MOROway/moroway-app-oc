@@ -39,12 +39,7 @@ function measureViewSpace() {
     canvasForeground.width = canvasSemiForeground.width = canvasBackground.width = canvasGesture.width = canvas.width = client.width * client.devicePixelRatio;
     canvasForeground.height = canvasSemiForeground.height = canvasBackground.height = canvasGesture.height = canvas.height = client.height * client.devicePixelRatio;
 }
-function drawImage(pic, x, y, width, height, cxt, sx, sy, sWidth, sHeight) {
-    if (cxt === void 0) { cxt = context; }
-    if (sx === void 0) { sx = undefined; }
-    if (sy === void 0) { sy = undefined; }
-    if (sWidth === void 0) { sWidth = undefined; }
-    if (sHeight === void 0) { sHeight = undefined; }
+function drawImage(pic, x, y, width, height, cxt = context, sx = undefined, sy = undefined, sWidth = undefined, sHeight = undefined) {
     function floorIfBigEnough(num) {
         if (client.isTiny) {
             return num;
@@ -82,8 +77,7 @@ function resetTilt() {
     three.scene.rotation.x = 0;
     three.scene.rotation.y = 0;
 }
-function measureFontSize(text, fontFamily, fontSize, wantedTextWidth, approximation, tolerance, recursion) {
-    if (recursion === void 0) { recursion = 0; }
+function measureFontSize(text, fontFamily, fontSize, wantedTextWidth, approximation, tolerance, recursion = 0) {
     context.save();
     var font = fontSize + "px " + fontFamily;
     context.font = font;
@@ -105,20 +99,20 @@ function getFontSize(font, unit) {
  ******************************************/
 function showConfirmDialogLeaveMultiplayerMode() {
     resetConfirmDialog();
-    var confirmDialog = document.querySelector("#confirm-dialog");
+    const confirmDialog = document.querySelector("#confirm-dialog");
     if (confirmDialog) {
-        var confirmDialogTitle = confirmDialog.querySelector("#confirm-dialog-title");
-        var confirmDialogText = confirmDialog.querySelector("#confirm-dialog-text");
+        const confirmDialogTitle = confirmDialog.querySelector("#confirm-dialog-title");
+        const confirmDialogText = confirmDialog.querySelector("#confirm-dialog-text");
         confirmDialogTitle.textContent = getString("appScreenTeamplayLeaveDialogTitle");
         confirmDialogText.style.display = "none";
-        var confirmDialogYes = document.querySelector("#confirm-dialog #confirm-dialog-yes");
+        const confirmDialogYes = document.querySelector("#confirm-dialog #confirm-dialog-yes");
         if (confirmDialogYes != null) {
             confirmDialogYes.onclick = function () {
                 closeConfirmDialog();
                 switchMode(Modes.SINGLEPLAYER, { id: "", key: "" });
             };
         }
-        var confirmDialogNo = document.querySelector("#confirm-dialog #confirm-dialog-no");
+        const confirmDialogNo = document.querySelector("#confirm-dialog #confirm-dialog-no");
         if (confirmDialogNo != null) {
             confirmDialogNo.onclick = closeConfirmDialog;
         }
@@ -129,60 +123,60 @@ function showConfirmDialogLeaveMultiplayerMode() {
 }
 function showConfirmDialogEnterDemoMode() {
     resetConfirmDialog();
-    var confirmDialog = document.querySelector("#confirm-dialog");
+    const confirmDialog = document.querySelector("#confirm-dialog");
     if (confirmDialog) {
-        var confirmDialogTitle = confirmDialog.querySelector("#confirm-dialog-title");
-        var confirmDialogText = confirmDialog.querySelector("#confirm-dialog-text");
-        var confirmDialogParams = confirmDialog.querySelector("#confirm-dialog-params");
+        const confirmDialogTitle = confirmDialog.querySelector("#confirm-dialog-title");
+        const confirmDialogText = confirmDialog.querySelector("#confirm-dialog-text");
+        const confirmDialogParams = confirmDialog.querySelector("#confirm-dialog-params");
         confirmDialogTitle.textContent = getString("generalStartGameDemoMode", "?");
         confirmDialogText.textContent = getString("appScreenDemoModeEnterDialogText");
         confirmDialogParams.style.display = "block";
-        var confirmDialogRandomId = "confirm-dialog-params-demo-random";
-        var confirmDialogRandomContainer = document.createElement("div");
-        var confirmDialogRandom_1 = document.createElement("input");
-        confirmDialogRandom_1.id = confirmDialogRandomId;
-        confirmDialogRandom_1.type = "checkbox";
-        confirmDialogRandom_1.onchange = function () {
-            var param3DRotationSpeedElem = confirmDialog.querySelector("#confirm-dialog-params-3d-rotation-speed-container");
+        const confirmDialogRandomId = "confirm-dialog-params-demo-random";
+        const confirmDialogRandomContainer = document.createElement("div");
+        const confirmDialogRandom = document.createElement("input");
+        confirmDialogRandom.id = confirmDialogRandomId;
+        confirmDialogRandom.type = "checkbox";
+        confirmDialogRandom.onchange = function () {
+            const param3DRotationSpeedElem = confirmDialog.querySelector("#confirm-dialog-params-3d-rotation-speed-container");
             if (param3DRotationSpeedElem) {
-                param3DRotationSpeedElem.style.display = confirmDialogRandom_1.checked ? "none" : "";
+                param3DRotationSpeedElem.style.display = confirmDialogRandom.checked ? "none" : "";
             }
         };
-        confirmDialogRandom_1.checked = getGuiState("demo-random");
-        var confirmDialogRandomLabel = document.createElement("label");
+        confirmDialogRandom.checked = getGuiState("demo-random");
+        const confirmDialogRandomLabel = document.createElement("label");
         confirmDialogRandomLabel.htmlFor = confirmDialogRandomId;
         confirmDialogRandomLabel.textContent = getString("generalStartDemoModeRandom");
-        confirmDialogRandomContainer.appendChild(confirmDialogRandom_1);
+        confirmDialogRandomContainer.appendChild(confirmDialogRandom);
         confirmDialogRandomContainer.appendChild(confirmDialogRandomLabel);
         confirmDialogParams.appendChild(confirmDialogRandomContainer);
-        var confirmDialogExitTimeoutId = "confirm-dialog-params-exit-timeout";
-        var confirmDialogExitTimeoutContainer = document.createElement("div");
-        var confirmDialogExitTimeout_1 = document.createElement("input");
-        confirmDialogExitTimeout_1.id = confirmDialogExitTimeoutId;
-        confirmDialogExitTimeout_1.type = "number";
-        confirmDialogExitTimeout_1.step = "1";
-        confirmDialogExitTimeout_1.pattern = "d+";
-        confirmDialogExitTimeout_1.min = "1";
-        confirmDialogExitTimeout_1.value = "";
-        var confirmDialogExitTimeoutLabel = document.createElement("label");
+        const confirmDialogExitTimeoutId = "confirm-dialog-params-exit-timeout";
+        const confirmDialogExitTimeoutContainer = document.createElement("div");
+        const confirmDialogExitTimeout = document.createElement("input");
+        confirmDialogExitTimeout.id = confirmDialogExitTimeoutId;
+        confirmDialogExitTimeout.type = "number";
+        confirmDialogExitTimeout.step = "1";
+        confirmDialogExitTimeout.pattern = "d+";
+        confirmDialogExitTimeout.min = "1";
+        confirmDialogExitTimeout.value = "";
+        const confirmDialogExitTimeoutLabel = document.createElement("label");
         confirmDialogExitTimeoutLabel.htmlFor = confirmDialogExitTimeoutId;
         confirmDialogExitTimeoutLabel.textContent = getString("generalStartDemoModeExitTimeout");
-        confirmDialogExitTimeoutContainer.appendChild(confirmDialogExitTimeout_1);
+        confirmDialogExitTimeoutContainer.appendChild(confirmDialogExitTimeout);
         confirmDialogExitTimeoutContainer.appendChild(confirmDialogExitTimeoutLabel);
         if (!SYSTEM_TOOLS.canExitApp()) {
             confirmDialogExitTimeoutContainer.style.display = "none";
         }
         confirmDialogParams.appendChild(confirmDialogExitTimeoutContainer);
         if (gui.three && (three.cameraMode == undefined || three.cameraMode == ThreeCameraModes.BIRDS_EYE)) {
-            var elemDiv = document.createElement("div");
+            const elemDiv = document.createElement("div");
             elemDiv.id = "confirm-dialog-params-3d-rotation-speed-container";
-            elemDiv.style.display = confirmDialogRandom_1.checked ? "none" : "";
-            var elementSpan = document.createElement("span");
+            elemDiv.style.display = confirmDialogRandom.checked ? "none" : "";
+            const elementSpan = document.createElement("span");
             elementSpan.textContent = getString("generalStartDemoMode3DRotationSpeed");
             elemDiv.appendChild(elementSpan);
-            var elementBr = document.createElement("br");
+            const elementBr = document.createElement("br");
             elemDiv.appendChild(elementBr);
-            var elementInput = document.createElement("input");
+            const elementInput = document.createElement("input");
             elementInput.id = "confirm-dialog-params-3d-rotation-speed-input";
             elementInput.type = "range";
             elementInput.min = "0";
@@ -191,23 +185,23 @@ function showConfirmDialogEnterDemoMode() {
             elemDiv.appendChild(elementInput);
             confirmDialogParams.appendChild(elemDiv);
         }
-        var confirmDialogYes = document.querySelector("#confirm-dialog #confirm-dialog-yes");
+        const confirmDialogYes = document.querySelector("#confirm-dialog #confirm-dialog-yes");
         if (confirmDialogYes) {
             confirmDialogYes.onclick = function () {
                 closeConfirmDialog();
-                var param3DRotationSpeedElem = confirmDialog.querySelector("#confirm-dialog-params-3d-rotation-speed-input");
+                const param3DRotationSpeedElem = confirmDialog.querySelector("#confirm-dialog-params-3d-rotation-speed-input");
                 if (param3DRotationSpeedElem) {
                     setGuiState("3d-rotation-speed", parseInt(param3DRotationSpeedElem.value, 10));
                 }
-                setGuiState("demo-random", confirmDialogRandom_1.checked);
-                var switchDemoModeAdditionalParams = {};
-                if (confirmDialogExitTimeout_1.value !== "") {
-                    switchDemoModeAdditionalParams["exit-timeout"] = confirmDialogExitTimeout_1.value;
+                setGuiState("demo-random", confirmDialogRandom.checked);
+                const switchDemoModeAdditionalParams = {};
+                if (confirmDialogExitTimeout.value !== "") {
+                    switchDemoModeAdditionalParams["exit-timeout"] = confirmDialogExitTimeout.value;
                 }
                 switchMode(Modes.DEMO, switchDemoModeAdditionalParams);
             };
         }
-        var confirmDialogNo = document.querySelector("#confirm-dialog #confirm-dialog-no");
+        const confirmDialogNo = document.querySelector("#confirm-dialog #confirm-dialog-no");
         if (confirmDialogNo != null) {
             confirmDialogNo.onclick = closeConfirmDialog;
         }
@@ -217,17 +211,17 @@ function showConfirmDialogEnterDemoMode() {
     }
 }
 function closeConfirmDialog() {
-    var confirmDialog = document.querySelector("#confirm-dialog");
+    const confirmDialog = document.querySelector("#confirm-dialog");
     if (confirmDialog) {
         confirmDialog.style.display = "";
     }
 }
 function resetConfirmDialog() {
-    var confirmDialog = document.querySelector("#confirm-dialog");
+    const confirmDialog = document.querySelector("#confirm-dialog");
     if (confirmDialog) {
-        var confirmDialogTitle = confirmDialog.querySelector("#confirm-dialog-title");
-        var confirmDialogText = confirmDialog.querySelector("#confirm-dialog-text");
-        var confirmDialogParams = confirmDialog.querySelector("#confirm-dialog-params");
+        const confirmDialogTitle = confirmDialog.querySelector("#confirm-dialog-title");
+        const confirmDialogText = confirmDialog.querySelector("#confirm-dialog-text");
+        const confirmDialogParams = confirmDialog.querySelector("#confirm-dialog-params");
         confirmDialogTitle.textContent = "";
         confirmDialogText.textContent = "";
         confirmDialogText.style.display = "";
@@ -235,11 +229,8 @@ function resetConfirmDialog() {
         confirmDialogParams.style.display = "";
     }
 }
-function switchMode(mode, additionalParameters) {
-    if (mode === void 0) { mode = Modes.SINGLEPLAYER; }
-    if (additionalParameters === void 0) { additionalParameters = {}; }
+function switchMode(mode = Modes.SINGLEPLAYER, additionalParameters = {}) {
     function requestModeSwitch() {
-        var _a;
         if (modeSwitchingTimeout !== undefined && modeSwitchingTimeout !== null) {
             clearTimeout(modeSwitchingTimeout);
         }
@@ -254,7 +245,7 @@ function switchMode(mode, additionalParameters) {
             else if (SYSTEM_TOOLS.forceModeSwitchHandling(currentMode != mode) == "historyReplace") {
                 history.replaceState(null, "", url);
             }
-            else if (((_a = history.state) === null || _a === void 0 ? void 0 : _a.mode) == mode) {
+            else if (history.state?.mode == mode) {
                 history.replaceState({ mode: mode }, "", url);
             }
             else {
@@ -269,14 +260,14 @@ function switchMode(mode, additionalParameters) {
         return;
     }
     modeSwitching = true;
-    var lastUrlParams = new URLSearchParams(location.search);
-    var urlParams = Object.assign(Object.fromEntries(lastUrlParams.entries()), additionalParameters);
+    const lastUrlParams = new URLSearchParams(location.search);
+    const urlParams = Object.assign(Object.fromEntries(lastUrlParams.entries()), additionalParameters);
     urlParams.mode = mode;
     if (urlParams.mode == Modes.SINGLEPLAYER || urlParams.mode.length == 0) {
         delete urlParams.mode;
     }
-    var urlParamsString = new URLSearchParams(urlParams).toString();
-    var url = "?" + urlParamsString;
+    const urlParamsString = new URLSearchParams(urlParams).toString();
+    const url = "?" + urlParamsString;
     modeSwitchingReloadTimeout = setTimeout(function () {
         location.reload();
     }, 5000);
@@ -290,11 +281,11 @@ export function getMode() {
  ******************************************/
 function drawBackground() {
     /////DRAW/BACKGROUND/Layer-1/////
-    contextBackground.clearRect(0, 0, canvas.width, canvas.height);
+    contextBackground.clearRect(0, 0, canvasBackground.width, canvasBackground.height);
     contextBackground.setTransform(client.zoomAndTilt.realScale, 0, 0, client.zoomAndTilt.realScale, (-(client.zoomAndTilt.realScale - 1) * canvasBackground.width) / 2 + client.zoomAndTilt.offsetX, (-(client.zoomAndTilt.realScale - 1) * canvasBackground.height) / 2 + client.zoomAndTilt.offsetY);
     var pic = pics[background.src];
     drawImage(pic, background.x, background.y, background.width, background.height, contextBackground);
-    contextSemiForeground.clearRect(0, 0, canvas.width, canvas.height);
+    contextSemiForeground.clearRect(0, 0, canvasSemiForeground.width, canvasSemiForeground.height);
     contextSemiForeground.setTransform(client.zoomAndTilt.realScale, 0, 0, client.zoomAndTilt.realScale, (-(client.zoomAndTilt.realScale - 1) * canvasSemiForeground.width) / 2 + client.zoomAndTilt.offsetX, (-(client.zoomAndTilt.realScale - 1) * canvasSemiForeground.height) / 2 + client.zoomAndTilt.offsetY);
     /////BACKGROUND/Layer-2/////
     drawImage(pics[background.secondLayer], background.x, background.y, background.width, background.height, contextSemiForeground);
@@ -302,13 +293,13 @@ function drawBackground() {
     if (konamiState >= 0) {
         contextSemiForeground.save();
         if (client.zoomAndTilt.realScale == 1) {
-            var width = pic.height / pic.width - canvas.height / canvas.width < 0 ? canvas.height * (pic.width / pic.height) : canvas.width;
-            var height = pic.height / pic.width - canvas.height / canvas.width < 0 ? canvas.height : canvas.width * (pic.height / pic.width);
+            var width = pic.height / pic.width - canvasSemiForeground.height / canvasSemiForeground.width < 0 ? canvasSemiForeground.height * (pic.width / pic.height) : canvasSemiForeground.width;
+            var height = pic.height / pic.width - canvasSemiForeground.height / canvasSemiForeground.width < 0 ? canvasSemiForeground.height : canvasSemiForeground.width * (pic.height / pic.width);
             var posX = 0;
             var posY = 0;
-            var picPosX = (((width - canvas.width) / 2) * pic.width) / width;
-            var picPosY = (((height - canvas.height) / 2) * pic.height) / height;
-            var fillWidth = canvas.width;
+            var picPosX = (((width - canvasSemiForeground.width) / 2) * pic.width) / width;
+            var picPosY = (((height - canvasSemiForeground.height) / 2) * pic.height) / height;
+            var fillWidth = canvasSemiForeground.width;
             var fillHeight = background.y;
             var picWidth = (fillWidth * pic.width) / width;
             var picHeight = (fillHeight * pic.height) / height;
@@ -318,17 +309,17 @@ function drawBackground() {
             drawImage(pic, posX, posY, fillWidth, fillHeight, contextSemiForeground, picPosX, picPosY, picWidth, picHeight);
             posX = 0;
             posY = 0;
-            picPosX = (((width - canvas.width) / 2) * pic.width) / width;
-            picPosY = (((height - canvas.height) / 2) * pic.height) / height;
+            picPosX = (((width - canvasSemiForeground.width) / 2) * pic.width) / width;
+            picPosY = (((height - canvasSemiForeground.height) / 2) * pic.height) / height;
             fillWidth = background.x;
-            fillHeight = canvas.height;
+            fillHeight = canvasSemiForeground.height;
             picWidth = (fillWidth * pic.width) / width;
             picHeight = (fillHeight * pic.height) / height;
             drawImage(pic, posX, posY, fillWidth, fillHeight, contextSemiForeground, picPosX, picPosY, picWidth, picHeight);
             posX += background.x + background.width;
             picPosX += ((background.x + background.width) * pic.width) / width;
             drawImage(pic, posX, posY, fillWidth, fillHeight, contextSemiForeground, picPosX, picPosY, picWidth, picHeight);
-            var bgGradient = contextSemiForeground.createLinearGradient(0, 0, canvas.width, canvas.height / 2);
+            var bgGradient = contextSemiForeground.createLinearGradient(0, 0, canvasSemiForeground.width, canvasSemiForeground.height / 2);
             bgGradient.addColorStop(0, "rgba(0,0,0,1)");
             bgGradient.addColorStop(0.2, "rgba(0,0,0,0.95)");
             bgGradient.addColorStop(0.4, "rgba(0,0,0,0.85)");
@@ -340,16 +331,16 @@ function drawBackground() {
         else {
             contextSemiForeground.fillStyle = "black";
         }
-        contextSemiForeground.fillRect(0, 0, background.x, canvas.height);
-        contextSemiForeground.fillRect(0, 0, canvas.width, background.y);
-        contextSemiForeground.fillRect(background.x + background.width, 0, background.x, canvas.height);
-        contextSemiForeground.fillRect(0, background.y + background.height + menus.outerContainer.height * client.devicePixelRatio, canvas.width, background.y);
+        contextSemiForeground.fillRect(0, 0, background.x, canvasSemiForeground.height);
+        contextSemiForeground.fillRect(0, 0, canvasSemiForeground.width, background.y);
+        contextSemiForeground.fillRect(background.x + background.width, 0, background.x, canvasSemiForeground.height);
+        contextSemiForeground.fillRect(0, background.y + background.height + menus.outerContainer.height * client.devicePixelRatio, canvasSemiForeground.width, background.y);
         contextSemiForeground.restore();
     }
     /////DRAW/BACKGROUND/Konami/////
     if (konamiState < 0) {
         /////DRAW/BACKGROUND/Layer-1/////
-        var imgData = contextBackground.getImageData(0, 0, canvas.width, canvas.height);
+        var imgData = contextBackground.getImageData(0, 0, canvasBackground.width, canvasBackground.height);
         var data = imgData.data;
         for (var i = 0; i < data.length; i += 4) {
             data[i] = Math.min(255, data[i] < 120 ? data[i] / 1.2 : data[i] * 1.1);
@@ -358,7 +349,7 @@ function drawBackground() {
         }
         contextBackground.putImageData(imgData, 0, 0);
         /////DRAW/BACKGROUND/Layer-2/////
-        imgData = contextSemiForeground.getImageData(0, 0, canvas.width, canvas.height);
+        imgData = contextSemiForeground.getImageData(0, 0, canvasSemiForeground.width, canvasSemiForeground.height);
         data = imgData.data;
         for (i = 0; i < data.length; i += 4) {
             data[i] = Math.min(255, data[i] < 120 ? data[i] / 1.2 : data[i] * 1.1);
@@ -402,7 +393,7 @@ function drawMenu(state) {
         }
         for (var i = 0; i < menu.items.length; i++) {
             menu.items[i].style.display = "";
-            var textItem = menu.items[i].querySelector("i") ? menu.items[i].querySelector("i") : menu.items[i];
+            const textItem = menu.items[i].querySelector("i") ? menu.items[i].querySelector("i") : menu.items[i];
             menu.items[i].style.width = menu.items[i].style.height = textItem.style.fontSize = textItem.style.lineHeight = itemSize + "px";
             if (gui.three) {
                 menu.items[i].style.textShadow = "-1px 0 black, 0 1px black, 1px 0 black, 0 -1px black";
@@ -454,7 +445,7 @@ function drawMenu(state) {
             element.dataset.tooltip = getString(["appScreenGraphicalInfoList", menus.infoOverlay.items[i] - 1]);
             initTooltip(element);
             element.onclick = function (event) {
-                var target = event.target;
+                const target = event.target;
                 if (menus.infoOverlay.textTimeout != undefined && menus.infoOverlay.textTimeout != null) {
                     clearTimeout(menus.infoOverlay.textTimeout);
                 }
@@ -542,8 +533,7 @@ function beforeOptionsMenuChange() {
     closeConfirmDialog();
 }
 function calcMenusAndBackground(state) {
-    function calcBackground(simulate) {
-        if (simulate === void 0) { simulate = false; }
+    function calcBackground(simulate = false) {
         var additionalHeight;
         if (simulate) {
             additionalHeight = 0;
@@ -554,7 +544,7 @@ function calcMenusAndBackground(state) {
         if (canvasBackground.width / canvasBackground.height / ((canvasBackground.height - additionalHeight) / canvasBackground.height) < pics[background.src].width / pics[background.src].height) {
             client.normalRatio = true;
             background.width = canvasBackground.width;
-            background.height = pics[background.src].height * (canvas.width / pics[background.src].width);
+            background.height = pics[background.src].height * (canvasBackground.width / pics[background.src].width);
             background.x = 0;
             background.y = canvasBackground.height / 2 - background.height / 2 - additionalHeight / 2;
         }
@@ -717,18 +707,18 @@ function calcMenusAndBackground(state) {
             beforeOptionsMenuChange();
             switchMode(Modes.MULTIPLAYER);
         };
-        var settingsElem_1 = document.querySelector("#settings");
-        var settingsElemApply = settingsElem_1.querySelector("#settings-apply");
+        const settingsElem = document.querySelector("#settings");
+        const settingsElemApply = settingsElem.querySelector("#settings-apply");
         menus.options.elements.settings.onclick = function () {
             beforeOptionsMenuChange();
             gui.settings = gui.sidebarRight = true;
-            settingsElem_1.style.display = "block";
+            settingsElem.style.display = "block";
             drawMenu("invisible");
         };
         settingsElemApply.onclick = function () {
             gui.settings = gui.sidebarRight = false;
-            settingsElem_1.scrollTo(0, 0);
-            settingsElem_1.style.display = "";
+            settingsElem.scrollTo(0, 0);
+            settingsElem.style.display = "";
             calcMenusAndBackground("settings-change");
             drawMenu("visible");
             if (getSetting("saveGame") && currentMode == Modes.SINGLEPLAYER) {
@@ -744,7 +734,7 @@ function calcMenusAndBackground(state) {
             gui.infoOverlay = true;
             drawMenu("menu-switch");
         };
-        var infoExit = document.querySelector("#canvas-info-exit");
+        const infoExit = document.querySelector("#canvas-info-exit");
         infoExit.onclick = function () {
             gui.infoOverlay = false;
             drawMenu("menu-switch");
@@ -833,7 +823,7 @@ function calcMenusAndBackground(state) {
     calcBackground();
     menus.outerContainer.width = background.width / client.devicePixelRatio;
     if (window.innerWidth > window.innerHeight) {
-        var unsafeArea = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--unsafe-area-bottom"));
+        const unsafeArea = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--unsafe-area-bottom"));
         menus.outerContainer.width -= Math.min(background.width / client.devicePixelRatio / 20, unsafeArea);
     }
     menus.innerWidthRelativeToItemLength = false;
@@ -875,16 +865,16 @@ function calcMenusAndBackground(state) {
         menus.outerContainer.element.style.right = "0px";
     }
     if (state == "load") {
-        var event_1 = new CustomEvent("moroway-app-after-calc-options-menu-load");
-        document.dispatchEvent(event_1);
+        const event = new CustomEvent("moroway-app-after-calc-options-menu-load");
+        document.dispatchEvent(event);
     }
     else {
         drawMenu(state);
     }
 }
 export function optionsMenuEditorAdd(id, title, icon, onClickFunction) {
-    var itemToAdd = document.createElement("button");
-    var itemToAddChild = document.createElement("i");
+    const itemToAdd = document.createElement("button");
+    const itemToAddChild = document.createElement("i");
     itemToAdd.classList.add("canvas-options-button");
     itemToAdd.id = id;
     itemToAdd.dataset.tooltip = title;
@@ -1006,7 +996,7 @@ function getGesture(gesture) {
     if (client.zoomAndTilt.tiltY < yMinTilt) {
         client.zoomAndTilt.tiltY = yMinTilt;
     }
-    var scale = three.calcScale();
+    const scale = three.calcScale();
     three.camera.position.set(scale * ((client.zoomAndTilt.pinchX / client.devicePixelRatio - client.width / 2) / client.width), scale * (-(client.zoomAndTilt.pinchY / client.devicePixelRatio - client.height / 2) / client.width), 1);
     three.scene.rotation.x = (client.zoomAndTilt.tiltY - client.height / 2) / client.height;
     three.scene.rotation.y = (client.zoomAndTilt.tiltX - client.width / 2) / client.width;
@@ -1275,7 +1265,6 @@ function getTouchCancel(_event) {
     hardware.keyboard.keysHold = [];
 }
 function onKeyDown(event) {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q;
     if (!client.hidden && !hardware.mouse.out) {
         if (!hardware.keyboard.keysHold[event.key]) {
             hardware.keyboard.keysHold[event.key] = {};
@@ -1315,8 +1304,8 @@ function onKeyDown(event) {
             }
         }
     }
-    else if (event.target.tagName != "INPUT" && event.target.tagName != "TEXTAREA" && !gui.konamiOverlay) {
-        if (event.key == "/" && !gui.sidebarRight && !gui.textControl) {
+    else if (event.target.tagName != "INPUT" && event.target.tagName != "TEXTAREA") {
+        if (event.key == "/" && !gui.sidebarRight && !gui.textControl && !gui.konamiOverlay) {
             event.preventDefault();
             gui.textControl = true;
             drawMenu("hide-outer");
@@ -1324,25 +1313,25 @@ function onKeyDown(event) {
             textControl.elements.root.style.display = "block";
             textControl.elements.input.focus();
         }
-        else if (event.key == " ") {
+        else if (event.key == " " && !gui.konamiOverlay) {
             event.preventDefault();
-            (_c = (_b = (_a = menus.options) === null || _a === void 0 ? void 0 : _a.elements) === null || _b === void 0 ? void 0 : _b.view3DToggle) === null || _c === void 0 ? void 0 : _c.click();
+            menus.options?.elements?.view3DToggle?.click();
         }
-        else if (event.key == "-") {
+        else if (event.key == "-" && !gui.konamiOverlay) {
             event.preventDefault();
-            (_f = (_e = (_d = menus.options) === null || _d === void 0 ? void 0 : _d.elements) === null || _e === void 0 ? void 0 : _e.controlCenterTrains) === null || _f === void 0 ? void 0 : _f.click();
+            menus.options?.elements?.controlCenterTrains?.click();
         }
-        else if (event.key == "_") {
+        else if (event.key == "_" && !gui.konamiOverlay) {
             event.preventDefault();
-            (_j = (_h = (_g = menus.options) === null || _g === void 0 ? void 0 : _g.elements) === null || _h === void 0 ? void 0 : _h.controlCenterCars) === null || _j === void 0 ? void 0 : _j.click();
+            menus.options?.elements?.controlCenterCars?.click();
         }
-        else if (event.key == "c" && gui.three) {
+        else if (event.key == "c" && gui.three && !gui.konamiOverlay) {
             event.preventDefault();
-            (_m = (_l = (_k = menus.options) === null || _k === void 0 ? void 0 : _k.elements) === null || _l === void 0 ? void 0 : _l.view3DCameraSwitcherForwards) === null || _m === void 0 ? void 0 : _m.click();
+            menus.options?.elements?.view3DCameraSwitcherForwards?.click();
         }
-        else if (event.key == "C" && gui.three) {
+        else if (event.key == "C" && gui.three && !gui.konamiOverlay) {
             event.preventDefault();
-            (_q = (_p = (_o = menus.options) === null || _o === void 0 ? void 0 : _o.elements) === null || _p === void 0 ? void 0 : _p.view3DCameraSwitcherBackwards) === null || _q === void 0 ? void 0 : _q.click();
+            menus.options?.elements?.view3DCameraSwitcherBackwards?.click();
         }
         else if ((event.key == "ArrowUp" && (konamiState === 0 || konamiState == 1)) || (event.key == "ArrowDown" && (konamiState == 2 || konamiState == 3)) || (event.key == "ArrowLeft" && (konamiState == 4 || konamiState == 6)) || (event.key == "ArrowRight" && (konamiState == 5 || konamiState == 7)) || (event.key == "b" && konamiState == 8)) {
             if (konamiTimeOut !== undefined && konamiTimeOut !== null) {
@@ -1676,8 +1665,7 @@ function requestResize() {
 /*******************************************
  *             Draw  functions             *
  ******************************************/
-function carCollisionCourse(input1, sendNotification, fixFac) {
-    if (fixFac === void 0) { fixFac = undefined; }
+function carCollisionCourse(input1, sendNotification, fixFac = undefined) {
     context.save();
     context.setTransform(1, 0, 0, 1, 0, 0);
     var collision = false;
@@ -1730,13 +1718,12 @@ function carCollisionCourse(input1, sendNotification, fixFac) {
     return collision;
 }
 function drawObjects() {
-    var _a, _b, _c, _d;
     function setMaterialTransparent(mesh, opacity) {
         if (mesh.material && opacity && opacity >= 0 && opacity <= 1) {
             if (!mesh.material.opacityOriginal) {
                 mesh.material.opacityOriginal = mesh.material.opacity;
             }
-            var transparentOriginal = mesh.material.transparent;
+            const transparentOriginal = mesh.material.transparent;
             mesh.material.opacity = mesh.material.opacityOriginal * opacity;
             mesh.material.transparent = mesh.material.opacity < 1;
             mesh.material.needsUpdate = mesh.material.transparent != transparentOriginal;
@@ -1749,10 +1736,9 @@ function drawObjects() {
     }
     function drawTrains(input1) {
         function drawTrain(i) {
-            var _a, _b, _c, _d;
-            var currentObject = i < 0 ? trains[input1] : trains[input1].cars[i];
-            var flickerDuration = 3;
-            var flickerZoom = 1.01;
+            const currentObject = i < 0 ? trains[input1] : trains[input1].cars[i];
+            const flickerDuration = 3;
+            const flickerZoom = 1.01;
             if (frameNo <= trains[input1].lastDirectionChange + flickerDuration * 6 && !trains[input1].move && Math.random() > 0.7 && (i < 0 || i == trains[input1].cars.length - 1)) {
                 context.save();
                 context.translate(currentObject.x, currentObject.y);
@@ -1791,9 +1777,9 @@ function drawObjects() {
                 }
                 context.restore();
             }
-            if (((_b = (_a = currentObject.wheels) === null || _a === void 0 ? void 0 : _a.front) === null || _b === void 0 ? void 0 : _b.src2d) && konamiState >= 0) {
-                var wheelWidthFront = currentObject.width * (pics[currentObject.wheels.front.src2d].width / pics[currentObject.src].width);
-                var wheelHeightFront = currentObject.height * (pics[currentObject.wheels.front.src2d].height / pics[currentObject.src].height);
+            if (currentObject.wheels?.front?.src2d && konamiState >= 0) {
+                const wheelWidthFront = currentObject.width * (pics[currentObject.wheels.front.src2d].width / pics[currentObject.src].width);
+                const wheelHeightFront = currentObject.height * (pics[currentObject.wheels.front.src2d].height / pics[currentObject.src].height);
                 context.save();
                 context.translate(currentObject.wheels.front.leftX, currentObject.wheels.front.leftY);
                 if (frameNo <= trains[input1].lastDirectionChange + flickerDuration * 3 && (frameNo <= trains[input1].lastDirectionChange + flickerDuration || frameNo > trains[input1].lastDirectionChange + flickerDuration * 2)) {
@@ -1828,9 +1814,9 @@ function drawObjects() {
                 drawImage(pics[currentObject.wheels.front.src2d], -wheelWidthFront / 2, 0, wheelWidthFront, wheelHeightFront);
                 context.restore();
             }
-            if (((_d = (_c = currentObject.wheels) === null || _c === void 0 ? void 0 : _c.back) === null || _d === void 0 ? void 0 : _d.src2d) && konamiState >= 0) {
-                var wheelWidthBack = currentObject.width * (pics[currentObject.wheels.back.src2d].width / pics[currentObject.src].width);
-                var wheelHeightBack = currentObject.height * (pics[currentObject.wheels.back.src2d].height / pics[currentObject.src].height);
+            if (currentObject.wheels?.back?.src2d && konamiState >= 0) {
+                const wheelWidthBack = currentObject.width * (pics[currentObject.wheels.back.src2d].width / pics[currentObject.src].width);
+                const wheelHeightBack = currentObject.height * (pics[currentObject.wheels.back.src2d].height / pics[currentObject.src].height);
                 context.save();
                 context.translate(currentObject.wheels.back.leftX, currentObject.wheels.back.leftY);
                 if (frameNo <= trains[input1].lastDirectionChange + flickerDuration * 3 && (frameNo <= trains[input1].lastDirectionChange + flickerDuration || frameNo > trains[input1].lastDirectionChange + flickerDuration * 2)) {
@@ -1964,12 +1950,12 @@ function drawObjects() {
         }
     }
     function trainInTrackElement(state) {
-        for (var i_1 = 0; i_1 < trains.length; i_1++) {
-            if ((trains[i_1].front.state == state || trains[i_1].back.state == state) && trains[i_1].opacity < 1) {
+        for (let i = 0; i < trains.length; i++) {
+            if ((trains[i].front.state == state || trains[i].back.state == state) && trains[i].opacity < 1) {
                 return true;
             }
-            for (var j = 0; j < trains[i_1].cars.length; j++) {
-                if ((trains[i_1].cars[j].front.state == state || trains[i_1].cars[j].back.state == state) && trains[i_1].cars[j].opacity < 1) {
+            for (let j = 0; j < trains[i].cars.length; j++) {
+                if ((trains[i].cars[j].front.state == state || trains[i].cars[j].back.state == state) && trains[i].cars[j].opacity < 1) {
                     return true;
                 }
             }
@@ -1977,36 +1963,32 @@ function drawObjects() {
         return false;
     }
     function drawContinueTrackElement(group, geometry, corrFac) {
-        var material = new THREE.LineBasicMaterial({ color: three.night ? 0x541e03 : 0x963c0e });
-        var objectA = new THREE.Line(geometry, material);
+        const material = new THREE.LineBasicMaterial({ color: three.night ? 0x541e03 : 0x963c0e });
+        const objectA = new THREE.Line(geometry, material);
         objectA.translateX((-corrFac * background.width) / 990000);
         objectA.translateY(-background.width / 990000);
         objectA.translateZ(-background.width / 1000000);
         group.add(objectA);
-        var objectB = new THREE.Line(geometry, material);
+        const objectB = new THREE.Line(geometry, material);
         objectB.translateX((corrFac * background.width) / 990000);
         objectB.translateY(background.width / 990000);
         objectB.translateZ(-background.width / 1000000);
         group.add(objectB);
     }
-    function drawContinueTrackLine(group, lineName, corrFac) {
-        if (corrFac === void 0) { corrFac = 1; }
-        var points = [];
+    function drawContinueTrackLine(group, lineName, corrFac = 1) {
+        const points = [];
         points.push(new THREE.Vector3(three.calcScale() * ((rotationPoints.outer.rightSiding[lineName].x[0] - background.width / 2) / background.width), three.calcScale() * (-(rotationPoints.outer.rightSiding[lineName].y[0] - background.height / 2) / background.width) + three.calcPositionY(), -0));
         points.push(new THREE.Vector3(three.calcScale() * ((rotationPoints.outer.rightSiding[lineName].x[1] - background.width / 2) / background.width), three.calcScale() * (-(rotationPoints.outer.rightSiding[lineName].y[1] - background.height / 2) / background.width) + three.calcPositionY(), -0));
         drawContinueTrackElement(group, new THREE.BufferGeometry().setFromPoints(points), corrFac);
     }
-    function drawContinueTrackCurve(group, curveName, corrFac) {
-        if (corrFac === void 0) { corrFac = 1; }
-        var curve = new THREE.CubicBezierCurve3(new THREE.Vector3(three.calcScale() * ((rotationPoints.outer.rightSiding[curveName].x[0] - background.width / 2) / background.width), three.calcScale() * (-(rotationPoints.outer.rightSiding[curveName].y[0] - background.height / 2) / background.width) + three.calcPositionY(), -0), new THREE.Vector3(three.calcScale() * ((rotationPoints.outer.rightSiding[curveName].x[1] - background.width / 2) / background.width), three.calcScale() * (-(rotationPoints.outer.rightSiding[curveName].y[1] - background.height / 2) / background.width) + three.calcPositionY(), -0), new THREE.Vector3(three.calcScale() * ((rotationPoints.outer.rightSiding[curveName].x[2] - background.width / 2) / background.width), three.calcScale() * (-(rotationPoints.outer.rightSiding[curveName].y[2] - background.height / 2) / background.width) + three.calcPositionY(), -0), new THREE.Vector3(three.calcScale() * ((rotationPoints.outer.rightSiding[curveName].x[3] - background.width / 2) / background.width), three.calcScale() * (-(rotationPoints.outer.rightSiding[curveName].y[3] - background.height / 2) / background.width) + three.calcPositionY(), -0));
-        var points = curve.getPoints(30);
+    function drawContinueTrackCurve(group, curveName, corrFac = 1) {
+        const curve = new THREE.CubicBezierCurve3(new THREE.Vector3(three.calcScale() * ((rotationPoints.outer.rightSiding[curveName].x[0] - background.width / 2) / background.width), three.calcScale() * (-(rotationPoints.outer.rightSiding[curveName].y[0] - background.height / 2) / background.width) + three.calcPositionY(), -0), new THREE.Vector3(three.calcScale() * ((rotationPoints.outer.rightSiding[curveName].x[1] - background.width / 2) / background.width), three.calcScale() * (-(rotationPoints.outer.rightSiding[curveName].y[1] - background.height / 2) / background.width) + three.calcPositionY(), -0), new THREE.Vector3(three.calcScale() * ((rotationPoints.outer.rightSiding[curveName].x[2] - background.width / 2) / background.width), three.calcScale() * (-(rotationPoints.outer.rightSiding[curveName].y[2] - background.height / 2) / background.width) + three.calcPositionY(), -0), new THREE.Vector3(three.calcScale() * ((rotationPoints.outer.rightSiding[curveName].x[3] - background.width / 2) / background.width), three.calcScale() * (-(rotationPoints.outer.rightSiding[curveName].y[3] - background.height / 2) / background.width) + three.calcPositionY(), -0));
+        const points = curve.getPoints(30);
         drawContinueTrackElement(group, new THREE.BufferGeometry().setFromPoints(points), corrFac);
     }
     function calcCars() {
         function calcCarsAutoMode() {
-            function carAutoModeIsFutureCollision(i, k, stop, j) {
-                if (stop === void 0) { stop = -1; }
-                if (j === void 0) { j = 0; }
+            function carAutoModeIsFutureCollision(i, k, stop = -1, j = 0) {
                 context.save();
                 context.setTransform(1, 0, 0, 1, 0, 0);
                 var coll = false;
@@ -2047,10 +2029,10 @@ function drawObjects() {
                 }
                 carParams.autoModeInit = false;
             }
-            var points = { x: [], y: [], angle: [] };
-            var arrLen = carParams.wayNo * 23;
-            var abstrNo = Math.ceil(arrLen * 0.05);
-            var cCars = copyJSObject(cars);
+            const points = { x: [], y: [], angle: [] };
+            const arrLen = carParams.wayNo * 23;
+            const abstrNo = Math.ceil(arrLen * 0.05);
+            const cCars = copyJSObject(cars);
             for (var i = 0; i < cCars.length; i++) {
                 cCars[i].move = false;
                 cCars[i].backwardsState = 0;
@@ -2262,7 +2244,7 @@ function drawObjects() {
                 currentObject.y = carWays[input1][currentObject.cType][currentObject.counter].y;
                 currentObject.displayAngle = carWays[input1][currentObject.cType][currentObject.counter].angle;
             }
-            var isFront = (!carParams.autoModeOff && !carParams.isBackToRoot) || (carParams.autoModeOff && !currentObject.backToInit && (currentObject.backwardsState === undefined || currentObject.backwardsState === 0));
+            const isFront = (!carParams.autoModeOff && !carParams.isBackToRoot) || (carParams.autoModeOff && !currentObject.backToInit && (currentObject.backwardsState === undefined || currentObject.backwardsState === 0));
             currentObject.outerX = currentObject.x + Math.cos(currentObject.displayAngle) * ((currentObject.width * 1.05) / 2) * (isFront ? 1 : -1);
             currentObject.outerY = currentObject.y + Math.sin(currentObject.displayAngle) * ((currentObject.width * 1.05) / 2) * (isFront ? 1 : -1);
         }
@@ -2279,7 +2261,7 @@ function drawObjects() {
         context.translate(background.x, background.y);
         context.translate(currentObject.x, currentObject.y);
         context.rotate(currentObject.displayAngle);
-        var flickerDuration = 4;
+        const flickerDuration = 4;
         if (konamiState < 0) {
             context.scale(-1, 1);
             context.textAlign = "center";
@@ -2545,7 +2527,7 @@ function drawObjects() {
         /////THREE.JS/////
         var raycasterActive = true;
         trains.forEach(function (train, i) {
-            var flickerDuration = 3;
+            const flickerDuration = 3;
             if (trains3D[i] && trains3D[i].mesh) {
                 trains3D[i].mesh.position.set((three.calcScale() * (train.x - background.x - background.width / 2)) / background.width, three.calcScale() * (-(train.y - background.y - background.height / 2) / background.width) + three.calcPositionY(), trains3D[i].positionZ);
                 if (trains3D[i].meshFront) {
@@ -2557,7 +2539,7 @@ function drawObjects() {
                     trains3D[i].meshBack.right.position.set((three.calcScale() * (train.wheels.back.rightX - background.x - background.width / 2)) / background.width, three.calcScale() * (-(train.wheels.back.rightY - background.y - background.height / 2) / background.width) + three.calcPositionY(), trains3D[i].positionZ);
                 }
                 if (frameNo <= train.lastDirectionChange + flickerDuration * 3) {
-                    var flickerRandom = (trains3D[i].positionZ / 5) * Math.random();
+                    const flickerRandom = (trains3D[i].positionZ / 5) * Math.random();
                     if (frameNo <= train.lastDirectionChange + flickerDuration || frameNo > train.lastDirectionChange + flickerDuration * 2) {
                         trains3D[i].mesh.position.z += flickerRandom;
                         if (trains3D[i].meshFront) {
@@ -2611,7 +2593,7 @@ function drawObjects() {
                         trains3D[i].cars[j].meshBack.right.position.set((three.calcScale() * (car.wheels.back.rightX - background.x - background.width / 2)) / background.width, three.calcScale() * (-(car.wheels.back.rightY - background.y - background.height / 2) / background.width) + three.calcPositionY(), trains3D[i].cars[j].positionZ);
                     }
                     if (frameNo <= train.lastDirectionChange + flickerDuration * 3) {
-                        var flickerRandom = (trains3D[i].cars[j].mesh.position.z / 5) * Math.random();
+                        const flickerRandom = (trains3D[i].cars[j].mesh.position.z / 5) * Math.random();
                         if (frameNo <= train.lastDirectionChange + flickerDuration || frameNo > train.lastDirectionChange + flickerDuration * 2) {
                             trains3D[i].cars[j].mesh.position.z += flickerRandom;
                             if (trains3D[i].cars[j].meshFront) {
@@ -2783,8 +2765,8 @@ function drawObjects() {
             if (typeof three.followObject != "number" || !Number.isInteger(three.followObject) || three.followObject < 0 || three.followObject > trains.length - 1) {
                 three.followObject = currentMode == Modes.DEMO ? Math.floor(Math.random() * trains.length) : 0;
             }
-            var object = trains[three.followObject].standardDirection || trains[three.followObject].cars.length == 0 ? trains[three.followObject] : trains[three.followObject].cars[trains[three.followObject].cars.length - 1];
-            var object3D = trains[three.followObject].standardDirection || trains3D[three.followObject].cars.length == 0 ? trains3D[three.followObject] : trains3D[three.followObject].cars[trains3D[three.followObject].cars.length - 1];
+            const object = trains[three.followObject].standardDirection || trains[three.followObject].cars.length == 0 ? trains[three.followObject] : trains[three.followObject].cars[trains[three.followObject].cars.length - 1];
+            const object3D = trains[three.followObject].standardDirection || trains3D[three.followObject].cars.length == 0 ? trains3D[three.followObject] : trains3D[three.followObject].cars[trains3D[three.followObject].cars.length - 1];
             background3D.animateBehind(false, (trains[three.followObject].standardDirection ? object.displayAngle : object.displayAngle - Math.PI) / (2 * Math.PI));
             three.followCamera.position.set((three.calcScale() * (trains[three.followObject].outerX - background.x - background.width / 2)) / background.width, three.calcScale() * (-(trains[three.followObject].outerY - background.y - background.height / 2) / background.width) + three.calcPositionY(), object3D.positionZ == undefined ? 0 : object3D.positionZ);
             three.followCamera.rotation.set(0, 0, 0);
@@ -2817,7 +2799,7 @@ function drawObjects() {
                 contextForeground.save();
                 contextForeground.translate(three.followCamControls.x, three.followCamControls.y);
                 contextForeground.beginPath();
-                var currentSpeed = (trains[three.followObject].currentSpeedInPercent == undefined || !trains[three.followObject].move || trains[three.followObject].accelerationSpeed < 0 ? 0 : Math.round(trains[three.followObject].currentSpeedInPercent)) / 100;
+                const currentSpeed = (trains[three.followObject].currentSpeedInPercent == undefined || !trains[three.followObject].move || trains[three.followObject].accelerationSpeed < 0 ? 0 : Math.round(trains[three.followObject].currentSpeedInPercent)) / 100;
                 if (contextForeground.roundRect) {
                     contextForeground.roundRect(0, three.followCamControls.draggingAreaHeight * (1 - currentSpeed), three.followCamControls.width, three.followCamControls.draggingAreaHeight * currentSpeed, [Math.max(0, three.followCamControls.draggingAreaHeight * currentSpeed - (three.followCamControls.draggingAreaHeight - three.followCamControls.draggingAreaRadius)), Math.max(0, three.followCamControls.draggingAreaHeight * currentSpeed - (three.followCamControls.draggingAreaHeight - three.followCamControls.draggingAreaRadius)), three.followCamControls.draggingAreaRadius, three.followCamControls.draggingAreaRadius]);
                 }
@@ -2833,9 +2815,9 @@ function drawObjects() {
                 contextForeground.fillText("speed", three.followCamControls.x, three.followCamControls.y + three.followCamControls.textSize);
                 if (trains[three.followObject].accelerationSpeed > 0) {
                     contextForeground.save();
-                    var controlSpeedText = trains[three.followObject].speedInPercent + "%";
+                    const controlSpeedText = trains[three.followObject].speedInPercent + "%";
                     contextForeground.font = measureFontSize(controlSpeedText, defaultFont, 20, three.followCamControls.width * 0.7, 5, 1.2);
-                    var controlSpeedTextMetrics = contextForeground.measureText(controlSpeedText);
+                    const controlSpeedTextMetrics = contextForeground.measureText(controlSpeedText);
                     if (three.followCamControls.draggingAreaHeight - three.followCamControls.padding - three.followCamControls.textSize > parseInt(contextForeground.font.replace(/^([0-9.]+)px.*$/, "$1"), 10)) {
                         contextForeground.fillText(controlSpeedText, three.followCamControls.x + (three.followCamControls.width - controlSpeedTextMetrics.width) / 2, three.followCamControls.y + three.followCamControls.draggingAreaHeight - three.followCamControls.padding);
                     }
@@ -2897,8 +2879,7 @@ function drawObjects() {
         if (currentMode != Modes.DEMO) {
             Object.keys(switches).forEach(function (key) {
                 Object.keys(switches[key]).forEach(function (currentKey) {
-                    function getFadeColor(fadeProgress, maxColor) {
-                        if (maxColor === void 0) { maxColor = 255; }
+                    function getFadeColor(fadeProgress, maxColor = 255) {
                         var hex = Math.round(fadeProgress * maxColor).toString(16);
                         if (hex.length == 1) {
                             return "0" + hex;
@@ -2931,7 +2912,7 @@ function drawObjects() {
                     switches3D[key][currentKey].circleMesh.material.color.setHex(hex);
                     switches3D[key][currentKey].circleMesh.material.transparent = transparent;
                     switches3D[key][currentKey].circleMeshSmall.material.color.setHex(hexSquare);
-                    var scale = three.calcScale();
+                    const scale = three.calcScale();
                     switches3D[key][currentKey].squareMeshHighlight.material.color.setHex(hexSquare);
                     switches3D[key][currentKey].squareMeshHighlight.rotation.y = -angle - Math.PI / 4;
                     switches3D[key][currentKey].squareMeshHighlight.position.set(scale * ((switches[key][currentKey].x - background.width / 2) / background.width + (switches3D[key][currentKey].squareMeshHighlight.geometry.parameters.width / 2) * Math.cos(switches3D[key][currentKey].squareMeshHighlight.rotation.y)), scale * (-(switches[key][currentKey].y - background.height / 2) / background.width + (switches3D[key][currentKey].squareMeshHighlight.geometry.parameters.width / 2) * Math.sin(switches3D[key][currentKey].squareMeshHighlight.rotation.y)) + three.calcPositionY(), scale * (switches3D[key][currentKey].squareMeshHighlight.geometry.parameters.depth / 2));
@@ -2985,12 +2966,12 @@ function drawObjects() {
                 }
             }
         }
-        var continueTrackGroupName = "continue_track_group";
-        var continueTrackOldObject = three.scene.getObjectByName(continueTrackGroupName);
+        const continueTrackGroupName = "continue_track_group";
+        const continueTrackOldObject = three.scene.getObjectByName(continueTrackGroupName);
         if (continueTrackOldObject) {
             three.scene.remove(continueTrackOldObject);
         }
-        var continueTrackNewObject = new THREE.Group();
+        const continueTrackNewObject = new THREE.Group();
         continueTrackNewObject.name = continueTrackGroupName;
         if (trainInTrackElement(212)) {
             drawContinueTrackLine(continueTrackNewObject, "end", -1);
@@ -3419,8 +3400,8 @@ function drawObjects() {
                 contextForeground.fillRect(-classicUI.transformer.wheelInput.width / 2, classicUI.transformer.wheelInput.height / 2, 6, 6);
                 contextForeground.fillRect(-3, -3, 6, 6);
             }
-            var isMouseMoveInWheelInput = classicUI.pointInTransformerWheelInput(hardware.mouse.moveX, hardware.mouse.moveY);
-            var isMouseWheelInWheelInput = classicUI.pointInTransformerWheelInput(hardware.mouse.wheelX, hardware.mouse.wheelY);
+            const isMouseMoveInWheelInput = classicUI.pointInTransformerWheelInput(hardware.mouse.moveX, hardware.mouse.moveY);
+            const isMouseWheelInWheelInput = classicUI.pointInTransformerWheelInput(hardware.mouse.wheelX, hardware.mouse.wheelY);
             if (isMouseMoveInWheelInput && !trains[trainParams.selected].crash && !hardware.mouse.isDrag) {
                 hardware.mouse.cursor = "pointer";
             }
@@ -3860,7 +3841,7 @@ function drawObjects() {
                 context.strokeStyle = "orange";
                 context.stroke();
                 context.restore();
-                if ((_a = trains[debugTrain].wheels) === null || _a === void 0 ? void 0 : _a.front) {
+                if (trains[debugTrain].wheels?.front) {
                     context.save();
                     context.translate(trains[debugTrain].wheels.front.leftX, trains[debugTrain].wheels.front.leftY);
                     context.beginPath();
@@ -3876,7 +3857,7 @@ function drawObjects() {
                     context.fill();
                     context.restore();
                 }
-                if ((_b = trains[debugTrain].wheels) === null || _b === void 0 ? void 0 : _b.back) {
+                if (trains[debugTrain].wheels?.back) {
                     context.save();
                     context.translate(trains[debugTrain].wheels.back.leftX, trains[debugTrain].wheels.back.leftY);
                     context.beginPath();
@@ -3916,7 +3897,7 @@ function drawObjects() {
                     context.arc(0, trains[debugTrain].cars[debugTrainCar].height / 2, background.width / 200, 0, 2 * Math.PI);
                     context.fill();
                     context.restore();
-                    if ((_c = trains[debugTrain].cars[debugTrainCar].wheels) === null || _c === void 0 ? void 0 : _c.front) {
+                    if (trains[debugTrain].cars[debugTrainCar].wheels?.front) {
                         context.save();
                         context.translate(trains[debugTrain].cars[debugTrainCar].wheels.front.leftX, trains[debugTrain].cars[debugTrainCar].wheels.front.leftY);
                         context.beginPath();
@@ -3932,7 +3913,7 @@ function drawObjects() {
                         context.fill();
                         context.restore();
                     }
-                    if ((_d = trains[debugTrain].cars[debugTrainCar].wheels) === null || _d === void 0 ? void 0 : _d.back) {
+                    if (trains[debugTrain].cars[debugTrainCar].wheels?.back) {
                         context.save();
                         context.translate(trains[debugTrain].cars[debugTrainCar].wheels.back.leftX, trains[debugTrain].cars[debugTrainCar].wheels.back.leftY);
                         context.beginPath();
@@ -4369,7 +4350,7 @@ function drawObjects() {
     }
     /////BACKGROUND/Margins-2////
     if (konamiState < 0) {
-        var bgGradient = contextForeground.createRadialGradient(0, canvas.height / 2, canvas.height / 2, canvas.width + canvas.height / 2, canvas.height / 2, canvas.height / 2);
+        var bgGradient = contextForeground.createRadialGradient(0, canvasForeground.height / 2, canvasForeground.height / 2, canvasForeground.width + canvasForeground.height / 2, canvasForeground.height / 2, canvasForeground.height / 2);
         bgGradient.addColorStop(0, "red");
         bgGradient.addColorStop(0.2, "orange");
         bgGradient.addColorStop(0.4, "yellow");
@@ -4409,7 +4390,7 @@ function drawObjects() {
             contextForeground.save();
             contextForeground.translate(adjustScaleX(hardware.mouse.moveX), adjustScaleY(hardware.mouse.moveY));
             contextForeground.fillStyle = hardware.mouse.cursor == "move" ? "rgba(155,155,69," + (Math.random() * 0.3 + 0.6) + ")" : hardware.mouse.cursor == "grabbing" ? "rgba(65,56,65," + (Math.random() * 0.3 + 0.6) + ")" : hardware.mouse.cursor == "pointer" ? "rgba(99,118,140," + (Math.random() * 0.3 + 0.6) + ")" : hardware.mouse.isHold ? "rgba(144,64,64," + (Math.random() * 0.3 + 0.6) + ")" : "rgba(255,250,240,0.5)";
-            var rectSize = canvas.width / 75;
+            var rectSize = canvasForeground.width / 75;
             contextForeground.beginPath();
             contextForeground.arc(0, 0, rectSize / 2, 0, 2 * Math.PI);
             contextForeground.fill();
@@ -4442,11 +4423,7 @@ function drawObjects() {
         }
     }
 }
-function actionSync(objectName, index, params, notification, notificationOnlyForOthers) {
-    if (index === void 0) { index = undefined; }
-    if (params === void 0) { params = undefined; }
-    if (notification === void 0) { notification = undefined; }
-    if (notificationOnlyForOthers === void 0) { notificationOnlyForOthers = false; }
+function actionSync(objectName, index = undefined, params = undefined, notification = undefined, notificationOnlyForOthers = false) {
     if (currentMode == Modes.MULTIPLAYER) {
         if (!onlineConnection.stop) {
             onlineConnection.send("action", JSON.stringify({
@@ -4478,46 +4455,46 @@ function actionSync(objectName, index, params, notification, notificationOnlyFor
  *                Constants                *
  ******************************************/
 //Font
-var defaultFont = "Roboto, sans-serif";
+const defaultFont = "Roboto, sans-serif";
 //Gesture Delays
-var longTouchTime = 350;
-var longTouchWaitTime = longTouchTime + 50;
-var doubleTouchTime = 250;
-var doubleTouchWaitTime = doubleTouchTime + 50;
-var doubleClickTime = 200;
-var doubleClickWaitTime = doubleClickTime + 50;
+const longTouchTime = 350;
+const longTouchWaitTime = longTouchTime + 50;
+const doubleTouchTime = 250;
+const doubleTouchWaitTime = doubleTouchTime + 50;
+const doubleClickTime = 200;
+const doubleClickWaitTime = doubleClickTime + 50;
 //Background
-var background = { src: 9, secondLayer: 10 };
-var background3D = { flat: { src: "background-flat" }, three: { src: "background-3d" } };
+const background = { src: 9, secondLayer: 10 };
+const background3D = { flat: { src: "background-flat" }, three: { src: "background-3d" } };
 //Loading animation
-var loadingAnimation = {
-    updateProgress: function (progress) {
+const loadingAnimation = {
+    updateProgress(progress) {
         progress = Math.min(progress, 100);
         if (this.elementProgressText && this.elementProgressBar) {
             this.elementProgressText.textContent = progress + "%";
             this.elementProgressBar.style.left = -100 + progress + "%";
         }
     },
-    init: function () {
+    init() {
         this.element = document.querySelector("#loading-anim");
         this.elementBranding = document.querySelector("#branding");
         this.elementBrandingImageAnimation = document.querySelector("#branding img");
-        var element = this.elementBrandingImageAnimation;
+        const element = this.elementBrandingImageAnimation;
         this.brandingImageAnimation = {
-            start: function () {
+            start() {
                 if (element) {
-                    var filter_1 = "blur(1px) saturate(5) sepia(1) hue-rotate({{0}}deg)";
+                    const filter = "blur(1px) saturate(5) sepia(1) hue-rotate({{0}}deg)";
                     element.style.transition = "filter 0.08s";
-                    element.style.filter = formatJSString(filter_1, Math.random() * 260 + 100);
+                    element.style.filter = formatJSString(filter, Math.random() * 260 + 100);
                     if (this.interval) {
                         clearInterval(this.interval);
                     }
                     this.interval = setInterval(function () {
-                        element.style.filter = formatJSString(filter_1, Math.random() * 260 + 100);
+                        element.style.filter = formatJSString(filter, Math.random() * 260 + 100);
                     }, 10);
                 }
             },
-            stop: function () {
+            stop() {
                 if (this.interval) {
                     clearInterval(this.interval);
                 }
@@ -4531,39 +4508,36 @@ var loadingAnimation = {
         this.elementProgressBar = document.querySelector("#percent #percent-progress");
         this.elementSnake = document.querySelector("#snake");
     },
-    show: function (animate) {
-        var _a, _b, _c;
+    show(animate) {
         if (this.element) {
             this.element.classList.remove("hidden");
             this.element.style.transition = "unset";
             this.element.style.opacity = "unset";
         }
-        (_a = this.elementBranding) === null || _a === void 0 ? void 0 : _a.classList.remove("hidden");
-        (_b = this.elementProgress) === null || _b === void 0 ? void 0 : _b.classList.add("hidden");
+        this.elementBranding?.classList.remove("hidden");
+        this.elementProgress?.classList.add("hidden");
         //Show progress bar if app loads slowly
-        var element = this.elementProgress;
-        var elementProgressHide = function () {
-            element === null || element === void 0 ? void 0 : element.classList.remove("hidden");
+        const element = this.elementProgress;
+        const elementProgressHide = function () {
+            element?.classList.remove("hidden");
         };
         this.showProgressTimeout = setTimeout(elementProgressHide, 2500);
-        (_c = this.elementSnake) === null || _c === void 0 ? void 0 : _c.classList.remove("hidden");
+        this.elementSnake?.classList.remove("hidden");
         if (animate) {
             this.brandingImageAnimation.start();
         }
     },
-    hide: function () {
-        var _a;
+    hide() {
         this.brandingImageAnimation.stop();
-        (_a = this.element) === null || _a === void 0 ? void 0 : _a.classList.add("hidden");
+        this.element?.classList.add("hidden");
     },
-    fade: function (fadeOutFunction) {
-        var _a, _b;
+    fade(fadeOutFunction) {
         if (this.showProgressTimeout != undefined && this.showProgressTimeout != null) {
             clearTimeout(this.showProgressTimeout);
         }
-        (_a = this.elementProgress) === null || _a === void 0 ? void 0 : _a.classList.add("hidden");
-        (_b = this.elementSnake) === null || _b === void 0 ? void 0 : _b.classList.add("hidden");
-        var fadeOutTime = 1.5;
+        this.elementProgress?.classList.add("hidden");
+        this.elementSnake?.classList.add("hidden");
+        const fadeOutTime = 1.5;
         if (this.element) {
             this.element.style.transition = "opacity " + fadeOutTime + "s ease-in";
             this.element.style.opacity = "0";
@@ -4575,9 +4549,9 @@ var loadingAnimation = {
     }
 };
 //Text control
-var textControl = {
+const textControl = {
     elements: {},
-    validateSubcommand: function (command, args) {
+    validateSubcommand(command, args) {
         if (args.length - 1 < this.commands[command].subcommands[args[0]].args.min || args.length - 1 > this.commands[command].subcommands[args[0]].args.max) {
             return false;
         }
@@ -4593,16 +4567,16 @@ var textControl = {
         }
         return true;
     },
-    getSubcommandNames: function (command) {
+    getSubcommandNames(command) {
         return Object.keys(this.commands[command].subcommands);
     },
-    execute: function (command, args) {
+    execute(command, args) {
         var commandNames = Object.keys(this.commands);
         if (!commandNames.includes(command)) {
             commandNames.shift();
             return formatJSString(getString("appScreenTextCommandsGeneralCommands"), "", commandNames.join(", "));
         }
-        if (typeof args == "object" && args.length > 0 && this.getSubcommandNames(command).includes(args[0])) {
+        if (Array.isArray(args) && args.length > 0 && this.getSubcommandNames(command).includes(args[0])) {
             if (this.validateSubcommand(command, args)) {
                 return this.commands[command].subcommands[args[0]].execute(args);
             }
@@ -4612,7 +4586,7 @@ var textControl = {
     },
     commands: {
         "/": {
-            action: function () {
+            action() {
                 return textControl.execute();
             }
         },
@@ -4620,7 +4594,7 @@ var textControl = {
             subcommands: {
                 list: {
                     args: { min: 0, max: 0 },
-                    execute: function () {
+                    execute() {
                         var trainNames = [];
                         for (var i = 0; i < trains.length; i++) {
                             trainNames[i] = i + ": " + getString(["appScreenTrainNames", i]);
@@ -4631,7 +4605,7 @@ var textControl = {
                 },
                 status: {
                     args: { min: 1, max: 1, patterns: [/^[0-9]+$/] },
-                    execute: function (args) {
+                    execute(args) {
                         var train = parseInt(args[1], 10);
                         if (trainActions.checkRange(train)) {
                             var statusPrefix = getString(["appScreenTrainNames", train]);
@@ -4653,7 +4627,7 @@ var textControl = {
                 },
                 start: {
                     args: { min: 1, max: 1, patterns: [/^[0-9]+$/] },
-                    execute: function (args) {
+                    execute(args) {
                         var train = parseInt(args[1], 10);
                         if (trainActions.start(train, 50)) {
                             return getString("appScreenTextCommandsGeneralSuccess", "!", "upper");
@@ -4664,7 +4638,7 @@ var textControl = {
                 },
                 stop: {
                     args: { min: 1, max: 1, patterns: [/^[0-9]+|all$/] },
-                    execute: function (args) {
+                    execute(args) {
                         if (args[1] == "all") {
                             for (var i = 0; i < trains.length; i++) {
                                 this.execute([args[0], i]);
@@ -4681,7 +4655,7 @@ var textControl = {
                 },
                 turn: {
                     args: { min: 1, max: 1, patterns: [/^[0-9]+$/] },
-                    execute: function (args) {
+                    execute(args) {
                         var train = parseInt(args[1], 10);
                         if (trainActions.changeDirection(train, true)) {
                             return getString("appScreenTextCommandsGeneralSuccess", "!", "upper");
@@ -4692,7 +4666,7 @@ var textControl = {
                 },
                 speed: {
                     args: { min: 1, max: 2, patterns: [/^[0-9]+$/, /^[+-]?[0-9]+$/] },
-                    execute: function (args) {
+                    execute(args) {
                         var train = parseInt(args[1], 10);
                         if (!trainActions.checkRange(train)) {
                             return getString("appScreenTextCommandsGeneralFailure", "!", "upper");
@@ -4732,7 +4706,7 @@ var textControl = {
                 }
             },
             nameIdentifier: "appScreenTextCommandsTrainsName",
-            action: function (args) {
+            action(args) {
                 return textControl.execute("trains", args);
             }
         },
@@ -4740,7 +4714,7 @@ var textControl = {
             subcommands: {
                 list: {
                     args: { min: 0, max: 0 },
-                    execute: function () {
+                    execute() {
                         var carNames = [];
                         for (var i = 0; i < cars.length; i++) {
                             carNames[i] = i + ": " + getString(["appScreenCarNames", i]);
@@ -4751,7 +4725,7 @@ var textControl = {
                 },
                 mode: {
                     args: { min: 0, max: 0 },
-                    execute: function () {
+                    execute() {
                         if (carParams.init) {
                             return formatJSString(getString("appScreenTextCommandsCarsMode"), getString("appScreenTextCommandsCarsModeStop"));
                         }
@@ -4764,7 +4738,7 @@ var textControl = {
                 },
                 auto: {
                     args: { min: 1, max: 1, patterns: [/^start|end|pause|resume$/] },
-                    execute: function (args) {
+                    execute(args) {
                         if (args[1] == "start" && carActions.auto.start()) {
                             return getString("appScreenTextCommandsGeneralSuccess", "!", "upper");
                         }
@@ -4783,7 +4757,7 @@ var textControl = {
                 },
                 manual: {
                     args: { min: 2, max: 2, patterns: [/^start|stop|back|park$/, /^[0-9]+$/] },
-                    execute: function (args) {
+                    execute(args) {
                         var car = parseInt(args[2], 10);
                         if (args[1] == "start" && carActions.manual.start(car)) {
                             return getString("appScreenTextCommandsGeneralSuccess", "!", "upper");
@@ -4803,12 +4777,12 @@ var textControl = {
                 }
             },
             nameIdentifier: "appScreenTextCommandsCarsName",
-            action: function (args) {
+            action(args) {
                 return textControl.execute("cars", args);
             }
         },
         exit: {
-            action: function () {
+            action() {
                 textControl.elements.root.style.display = "";
                 if (client.zoomAndTilt.realScale == 1) {
                     drawMenu("show");
@@ -4820,16 +4794,16 @@ var textControl = {
     }
 };
 //Control center
-var controlCenter = { showCarCenter: false, fontFamily: defaultFont, mouse: {} };
+const controlCenter = { showCarCenter: false, fontFamily: defaultFont, mouse: { clickEvent: false, hold: false, prepare: false, wheelScrolls: false } };
 //Demo mode
-var demoMode = {
-    leaveKeyUp: function (event) {
+const demoMode = {
+    leaveKeyUp(event) {
         if (event.key == "Escape") {
             switchMode(Modes.SINGLEPLAYER);
         }
     },
     leaveTimeMin: 1500,
-    leaveTimeoutStart: function () {
+    leaveTimeoutStart() {
         if (demoMode.leaveTimeout != undefined && demoMode.leaveTimeout != null) {
             clearTimeout(demoMode.leaveTimeout);
         }
@@ -4837,19 +4811,19 @@ var demoMode = {
             switchMode(Modes.SINGLEPLAYER);
         }, demoMode.leaveTimeMin);
     },
-    leaveTimeoutEnd: function () {
+    leaveTimeoutEnd() {
         if (demoMode.leaveTimeout != undefined && demoMode.leaveTimeout != null) {
             clearTimeout(demoMode.leaveTimeout);
         }
     },
-    reload: function () {
+    reload() {
         switchMode(Modes.DEMO);
     }
 };
 //Media
-var audio = {};
-var audioControl = {
-    init: function () {
+const audio = {};
+const audioControl = {
+    init() {
         function createAudio(destinationName, destinationIndex, buffer, volume) {
             var gainNode = audio.context.createGain();
             gainNode.gain.value = volume;
@@ -4866,18 +4840,18 @@ var audioControl = {
         function createTrainAudio(cTrainNumber) {
             try {
                 fetch("./assets/audio_asset_" + cTrainNumber + "." + soundFileExtension)
-                    .then(function (response) {
+                    .then((response) => {
                     if (response.ok) {
                         return response.arrayBuffer();
                     }
                     throw new Error("response not ok");
                 })
-                    .then(function (response) {
+                    .then((response) => {
                     audio.context.decodeAudioData(response, function (buffer) {
                         createAudio("train", cTrainNumber, buffer, 0);
                     });
                 })
-                    .catch(function (error) {
+                    .catch((error) => {
                     if (APP_DATA.debug) {
                         console.error("Fetch-Error:", error);
                     }
@@ -4889,7 +4863,7 @@ var audioControl = {
                 }
             }
         }
-        var soundFileExtension = "ogg";
+        const soundFileExtension = "ogg";
         if (audio.context) {
             audioControl.stopAll();
             audio.context.close();
@@ -4904,15 +4878,15 @@ var audioControl = {
             audio.source.train = [];
             try {
                 fetch("./assets/audio_asset_crash." + soundFileExtension)
-                    .then(function (response) {
+                    .then((response) => {
                     return response.arrayBuffer();
                 })
-                    .catch(function (error) {
+                    .catch((error) => {
                     if (APP_DATA.debug) {
                         console.error("Fetch-Error:", error);
                     }
                 })
-                    .then(function (response) {
+                    .then((response) => {
                     audio.context.decodeAudioData(response, function (buffer) {
                         createAudio("trainCrash", null, buffer, 1);
                     });
@@ -4925,15 +4899,15 @@ var audioControl = {
             }
             try {
                 fetch("./assets/audio_asset_switch." + soundFileExtension)
-                    .then(function (response) {
+                    .then((response) => {
                     return response.arrayBuffer();
                 })
-                    .catch(function (error) {
+                    .catch((error) => {
                     if (APP_DATA.debug) {
                         console.error("Fetch-Error:", error);
                     }
                 })
-                    .then(function (response) {
+                    .then((response) => {
                     audio.context.decodeAudioData(response, function (buffer) {
                         createAudio("switch", null, buffer, 1);
                     });
@@ -4949,16 +4923,16 @@ var audioControl = {
             }
         }
     },
-    setActivation: function (activate) {
+    setActivation(activate) {
         if (activate) {
             audioControl.init();
         }
         audio.active = activate;
         audioControl.playAndPauseAll();
     },
-    playAndPauseAll: function () {
+    playAndPauseAll() {
         if (typeof audio.context == "object") {
-            var play = audioControl.mayPlay();
+            const play = audioControl.mayPlay();
             if (play && audio.context.state == "suspended") {
                 audio.context.resume();
             }
@@ -4969,11 +4943,10 @@ var audioControl = {
         }
         return false;
     },
-    mayPlay: function () {
+    mayPlay() {
         return audio.active && !client.hidden && !onlineConnection.paused;
     },
-    existsObject: function (destinationName, destinationIndex) {
-        if (destinationIndex === void 0) { destinationIndex = undefined; }
+    existsObject(destinationName, destinationIndex = undefined) {
         if (typeof audio.context == "object") {
             if (typeof destinationIndex == "number") {
                 if (typeof audio.source[destinationName][destinationIndex] == "object") {
@@ -4988,7 +4961,7 @@ var audioControl = {
         }
         return false;
     },
-    startObject: function (destinationName, destinationIndex, loop) {
+    startObject(destinationName, destinationIndex, loop) {
         if (audioControl.existsObject(destinationName, destinationIndex)) {
             return false;
         }
@@ -5020,7 +4993,7 @@ var audioControl = {
         }
         return false;
     },
-    setObjectVolume: function (destinationName, destinationIndex, volume) {
+    setObjectVolume(destinationName, destinationIndex, volume) {
         if (typeof audio.context == "object") {
             var gainNode;
             if (typeof destinationIndex == "number") {
@@ -5036,8 +5009,7 @@ var audioControl = {
         }
         return false;
     },
-    stopObject: function (destinationName, destinationIndex) {
-        if (destinationIndex === void 0) { destinationIndex = undefined; }
+    stopObject(destinationName, destinationIndex = undefined) {
         if (!audioControl.existsObject(destinationName, destinationIndex)) {
             return false;
         }
@@ -5059,15 +5031,15 @@ var audioControl = {
         }
         return false;
     },
-    stopAll: function () {
+    stopAll() {
         if (audio.source) {
-            Object.keys(audio.source).forEach(function (name) {
-                var value = audio.source[name];
+            Object.keys(audio.source).forEach((name) => {
+                const value = audio.source[name];
                 if (typeof value != "object") {
                     return;
                 }
                 if (Array.isArray(value)) {
-                    value.forEach(function (_element, index) {
+                    value.forEach((_element, index) => {
                         audioControl.stopObject(name, index);
                     });
                 }
@@ -5079,18 +5051,17 @@ var audioControl = {
     }
 };
 //3D view
-var three = {
-    calcScale: function () {
+const three = {
+    calcScale() {
         return background.height / client.devicePixelRatio / client.height;
     },
-    calcPositionY: function () {
+    calcPositionY() {
         return ((client.height - (background.y * 2 + background.height) / client.devicePixelRatio) / client.height) * (background.height / background.width / 2);
     },
-    cloneNode: function (src, cloneMaterial) {
-        if (cloneMaterial === void 0) { cloneMaterial = false; }
-        var target = src.clone();
+    cloneNode(src, cloneMaterial = false) {
+        const target = src.clone();
         if (cloneMaterial) {
-            target.traverse(function (node) {
+            target.traverse((node) => {
                 if (node.isMesh) {
                     node.material = node.material.clone();
                 }
@@ -5098,8 +5069,7 @@ var three = {
         }
         return target;
     },
-    switchCamera: function (forwards) {
-        if (forwards === void 0) { forwards = true; }
+    switchCamera(forwards = true) {
         if (forwards) {
             if (three.cameraMode == ThreeCameraModes.FOLLOW_CAR) {
                 if (three.followObject < cars.length - 1) {
@@ -5182,7 +5152,7 @@ var three = {
     },
     zoom: 3,
     followCamControls: {
-        recalc: function () {
+        recalc() {
             three.followCamControls.width = Math.min(50, client.width / 10) * client.devicePixelRatio;
             three.followCamControls.height = 0;
             three.followCamControls.padding = three.followCamControls.width / 3;
@@ -5191,7 +5161,7 @@ var three = {
             three.followCamControls.x = client.width * client.devicePixelRatio - three.followCamControls.width - three.followCamControls.padding;
             three.followCamControls.y = Math.min(three.followCamControls.padding, (client.height * client.devicePixelRatio) / 5);
             if ("windowControlsOverlay" in navigator) {
-                var windowControlsOverlayRect = navigator.windowControlsOverlay.getTitlebarAreaRect();
+                const windowControlsOverlayRect = navigator.windowControlsOverlay.getTitlebarAreaRect();
                 //TODO: Remove cast once TS is ready
                 if (windowControlsOverlayRect.top === 0) {
                     three.followCamControls.y += windowControlsOverlayRect.height * client.devicePixelRatio;
@@ -5199,10 +5169,10 @@ var three = {
             }
             three.followCamControls.maxHeight = (client.height - menus.outerContainer.height) * client.devicePixelRatio - three.followCamControls.y * 2;
             if (three.cameraMode == ThreeCameraModes.FOLLOW_CAR) {
-                var maxSymbolsInUse = 3;
+                const maxSymbolsInUse = 3;
                 three.followCamControls.height = three.followCamControls.padding * (maxSymbolsInUse - 1) + three.followCamControls.textSize * maxSymbolsInUse;
                 if (three.followCamControls.height > three.followCamControls.maxHeight) {
-                    var controlWidthOld = three.followCamControls.width;
+                    const controlWidthOld = three.followCamControls.width;
                     three.followCamControls.width *= 1 - (1 - three.followCamControls.maxHeight / three.followCamControls.height);
                     three.followCamControls.x += controlWidthOld - three.followCamControls.width;
                     three.followCamControls.padding *= 1 - (1 - three.followCamControls.maxHeight / three.followCamControls.height);
@@ -5211,11 +5181,11 @@ var three = {
                 }
             }
             else if (three.cameraMode == ThreeCameraModes.FOLLOW_TRAIN) {
-                var maxSymbolsInUse = 1;
+                const maxSymbolsInUse = 1;
                 three.followCamControls.draggingAreaHeight = Math.max(three.followCamControls.textSize, Math.min(three.followCamControls.width * 8, Math.min(250, (client.height - menus.outerContainer.height) / 2) * client.devicePixelRatio));
                 three.followCamControls.height = three.followCamControls.draggingAreaHeight + three.followCamControls.padding * maxSymbolsInUse + three.followCamControls.textSize * maxSymbolsInUse;
                 if (three.followCamControls.height > three.followCamControls.maxHeight) {
-                    var controlWidthOld = three.followCamControls.width;
+                    const controlWidthOld = three.followCamControls.width;
                     three.followCamControls.width *= 1 - (1 - three.followCamControls.maxHeight / three.followCamControls.height);
                     three.followCamControls.x += controlWidthOld - three.followCamControls.width;
                     three.followCamControls.draggingAreaHeight *= 1 - (1 - three.followCamControls.maxHeight / three.followCamControls.height);
@@ -5230,23 +5200,22 @@ var three = {
     }
 };
 //Debug view
-var debug = { paint: true };
+const debug = { paint: true };
 //Client and input configuration
-var hardware = { mouse: { moveX: 0, moveY: 0, downX: 0, downY: 0, downTime: 0, upX: 0, upY: 0, upTime: 0, isMoving: false, isHold: false, cursor: "default" }, keyboard: { keysHold: [] } };
-var client = { devicePixelRatio: 1, zoomAndTilt: { maxScale: 6, minScale: 1.2 } };
+const hardware = { mouse: { moveX: 0, moveY: 0, downX: 0, downY: 0, downTime: 0, upX: 0, upY: 0, upTime: 0, isMoving: false, isHold: false, cursor: "default" }, keyboard: { keysHold: [] } };
+const client = { devicePixelRatio: 1, zoomAndTilt: { maxScale: 6, minScale: 1.2 } };
 //Action definitions
-var trainActions = {
-    checkRange: function (i) {
+const trainActions = {
+    checkRange(i) {
         return i >= 0 && i < trains.length;
     },
-    checkReady: function () {
+    checkReady() {
         return currentMode != Modes.DEMO && !onlineConnection.stop;
     },
-    checkAll: function (i) {
+    checkAll(i) {
         return this.checkRange(i) && this.checkReady();
     },
-    start: function (i, speed, notificationOnlyForOthers) {
-        if (notificationOnlyForOthers === void 0) { notificationOnlyForOthers = false; }
+    start(i, speed, notificationOnlyForOthers = false) {
         if (!this.checkAll(i) || trains[i].crash || trains[i].accelerationSpeed > 0 || speed <= 0 || speed > 100) {
             return false;
         }
@@ -5258,17 +5227,14 @@ var trainActions = {
         }
         return true;
     },
-    stop: function (i, notificationOnlyForOthers) {
-        if (notificationOnlyForOthers === void 0) { notificationOnlyForOthers = false; }
+    stop(i, notificationOnlyForOthers = false) {
         if (!this.checkAll(i) || trains[i].accelerationSpeed <= 0) {
             return false;
         }
         actionSync("trains", i, [{ accelerationSpeed: (trains[i].accelerationSpeed *= -1) }], [{ getString: ["appScreenObjectStops", "."] }, { getString: [["appScreenTrainNames", i]] }], notificationOnlyForOthers);
         return true;
     },
-    changeDirection: function (i, highlight, notificationOnlyForOthers) {
-        if (highlight === void 0) { highlight = false; }
-        if (notificationOnlyForOthers === void 0) { notificationOnlyForOthers = false; }
+    changeDirection(i, highlight = false, notificationOnlyForOthers = false) {
         if (!this.checkAll(i) || trains[i].accelerationSpeed > 0 || Math.abs(trains[i].accelerationSpeed) >= 0.2) {
             return false;
         }
@@ -5280,8 +5246,7 @@ var trainActions = {
         }
         return true;
     },
-    setSpeed: function (i, speed, notificationOnlyForOthers) {
-        if (notificationOnlyForOthers === void 0) { notificationOnlyForOthers = false; }
+    setSpeed(i, speed, notificationOnlyForOthers = false) {
         if (!this.checkAll(i) || speed < 0 || speed > 100) {
             return false;
         }
@@ -5292,14 +5257,14 @@ var trainActions = {
             return this.start(i, speed, notificationOnlyForOthers);
         }
         if (trains[i].speedInPercent != speed) {
-            var accSpeed = trains[i].currentSpeedInPercent / speed;
+            const accSpeed = trains[i].currentSpeedInPercent / speed;
             actionSync("trains", i, [{ accelerationSpeedCustom: accSpeed }, { speedInPercent: speed }]);
         }
         return true;
     }
 };
-var switchActions = {
-    turn: function (key, side) {
+const switchActions = {
+    turn(key, side) {
         if (currentMode == Modes.MULTIPLAYER) {
             actionSync("switches", [key, side], [{ turned: !switches[key][side].turned }], [{ getString: ["appScreenSwitchTurns", "."] }]);
         }
@@ -5317,12 +5282,12 @@ var switchActions = {
         }
     }
 };
-var carActions = {
+const carActions = {
     auto: {
-        checkReady: function () {
+        checkReady() {
             return currentMode != Modes.DEMO && !onlineConnection.stop;
         },
-        start: function () {
+        start() {
             if (this.checkReady() && carParams.init) {
                 carParams.init = false;
                 carParams.autoModeOff = false;
@@ -5333,7 +5298,7 @@ var carActions = {
             }
             return false;
         },
-        end: function () {
+        end() {
             if (this.checkReady() && !carParams.autoModeOff && !carParams.isBackToRoot) {
                 carParams.autoModeRuns = true;
                 carParams.isBackToRoot = true;
@@ -5342,7 +5307,7 @@ var carActions = {
             }
             return false;
         },
-        pause: function () {
+        pause() {
             if (!this.checkReady() || !carParams.autoModeRuns) {
                 return false;
             }
@@ -5350,7 +5315,7 @@ var carActions = {
             notify("#canvas-notifier", formatJSString(getString("appScreenCarAutoModeChange", "."), getString("appScreenCarAutoModePause")), NotificationPriority.Default, 500, null, null, client.y + menus.outerContainer.height);
             return true;
         },
-        resume: function () {
+        resume() {
             if (!this.checkReady() || carParams.autoModeRuns || carParams.autoModeOff) {
                 return false;
             }
@@ -5361,16 +5326,16 @@ var carActions = {
         }
     },
     manual: {
-        checkRange: function (car) {
+        checkRange(car) {
             return car >= 0 && car < cars.length;
         },
-        checkReady: function () {
+        checkReady() {
             return currentMode != Modes.DEMO && !onlineConnection.stop;
         },
-        checkAll: function (car) {
+        checkAll(car) {
             return this.checkRange(car) && this.checkReady();
         },
-        start: function (car) {
+        start(car) {
             if (!this.checkAll(car) || carCollisionCourse(car, false) || (!carParams.init && !carParams.autoModeOff) || cars[car].move) {
                 return false;
             }
@@ -5383,7 +5348,7 @@ var carActions = {
             notify("#canvas-notifier", formatJSString(getString("appScreenObjectStarts", "."), getString(["appScreenCarNames", car])), NotificationPriority.Default, 500, null, null, client.y + menus.outerContainer.height);
             return true;
         },
-        stop: function (car) {
+        stop(car) {
             if (!this.checkAll(car) || !carParams.autoModeOff || !cars[car].move) {
                 return false;
             }
@@ -5396,7 +5361,7 @@ var carActions = {
             notify("#canvas-notifier", formatJSString(getString("appScreenObjectStops", "."), getString(["appScreenCarNames", car])), NotificationPriority.Default, 500, null, null, client.y + menus.outerContainer.height);
             return true;
         },
-        backwards: function (car) {
+        backwards(car) {
             if (!this.checkAll(car) || !carParams.autoModeOff || cars[car].move || cars[car].backwardsState !== 0 || cars[car].parking) {
                 return false;
             }
@@ -5410,7 +5375,7 @@ var carActions = {
             notify("#canvas-notifier", formatJSString(getString("appScreenCarStepsBack", "."), getString(["appScreenCarNames", car])), NotificationPriority.Default, 750, null, null, client.y + menus.outerContainer.height);
             return true;
         },
-        park: function (car) {
+        park(car) {
             if (!this.checkAll(car) || carCollisionCourse(car, false, -1) || !carParams.autoModeOff || cars[car].move || cars[car].parking) {
                 return false;
             }
@@ -5482,17 +5447,17 @@ var konamiTimeOut;
 var multiplayerMode = {
     animateInterval: 40,
     syncInterval: 10000,
-    excludeFromSync: { t: ["width", "height", "assetFlip", "lastDirectionChange", "crash", "src", "trainSwitchSrc", "flickerFacFront", "flickerFacFrontOffset", "flickerFacBack", "flickerFacBackOffset", "fac", "margin", "bogieDistance", "accelerationSpeedStartFac", "accelerationSpeedFac", "speed", "speedFac", "wheels", "cars"], tc: ["width", "height", "assetFlip", "konamiUseTrainIcon", "src", "fac", "bogieDistance", "wheels"] },
+    excludeFromSync: { t: ["width", "height", "assetFlip", "lastDirectionChange", "crash", "src", "trainSwitchSrc", "audioSrc", "wheels", "flickerFacFront", "flickerFacFrontOffset", "flickerFacBack", "flickerFacBackOffset", "cars", "fac", "margin", "bogieDistance", "accelerationSpeedFac", "accelerationSpeedStartFac", "speed", "speedFac"], tc: ["width", "height", "assetFlip", "konamiUseTrainIcon", "src", "wheels", "fac", "bogieDistance"] },
     chatSticker: 7,
     serverURI: getServerLink(Protocols.WebSocket) + "/multiplay",
     waitingClock: {
-        init: function () {
-            var initialZoom = 0.45;
+        init() {
+            const initialZoom = 0.45;
             multiplayerMode.waitingClock.initTime = Date.now();
             multiplayerMode.waitingClock.zoom = initialZoom;
             multiplayerMode.waitingClock.secondHandBackwards = false;
         },
-        draw: function () {
+        draw() {
             if (Date.now() - multiplayerMode.waitingClock.initTime < 5000) {
                 return;
             }
@@ -5501,11 +5466,11 @@ var multiplayerMode = {
             contextForeground.save();
             contextForeground.translate(canvasForeground.width / 2, canvasForeground.height / 2);
             contextForeground.translate(0, (-menus.outerContainer.height * client.devicePixelRatio) / 2);
-            var size = Math.min(background.width, background.height);
-            var radius = size / 2.2;
+            const size = Math.min(background.width, background.height);
+            const radius = size / 2.2;
             //WAITING CLOCK/STATIC/BACKGROUND
             contextForeground.save();
-            var bgGradient = contextForeground.createRadialGradient(0, 0, radius * multiplayerMode.waitingClock.zoom, 0, 0, radius * 2);
+            const bgGradient = contextForeground.createRadialGradient(0, 0, radius * multiplayerMode.waitingClock.zoom, 0, 0, radius * 2);
             bgGradient.addColorStop(0, "rgba(239,224,227,1)");
             bgGradient.addColorStop(0.1, "rgba(239,224,227,0.3)");
             bgGradient.addColorStop(1, "rgba(100,92,130,0.3)");
@@ -5517,13 +5482,13 @@ var multiplayerMode = {
             //WAITING CLOCK/GLOBAL/SCALE
             contextForeground.scale(multiplayerMode.waitingClock.zoom, multiplayerMode.waitingClock.zoom);
             //WAITING CLOCK/STATIC/CLOCK FACE
-            var circleWidth = size / 20;
+            const circleWidth = size / 20;
             contextForeground.beginPath();
             contextForeground.arc(0, 0, radius - circleWidth / 4, 0, Math.PI * 2);
             contextForeground.lineWidth = circleWidth / 2;
             contextForeground.strokeStyle = "rgba(0,0,0,0.7)";
             contextForeground.stroke();
-            for (var i = 0; i < 60; i++) {
+            for (let i = 0; i < 60; i++) {
                 var rectWidth = size / 70;
                 var rectHeight = size / 25;
                 if (i % 5 == 0) {
@@ -5542,7 +5507,7 @@ var multiplayerMode = {
                 contextForeground.restore();
             }
             //WAITING CLOCK/DYNAMIC/CLOCK HANDS
-            var date = new Date();
+            const date = new Date();
             //WAITING CLOCK/DYNAMIC/CLOCK HAND/HOURS
             var hours = date.getHours() + date.getMinutes() / 60 + date.getSeconds() / 3600;
             if (hours > 12) {
@@ -5655,7 +5620,7 @@ function prepareInit(selectedMode) {
                 currentMode = Modes.DEMO;
             }
             //Determine mode
-            var queryStringMode = getQueryStringValue("mode");
+            const queryStringMode = getQueryStringValue("mode");
             if (Object.values(Modes).includes(queryStringMode)) {
                 currentMode = queryStringMode;
             }
@@ -5683,15 +5648,9 @@ function prepareInit(selectedMode) {
     loadingAnimation.init();
     loadingAnimation.show(currentMode != Modes.SINGLEPLAYER);
 }
-function init(state) {
-    var _a;
-    if (state === void 0) { state = "reload"; }
+function init(state = "reload") {
     function defineCarWays() {
-        function defineCarWay(cType, isFirst, i, j, obj, currentObjectInput, stateNullAgain) {
-            if (j === void 0) { j = 0; }
-            if (obj === void 0) { obj = []; }
-            if (currentObjectInput === void 0) { currentObjectInput = undefined; }
-            if (stateNullAgain === void 0) { stateNullAgain = false; }
+        function defineCarWay(cType, isFirst, i, j = 0, obj = [], currentObjectInput = undefined, stateNullAgain = false) {
             function curve_right(p) {
                 if (p.x[0] != p.x[1]) {
                     p.x[1] = p.x[0];
@@ -5975,7 +5934,7 @@ function init(state) {
             }
             return (currentObject.state === 0 || currentObject.state == -1) && stateNullAgain ? obj : defineCarWay(cType, isFirst, i, ++j, obj, currentObject, stateNullAgain);
         }
-        var carPaths = [
+        const carPaths = [
             {
                 start: [{ type: "curve_right", x: [0.29, 0.29], y: [0.38, 0.227] }],
                 normal: [
@@ -6093,7 +6052,7 @@ function init(state) {
     }
     if (state == "reload") {
         //Reset multiplayer mode
-        (_a = onlineConnection.socket) === null || _a === void 0 ? void 0 : _a.close();
+        onlineConnection.socket?.close();
         //Reset timeouts
         if (drawTimeout !== undefined && drawTimeout !== null) {
             clearTimeout(drawTimeout);
@@ -6180,7 +6139,7 @@ function init(state) {
     }
     //Default multiplayer mode
     onlineConnection = {
-        send: function (mode, message) {
+        send(mode, message) {
             if (onlineConnection.socket && onlineConnection.socket.readyState == WebSocket.OPEN) {
                 onlineConnection.socket.send(JSON.stringify({
                     mode: mode,
@@ -6194,15 +6153,15 @@ function init(state) {
     };
     trainParams.selected = Math.floor(Math.random() * trains.length);
     //Default switches
-    var switchParamsDefault = {
+    const switchParamsDefault = {
         showDuration: 11,
         showDurationFade: 33,
         showDurationEnd: 44,
-        set: function () {
+        set() {
             switchParams.radius = 0.02 * background.width;
         }
     };
-    var switchesDefault = {
+    const switchesDefault = {
         inner2outer: { left: { turned: false, angles: { normal: 1.01 * Math.PI, turned: 0.941 * Math.PI } }, right: { turned: false, angles: { normal: 1.5 * Math.PI, turned: 1.56 * Math.PI } } },
         outer2inner: { left: { turned: false, angles: { normal: 0.25 * Math.PI, turned: 0.2 * Math.PI } }, right: { turned: false, angles: { normal: 0.27 * Math.PI, turned: 0.35 * Math.PI } } },
         innerWide: { left: { turned: false, angles: { normal: 1.44 * Math.PI, turned: 1.37 * Math.PI } }, right: { turned: false, angles: { normal: 1.02 * Math.PI, turned: 1.1 * Math.PI } } },
@@ -6217,8 +6176,8 @@ function init(state) {
     switches3D = {};
     switchParams = switchParamsDefault;
     //Default cars
-    var carParamsDefault = { init: true, wayNo: 6 };
-    var carsDefault = [
+    const carParamsDefault = { init: true, wayNo: 6 };
+    const carsDefault = [
         { src: 16, fac: 0.02, speedFac: 0.0008, startFrameFac: 0.65, angles: { start: Math.PI, normal: 0 }, hexColor: "0xff0000" },
         { src: 17, fac: 0.02, speedFac: 0.001, startFrameFac: 0.335, angles: { start: 0, normal: Math.PI }, hexColor: "0xffffff" },
         { src: 0, fac: 0.0202, speedFac: 0.00082, startFrameFac: 0.65, angles: { start: Math.PI, normal: 0 }, hexColor: "0xffee00" }
@@ -6228,14 +6187,13 @@ function init(state) {
     cars = carsDefault;
     cars3D = [];
     //Default Classic UI
-    var classicUIDefault = {
+    const classicUIDefault = {
         trainSwitch: { src: 11, srcFill: 31, selectedTrainDisplay: { fontFamily: defaultFont } },
         transformer: { src: 12, onSrc: 13, readySrc: 23, angle: Math.PI / 5, wheelInput: { src: 14, angle: 0, maxAngle: 1.5 * Math.PI }, directionInput: { srcStandardDirection: 24, srcNotStandardDirection: 15 } },
-        ready: function (displayOnly) {
-            if (displayOnly === void 0) { displayOnly = false; }
+        ready(displayOnly = false) {
             return getSetting("classicUI") && !(gui.controlCenter || gui.konamiOverlay || gui.three || currentMode == Modes.DEMO || multiplayerMode.waitingClock.visible || canvasGesture == undefined || contextGesture == undefined) && (displayOnly || !onlineConnection.stop);
         },
-        pointInTransformerImage: function (x, y) {
+        pointInTransformerImage(x, y) {
             if (!classicUI.ready()) {
                 return false;
             }
@@ -6252,7 +6210,7 @@ function init(state) {
             }
             return false;
         },
-        pointInTransformerWheelInput: function (x, y) {
+        pointInTransformerWheelInput(x, y) {
             if (!classicUI.pointInTransformerImage(x, y)) {
                 return false;
             }
@@ -6271,7 +6229,7 @@ function init(state) {
             }
             return false;
         },
-        pointInTransformerDirectionInput: function (x, y) {
+        pointInTransformerDirectionInput(x, y) {
             if (!classicUI.pointInTransformerImage(x, y)) {
                 return false;
             }
@@ -6289,10 +6247,10 @@ function init(state) {
             }
             return false;
         },
-        pointInTransformerInput: function (x, y) {
+        pointInTransformerInput(x, y) {
             return classicUI.pointInTransformerWheelInput(x, y) || classicUI.pointInTransformerDirectionInput(x, y);
         },
-        pointInTrainSwitchInputImage: function (x, y) {
+        pointInTrainSwitchInputImage(x, y) {
             if (!classicUI.ready()) {
                 return false;
             }
@@ -6309,7 +6267,7 @@ function init(state) {
             }
             return false;
         },
-        pointInTrainSwitchInputText: function (x, y) {
+        pointInTrainSwitchInputText(x, y) {
             if (!classicUI.ready()) {
                 return false;
             }
@@ -6327,13 +6285,13 @@ function init(state) {
             }
             return false;
         },
-        pointInTrainSwitchInput: function (x, y) {
+        pointInTrainSwitchInput(x, y) {
             return classicUI.pointInTrainSwitchInputImage(x, y) || classicUI.pointInTrainSwitchInputText(x, y);
         }
     };
     classicUI = classicUIDefault;
     //Default animations
-    var taxOfficeDefault = {
+    const taxOfficeDefault = {
         params: {
             number: 45,
             frameNo: 6,
@@ -6352,27 +6310,27 @@ function init(state) {
     };
     taxOffice = taxOfficeDefault;
     //GUI State
-    var queryString3D = getQueryStringValue("gui-3d");
+    const queryString3D = getQueryStringValue("gui-3d");
     if (queryString3D == "0" || queryString3D == "1") {
         gui.three = getGuiState("3d", queryString3D == "1");
     }
     else {
         gui.three = getGuiState("3d");
     }
-    var queryString3DNight = getQueryStringValue("gui-3d-night");
+    const queryString3DNight = getQueryStringValue("gui-3d-night");
     if (queryString3DNight == "0" || queryString3DNight == "1") {
         three.night = getGuiState("3d-night", queryString3DNight == "1");
     }
     else {
         three.night = getGuiState("3d-night");
     }
-    var queryString3DCamMode = getQueryStringValue("gui-3d-cam-mode");
+    const queryString3DCamMode = getQueryStringValue("gui-3d-cam-mode");
     three.cameraMode = getGuiState("3d-cam-mode", queryString3DCamMode);
-    var queryString3DFollowObject = getQueryStringValue("gui-3d-follow-object");
+    const queryString3DFollowObject = getQueryStringValue("gui-3d-follow-object");
     three.followObject = currentMode == Modes.DEMO ? -1 : getGuiState("3d-follow-object", parseInt(queryString3DFollowObject, 10));
     three.demoRotationSpeedFac = getGuiState("3d-rotation-speed", parseInt(getQueryStringValue("gui-demo-3d-rotation-speed-percent"), 10));
     if (currentMode == Modes.DEMO) {
-        var queryStringDemoRandom = getQueryStringValue("gui-demo-random");
+        const queryStringDemoRandom = getQueryStringValue("gui-demo-random");
         var randomDemoMode;
         if (queryStringDemoRandom == "0" || queryStringDemoRandom == "1") {
             randomDemoMode = getGuiState("demo-random", queryStringDemoRandom == "1");
@@ -6383,11 +6341,11 @@ function init(state) {
         if (randomDemoMode) {
             gui.three = Math.random() < 0.6;
             three.night = Math.random() < 0.5;
-            var cameraModes = Object.values(ThreeCameraModes);
+            const cameraModes = Object.values(ThreeCameraModes);
             three.cameraMode = cameraModes[Math.floor(Math.random() * cameraModes.length)];
             three.demoRotationSpeedFac = Math.floor(Math.random() * 101);
         }
-        var queryStringDemoExitTimeout = parseInt(getQueryStringValue("exit-timeout"), 10);
+        const queryStringDemoExitTimeout = parseInt(getQueryStringValue("exit-timeout"), 10);
         if (typeof queryStringDemoExitTimeout == "number" && Number.isInteger(queryStringDemoExitTimeout) && queryStringDemoExitTimeout > 0) {
             demoMode.exitAppDelay = queryStringDemoExitTimeout * 60000;
         }
@@ -6425,14 +6383,14 @@ function init(state) {
     measureViewSpace();
     context.clearRect(0, 0, canvas.width, canvas.height);
     calcMenusAndBackground(state);
-    var savedGameBg = localStorage.getItem("morowayAppSavedGame_v-" + getVersionCode() + "_Bg");
-    var savedGameTrains = localStorage.getItem("morowayAppSavedGame_v-" + getVersionCode() + "_Trains");
-    var savedGameSwitches = localStorage.getItem("morowayAppSavedGame_v-" + getVersionCode() + "_Switches");
-    var savedGameCars = localStorage.getItem("morowayAppSavedGame_v-" + getVersionCode() + "_Cars");
-    var savedGameCarParams = localStorage.getItem("morowayAppSavedGame_v-" + getVersionCode() + "_CarParams");
-    var savedGameBgSession = sessionStorage.getItem("demoBg");
-    var savedGameCarsSession = sessionStorage.getItem("demoCars");
-    var savedGameCarParamsSession = sessionStorage.getItem("demoCarParams");
+    const savedGameBg = localStorage.getItem("morowayAppSavedGame_v-" + getVersionCode() + "_Bg");
+    const savedGameTrains = localStorage.getItem("morowayAppSavedGame_v-" + getVersionCode() + "_Trains");
+    const savedGameSwitches = localStorage.getItem("morowayAppSavedGame_v-" + getVersionCode() + "_Switches");
+    const savedGameCars = localStorage.getItem("morowayAppSavedGame_v-" + getVersionCode() + "_Cars");
+    const savedGameCarParams = localStorage.getItem("morowayAppSavedGame_v-" + getVersionCode() + "_CarParams");
+    const savedGameBgSession = sessionStorage.getItem("demoBg");
+    const savedGameCarsSession = sessionStorage.getItem("demoCars");
+    const savedGameCarParamsSession = sessionStorage.getItem("demoCarParams");
     //Cars
     if (defineCarWays()) {
         if (getSetting("saveGame") && currentMode == Modes.SINGLEPLAYER && savedGameCars != null && savedGameCarParams != null && savedGameBg != null) {
@@ -6620,14 +6578,14 @@ function init(state) {
         }
     };
     if (objects3D[background3D.flat.src]) {
-        var material = new THREE.MeshLambertMaterial({
+        const material = new THREE.MeshLambertMaterial({
             map: objects3D[background3D.flat.src].clone(),
             reflectivity: 1
         });
-        var geometry = new THREE.PlaneGeometry(1, background.height / background.width);
+        const geometry = new THREE.PlaneGeometry(1, background.height / background.width);
         background3D.flat.mesh = new THREE.Mesh(geometry, material);
         background3D.flat.resize = function () {
-            var scale = three.calcScale();
+            const scale = three.calcScale();
             background3D.flat.mesh.scale.x = scale;
             background3D.flat.mesh.scale.y = scale;
             background3D.flat.mesh.position.set(0, three.calcPositionY(), 0);
@@ -6638,7 +6596,7 @@ function init(state) {
     if (background3D.three.src) {
         background3D.three.mesh = three.cloneNode(objects3D[background3D.three.src]);
         background3D.three.resize = function () {
-            var scale = three.calcScale();
+            const scale = three.calcScale();
             background3D.three.mesh.scale.x = scale;
             background3D.three.mesh.scale.y = scale;
             background3D.three.mesh.scale.z = scale;
@@ -6649,54 +6607,52 @@ function init(state) {
     }
     if (state == "load") {
         background3D.behind = document.getElementById("game-gameplay-three-bg");
-        background3D.animateBehind = function (reset, forceFac) {
-            if (reset === void 0) { reset = false; }
-            if (forceFac === void 0) { forceFac = undefined; }
+        background3D.animateBehind = function (reset = false, forceFac = undefined) {
             if (reset) {
                 background3D.behind.style.transform = "";
-                var behindCloneId = background3D.behind.id + "-clone";
-                var oldBehindClone = document.getElementById(behindCloneId);
+                const behindCloneId = background3D.behind.id + "-clone";
+                const oldBehindClone = document.getElementById(behindCloneId);
                 if (oldBehindClone != null) {
                     oldBehindClone.parentNode.removeChild(oldBehindClone);
                 }
                 background3D.animateBehindFac = 0;
                 background3D.animateBehindStars = [];
                 if (three.night) {
-                    var length_1 = 200 + 100 * Math.random();
-                    var starBaseColor = 100;
-                    for (var i_2 = 0; i_2 < length_1; i_2++) {
-                        var alpha = konamiState < 0 ? 1 : 0.25 + Math.random() / 2;
-                        var starColorRed = konamiState < 0 ? Math.round(Math.random() * 255) : starBaseColor + Math.round((255 - starBaseColor) * Math.random());
-                        var starColorGreen = konamiState < 0 ? Math.round(Math.random() * 255) : Math.round(0.65 * starColorRed + 0.35 * starColorRed * Math.random());
-                        var starColorBlue = konamiState < 0 ? Math.round(Math.random() * 255) : starBaseColor;
-                        var left = Math.random() * background3D.behind.width;
-                        var top_1 = Math.random() * background3D.behind.height;
-                        var radius = Math.min(background3D.behind.width, background3D.behind.height) / 1000 + (Math.random() * Math.min(background3D.behind.width, background3D.behind.height)) / 500;
-                        var fill = "rgba(" + starColorRed + "," + starColorGreen + "," + starColorBlue + "," + alpha + ")";
-                        background3D.animateBehindStars.push({ left: left, top: top_1, radius: radius, fill: fill });
-                        background3D.animateBehindStars.push({ left: left + background3D.behind.width, top: top_1, radius: radius, fill: fill });
-                        background3D.animateBehindStars.push({ left: left - background3D.behind.width, top: top_1, radius: radius, fill: fill });
+                    const length = 200 + 100 * Math.random();
+                    const starBaseColor = 100;
+                    for (let i = 0; i < length; i++) {
+                        let alpha = konamiState < 0 ? 1 : 0.25 + Math.random() / 2;
+                        let starColorRed = konamiState < 0 ? Math.round(Math.random() * 255) : starBaseColor + Math.round((255 - starBaseColor) * Math.random());
+                        let starColorGreen = konamiState < 0 ? Math.round(Math.random() * 255) : Math.round(0.65 * starColorRed + 0.35 * starColorRed * Math.random());
+                        let starColorBlue = konamiState < 0 ? Math.round(Math.random() * 255) : starBaseColor;
+                        let left = Math.random() * background3D.behind.width;
+                        let top = Math.random() * background3D.behind.height;
+                        let radius = Math.min(background3D.behind.width, background3D.behind.height) / 1000 + (Math.random() * Math.min(background3D.behind.width, background3D.behind.height)) / 500;
+                        let fill = "rgba(" + starColorRed + "," + starColorGreen + "," + starColorBlue + "," + alpha + ")";
+                        background3D.animateBehindStars.push({ left: left, top: top, radius: radius, fill: fill });
+                        background3D.animateBehindStars.push({ left: left + background3D.behind.width, top: top, radius: radius, fill: fill });
+                        background3D.animateBehindStars.push({ left: left - background3D.behind.width, top: top, radius: radius, fill: fill });
                     }
                 }
                 else {
-                    var length_2 = 15 + 15 * Math.random();
-                    var starBaseColor = 20;
-                    for (var i_3 = 0; i_3 < length_2; i_3++) {
-                        var alpha = Math.random() / 8;
-                        var starColorRed = starBaseColor + Math.round((120 - starBaseColor) * Math.random());
-                        var starColorGreen = starBaseColor + Math.round((120 - starBaseColor) * Math.random());
-                        var starColorBlue = starBaseColor + Math.round((120 - starBaseColor) * Math.random());
-                        var left = Math.random() * background3D.behind.width;
-                        var top_2 = Math.random() * background3D.behind.height;
-                        var radius = Math.min(background3D.behind.width, background3D.behind.height) / 3 + (Math.random() * Math.min(background3D.behind.width, background3D.behind.height)) / 3;
-                        var fill = "rgba(" + starColorRed + "," + starColorGreen + "," + starColorBlue + "," + alpha + ")";
-                        background3D.animateBehindStars.push({ left: left, top: top_2, radius: radius, fill: fill });
+                    const length = 15 + 15 * Math.random();
+                    const starBaseColor = 20;
+                    for (let i = 0; i < length; i++) {
+                        let alpha = Math.random() / 8;
+                        let starColorRed = starBaseColor + Math.round((120 - starBaseColor) * Math.random());
+                        let starColorGreen = starBaseColor + Math.round((120 - starBaseColor) * Math.random());
+                        let starColorBlue = starBaseColor + Math.round((120 - starBaseColor) * Math.random());
+                        let left = Math.random() * background3D.behind.width;
+                        let top = Math.random() * background3D.behind.height;
+                        let radius = Math.min(background3D.behind.width, background3D.behind.height) / 3 + (Math.random() * Math.min(background3D.behind.width, background3D.behind.height)) / 3;
+                        let fill = "rgba(" + starColorRed + "," + starColorGreen + "," + starColorBlue + "," + alpha + ")";
+                        background3D.animateBehindStars.push({ left: left, top: top, radius: radius, fill: fill });
                     }
                 }
-                var behindContext = background3D.behind.getContext("2d");
+                const behindContext = background3D.behind.getContext("2d");
                 behindContext.save();
                 if (konamiState < 0 && !three.night) {
-                    var bgGradient = behindContext.createRadialGradient(0, canvas.height / 2, canvas.height / 2, canvas.width + canvas.height / 2, canvas.height / 2, canvas.height / 2);
+                    var bgGradient = behindContext.createRadialGradient(0, background3D.behind.height / 2, background3D.behind.height / 2, background3D.behind.width + background3D.behind.height / 2, background3D.behind.height / 2, background3D.behind.height / 2);
                     bgGradient.addColorStop(0, "#550400");
                     bgGradient.addColorStop(0.2, "#542400");
                     bgGradient.addColorStop(0.4, "#442200");
@@ -6709,12 +6665,12 @@ function init(state) {
                     behindContext.fillStyle = "black";
                 }
                 behindContext.fillRect(0, 0, background3D.behind.width, background3D.behind.height);
-                for (var i_4 = 0; i_4 < background3D.animateBehindStars.length; i_4++) {
+                for (let i = 0; i < background3D.animateBehindStars.length; i++) {
                     behindContext.save();
-                    behindContext.fillStyle = background3D.animateBehindStars[i_4].fill;
-                    behindContext.translate(background3D.animateBehindStars[i_4].left, background3D.animateBehindStars[i_4].top);
+                    behindContext.fillStyle = background3D.animateBehindStars[i].fill;
+                    behindContext.translate(background3D.animateBehindStars[i].left, background3D.animateBehindStars[i].top);
                     behindContext.beginPath();
-                    behindContext.arc(0, 0, background3D.animateBehindStars[i_4].radius, 0, 2 * Math.PI);
+                    behindContext.arc(0, 0, background3D.animateBehindStars[i].radius, 0, 2 * Math.PI);
                     behindContext.fill();
                     behindContext.restore();
                 }
@@ -6723,7 +6679,7 @@ function init(state) {
                     background3D.behindClone = background3D.behind.cloneNode();
                     background3D.behindClone.id = behindCloneId;
                     background3D.behind.parentNode.insertBefore(background3D.behindClone, background3D.behind);
-                    var behindCloneContext = background3D.behindClone.getContext("2d");
+                    const behindCloneContext = background3D.behindClone.getContext("2d");
                     behindCloneContext.drawImage(background3D.behind, 0, 0);
                 }
                 else {
@@ -6787,7 +6743,7 @@ window.addEventListener("load", function () {
                 trainParams = message.data.trainParams;
                 trains = message.data.trains;
                 if (currentMode == Modes.MULTIPLAYER) {
-                    var chatControlsReactionsTrain = document.querySelector("#chat #chat-msg-trains-inner");
+                    const chatControlsReactionsTrain = document.querySelector("#chat #chat-msg-trains-inner");
                     chatControlsReactionsTrain.innerHTML = "";
                     for (var stickerTrain = 0; stickerTrain < trains.length; stickerTrain++) {
                         var elem = document.createElement("img");
@@ -6820,85 +6776,85 @@ window.addEventListener("load", function () {
                 init(message.data.state);
             }
             else if (message.data.k == "go") {
-                var chatNotify_1 = document.querySelector("#tp-chat-notifier");
-                var chat_1 = document.querySelector("#chat");
-                var chatInner_1 = chat_1.querySelector("#chat-inner");
-                var chatInnerNone_1 = chatInner_1.querySelector("#chat-no-messages");
-                var chatInnerMessages_1 = chatInner_1.querySelector("#chat-inner-messages");
-                var chatInnerScrollToBottom_1 = chatInner_1.querySelector("#chat-scroll-to-bottom");
-                var chatControls_1 = chat_1.querySelector("#chat-controls");
-                var chatControlsInner_1 = chatControls_1.querySelectorAll("#chat-send > *");
-                var chatControlsReactions_1 = chatControls_1.querySelector("#chat-msg-reactions");
-                var chatControlsReactionsSmiley = chatControlsReactions_1.querySelector("#chat-msg-smileys-inner");
-                var chatControlsReactionsSmileyButtons_1 = chatControlsReactionsSmiley.querySelectorAll("button");
-                var chatControlsReactionsSticker = chatControlsReactions_1.querySelector("#chat-msg-stickers-inner");
-                var chatControlsSendMsg_1 = chatControls_1.querySelector("#chat-msg-send-text");
-                var chatControlsSendButton = chatControls_1.querySelector("#chat-msg-send-button");
-                var chatControlsNavClose = chat_1.querySelector("#chat-close");
-                var chatControlsNavClear_1 = chat_1.querySelector("#chat-clear");
-                chatInnerScrollToBottom_1.toggleDisplay = function () {
-                    if (chatInnerMessages_1.lastChild != null) {
-                        chatInnerScrollToBottom_1.style.display = chatInner_1.scrollHeight > chatInner_1.offsetHeight && chatInner_1.scrollHeight - chatInner_1.scrollTop > chatInner_1.offsetHeight + chatInnerMessages_1.lastChild.offsetHeight ? "flex" : "";
-                        chatInnerScrollToBottom_1.style.top = Math.max(0, chatInner_1.offsetHeight - chatInnerScrollToBottom_1.offsetHeight - 50) + "px";
+                const chatNotify = document.querySelector("#tp-chat-notifier");
+                const chat = document.querySelector("#chat");
+                const chatInner = chat.querySelector("#chat-inner");
+                const chatInnerNone = chatInner.querySelector("#chat-no-messages");
+                const chatInnerMessages = chatInner.querySelector("#chat-inner-messages");
+                const chatInnerScrollToBottom = chatInner.querySelector("#chat-scroll-to-bottom");
+                const chatControls = chat.querySelector("#chat-controls");
+                const chatControlsInner = chatControls.querySelectorAll("#chat-send > *");
+                const chatControlsReactions = chatControls.querySelector("#chat-msg-reactions");
+                const chatControlsReactionsSmiley = chatControlsReactions.querySelector("#chat-msg-smileys-inner");
+                const chatControlsReactionsSmileyButtons = chatControlsReactionsSmiley.querySelectorAll("button");
+                const chatControlsReactionsSticker = chatControlsReactions.querySelector("#chat-msg-stickers-inner");
+                const chatControlsSendMsg = chatControls.querySelector("#chat-msg-send-text");
+                const chatControlsSendButton = chatControls.querySelector("#chat-msg-send-button");
+                const chatControlsNavClose = chat.querySelector("#chat-close");
+                const chatControlsNavClear = chat.querySelector("#chat-clear");
+                chatInnerScrollToBottom.toggleDisplay = function () {
+                    if (chatInnerMessages.lastChild != null) {
+                        chatInnerScrollToBottom.style.display = chatInner.scrollHeight > chatInner.offsetHeight && chatInner.scrollHeight - chatInner.scrollTop > chatInner.offsetHeight + chatInnerMessages.lastChild.offsetHeight ? "flex" : "";
+                        chatInnerScrollToBottom.style.top = Math.max(0, chatInner.offsetHeight - chatInnerScrollToBottom.offsetHeight - 50) + "px";
                     }
                     else {
-                        chatInnerScrollToBottom_1.style.display = "";
+                        chatInnerScrollToBottom.style.display = "";
                     }
                 };
-                chat_1.resizeChat = function () {
-                    chatInner_1.style.maxHeight = Math.max(50, Math.min(client.height, chat_1.offsetHeight) - chatControls_1.offsetHeight) + "px";
-                    chatInnerScrollToBottom_1.toggleDisplay();
+                chat.resizeChat = function () {
+                    chatInner.style.maxHeight = Math.max(50, Math.min(client.height, chat.offsetHeight) - chatControls.offsetHeight) + "px";
+                    chatInnerScrollToBottom.toggleDisplay();
                 };
-                window.addEventListener("resize", chat_1.resizeChat);
-                chat_1.openChat = function () {
-                    if (typeof chatNotify_1.hide == "function") {
-                        chatNotify_1.hide(chatNotify_1, true);
+                window.addEventListener("resize", chat.resizeChat);
+                chat.openChat = function () {
+                    if (typeof chatNotify.hide == "function") {
+                        chatNotify.hide(chatNotify, true);
                     }
-                    chat_1.style.display = "block";
+                    chat.style.display = "block";
                     gui.sidebarRight = true;
                     drawMenu("invisible");
-                    chat_1.resizeChat();
+                    chat.resizeChat();
                 };
-                chat_1.closeChat = function () {
-                    chat_1.style.display = "";
+                chat.closeChat = function () {
+                    chat.style.display = "";
                     gui.sidebarRight = false;
                     drawMenu("visible");
                 };
                 window.addEventListener("keyup", function (event) {
                     if (event.key === "Escape") {
-                        chat_1.closeChat();
+                        chat.closeChat();
                     }
                 });
-                chatInner_1.onscroll = chatInnerScrollToBottom_1.toggleDisplay;
-                chatNotify_1.onclick = chat_1.openChat;
-                chatControlsNavClose.onclick = chat_1.closeChat;
+                chatInner.onscroll = chatInnerScrollToBottom.toggleDisplay;
+                chatNotify.onclick = chat.openChat;
+                chatControlsNavClose.onclick = chat.closeChat;
                 chatControlsSendButton.onclick = function () {
-                    if (chatControlsSendMsg_1.value != "") {
-                        onlineConnection.send("chat-msg", chatControlsSendMsg_1.value);
-                        chatControlsSendMsg_1.value = "";
+                    if (chatControlsSendMsg.value != "") {
+                        onlineConnection.send("chat-msg", chatControlsSendMsg.value);
+                        chatControlsSendMsg.value = "";
                     }
                 };
-                chatControlsSendMsg_1.onkeyup = function (event) {
-                    if (chatControlsSendMsg_1.value != "") {
+                chatControlsSendMsg.onkeyup = function (event) {
+                    if (chatControlsSendMsg.value != "") {
                         if (event.key === "Enter") {
-                            onlineConnection.send("chat-msg", chatControlsSendMsg_1.value);
-                            chatControlsSendMsg_1.value = "";
+                            onlineConnection.send("chat-msg", chatControlsSendMsg.value);
+                            chatControlsSendMsg.value = "";
                         }
                     }
                 };
-                for (var cSI = 0; cSI < chatControlsInner_1.length; cSI++) {
-                    chatControlsInner_1[cSI].querySelector(".chat-send-toggle").onclick = function (event) {
-                        var target = event.target;
+                for (var cSI = 0; cSI < chatControlsInner.length; cSI++) {
+                    chatControlsInner[cSI].querySelector(".chat-send-toggle").onclick = function (event) {
+                        const target = event.target;
                         var elem = target.parentNode.querySelector(".chat-send-inner");
                         var display = getComputedStyle(elem).getPropertyValue("display");
-                        for (var cSI = 0; cSI < chatControlsInner_1.length; cSI++) {
-                            chatControlsInner_1[cSI].querySelector(".chat-send-inner").style.display = "none";
+                        for (var cSI = 0; cSI < chatControlsInner.length; cSI++) {
+                            chatControlsInner[cSI].querySelector(".chat-send-inner").style.display = "none";
                         }
                         elem.style.display = display == "none" ? "block" : "none";
-                        chat_1.resizeChat();
+                        chat.resizeChat();
                         var smileySupport = true;
-                        for (var smiley = 1; smiley < chatControlsReactionsSmileyButtons_1.length; smiley++) {
-                            if (chatControlsReactionsSmileyButtons_1[smiley].offsetWidth != chatControlsReactionsSmileyButtons_1[smiley - 1].offsetWidth) {
+                        for (var smiley = 1; smiley < chatControlsReactionsSmileyButtons.length; smiley++) {
+                            if (chatControlsReactionsSmileyButtons[smiley].offsetWidth != chatControlsReactionsSmileyButtons[smiley - 1].offsetWidth) {
                                 smileySupport = false;
                                 break;
                             }
@@ -6908,9 +6864,9 @@ window.addEventListener("load", function () {
                         }
                     };
                 }
-                for (var smiley = 0; smiley < chatControlsReactionsSmileyButtons_1.length; smiley++) {
-                    chatControlsReactionsSmileyButtons_1[smiley].onclick = function (event) {
-                        var target = event.target;
+                for (var smiley = 0; smiley < chatControlsReactionsSmileyButtons.length; smiley++) {
+                    chatControlsReactionsSmileyButtons[smiley].onclick = function (event) {
+                        const target = event.target;
                         onlineConnection.send("chat-msg", target.textContent);
                     };
                 }
@@ -6920,32 +6876,31 @@ window.addEventListener("load", function () {
                     elem.src = "./assets/chat_sticker_" + sticker + ".png";
                     elem.dataset.stickerNumber = sticker.toString();
                     elem.onclick = function (event) {
-                        var target = event.target;
+                        const target = event.target;
                         onlineConnection.send("chat-msg", "{{sticker=" + target.dataset.stickerNumber + "}}");
                     };
                     chatControlsReactionsSticker.appendChild(elem);
                 }
-                chatControlsNavClear_1.clearChat = function () {
-                    chatInnerMessages_1.innerHTML = "";
-                    chatInnerNone_1.style.display = "";
-                    chatControlsReactions_1.style.display = "none";
-                    chatInnerScrollToBottom_1.toggleDisplay();
+                chatControlsNavClear.clearChat = function () {
+                    chatInnerMessages.innerHTML = "";
+                    chatInnerNone.style.display = "";
+                    chatControlsReactions.style.display = "none";
+                    chatInnerScrollToBottom.toggleDisplay();
                 };
-                chatControlsNavClear_1.clearChat();
-                chatControlsNavClear_1.onclick = chatControlsNavClear_1.clearChat;
-                chatInnerScrollToBottom_1.onclick = function () {
-                    if (chatInnerMessages_1.lastChild != null) {
-                        chatInnerMessages_1.lastChild.scrollIntoView();
-                        chatInnerScrollToBottom_1.toggleDisplay();
+                chatControlsNavClear.clearChat();
+                chatControlsNavClear.onclick = chatControlsNavClear.clearChat;
+                chatInnerScrollToBottom.onclick = function () {
+                    if (chatInnerMessages.lastChild != null) {
+                        chatInnerMessages.lastChild.scrollIntoView();
+                        chatInnerScrollToBottom.toggleDisplay();
                     }
                 };
                 document.querySelector("#setup #setup-exit").onclick = function () {
                     switchMode(Modes.SINGLEPLAYER, { id: "", key: "" });
                 };
                 if (currentMode == Modes.MULTIPLAYER) {
-                    onlineConnection.connect = function () {
-                        function resetForElement(parent, elem, to) {
-                            if (to === void 0) { to = ""; }
+                    onlineConnection.connect = function (reconnect = 0) {
+                        function resetForElement(parent, elem, to = "") {
                             var elements = parent.childNodes;
                             for (var i = 0; i < elements.length; i++) {
                                 if (elements[i].nodeName.substr(0, 1) != "#") {
@@ -6955,8 +6910,8 @@ window.addEventListener("load", function () {
                         }
                         function endLoading() {
                             loadingAnimation.hide();
-                            chat_1.closeChat();
-                            chatControlsNavClear_1.clearChat();
+                            chat.closeChat();
+                            chatControlsNavClear.clearChat();
                         }
                         function showStartGame(teamNum) {
                             endLoading();
@@ -6972,6 +6927,8 @@ window.addEventListener("load", function () {
                             };
                         }
                         function showNewGameLink() {
+                            onlineConnection.gameKey = "";
+                            onlineConnection.socket?.close();
                             endLoading();
                             audioControl.playAndPauseAll();
                             var parent = document.querySelector("#content");
@@ -7097,21 +7054,47 @@ window.addEventListener("load", function () {
                                 }
                             }
                         }
+                        const maxReconnect = 8;
+                        const reconnectTime = 5000;
+                        if (onlineConnection.reconnectTimeout) {
+                            clearTimeout(onlineConnection.reconnectTimeout);
+                        }
+                        if (reconnect > 0 && onlineConnection.gameKey == "") {
+                            return;
+                        }
+                        else if (reconnect == 0) {
+                            onlineConnection.run = false;
+                        }
                         onlineConnection.socket = new WebSocket(multiplayerMode.serverURI);
                         onlineConnection.socket.onopen = function () {
-                            onlineConnection.send("hello", (APP_DATA.version.major + APP_DATA.version.minor / 10).toString());
+                            if (reconnect > 0) {
+                                onlineConnection.send("rejoin", JSON.stringify({ sessionId: onlineConnection.sessionId, sessionName: sessionStorage.getItem("playername"), gameId: onlineConnection.gameId, gameKey: onlineConnection.gameKey }));
+                            }
+                            else {
+                                onlineConnection.send("hello", (APP_DATA.version.major + APP_DATA.version.minor / 10).toString());
+                            }
                         };
                         onlineConnection.socket.onclose = function () {
                             if (currentMode == Modes.MULTIPLAYER) {
-                                showNewGameLink();
-                                notify("#canvas-notifier", getString("appScreenTeamplayGameEnded", "."), NotificationPriority.High, 900, null, null, client.height);
+                                if (reconnect > maxReconnect || onlineConnection.gameKey == "" || !onlineConnection.run) {
+                                    showNewGameLink();
+                                    notify("#canvas-notifier", getString("appScreenTeamplayGameEnded", "."), NotificationPriority.High, 900, null, null, client.height);
+                                }
+                                else {
+                                    if (onlineConnection.reconnectTimeout) {
+                                        clearTimeout(onlineConnection.reconnectTimeout);
+                                    }
+                                    onlineConnection.reconnectTimeout = setTimeout(function () {
+                                        onlineConnection.connect(++reconnect);
+                                    }, reconnectTime);
+                                }
                             }
                         };
                         onlineConnection.socket.onmessage = function (message) {
-                            var ERROR_LEVEL_OKAY = 0;
-                            var ERROR_LEVEL_WARNING = 1;
-                            var ERROR_LEVEL_ERROR = 2;
-                            var json = JSON.parse(message.data);
+                            const ERROR_LEVEL_OKAY = 0;
+                            const ERROR_LEVEL_WARNING = 1;
+                            const ERROR_LEVEL_ERROR = 2;
+                            const json = JSON.parse(message.data);
                             if (APP_DATA.debug) {
                                 if (json.errorLevel === ERROR_LEVEL_ERROR) {
                                     console.error(json);
@@ -7185,7 +7168,7 @@ window.addEventListener("load", function () {
                                 case "connect":
                                     if (json.errorLevel === ERROR_LEVEL_OKAY) {
                                         onlineConnection.locomotive = true;
-                                        var connectData = JSON.parse(json.data);
+                                        const connectData = JSON.parse(json.data);
                                         onlineConnection.gameId = connectData.id;
                                         onlineConnection.gameKey = connectData.key;
                                         endLoading();
@@ -7251,6 +7234,7 @@ window.addEventListener("load", function () {
                                                 }
                                                 break;
                                             case "run":
+                                                onlineConnection.run = true;
                                                 onlineConnection.stop = false;
                                                 onlineConnection.paused = false;
                                                 onlineConnection.syncing = false;
@@ -7270,10 +7254,10 @@ window.addEventListener("load", function () {
                                     }
                                     break;
                                 case "action":
-                                    var input_1 = JSON.parse(json.data);
+                                    const input = JSON.parse(json.data);
                                     var notifyArr = [];
-                                    if (typeof input_1.notification == "object" && Array.isArray(input_1.notification)) {
-                                        input_1.notification.forEach(function (elem) {
+                                    if (typeof input.notification == "object" && Array.isArray(input.notification)) {
+                                        input.notification.forEach(function (elem) {
                                             if (typeof elem == "object" && Array.isArray(elem.getString)) {
                                                 notifyArr.push(getString.apply(null, elem.getString));
                                             }
@@ -7285,22 +7269,22 @@ window.addEventListener("load", function () {
                                         if (onlineConnection.sessionId != json.sessionId) {
                                             notifyStr = json.sessionName + ": " + notifyStr;
                                         }
-                                        if (onlineConnection.sessionId != json.sessionId || !input_1.notificationOnlyForOthers) {
+                                        if (onlineConnection.sessionId != json.sessionId || !input.notificationOnlyForOthers) {
                                             notify("#canvas-notifier", notifyStr, NotificationPriority.Default, 1000, null, null, client.y + menus.outerContainer.height);
                                         }
                                     }
-                                    switch (input_1.objectName) {
+                                    switch (input.objectName) {
                                         case "trains":
                                             if (onlineConnection.sessionId != json.sessionId) {
                                                 multiplayerMode.excludeFromSync["t"].forEach(function (key) {
-                                                    input_1.params.forEach(function (param, paramNo) {
+                                                    input.params.forEach(function (param, paramNo) {
                                                         if (Object.keys(param)[0] == key) {
-                                                            delete input_1.params[paramNo];
+                                                            delete input.params[paramNo];
                                                         }
                                                     });
                                                 });
                                             }
-                                            animateWorker.postMessage({ k: "train", i: input_1.index, params: input_1.params });
+                                            animateWorker.postMessage({ k: "train", i: input.index, params: input.params });
                                             break;
                                         case "train-crash":
                                             if (multiplayerMode.syncRequestTimeout !== undefined && multiplayerMode.syncRequestTimeout !== null) {
@@ -7311,15 +7295,15 @@ window.addEventListener("load", function () {
                                             }
                                             break;
                                         case "switches":
-                                            if (Object.hasOwn(switches, input_1.index[0]) && Object.hasOwn(switches[input_1.index[0]], input_1.index[1])) {
-                                                var obj_1 = switches[input_1.index[0]][input_1.index[1]];
-                                                input_1.params.forEach(function (param) {
-                                                    var key = Object.keys(param)[0];
-                                                    if (Object.hasOwn(obj_1, key)) {
-                                                        obj_1[key] = Object.values(param)[0];
+                                            if (Object.hasOwn(switches, input.index[0]) && Object.hasOwn(switches[input.index[0]], input.index[1])) {
+                                                const obj = switches[input.index[0]][input.index[1]];
+                                                input.params.forEach(function (param) {
+                                                    const key = Object.keys(param)[0];
+                                                    if (Object.hasOwn(obj, key)) {
+                                                        obj[key] = Object.values(param)[0];
                                                     }
                                                 });
-                                                obj_1.lastStateChange = frameNo;
+                                                obj.lastStateChange = frameNo;
                                                 animateWorker.postMessage({ k: "switches", switches: switches });
                                             }
                                             break;
@@ -7343,18 +7327,18 @@ window.addEventListener("load", function () {
                                 case "sync-task":
                                     if (onlineConnection.syncing) {
                                         onlineConnection.syncingCounter++;
-                                        var task_1 = JSON.parse(json.data);
-                                        switch (task_1.o) {
+                                        const task = JSON.parse(json.data);
+                                        switch (task.o) {
                                             case "t":
-                                                animateWorker.postMessage({ k: "sync-t", i: task_1.i, d: task_1.d });
+                                                animateWorker.postMessage({ k: "sync-t", i: task.i, d: task.d });
                                                 break;
                                             case "tc":
-                                                animateWorker.postMessage({ k: "sync-tc", i: task_1.i, d: task_1.d });
+                                                animateWorker.postMessage({ k: "sync-tc", i: task.i, d: task.d });
                                                 break;
                                             case "s":
-                                                Object.keys(task_1.d).forEach(function (key) {
+                                                Object.keys(task.d).forEach(function (key) {
                                                     Object.keys(switches[key]).forEach(function (currentKey) {
-                                                        switches[key][currentKey].turned = task_1["d"][key][currentKey].turned;
+                                                        switches[key][currentKey].turned = task["d"][key][currentKey].turned;
                                                     });
                                                 });
                                                 animateWorker.postMessage({ k: "switches", switches: switches });
@@ -7419,13 +7403,13 @@ window.addEventListener("load", function () {
                                     notify("#canvas-notifier", json.sessionName + ": " + getString("appScreenTeamplayTeammateLeft", "."), NotificationPriority.High, 900, null, null, client.y + menus.outerContainer.height);
                                     break;
                                 case "chat-msg":
-                                    chatInnerNone_1.style.display = "none";
-                                    chatControlsReactions_1.style.display = "";
-                                    var chatInnerContainerMsg = document.createElement("div");
-                                    var chatInnerPlayerName = document.createElement(onlineConnection.sessionId != json.sessionId ? "i" : "b");
-                                    var chatInnerMessageImg = document.createElement("img");
-                                    var chatInnerMessage = document.createElement("p");
-                                    var chatInnerSeparator = document.createElement("br");
+                                    chatInnerNone.style.display = "none";
+                                    chatControlsReactions.style.display = "";
+                                    const chatInnerContainerMsg = document.createElement("div");
+                                    const chatInnerPlayerName = document.createElement(onlineConnection.sessionId != json.sessionId ? "i" : "b");
+                                    const chatInnerMessageImg = document.createElement("img");
+                                    const chatInnerMessage = document.createElement("p");
+                                    const chatInnerSeparator = document.createElement("br");
                                     chatInnerContainerMsg.className = "chat-inner-container";
                                     chatInnerPlayerName.textContent = (onlineConnection.sessionId != json.sessionId ? json.sessionName : json.sessionName + " (" + getString("appScreenTeamplayChatMe") + ")") + " - " + new Date().toLocaleTimeString();
                                     var isSticker = json.data.match(/^\{\{sticker=[0-9]+\}\}$/);
@@ -7450,11 +7434,19 @@ window.addEventListener("load", function () {
                                     if (!isSticker) {
                                         chatInnerContainerMsg.appendChild(chatInnerMessage);
                                     }
-                                    chatInnerMessages_1.appendChild(chatInnerContainerMsg);
-                                    if (onlineConnection.sessionId != json.sessionId && chat_1.style.display == "") {
+                                    chatInnerMessages.appendChild(chatInnerContainerMsg);
+                                    if (onlineConnection.sessionId != json.sessionId && chat.style.display == "") {
                                         notify("#tp-chat-notifier", json.sessionName + ": " + json.data, NotificationPriority.Default, 4000, null, null, client.height, NotificationChannel.MultiplayerChat + json.sessionId);
                                     }
-                                    chat_1.resizeChat();
+                                    chat.resizeChat();
+                                    break;
+                                case "rejoin":
+                                    if (json.errorLevel === ERROR_LEVEL_ERROR) {
+                                        reconnect = maxReconnect + 1;
+                                    }
+                                    else {
+                                        reconnect = 0;
+                                    }
                                     break;
                                 case "unknown":
                                     notify("#canvas-notifier", getString("appScreenTeamplayUnknownRequest", "."), NotificationPriority.High, 2000, null, null, client.y + menus.outerContainer.height);
@@ -7462,10 +7454,22 @@ window.addEventListener("load", function () {
                             }
                         };
                         onlineConnection.socket.onerror = function () {
-                            showNewGameLink();
-                            notify("#canvas-notifier", getString("appScreenTeamplayConnectionError", "!"), NotificationPriority.High, 6000, function () {
-                                followLink("error#tp-connection", "_self", LinkStates.InternalHtml);
-                            }, getString("appScreenFurtherInformation"), client.height);
+                            if (currentMode == Modes.MULTIPLAYER) {
+                                if (reconnect > maxReconnect || onlineConnection.gameKey == "" || !onlineConnection.run) {
+                                    showNewGameLink();
+                                    notify("#canvas-notifier", getString("appScreenTeamplayConnectionError", "!"), NotificationPriority.High, 6000, function () {
+                                        followLink("error#tp-connection", "_self", LinkStates.InternalHtml);
+                                    }, getString("appScreenFurtherInformation"), client.height);
+                                }
+                                else {
+                                    if (onlineConnection.reconnectTimeout) {
+                                        clearTimeout(onlineConnection.reconnectTimeout);
+                                    }
+                                    onlineConnection.reconnectTimeout = setTimeout(function () {
+                                        onlineConnection.connect(++reconnect);
+                                    }, reconnectTime);
+                                }
+                            }
                         };
                     };
                     onlineConnection.gameId = getQueryStringValue("id");
@@ -7486,8 +7490,7 @@ window.addEventListener("load", function () {
                 trains = message.data.trains;
                 trains3D = [];
                 trains.forEach(function (train, i) {
-                    var _a, _b, _c, _d;
-                    var trainCallback = function (downIntersects, upIntersects) {
+                    const trainCallback = function (downIntersects, upIntersects) {
                         if (hardware.lastInputTouch < hardware.lastInputMouse) {
                             hardware.mouse.isHold = false;
                         }
@@ -7532,7 +7535,7 @@ window.addEventListener("load", function () {
                     if (objects3D[train.src]) {
                         trains3D[i].mesh = three.cloneNode(objects3D[train.src], true);
                         trains3D[i].resize = function () {
-                            var scale = three.calcScale();
+                            const scale = three.calcScale();
                             trains3D[i].mesh.scale.set(scale * (trains[i].width / background.width), scale * (trains[i].width / background.width), scale * (trains[i].width / background.width));
                             if (train.assetFlip) {
                                 trains3D[i].mesh.scale.x *= -1;
@@ -7559,7 +7562,7 @@ window.addEventListener("load", function () {
                         trains3D[i].resize();
                         trains3D[i].mesh.callback = trainCallback;
                         three.mainGroup.add(trains3D[i].mesh);
-                        if (((_b = (_a = train.wheels) === null || _a === void 0 ? void 0 : _a.front) === null || _b === void 0 ? void 0 : _b.use3d) && objects3D[train.src + "_front"]) {
+                        if (train.wheels?.front?.use3d && objects3D[train.src + "_front"]) {
                             trains3D[i].meshFront = {};
                             trains3D[i].meshFront.left = three.cloneNode(objects3D[train.src + "_front"], true);
                             trains3D[i].meshFront.right = three.cloneNode(objects3D[train.src + "_front"], true);
@@ -7569,7 +7572,7 @@ window.addEventListener("load", function () {
                             three.mainGroup.add(trains3D[i].meshFront.left);
                             three.mainGroup.add(trains3D[i].meshFront.right);
                         }
-                        if (((_d = (_c = train.wheels) === null || _c === void 0 ? void 0 : _c.back) === null || _d === void 0 ? void 0 : _d.use3d) && objects3D[train.src + "_back"]) {
+                        if (train.wheels?.back?.use3d && objects3D[train.src + "_back"]) {
                             trains3D[i].meshBack = {};
                             trains3D[i].meshBack.left = three.cloneNode(objects3D[train.src + "_back"], true);
                             trains3D[i].meshBack.right = three.cloneNode(objects3D[train.src + "_back"], true);
@@ -7586,7 +7589,7 @@ window.addEventListener("load", function () {
                             if (three.mainGroup.getObjectByName("train_" + i)) {
                                 three.mainGroup.remove(trains3D[i].mesh);
                             }
-                            var scale = three.calcScale();
+                            const scale = three.calcScale();
                             trains3D[i].mesh = new THREE.Mesh(new THREE.BoxGeometry(scale * (trains[i].width / background.width), scale * (trains[i].height / background.height / 2), scale * height3D), new THREE.MeshBasicMaterial({ color: 0x00aa00, transparent: true, opacity: 0.5 }));
                             trains3D[i].mesh.position.set(0, 0, 0);
                             trains3D[i].positionZ = (scale * height3D) / 2;
@@ -7598,12 +7601,11 @@ window.addEventListener("load", function () {
                     }
                     trains3D[i].cars = [];
                     train.cars.forEach(function (car, j) {
-                        var _a, _b, _c, _d;
                         trains3D[i].cars[j] = {};
                         if (objects3D[car.src]) {
                             trains3D[i].cars[j].mesh = three.cloneNode(objects3D[car.src], true);
                             trains3D[i].cars[j].resize = function () {
-                                var scale = three.calcScale();
+                                const scale = three.calcScale();
                                 trains3D[i].cars[j].mesh.scale.set(scale * (trains[i].cars[j].width / background.width), scale * (trains[i].cars[j].width / background.width), scale * (trains[i].cars[j].width / background.width));
                                 if (car.assetFlip) {
                                     trains3D[i].cars[j].mesh.scale.x *= -1;
@@ -7630,7 +7632,7 @@ window.addEventListener("load", function () {
                             trains3D[i].cars[j].resize();
                             trains3D[i].cars[j].mesh.callback = trainCallback;
                             three.mainGroup.add(trains3D[i].cars[j].mesh);
-                            if (((_b = (_a = car.wheels) === null || _a === void 0 ? void 0 : _a.front) === null || _b === void 0 ? void 0 : _b.use3d) && objects3D[car.src + "_front"]) {
+                            if (car.wheels?.front?.use3d && objects3D[car.src + "_front"]) {
                                 trains3D[i].cars[j].meshFront = {};
                                 trains3D[i].cars[j].meshFront.left = three.cloneNode(objects3D[car.src + "_front"], true);
                                 trains3D[i].cars[j].meshFront.right = three.cloneNode(objects3D[car.src + "_front"], true);
@@ -7640,7 +7642,7 @@ window.addEventListener("load", function () {
                                 three.mainGroup.add(trains3D[i].cars[j].meshFront.left);
                                 three.mainGroup.add(trains3D[i].cars[j].meshFront.right);
                             }
-                            if (((_d = (_c = car.wheels) === null || _c === void 0 ? void 0 : _c.back) === null || _d === void 0 ? void 0 : _d.use3d) && objects3D[car.src + "_back"]) {
+                            if (car.wheels?.back?.use3d && objects3D[car.src + "_back"]) {
                                 trains3D[i].cars[j].meshBack = {};
                                 trains3D[i].cars[j].meshBack.left = three.cloneNode(objects3D[car.src + "_back"], true);
                                 trains3D[i].cars[j].meshBack.right = three.cloneNode(objects3D[car.src + "_back"], true);
@@ -7657,7 +7659,7 @@ window.addEventListener("load", function () {
                                 if (three.mainGroup.getObjectByName("train_" + i + "_car_" + j)) {
                                     three.mainGroup.remove(trains3D[i].cars[j].mesh);
                                 }
-                                var scale = three.calcScale();
+                                const scale = three.calcScale();
                                 trains3D[i].cars[j].mesh = new THREE.Mesh(new THREE.BoxGeometry(scale * (trains[i].cars[j].width / background.width), scale * (trains[i].cars[j].height / background.height / 2), scale * height3D), new THREE.MeshBasicMaterial({ color: 0xaa0000, transparent: true, opacity: 0.5 }));
                                 trains3D[i].cars[j].mesh.position.set(0, 0, 0);
                                 trains3D[i].cars[j].positionZ = (scale * height3D) / 2;
@@ -7670,7 +7672,7 @@ window.addEventListener("load", function () {
                     });
                 });
                 cars.forEach(function (car, i) {
-                    var carCallback = function (downIntersects, upIntersects) {
+                    const carCallback = function (downIntersects, upIntersects) {
                         if (hardware.lastInputTouch < hardware.lastInputMouse) {
                             hardware.mouse.isHold = false;
                         }
@@ -7727,7 +7729,7 @@ window.addEventListener("load", function () {
                     cars3D[i].meshParkingLot = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, height3D, 48), new THREE.MeshBasicMaterial({ color: 0xffffff, opacity: 0.5, transparent: true }));
                     cars3D[i].meshParkingLot.rotation.x = Math.PI / 2;
                     cars3D[i].resizeParkingLot = function () {
-                        var scale = three.calcScale();
+                        const scale = three.calcScale();
                         cars3D[i].meshParkingLot.scale.set(scale, scale, scale);
                         cars3D[i].meshParkingLot.position.set(scale * ((carWays[i].start[cars[i].startFrame].x - background.width / 2) / background.width), scale * (-(carWays[i].start[cars[i].startFrame].y - background.height / 2) / background.width) + three.calcPositionY(), scale * (height3D / 2));
                     };
@@ -7744,7 +7746,7 @@ window.addEventListener("load", function () {
                     if (objects3D[car.src]) {
                         cars3D[i].mesh = three.cloneNode(objects3D[car.src]);
                         cars3D[i].resize = function () {
-                            var scale = three.calcScale();
+                            const scale = three.calcScale();
                             cars3D[i].mesh.scale.set(scale * (cars[i].width / background.width), scale * (cars[i].width / background.width), scale * (cars[i].width / background.width));
                             cars3D[i].mesh.position.set(0, 0, 0);
                             cars3D[i].positionZ = new THREE.Box3().setFromObject(cars3D[i].mesh).getSize(new THREE.Vector3()).z / 2;
@@ -7760,7 +7762,7 @@ window.addEventListener("load", function () {
                             if (three.mainGroup.getObjectByName("car_" + i)) {
                                 three.mainGroup.remove(cars3D[i].mesh);
                             }
-                            var scale = three.calcScale();
+                            const scale = three.calcScale();
                             cars3D[i].mesh = new THREE.Mesh(new THREE.BoxGeometry(scale * (cars[i].width / background.width), scale * (cars[i].height / background.height / 2), scale * height3D), new THREE.MeshBasicMaterial({ color: 0xaaaa00, transparent: true, opacity: 0.5 }));
                             cars3D[i].mesh.position.set(0, 0, 0);
                             cars3D[i].positionZ = (scale * height3D) / 2;
@@ -7778,10 +7780,10 @@ window.addEventListener("load", function () {
                         switches3D[key] = {};
                         Object.keys(switches[key]).forEach(function (currentKey) {
                             switches3D[key][currentKey] = {};
-                            var radius = 0.01;
-                            var length = radius * 1.25;
-                            var height3D = 0.0005;
-                            var meshCallback = function () {
+                            const radius = 0.01;
+                            const length = radius * 1.25;
+                            const height3D = 0.0005;
+                            const meshCallback = function () {
                                 if (clickTimeOut !== undefined && clickTimeOut !== null) {
                                     clearTimeout(clickTimeOut);
                                     clickTimeOut = null;
@@ -7808,7 +7810,7 @@ window.addEventListener("load", function () {
                             switches3D[key][currentKey].squareMeshTurned.rotation.x = Math.PI / 2;
                             switches3D[key][currentKey].squareMeshTurned.callback = meshCallback;
                             switches3D[key][currentKey].resize = function () {
-                                var scale = three.calcScale();
+                                const scale = three.calcScale();
                                 switches3D[key][currentKey].circleMesh.scale.set(scale, scale, scale);
                                 switches3D[key][currentKey].circleMeshSmall.scale.set(scale, scale, scale);
                                 switches3D[key][currentKey].squareMeshHighlight.scale.set(scale, scale, scale);
@@ -7830,7 +7832,7 @@ window.addEventListener("load", function () {
                 calcClassicUIElements();
                 calcControlCenter();
                 drawMenu("menu-switch");
-                document.fonts.ready.then(function () {
+                document.fonts.ready.then(() => {
                     //Recalc canvas fonts (font loading may take longer than resize)
                     calcClassicUIElements();
                     calcControlCenter();
@@ -7849,7 +7851,7 @@ window.addEventListener("load", function () {
                 drawObjects();
                 //Gestures
                 if (currentMode == Modes.DEMO) {
-                    var demoModeTimeoutDelay_1 = 90000;
+                    const demoModeTimeoutDelay = 90000;
                     demoMode.reloadTimeout = setTimeout(function () {
                         if (carParams.autoModeRuns) {
                             sessionStorage.setItem("demoCars", JSON.stringify(cars));
@@ -7857,8 +7859,8 @@ window.addEventListener("load", function () {
                             sessionStorage.setItem("demoBg", JSON.stringify(background));
                         }
                         if (Object.hasOwn(demoMode, "exitAppDelay")) {
-                            var elapsedTime = demoModeTimeoutDelay_1;
-                            var storedElapsedTime = parseInt(sessionStorage.getItem("demoElapsedTime"), 10);
+                            var elapsedTime = demoModeTimeoutDelay;
+                            const storedElapsedTime = parseInt(sessionStorage.getItem("demoElapsedTime"), 10);
                             if (Number.isInteger(storedElapsedTime)) {
                                 elapsedTime += storedElapsedTime;
                             }
@@ -7877,7 +7879,7 @@ window.addEventListener("load", function () {
                         else {
                             demoMode.reload();
                         }
-                    }, demoModeTimeoutDelay_1);
+                    }, demoModeTimeoutDelay);
                     if (!demoMode.standalone) {
                         document.addEventListener("keyup", demoMode.leaveKeyUp);
                         document.addEventListener("touchstart", demoMode.leaveTimeoutStart, { passive: false });
@@ -7907,11 +7909,11 @@ window.addEventListener("load", function () {
                     document.removeEventListener("keydown", preventKeyZoomDuringLoad);
                 }
                 document.removeEventListener("keyup", preventKeyZoomDuringLoad);
-                var state_1 = message.data.state;
+                const state = message.data.state;
                 //Ready event
-                if (state_1 == "load") {
-                    var event_2 = new CustomEvent("moroway-app-ready");
-                    document.dispatchEvent(event_2);
+                if (state == "load") {
+                    const event = new CustomEvent("moroway-app-ready");
+                    document.dispatchEvent(event);
                 }
                 //Show app
                 if (currentMode == Modes.DEMO) {
@@ -7923,13 +7925,13 @@ window.addEventListener("load", function () {
                         if (getSetting("classicUI") && !classicUI.trainSwitch.selectedTrainDisplay.visible && !gui.three) {
                             notify("#canvas-notifier", formatJSString(getString("appScreenTrainSelected", "."), getString(["appScreenTrainNames", trainParams.selected]), getString("appScreenTrainSelectedAuto", " ")), NotificationPriority.High, 3000, null, null, client.y + menus.outerContainer.height);
                         }
-                        else if (state_1 == "load" && localAppData != null && (localAppData.version.major < APP_DATA.version.major || (localAppData.version.major == APP_DATA.version.major && localAppData.version.minor < APP_DATA.version.minor))) {
-                            var event_3 = new CustomEvent("moroway-app-update-notification", { detail: { notifyMinHeight: client.y + menus.outerContainer.height } });
-                            document.dispatchEvent(event_3);
+                        else if (state == "load" && localAppData != null && (localAppData.version.major < APP_DATA.version.major || (localAppData.version.major == APP_DATA.version.major && localAppData.version.minor < APP_DATA.version.minor))) {
+                            const event = new CustomEvent("moroway-app-update-notification", { detail: { notifyMinHeight: client.y + menus.outerContainer.height } });
+                            document.dispatchEvent(event);
                         }
-                        else if (state_1 == "load") {
-                            var event_4 = new CustomEvent("moroway-app-ready-notification", { detail: { notifyMinHeight: client.y + menus.outerContainer.height } });
-                            document.dispatchEvent(event_4);
+                        else if (state == "load") {
+                            const event = new CustomEvent("moroway-app-ready-notification", { detail: { notifyMinHeight: client.y + menus.outerContainer.height } });
+                            document.dispatchEvent(event);
                         }
                         setLocalAppDataCopy();
                     });
@@ -8143,7 +8145,7 @@ window.addEventListener("load", function () {
     var finalLoadNo = 0;
     var currentLoadNo = 0;
     //Load 3d objects
-    var defaultObjects3D = [
+    const defaultObjects3D = [
         { object: "background-flat.jpg", path: "assets/3d/", id: "background-flat", type: "texture" },
         { object: "background-3d.gltf", path: "assets/3d/background-3d/", id: "background-3d", type: "mesh" },
         { object: "asset0.glb", path: "assets/3d/", id: "0", type: "mesh" },
@@ -8204,11 +8206,11 @@ window.addEventListener("load", function () {
     finalLoadNo += defaultObjects3D.length;
     defaultObjects3D.forEach(function (object3D) {
         if (object3D.type == "mesh") {
-            var loaderGLTF = new GLTFLoader();
+            const loaderGLTF = new GLTFLoader();
             loaderGLTF.setPath(object3D.path).load(object3D.object, function (gltf) {
                 objects3D[object3D.id] = gltf.scene;
                 currentLoadNo++;
-                var progressPercent = Math.round(100 * (currentLoadNo / finalLoadNo));
+                const progressPercent = Math.round(100 * (currentLoadNo / finalLoadNo));
                 loadingAnimation.updateProgress(progressPercent);
                 if (currentLoadNo == finalLoadNo) {
                     //Initialize content
@@ -8217,7 +8219,7 @@ window.addEventListener("load", function () {
             }, null, function () {
                 objects3D[object3D.id] = null;
                 currentLoadNo++;
-                var progressPercent = Math.round(100 * (currentLoadNo / finalLoadNo));
+                const progressPercent = Math.round(100 * (currentLoadNo / finalLoadNo));
                 loadingAnimation.updateProgress(progressPercent);
                 if (currentLoadNo == finalLoadNo) {
                     //Initialize content
@@ -8226,11 +8228,11 @@ window.addEventListener("load", function () {
             });
         }
         else if (object3D.type == "texture") {
-            var loaderTexture = new THREE.TextureLoader();
+            const loaderTexture = new THREE.TextureLoader();
             loaderTexture.setPath(object3D.path).load(object3D.object, function (texture) {
                 objects3D[object3D.id] = texture;
                 currentLoadNo++;
-                var progressPercent = Math.round(100 * (currentLoadNo / finalLoadNo));
+                const progressPercent = Math.round(100 * (currentLoadNo / finalLoadNo));
                 loadingAnimation.updateProgress(progressPercent);
                 if (currentLoadNo == finalLoadNo) {
                     //Initialize content
@@ -8239,7 +8241,7 @@ window.addEventListener("load", function () {
             }, null, function () {
                 objects3D[object3D.id] = null;
                 currentLoadNo++;
-                var progressPercent = Math.round(100 * (currentLoadNo / finalLoadNo));
+                const progressPercent = Math.round(100 * (currentLoadNo / finalLoadNo));
                 loadingAnimation.updateProgress(progressPercent);
                 if (currentLoadNo == finalLoadNo) {
                     //Initialize content
@@ -8249,7 +8251,7 @@ window.addEventListener("load", function () {
         }
     });
     //Load images
-    var defaultPics = [
+    const defaultPics = [
         { id: 0, extension: "png" },
         { id: 1, extension: "png" },
         { id: 2, extension: "png" },
@@ -8299,7 +8301,7 @@ window.addEventListener("load", function () {
         pics[pic.id].src = "assets/asset" + pic.id + "." + pic.extension;
         pics[pic.id].onload = function () {
             currentLoadNo++;
-            var progressPercent = Math.round(100 * (currentLoadNo / finalLoadNo));
+            const progressPercent = Math.round(100 * (currentLoadNo / finalLoadNo));
             loadingAnimation.updateProgress(progressPercent);
             if (currentLoadNo == finalLoadNo) {
                 //Initialize content
@@ -8315,13 +8317,12 @@ window.addEventListener("load", function () {
     });
 });
 window.addEventListener("error", function () {
-    var _a;
-    (_a = onlineConnection.socket) === null || _a === void 0 ? void 0 : _a.close();
+    onlineConnection.socket?.close();
     audioControl.stopAll();
 });
 window.addEventListener("popstate", function (event) {
     if (event.state) {
-        var historyStateMode = event.state.mode;
+        const historyStateMode = event.state.mode;
         if (Object.values(Modes).includes(historyStateMode)) {
             switchMode(historyStateMode);
         }
@@ -8330,7 +8331,7 @@ window.addEventListener("popstate", function (event) {
         }
     }
     else {
-        var queryStringMode = getQueryStringValue("mode");
+        const queryStringMode = getQueryStringValue("mode");
         if (Object.values(Modes).includes(queryStringMode)) {
             switchMode(queryStringMode);
         }

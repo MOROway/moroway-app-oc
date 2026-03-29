@@ -1,0 +1,3 @@
+Multiplayer: Short window for automatic reconnect after connection loss.
+Update Apache Cordova Android to 15.0.0.
+Mise à jour de dépendance(s).

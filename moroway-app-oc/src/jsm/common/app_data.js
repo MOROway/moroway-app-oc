@@ -5,23 +5,23 @@
 "use strict";
 import { deepFreeze } from "./js_objects.js";
 //Placeholders are set by build-script, type error is therefore intentional
-var APP_DATA = {
+const APP_DATA = {
     version: {
         // @ts-ignore
         major: 10,
         // @ts-ignore
         minor: 3,
         // @ts-ignore
-        patch: 12,
+        patch: 13,
         // @ts-ignore
         beta: 0,
         date: {
             // @ts-ignore
             year: 2026,
             // @ts-ignore
-            month: 2,
+            month: 3,
             // @ts-ignore
-            day: 8
+            day: 29
         }
     },
     platform: "oc",

@@ -9,21 +9,21 @@ import { initTooltips } from "./common/tooltip.js";
 document.addEventListener("DOMContentLoaded", function () {
     function createCardForMinor(major, element, newestFamily) {
         function createDetailsOnPatches(major, minor, element) {
-            var patches = searchStringKeys(RegExp("whatsNewScreenByVersionMa" + major + "Mi" + minor + "Pa[1-9][0-9]*"));
+            const patches = searchStringKeys(RegExp("whatsNewScreenByVersionMa" + major + "Mi" + minor + "Pa[1-9][0-9]*"));
             if (patches.length == 0) {
                 return;
             }
             patches.sort(new Intl.Collator(undefined, { numeric: true }).compare);
-            var subElementPatches = document.createElement("details");
+            const subElementPatches = document.createElement("details");
             subElementPatches.name = "patches";
-            var subElementPatchesSummary = document.createElement("summary");
+            const subElementPatchesSummary = document.createElement("summary");
             subElementPatchesSummary.textContent = getString("whatsNewScreenPatchesDetail");
             subElementPatches.appendChild(subElementPatchesSummary);
             var addedContent = false;
-            patches.forEach(function (key) {
+            patches.forEach((key) => {
                 var currentlyAddedContent = false;
-                var patch = parseInt(key.replace("whatsNewScreenByVersionMa" + major + "Mi" + minor + "Pa", ""), 10);
-                var subElementPatchesContent = document.createElement("p");
+                const patch = parseInt(key.replace("whatsNewScreenByVersionMa" + major + "Mi" + minor + "Pa", ""), 10);
+                const subElementPatchesContent = document.createElement("p");
                 var subElementPatchesIntro = document.createElement("i");
                 subElementPatchesIntro.textContent = formatJSString(getString("whatsNewScreenPatchesPatch", ": "), patch) + formatJSString(getString([key, 0]));
                 subElementPatchesContent.appendChild(subElementPatchesIntro);
@@ -53,32 +53,32 @@ document.addEventListener("DOMContentLoaded", function () {
                 element.appendChild(subElementPatches);
             }
         }
-        var minors = searchStringKeys(RegExp("whatsNewScreenByVersionMa" + major + "Mi[0-9]+Pa0"));
+        const minors = searchStringKeys(RegExp("whatsNewScreenByVersionMa" + major + "Mi[0-9]+Pa0"));
         if (minors.length == 0) {
             return;
         }
         minors.sort(new Intl.Collator(undefined, { numeric: true }).compare);
-        minors.forEach(function (key, index) {
-            var minor = parseInt(key.replace(RegExp("whatsNewScreenByVersionMa" + major + "Mi([0-9]+)Pa0"), "$1"), 10);
-            var subElement = document.createElement("div");
+        minors.forEach((key, index) => {
+            const minor = parseInt(key.replace(RegExp("whatsNewScreenByVersionMa" + major + "Mi([0-9]+)Pa0"), "$1"), 10);
+            const subElement = document.createElement("div");
             if (newestFamily && index == minors.length - 1) {
                 subElement.id = "newest";
             }
             subElement.className = "card";
-            var subElementTitle = document.createElement("div");
+            const subElementTitle = document.createElement("div");
             subElementTitle.className = "card-title";
-            var subElement2 = document.createElement("h2");
+            const subElement2 = document.createElement("h2");
             subElement2.textContent = formatJSString(getString("whatsNewScreenVersionNumberMinor"), major, minor);
             subElementTitle.appendChild(subElement2);
             subElement.appendChild(subElementTitle);
-            var subElementContent = document.createElement("div");
+            const subElementContent = document.createElement("div");
             subElementContent.className = "card-content";
-            var subElementContentInner = document.createElement("p");
-            var subElementContentInnerText = document.createElement("i");
+            const subElementContentInner = document.createElement("p");
+            const subElementContentInnerText = document.createElement("i");
             subElementContentInnerText.textContent = formatJSString(getString([key, 0]));
             subElementContentInner.appendChild(subElementContentInnerText);
             subElementContent.appendChild(subElementContentInner);
-            var subElementContentInner2 = document.createElement("p");
+            const subElementContentInner2 = document.createElement("p");
             var i = 1;
             while (i > 0) {
                 if (getString([key, i]) != "undefined") {
@@ -101,21 +101,21 @@ document.addEventListener("DOMContentLoaded", function () {
             element.appendChild(subElement);
         });
     }
-    var backButton = document.querySelector("#backOption");
+    const backButton = document.querySelector("#backOption");
     backButton.addEventListener("click", function () {
         SYSTEM_TOOLS.navigateBack();
     });
-    var versions = searchStringKeys(RegExp("whatsNewScreenByVersionMa[0-9]+Mi0Pa0"));
+    const versions = searchStringKeys(RegExp("whatsNewScreenByVersionMa[0-9]+Mi0Pa0"));
     if (versions.length > 0) {
         versions.sort(new Intl.Collator(undefined, { numeric: true }).compare).reverse();
-        versions.forEach(function (key, index) {
-            var major = parseInt(key.replace(RegExp("whatsNewScreenByVersionMa([0-9]+)Mi0Pa0"), "$1"), 10);
-            var elem = document.createElement("article");
+        versions.forEach((key, index) => {
+            const major = parseInt(key.replace(RegExp("whatsNewScreenByVersionMa([0-9]+)Mi0Pa0"), "$1"), 10);
+            const elem = document.createElement("article");
             elem.id = "v" + major;
-            var elemTitle = document.createElement("h2");
+            const elemTitle = document.createElement("h2");
             elemTitle.textContent = formatJSString(getString("whatsNewScreenVersionNumber"), major);
             elem.appendChild(elemTitle);
-            var elemContent = document.createElement("div");
+            const elemContent = document.createElement("div");
             elemContent.className = "card-container card-container-highlightable";
             createCardForMinor(major, elemContent, index == 0);
             elem.appendChild(elemContent);

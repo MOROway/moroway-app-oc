@@ -6,9 +6,7 @@
 import { APP_DATA } from "./app_data.js";
 import { getSetting } from "./settings.js";
 //NOTIFICATIONS
-export function notify(elem, message, prio, timeout, actionHandler, actionText, minHeight, channel) {
-    if (minHeight === void 0) { minHeight = -1; }
-    if (channel === void 0) { channel = NotificationChannel.Default; }
+export function notify(elem, message, prio, timeout, actionHandler, actionText, minHeight = -1, channel = NotificationChannel.Default) {
     var notificationContainer = document.querySelector(elem);
     if (notificationContainer == undefined || notificationContainer == null) {
         return false;

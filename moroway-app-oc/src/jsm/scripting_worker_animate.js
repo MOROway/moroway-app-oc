@@ -13,13 +13,13 @@ function safePostMessage(message) {
 function saveTrainCirclePrepare(train, trainOriginal) {
     delete train.lastDirectionChange;
     if (trainOriginal.circleFamily != null) {
-        var cF_1 = Object.keys(rotationPoints).filter(function (key) {
+        const cF = Object.keys(rotationPoints).filter(function (key) {
             return rotationPoints[key] === trainOriginal.circleFamily;
         })[0];
-        var c = Object.keys(rotationPoints[cF_1]).filter(function (key) {
-            return rotationPoints[cF_1][key] === trainOriginal.circle;
+        const c = Object.keys(rotationPoints[cF]).filter(function (key) {
+            return rotationPoints[cF][key] === trainOriginal.circle;
         })[0];
-        train.circleFamily = cF_1;
+        train.circleFamily = cF;
         train.circle = c;
     }
     return train;
@@ -31,8 +31,7 @@ function saveTheGameSend() {
     }
     safePostMessage({ k: "save-game", saveTrains: saveTrains });
 }
-function getRealStandardDirection(cO, input1, reverse) {
-    if (reverse === void 0) { reverse = false; }
+function getRealStandardDirection(cO, input1, reverse = false) {
     var realStandardDirection = (trains[input1].standardDirection && !reverse) || (!trains[input1].standardDirection && reverse);
     if (cO.turned) {
         realStandardDirection = !realStandardDirection;
@@ -66,8 +65,7 @@ function getLastObject(cO, input1, realStandardDirection) {
     }
     return lastObject;
 }
-function changeCOSection(cO, isFront, input1, currentObject, i, reverse) {
-    if (reverse === void 0) { reverse = false; }
+function changeCOSection(cO, isFront, input1, currentObject, i, reverse = false) {
     if (cO.turned == undefined) {
         cO.turned = false;
     }
@@ -160,7 +158,7 @@ function changeCOSection(cO, isFront, input1, currentObject, i, reverse) {
             cO.state = 211;
         }
         else if (cO.state == 212 && cO.y - background.y > 0) {
-            var stillInside = (cO.y - background.y) / (currentObject.width - 2 * currentObject.bogieDistance * currentObject.width);
+            const stillInside = (cO.y - background.y) / (currentObject.width - 2 * currentObject.bogieDistance * currentObject.width);
             if (realIsFront) {
                 currentObject.invisible = false;
                 currentObject.opacity = trainParams.minOpacity + (1 - trainParams.minOpacity) * stillInside;
@@ -195,7 +193,7 @@ function changeCOSection(cO, isFront, input1, currentObject, i, reverse) {
             cO.state = 217;
         }
         else if (cO.state == 218 && cO.x - background.x > background.width) {
-            var stillInside = 1 + (background.width - cO.x + background.x) / (currentObject.width - 2 * currentObject.bogieDistance * currentObject.width);
+            const stillInside = 1 + (background.width - cO.x + background.x) / (currentObject.width - 2 * currentObject.bogieDistance * currentObject.width);
             if (!realIsFront) {
                 currentObject.invisible = true;
             }
@@ -347,7 +345,7 @@ function changeCOSection(cO, isFront, input1, currentObject, i, reverse) {
             cO.state = 213;
         }
         else if (cO.state == 212 && cO.y - background.y < 0) {
-            var stillInside = 1 + (cO.y - background.y) / (currentObject.width - 2 * currentObject.bogieDistance * currentObject.width);
+            const stillInside = 1 + (cO.y - background.y) / (currentObject.width - 2 * currentObject.bogieDistance * currentObject.width);
             if (realIsFront) {
                 currentObject.invisible = true;
             }
@@ -390,7 +388,7 @@ function changeCOSection(cO, isFront, input1, currentObject, i, reverse) {
             cO.state = 210;
         }
         else if (cO.state == 218 && cO.x - background.x < background.width) {
-            var stillInside = (background.width - cO.x + background.x) / (currentObject.width - 2 * currentObject.bogieDistance * currentObject.width);
+            const stillInside = (background.width - cO.x + background.x) / (currentObject.width - 2 * currentObject.bogieDistance * currentObject.width);
             if (!realIsFront) {
                 currentObject.invisible = false;
                 currentObject.opacity = trainParams.minOpacity + (1 - trainParams.minOpacity) * stillInside;
@@ -423,8 +421,7 @@ function setCOPos(cO, isFront, input1, currentObject, i, speed, customSpeed) {
     function getBezierPoints(fac, a, b, c, d) {
         return Math.pow(1 - fac, 3) * a + 3 * fac * Math.pow(1 - fac, 2) * b + 3 * Math.pow(fac, 2) * (1 - fac) * c + Math.pow(fac, 3) * d;
     }
-    function getBezierFac(fac, approxNO, maxDuration, cCO, bezierPoints, closeEnough) {
-        if (closeEnough === void 0) { closeEnough = 0.1; }
+    function getBezierFac(fac, approxNO, maxDuration, cCO, bezierPoints, closeEnough = 0.1) {
         var x = getBezierPoints(fac, bezierPoints.x[0], bezierPoints.x[1], bezierPoints.x[2], bezierPoints.x[3]);
         var y = getBezierPoints(fac, bezierPoints.y[0], bezierPoints.y[1], bezierPoints.y[2], bezierPoints.y[3]);
         var distance = Math.sqrt(Math.pow(cCO.x - x, 2) + Math.pow(cCO.y - y, 2));
@@ -956,8 +953,8 @@ function setCOPosCorr(cO, isFront, input1, currentObject, i) {
     } while (Math.abs(supposedDistance - distance) > 0.001 && --maxRepeatNo > 0);
 }
 function setTrainOuterPos(input1) {
-    var isFront = trains[input1].standardDirection;
-    var carObject = isFront || trains[input1].cars.length == 0 ? trains[input1] : trains[input1].cars[trains[input1].cars.length - 1];
+    const isFront = trains[input1].standardDirection;
+    const carObject = isFront || trains[input1].cars.length == 0 ? trains[input1] : trains[input1].cars[trains[input1].cars.length - 1];
     trains[input1].outerX = carObject.x + Math.cos(carObject.displayAngle) * ((carObject.width * 1.05) / 2) * (isFront ? 1 : -1);
     trains[input1].outerY = carObject.y + Math.sin(carObject.displayAngle) * ((carObject.width * 1.05) / 2) * (isFront ? 1 : -1);
 }
@@ -1031,8 +1028,7 @@ function setCurrentObjectDisplayAngle(input1, currentObject) {
 /******************************************
  * Animation functions for load and resize *
  ******************************************/
-function placeTrainsAtInitialPositions(trainNumber) {
-    if (trainNumber === void 0) { trainNumber = -1; }
+function placeTrainsAtInitialPositions(trainNumber = -1) {
     trains.forEach(function (train, i) {
         if (trainNumber == -1 || trainNumber == i) {
             train.standardDirection = train.standardDirectionStartValue;
@@ -1235,8 +1231,8 @@ function defineTrainParams() {
         return dis;
     }
     /////Rotation Points/////
-    var repNo = 1000;
-    var circles = [];
+    const repNo = 1000;
+    const circles = [];
     var bezierPoints;
     //INNER/NARROW
     rotationPoints.inner.narrow.x[0] = 0.17 * background.width;
@@ -1849,12 +1845,12 @@ function animateObjects() {
 }
 var animateTimeout;
 var animateTimeoutDelay;
-var rotationPoints = {
+const rotationPoints = {
     inner: { narrow: { x: [], y: [], bezierLength: { left: 0, right: 0 } }, wide: { x: [], y: [], bezierLength: { left: 0, right: 0 } }, sidings: { first: { x: [], y: [], bezierLength: 0 }, firstS1: { x: [], y: [] }, firstS2: { x: [], y: [], bezierLength: 0 }, second: { x: [], y: [], bezierLength: 0 }, secondS1: { x: [], y: [] }, secondS2: { x: [], y: [], bezierLength: 0 }, third: { x: [], y: [], bezierLength: 0 }, thirdS1: { x: [], y: [] }, thirdS2: { x: [], y: [], bezierLength: 0 } } },
     outer: { narrow: { x: [], y: [], bezierLength: { left: 0, right: 0 } }, altState3: { left: { x: [], y: [], bezierLength: 0 }, right: { x: [], y: [], bezierLength: 0 } }, rightSiding: { enter: { x: [], y: [] }, curve: { x: [], y: [], bezierLength: 0 }, continueCurve0: { x: [], y: [], bezierLength: 0 }, continueLine0: { x: [], y: [], bezierLength: 0 }, continueCurve1: { x: [], y: [], bezierLength: 0 }, continueLine1: { x: [], y: [] }, continueCurve2: { x: [], y: [], bezierLength: 0 }, rejoin: { x: [], y: [] }, end: { x: [], y: [] } } },
     inner2outer: { left: { x: [], y: [], bezierLength: 0 }, right: { x: [], y: [], bezierLength: 0 } }
 };
-var trainsDefault = [
+const trainsDefault = [
     {
         src: 1,
         fac: 0.051,
@@ -1993,11 +1989,11 @@ var trainsDefault = [
 ];
 var trains;
 var trainPics;
-var trainParams = { margin: 25, innerCollisionFac: 0.5, minOpacity: 0.3, trackWidth: 0.0066, minSpeed: 10 };
+const trainParams = { margin: 25, innerCollisionFac: 0.5, minOpacity: 0.3, trackWidth: 0.0066, minSpeed: 10 };
 var switches;
 var switchesBeforeAddSidings;
 var background;
-var switchesBeforeFac = 1.3;
+const switchesBeforeFac = 1.3;
 var init;
 var initState;
 var firstRun;
@@ -2008,8 +2004,7 @@ var syncing;
 var debug;
 var saveTheGameSendTimeout;
 onmessage = function (message) {
-    function resizeTrains(oldBackground, excludes) {
-        if (excludes === void 0) { excludes = []; }
+    function resizeTrains(oldBackground, excludes = []) {
         for (var i = 0; i < trains.length; i++) {
             if (typeof excludes != "object" || !Array.isArray(excludes) || !excludes.includes(i)) {
                 trains[i].front.x = background.x + ((trains[i].front.x - oldBackground.x) * background.width) / oldBackground.width;
@@ -2033,12 +2028,11 @@ onmessage = function (message) {
             }
         }
     }
-    function getAnimateInterval(interval) {
-        if (interval === void 0) { interval = undefined; }
+    function getAnimateInterval(interval = undefined) {
         function performanceTest() {
-            var startTime = performance.now();
+            const startTime = performance.now();
             for (var i = 0; i < 3; i++) {
-                var startNo = 12500000;
+                const startNo = 12500000;
                 var newNo = 1;
                 var res = 1;
                 while (newNo < startNo) {
@@ -2048,7 +2042,7 @@ onmessage = function (message) {
             }
             return (performance.now() - startTime) / 90;
         }
-        var defaultInterval = 22;
+        const defaultInterval = 22;
         if (typeof interval != "number") {
             interval = performanceTest();
         }
@@ -2092,8 +2086,8 @@ onmessage = function (message) {
         for (var t = 0; t < trains.length; t++) {
             trains[t] = saveTrainCirclePrepare(trains[t], trainsDefault[t]);
             if (trains[t].circleFamily !== null) {
-                var cF = trains[t].circleFamily;
-                var c = trains[t].circle;
+                const cF = trains[t].circleFamily;
+                const c = trains[t].circle;
                 trains[t].circleFamily = rotationPoints[cF];
                 trains[t].circle = rotationPoints[cF][c];
             }
@@ -2442,8 +2436,8 @@ onmessage = function (message) {
         trains[message.data.i].back.y = background.y + trains[message.data.i].back.y * background.height;
         trains[message.data.i].y = background.y + trains[message.data.i].y * background.height;
         if (trains[message.data.i].circleFamily != null) {
-            var cF = trains[message.data.i].circleFamily;
-            var c = trains[message.data.i].circle;
+            const cF = trains[message.data.i].circleFamily;
+            const c = trains[message.data.i].circle;
             trains[message.data.i].circleFamily = rotationPoints[cF];
             trains[message.data.i].circle = rotationPoints[cF][c];
         }

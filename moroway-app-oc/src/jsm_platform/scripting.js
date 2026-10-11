@@ -20,7 +20,7 @@ document.addEventListener("deviceready", function () {
         if (getMode() == Modes.MULTIPLAYER || (getMode() == Modes.SINGLEPLAYER && !getSetting("saveGame"))) {
             // Cordova wrapper contains this function
             // @ts-ignore
-            navigator.notification.confirm(getString("generalLeaveAndDestroyGame"), function (button) {
+            navigator.notification.confirm(getString(getMode() == Modes.MULTIPLAYER ? "generalLeaveAndDestroyGameOnline" : "generalLeaveAndDestroyGame"), function (button) {
                 if (button == 1) {
                     followLink("html_platform/start.html", "_self", LinkStates.InternalHtml);
                 }

@@ -9,8 +9,7 @@ import { SYSTEM_TOOLS } from "./common/system_tools.js";
 import { initTooltips } from "./common/tooltip.js";
 import { getQueryStringValue } from "./common/web_tools.js";
 document.addEventListener("DOMContentLoaded", function () {
-    const backButton = document.querySelector("#backOption");
-    backButton.addEventListener("click", function () {
+    document.querySelector("#backOption")?.addEventListener("click", function () {
         SYSTEM_TOOLS.navigateBack();
     });
     setHTMLStrings();

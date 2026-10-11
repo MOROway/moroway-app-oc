@@ -1,4 +1,4 @@
-Die MOROway App ermöglicht es Ihnen einige Züge und Autos zu steuern, Weichen zu stellen und Modellbahnfahrten aus der Vogelperspektive zu genießen.
+Die MOROway App ermöglicht es Ihnen, einige Züge und Autos zu steuern, Weichen zu stellen und Modellbahnfahrten aus der Vogelperspektive zu genießen.
 
 🚉 Züge:
 Sie können sieben Züge in zwei Kreisen steuern.

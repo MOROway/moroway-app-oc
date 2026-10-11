@@ -12,8 +12,7 @@ document.addEventListener("DOMContentLoaded", function () {
     initTooltips();
 });
 document.addEventListener("DOMContentLoaded", function () {
-    const backButton = document.querySelector("#backOption");
-    backButton.addEventListener("click", function () {
+    document.querySelector("#backOption")?.addEventListener("click", function () {
         SYSTEM_TOOLS.navigateBack();
     });
     setSettingsHTML(document.querySelector("main"), true);

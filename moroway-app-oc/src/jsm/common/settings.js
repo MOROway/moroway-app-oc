@@ -35,7 +35,7 @@ export function getSettings() {
 function isSettingActive(a) {
     const settingsComplete = getSettings();
     var isSettingActive = true;
-    if (settingsComplete.dependencies[a] != null) {
+    if (Object.hasOwn(settingsComplete.dependencies, a)) {
         settingsComplete.dependencies[a].forEach(function (key) {
             if (!getSetting(key)) {
                 isSettingActive = false;
@@ -47,7 +47,7 @@ function isSettingActive(a) {
 function isHardwareAvailable(a) {
     const settingsComplete = getSettings();
     var isHardwareAvailable = true;
-    if (settingsComplete.hardware[a] != null) {
+    if (Object.hasOwn(settingsComplete.hardware, a)) {
         settingsComplete.hardware[a].forEach(function (current) {
             Array(current).forEach(function (key) {
                 if (AVAILABLE_HARDWARE.indexOf(key) == -1) {
@@ -61,26 +61,28 @@ function isHardwareAvailable(a) {
 function isInPlatformList(a) {
     const settingsComplete = getSettings();
     var isInPlatformList = true;
-    if (settingsComplete.platforms[a] != null) {
+    if (Object.hasOwn(settingsComplete.platforms, a)) {
         isInPlatformList = settingsComplete.platforms[a].indexOf(APP_DATA.platform) > -1;
     }
     return isInPlatformList;
 }
-export function setSettingsHTML(elem, standalone) {
+export function setSettingsHTML(elem, standalone = true) {
     function displaySettingsOpts() {
-        var settings = getSettings().values;
-        for (var i = 0; i < Object.keys(settings).length; i++) {
-            var settingId = Object.keys(settings)[i];
-            var settingElem = document.querySelector("li[data-settings-id='" + settingId + "']");
-            if (settingElem !== null) {
-                var leftButton = settingElem.querySelector(".settings-opts-left-button");
-                if (Object.values(settings)[i]) {
-                    leftButton.style.backgroundColor = "black";
-                    leftButton.style.transform = "rotate(360deg)";
-                }
-                else {
-                    leftButton.style.backgroundColor = "";
-                    leftButton.style.transform = "rotate(0deg)";
+        const settings = getSettings().values;
+        for (let i = 0; i < Object.keys(settings).length; i++) {
+            const settingId = Object.keys(settings)[i];
+            const settingElem = document.querySelector("li[data-settings-id='" + settingId + "']");
+            if (settingElem) {
+                const leftButton = settingElem.querySelector(".settings-opts-left-button");
+                if (leftButton) {
+                    if (Object.values(settings)[i]) {
+                        leftButton.style.backgroundColor = "black";
+                        leftButton.style.transform = "rotate(360deg)";
+                    }
+                    else {
+                        leftButton.style.backgroundColor = "";
+                        leftButton.style.transform = "rotate(0deg)";
+                    }
                 }
                 if (isSettingActive(settingId) && isHardwareAvailable(settingId) && isInPlatformList(settingId)) {
                     settingElem.style.setProperty("max-height", "");
@@ -100,9 +102,9 @@ export function setSettingsHTML(elem, standalone) {
         }
     }
     function displaySettingsButtons() {
-        var settings = getSettings().values;
-        var btnSaveGameDeleteGame = document.querySelector("#saveGameDeleteGame");
-        if (btnSaveGameDeleteGame == undefined || btnSaveGameDeleteGame == null) {
+        const settings = getSettings().values;
+        const btnSaveGameDeleteGame = document.querySelector("#saveGameDeleteGame");
+        if (!btnSaveGameDeleteGame) {
             return false;
         }
         if (settings.saveGame || !isGameSaved() || !standalone) {
@@ -111,7 +113,7 @@ export function setSettingsHTML(elem, standalone) {
         else {
             btnSaveGameDeleteGame.style.display = "inline";
         }
-        var reduceOptMenuHideItems = document.querySelectorAll(".reduce-opt-menu-hide-item");
+        const reduceOptMenuHideItems = document.querySelectorAll(".reduce-opt-menu-hide-item");
         for (var i = 0; i < reduceOptMenuHideItems.length; i++) {
             if (!settings.reduceOptMenu) {
                 reduceOptMenuHideItems[i].style.display = "";
@@ -127,17 +129,35 @@ export function setSettingsHTML(elem, standalone) {
         }
     }
     function changeSetting(event, idOnElement = false) {
-        var id = idOnElement ? event.target.dataset.settingsId : event.target.parentNode.parentNode.dataset.settingsId;
-        setSetting(id, !getSetting(id));
-        displaySettingsOpts();
-        displaySettingsButtons();
-        notify(".notify", getString("optApply", "."), NotificationPriority.Low, 900, null, null, window.innerHeight);
-    }
-    if (elem == undefined || elem == null) {
+        if (event.target) {
+            const target = event.target;
+            var id;
+            if (idOnElement) {
+                if (target.dataset.settingsId) {
+                    id = target.dataset.settingsId;
+                }
+                else {
+                    return false;
+                }
+            }
+            else {
+                if (target.parentElement?.parentElement?.dataset?.settingsId) {
+                    id = target.parentElement.parentElement.dataset.settingsId;
+                }
+                else {
+                    return false;
+                }
+            }
+            setSetting(id, !getSetting(id));
+            displaySettingsOpts();
+            displaySettingsButtons();
+            notify(".notify", getString("optApply", "."), NotificationPriority.Low, 900, null, null, window.innerHeight);
+            return true;
+        }
         return false;
     }
-    if (standalone == undefined || standalone == null) {
-        standalone = true;
+    if (!elem) {
+        return false;
     }
     elem.classList.add("settings");
     const root = document.createElement("ul");

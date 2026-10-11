@@ -101,8 +101,7 @@ document.addEventListener("DOMContentLoaded", function () {
             element.appendChild(subElement);
         });
     }
-    const backButton = document.querySelector("#backOption");
-    backButton.addEventListener("click", function () {
+    document.querySelector("#backOption")?.addEventListener("click", function () {
         SYSTEM_TOOLS.navigateBack();
     });
     const versions = searchStringKeys(RegExp("whatsNewScreenByVersionMa[0-9]+Mi0Pa0"));
@@ -119,7 +118,7 @@ document.addEventListener("DOMContentLoaded", function () {
             elemContent.className = "card-container card-container-highlightable";
             createCardForMinor(major, elemContent, index == 0);
             elem.appendChild(elemContent);
-            document.querySelector("main").appendChild(elem);
+            document.querySelector("main")?.appendChild(elem);
         });
     }
     setHTMLStrings();

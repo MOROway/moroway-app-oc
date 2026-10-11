@@ -16,13 +16,13 @@ export function copyJSObject(object) {
         return JSON.parse(JSON.stringify(object));
     }
 }
-export function deepFreeze(obj) {
-    if (typeof obj == "object") {
-        Object.keys(obj).forEach(function (key) {
-            if (typeof obj[key] == "object") {
-                deepFreeze(obj[key]);
+export function deepFreeze(object) {
+    if (typeof object == "object") {
+        Object.keys(object).forEach(function (key) {
+            if (typeof object[key] == "object") {
+                deepFreeze(object[key]);
             }
         });
-        Object.freeze(obj);
+        Object.freeze(object);
     }
 }

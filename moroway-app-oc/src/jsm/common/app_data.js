@@ -12,16 +12,16 @@ const APP_DATA = {
         // @ts-ignore
         minor: 3,
         // @ts-ignore
-        patch: 13,
+        patch: 14,
         // @ts-ignore
         beta: 0,
         date: {
             // @ts-ignore
             year: 2026,
             // @ts-ignore
-            month: 3,
+            month: 10,
             // @ts-ignore
-            day: 29
+            day: 11
         }
     },
     platform: "oc",

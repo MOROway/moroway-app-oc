@@ -1,0 +1,3 @@
+Aktualisierte Übersetzungen.
+Aktualisierte Abhängigkeiten.
+Fehlerkorrekturen.

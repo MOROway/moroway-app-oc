@@ -27,7 +27,8 @@ function getGuiStates() {
     return guiState;
 }
 export function getGuiState(item, overrideValue = undefined) {
-    const value = getGuiStates()[item];
+    const guiState = getGuiStates();
+    const value = guiState[item];
     if (overrideValue !== undefined && validateGuiState(item, overrideValue)) {
         return overrideValue;
     }

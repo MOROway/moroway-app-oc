@@ -10,7 +10,7 @@ export { followLink } from "../../jsm_platform/common/web_tools.js";
 //HANDLE QUERY String
 export function getQueryStringValue(key) {
     var value = "";
-    window.location.search
+    decodeURIComponent(window.location.search)
         .substring(1)
         .split("&")
         .forEach(function (part) {
@@ -87,6 +87,9 @@ export function getServerNote(func) {
     }
 }
 export function showServerNote(serverNoteElementRoot) {
+    if (!serverNoteElementRoot) {
+        return;
+    }
     getServerNote(function (serverMsg) {
         function styleShowAgain() {
             window.localStorage.setItem("morowayAppLastServerNoteShowAgain", showAgain ? "1" : "0");

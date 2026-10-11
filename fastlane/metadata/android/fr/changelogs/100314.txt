@@ -1,0 +1,3 @@
+Mise à jour traductions.
+Mise à jour de dépendance(s).
+Corrections de bugs.

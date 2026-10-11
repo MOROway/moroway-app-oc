@@ -10,7 +10,12 @@ function reset() {
 export function initTooltip(elem) {
     function activate() {
         tooltipContainer.classList.add("active");
-        tooltipContainer.textContent = elem.dataset.tooltip;
+        if (elem.dataset.tooltip) {
+            tooltipContainer.textContent = elem.dataset.tooltip;
+        }
+        else {
+            tooltipContainer.textContent = "";
+        }
         const rect = elem.getBoundingClientRect();
         const margin = tooltipContainer.offsetHeight * 0.2;
         tooltipContainer.style.top = (rect.top - tooltipContainer.offsetHeight - margin >= 0 ? rect.top - tooltipContainer.offsetHeight - margin : rect.top + elem.offsetHeight + margin) + "px";

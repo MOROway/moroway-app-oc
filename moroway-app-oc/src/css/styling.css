@@ -72,10 +72,10 @@ canvas {
 }
 
 #snake div {
-    width: 5vw;
-    height: 5vw;
-    max-width: 10vh;
-    max-height: 10vh;
+    width: min(5vw, 10vh);
+    height: min(5vw, 10vh);
+    max-width: 100px;
+    max-height: 100px;
     border: 3px solid rgb(0, 0, 0);
     border-radius: 50%;
     border-right-color: rgba(0, 0, 0, 0);
@@ -114,7 +114,11 @@ canvas {
     line-height: 50px;
     padding-right: 30px;
     color: rgb(207, 207, 207);
-    text-shadow: -1px 1px 5px rgb(48, 48, 48), 1px 1px 5px rgb(48, 48, 48), 1px -1px 5px rgb(48, 48, 48), -1px -1px 5px rgb(48, 48, 48);
+    text-shadow:
+        -1px 1px 5px rgb(48, 48, 48),
+        1px 1px 5px rgb(48, 48, 48),
+        1px -1px 5px rgb(48, 48, 48),
+        -1px -1px 5px rgb(48, 48, 48);
 }
 
 #canvas-menus {

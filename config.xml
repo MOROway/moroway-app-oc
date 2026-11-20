@@ -18,6 +18,7 @@
     <hook src="scripts/cleanup.sh" type="after_run" />
     <platform name="android">
         <resource-file src="res/strings/debug.xml" target="app/src/debug/res/values/strings.xml" />
+        <resource-file src="res/assets/adi-registration.properties" target="app/src/main/assets/adi-registration.properties" />
         <preference name="AndroidEdgeToEdge" value="true" />
         <preference name="AndroidWindowSplashScreenAnimatedIcon"
             value="res/screen/android/splashscreen.png" />

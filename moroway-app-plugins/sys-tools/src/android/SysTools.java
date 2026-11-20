@@ -14,6 +14,18 @@ import org.json.JSONObject;
 public class SysTools extends CordovaPlugin {
 
     @Override
+    protected void pluginInitialize() {
+        // The web app tracks the window focus by blur and focus events, which the web view does
+        // not fire when another app takes the focus in split-screen
+        cordova.getActivity().getWindow().getDecorView().getViewTreeObserver()
+                .addOnWindowFocusChangeListener(hasFocus -> {
+                    String type = hasFocus ? "focus" : "blur";
+                    webView.getEngine().evaluateJavascript(
+                            "window.dispatchEvent(new FocusEvent(\"" + type + "\"))", null);
+                });
+    }
+
+    @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
         if (action.equals("exitApp")) {
             this.exitApp(action, callbackContext);

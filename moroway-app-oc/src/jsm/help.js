@@ -38,6 +38,9 @@ document.addEventListener("DOMContentLoaded", function () {
     document.querySelector("#legal-media-sound-license-cc0")?.addEventListener("click", function () {
         followLink("assets/CC0-1.0.txt", "_self", LinkStates.InternalLicense);
     });
+    document.querySelector("#legal-media-sound-license-cc-by")?.addEventListener("click", function () {
+        followLink("assets/CC-BY-4.0.txt", "_self", LinkStates.InternalLicense);
+    });
     document.querySelector("#legal-media-3d-models-license-cc-by")?.addEventListener("click", function () {
         followLink("assets/CC-BY-4.0.txt", "_self", LinkStates.InternalLicense);
     });

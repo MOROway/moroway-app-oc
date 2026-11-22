@@ -34,9 +34,9 @@ canvas {
 #loading-anim {
     z-index: 900;
     width: 100vw;
-    width: stretch;
+    width: 100svw;
     height: 100vh;
-    height: stretch;
+    height: 100svh;
     left: 0;
     top: 0;
     position: fixed;
@@ -90,6 +90,7 @@ canvas {
     left: 0;
     bottom: 0;
     width: 100vw;
+    width: 100svw;
 }
 
 #percent #percent-progress {
@@ -99,6 +100,7 @@ canvas {
     content: " ";
     background: rgb(207, 207, 207);
     width: 100vw;
+    width: 100svw;
     height: 50px;
     left: -100%;
     transition: left 0.2s;
@@ -199,8 +201,9 @@ canvas {
     right: 0;
     width: 450px;
     max-width: calc(100vw - 5px);
+    max-width: calc(100svw - 5px);
     height: 100vh;
-    height: stretch;
+    height: 100svh;
     border-left: 5px solid black;
     overflow-y: auto;
     display: none;
@@ -368,7 +371,9 @@ canvas {
 #setup {
     overflow: hidden;
     height: 100vh;
+    height: 100svh;
     width: 100vw;
+    width: 100svw;
 }
 
 #setup button {
@@ -382,7 +387,9 @@ canvas {
 
 #setup #setup-colorframe {
     height: calc(100vh - 2vw);
+    height: calc(100svh - 2svw);
     width: 98vw;
+    width: 98svw;
     position: fixed;
     border-style: solid;
     border-width: 1vw;
@@ -476,7 +483,9 @@ canvas {
     z-index: 1;
     position: fixed;
     width: 96vw;
+    width: 96svw;
     height: calc(100vh - 4vw);
+    height: calc(100svh - 4svw);
     top: 1vw;
     left: 1vw;
     padding: 1vw;
@@ -555,7 +564,9 @@ canvas {
 #game #game-start,
 #game #game-wait {
     width: 100vw;
+    width: 100svw;
     height: 100vh;
+    height: 100svh;
 }
 
 #game #game-start #game-start-text {
@@ -587,6 +598,7 @@ canvas {
     padding: 20px;
     overflow-y: auto;
     max-height: 90vh;
+    max-height: 90svh;
 }
 
 #confirm-dialog-title {

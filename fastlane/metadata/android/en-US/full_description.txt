@@ -1,7 +1,7 @@
 With MOROway App you may control several trains and cars, turn switches and enjoy a bird's eye model railroad.
 
 🚉 Trains:
-You may control seven trains in two circles.
+You may control eight trains in two circles.
 
 🕹️ Usage:
 Control MOROway's trains by using the transformer on the right side. Select a train with the toggle on the left side. Alternatively you may simply click on the desired train or use the train control center.
@@ -16,6 +16,6 @@ More features:
 🔉 Listen to the trains with sound effects.
 👁️ Relax in demo mode.
 🎮 Play with friends using multiplayer mode.
-🖼️ Zoom and tilt (3D) with gestures (touch, mouse, keyboard).
+🖼️ Zoom, tilt (3D) and rotate (3D) with gestures (touch, mouse, keyboard).
 🎥 Follow trains and cars (3D).
 ❓ Detailed Information in the app's help section.

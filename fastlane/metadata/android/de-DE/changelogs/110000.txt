@@ -1,0 +1,8 @@
+Erhöhte Wendeschleife am äußeren Kreis.
+Neuer Zug: eine Rangierlok.
+Rotationsgeste für 3D-Vogelperspektive.
+Änderung der Berechnung der Zug-Lautstärke in der 3D-Ansicht.
+Optimierte Hilfeseiten.
+Stummschaltung, solange eine andere App den Fokus hat (geteilter Bildschirm).
+Aktualisierte Abhängigkeiten.
+Fehlerkorrekturen.

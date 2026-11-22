@@ -1,4 +1,4 @@
-﻿Copyright (c) 2016 Jonathan Herrmann-Engel
+Copyright (c) 2016 Jonathan Herrmann-Engel
 
 All MOROway App files are subject to the "GNU General Public License v3.0" (file: 'LICENSE.txt').
 
@@ -7,12 +7,13 @@ For these media files you may choose between these two licenses.
 
 For included open source files (e.g. [App-Root]/src/lib/) the copyright and license files are located in the specific directory.
 
-The following media files are CC0-licensed files taken from freesound.org:
-[App-Root]/assets/audio_asset_0.ogg (https://freesound.org/people/steaq/sounds/594215/)
-[App-Root]/assets/audio_asset_2.ogg (https://freesound.org/people/BeeProductive/sounds/430025/, modified)
-[App-Root]/assets/audio_asset_4.ogg (https://freesound.org/people/bretbernhoft/sounds/131174/, modified)
-[App-Root]/assets/audio_asset_5.ogg (https://freesound.org/people/C-V/sounds/528427/, modified)
-[App-Root]/assets/audio_asset_crash.ogg (https://freesound.org/people/ludvique/sounds/71853/, modified)
+The following media files are taken from freesound.org:
+[App-Root]/assets/audio_asset_0.ogg (https://freesound.org/people/steaq/sounds/594215/) (CC0)
+[App-Root]/assets/audio_asset_2.ogg (https://freesound.org/people/BeeProductive/sounds/430025/, modified) (CC0)
+[App-Root]/assets/audio_asset_4.ogg (https://freesound.org/people/bretbernhoft/sounds/131174/, modified) (CC0)
+[App-Root]/assets/audio_asset_5.ogg (https://freesound.org/people/C-V/sounds/528427/, modified) (CC0)
+[App-Root]/assets/audio_asset_7.ogg (https://freesound.org/s/414739/, modified) (Creative Commons Attribution, http://creativecommons.org/licenses/by/4.0/, by kangaroovindaloo)
+[App-Root]/assets/audio_asset_crash.ogg (https://freesound.org/people/ludvique/sounds/71853/, modified) (CC0)
 
 The following 3D-models are taken from sketchfab.com and integrated in MOROway App:
 "Wrecking Tractor" (https://skfb.ly/6RDvC) by Animated Fox 3D is licensed under Creative Commons Attribution (http://creativecommons.org/licenses/by/4.0/).

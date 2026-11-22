@@ -176,6 +176,7 @@ h2 {
     color: rgb(207, 207, 207);
     overflow: hidden;
     max-width: 100vw;
+    max-width: 100svw;
 }
 
 .page-header > * {
@@ -317,13 +318,19 @@ h2 {
     background: rgb(48, 48, 48);
     color: rgb(210, 120, 27);
     width: 80vw;
+    width: 80svw;
     height: 80vh;
     height: calc(80vh - calc(100vh - 100%));
+    height: 80svh;
     z-index: 400;
     display: none;
     border: 10vw solid rgba(50, 50, 50, 0.5);
+    border-left-width: 10svw;
+    border-right-width: 10svw;
     border-top-width: 10vh;
+    border-top-width: 10svh;
     border-bottom-width: 10vh;
+    border-bottom-width: 10svh;
     background-size: cover;
     background-position: center;
     background-clip: padding-box;
@@ -409,11 +416,17 @@ h2 {
 @media (max-height: 500px), (max-width: 750px) {
     .server-note {
         width: 90vw;
+        width: 90svw;
         height: 90vh;
         height: calc(90vh - calc(100vh - 100%));
+        height: 90svh;
         border: 5vw solid rgba(50, 50, 50, 0.5);
+        border-left-width: 5svw;
+        border-right-width: 5svw;
         border-top-width: 5vh;
+        border-top-width: 5svh;
         border-bottom-width: 5vh;
+        border-bottom-width: 5svh;
     }
     .server-note-title {
         font-size: 175%;

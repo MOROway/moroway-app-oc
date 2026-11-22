@@ -8,20 +8,20 @@ import { deepFreeze } from "./js_objects.js";
 const APP_DATA = {
     version: {
         // @ts-ignore
-        major: 10,
+        major: 11,
         // @ts-ignore
-        minor: 3,
+        minor: 0,
         // @ts-ignore
-        patch: 14,
+        patch: 2,
         // @ts-ignore
         beta: 0,
         date: {
             // @ts-ignore
             year: 2026,
             // @ts-ignore
-            month: 10,
+            month: 11,
             // @ts-ignore
-            day: 11
+            day: 22
         }
     },
     platform: "oc",

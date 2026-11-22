@@ -34,18 +34,18 @@ function measureViewSpace() {
     client.devicePixelRatio = window.devicePixelRatio;
     client.width = window.innerWidth;
     client.height = window.innerHeight;
-    canvasForeground.style.width = canvasSemiForeground.style.width = canvasBackground.style.width = canvasGesture.style.width = canvas.style.width = client.width + "px";
-    canvasForeground.style.height = canvasSemiForeground.style.height = canvasBackground.style.height = canvasGesture.style.height = canvas.style.height = client.height + "px";
-    canvasForeground.width = canvasSemiForeground.width = canvasBackground.width = canvasGesture.width = canvas.width = client.width * client.devicePixelRatio;
-    canvasForeground.height = canvasSemiForeground.height = canvasBackground.height = canvasGesture.height = canvas.height = client.height * client.devicePixelRatio;
+    canvasMargins.style.width = canvasForeground.style.width = canvasSemiForeground.style.width = canvasBackground.style.width = canvasGesture.style.width = canvas2.style.width = canvas.style.width = client.width + "px";
+    canvasMargins.style.height = canvasForeground.style.height = canvasSemiForeground.style.height = canvasBackground.style.height = canvasGesture.style.height = canvas2.style.height = canvas.style.height = client.height + "px";
+    canvasMargins.width = canvasForeground.width = canvasSemiForeground.width = canvasBackground.width = canvasGesture.width = canvas2.width = canvas.width = client.width * client.devicePixelRatio;
+    canvasMargins.height = canvasForeground.height = canvasSemiForeground.height = canvasBackground.height = canvasGesture.height = canvas2.height = canvas.height = client.height * client.devicePixelRatio;
     canvasAquarium.style.width = 606 + "px";
     canvasAquarium.style.height = 90 + "px";
     canvasAquarium.width = 606;
     canvasAquarium.height = 90;
-    canvasBurningBuildung.style.width = 300 + "px";
-    canvasBurningBuildung.style.height = 300 + "px";
-    canvasBurningBuildung.width = 300;
-    canvasBurningBuildung.height = 300;
+    canvasBurningBuilding.style.width = 300 + "px";
+    canvasBurningBuilding.style.height = 300 + "px";
+    canvasBurningBuilding.width = 300;
+    canvasBurningBuilding.height = 300;
 }
 function drawImage(pic, x, y, width, height, cxt = context, sx = undefined, sy = undefined, sWidth = undefined, sHeight = undefined) {
     function floorIfBigEnough(num) {
@@ -65,6 +65,7 @@ function resetAll() {
     resetGestures();
     resetScale();
     resetTilt();
+    resetRotation();
 }
 function resetGestures() {
     hardware.mouse.isHold = hardware.mouse.isWheelHold = hardware.mouse.isDrag = controlCenter.mouse.hold = three.followCamControls.dragging = false;
@@ -84,6 +85,12 @@ function resetTilt() {
     client.zoomAndTilt.tiltY = client.height / 2;
     three.scene.rotation.x = 0;
     three.scene.rotation.y = 0;
+}
+function resetRotation() {
+    client.zoomAndTilt.rotation = 0;
+    three.scene.rotation.z = 0;
+    three.scene.scale.setScalar(1);
+    three.scene.position.set(0, 0, 0);
 }
 function measureFontSize(text, fontFamily, fontSize, wantedTextWidth, approximation, tolerance, recursion = 0) {
     context.save();
@@ -293,64 +300,77 @@ export function getMode() {
 /*******************************************
  *      Background and menus functions     *
  ******************************************/
+function getKonamiGradient() {
+    const bgGradient = contextMargins.createRadialGradient(0, canvasMargins.height / 2, canvasMargins.height / 2, canvasMargins.width + canvasMargins.height / 2, canvasMargins.height / 2, canvasMargins.height / 2);
+    bgGradient.addColorStop(0, "red");
+    bgGradient.addColorStop(0.2, "orange");
+    bgGradient.addColorStop(0.4, "yellow");
+    bgGradient.addColorStop(0.6, "lightgreen");
+    bgGradient.addColorStop(0.8, "blue");
+    bgGradient.addColorStop(1, "violet");
+    return bgGradient;
+}
 function drawBackground() {
     /////DRAW/BACKGROUND/Layer-1/////
     contextBackground.clearRect(0, 0, canvasBackground.width, canvasBackground.height);
     contextBackground.setTransform(client.zoomAndTilt.realScale, 0, 0, client.zoomAndTilt.realScale, (-(client.zoomAndTilt.realScale - 1) * canvasBackground.width) / 2 + client.zoomAndTilt.offsetX, (-(client.zoomAndTilt.realScale - 1) * canvasBackground.height) / 2 + client.zoomAndTilt.offsetY);
     var pic = pics[background.src];
     drawImage(pic, background.x, background.y, background.width, background.height, contextBackground);
+    /////BACKGROUND/Layer-2/////
     contextSemiForeground.clearRect(0, 0, canvasSemiForeground.width, canvasSemiForeground.height);
     contextSemiForeground.setTransform(client.zoomAndTilt.realScale, 0, 0, client.zoomAndTilt.realScale, (-(client.zoomAndTilt.realScale - 1) * canvasSemiForeground.width) / 2 + client.zoomAndTilt.offsetX, (-(client.zoomAndTilt.realScale - 1) * canvasSemiForeground.height) / 2 + client.zoomAndTilt.offsetY);
-    /////BACKGROUND/Layer-2/////
     drawImage(pics[background.secondLayer], background.x, background.y, background.width, background.height, contextSemiForeground);
-    /////BACKGROUND/Margins-2////
-    if (konamiState >= 0) {
-        contextSemiForeground.save();
-        if (client.zoomAndTilt.realScale == 1) {
-            var width = pic.height / pic.width - canvasSemiForeground.height / canvasSemiForeground.width < 0 ? canvasSemiForeground.height * (pic.width / pic.height) : canvasSemiForeground.width;
-            var height = pic.height / pic.width - canvasSemiForeground.height / canvasSemiForeground.width < 0 ? canvasSemiForeground.height : canvasSemiForeground.width * (pic.height / pic.width);
-            var posX = 0;
-            var posY = 0;
-            var picPosX = (((width - canvasSemiForeground.width) / 2) * pic.width) / width;
-            var picPosY = (((height - canvasSemiForeground.height) / 2) * pic.height) / height;
-            var fillWidth = canvasSemiForeground.width;
-            var fillHeight = background.y;
-            var picWidth = (fillWidth * pic.width) / width;
-            var picHeight = (fillHeight * pic.height) / height;
-            drawImage(pic, posX, posY, fillWidth, fillHeight, contextSemiForeground, picPosX, picPosY, picWidth, picHeight);
-            posY += background.y + background.height + menus.outerContainer.height * client.devicePixelRatio;
-            picPosY += ((background.y + background.height + menus.outerContainer.height * client.devicePixelRatio) * pic.height) / height;
-            drawImage(pic, posX, posY, fillWidth, fillHeight, contextSemiForeground, picPosX, picPosY, picWidth, picHeight);
-            posX = 0;
-            posY = 0;
-            picPosX = (((width - canvasSemiForeground.width) / 2) * pic.width) / width;
-            picPosY = (((height - canvasSemiForeground.height) / 2) * pic.height) / height;
-            fillWidth = background.x;
-            fillHeight = canvasSemiForeground.height;
-            picWidth = (fillWidth * pic.width) / width;
-            picHeight = (fillHeight * pic.height) / height;
-            drawImage(pic, posX, posY, fillWidth, fillHeight, contextSemiForeground, picPosX, picPosY, picWidth, picHeight);
-            posX += background.x + background.width;
-            picPosX += ((background.x + background.width) * pic.width) / width;
-            drawImage(pic, posX, posY, fillWidth, fillHeight, contextSemiForeground, picPosX, picPosY, picWidth, picHeight);
-            var bgGradient = contextSemiForeground.createLinearGradient(0, 0, canvasSemiForeground.width, canvasSemiForeground.height / 2);
-            bgGradient.addColorStop(0, "rgba(0,0,0,1)");
-            bgGradient.addColorStop(0.2, "rgba(0,0,0,0.95)");
-            bgGradient.addColorStop(0.4, "rgba(0,0,0,0.85)");
-            bgGradient.addColorStop(0.6, "rgba(0,0,0,0.85)");
-            bgGradient.addColorStop(0.8, "rgba(0,0,0,0.95)");
-            bgGradient.addColorStop(1, "rgba(0,0,0,0.9)");
-            contextSemiForeground.fillStyle = bgGradient;
-        }
-        else {
-            contextSemiForeground.fillStyle = "black";
-        }
-        contextSemiForeground.fillRect(0, 0, background.x, canvasSemiForeground.height);
-        contextSemiForeground.fillRect(0, 0, canvasSemiForeground.width, background.y);
-        contextSemiForeground.fillRect(background.x + background.width, 0, background.x, canvasSemiForeground.height);
-        contextSemiForeground.fillRect(0, background.y + background.height + menus.outerContainer.height * client.devicePixelRatio, canvasSemiForeground.width, background.y);
-        contextSemiForeground.restore();
+    /////BACKGROUND/Margins////
+    contextMargins.clearRect(0, 0, canvasMargins.width, canvasMargins.height);
+    contextMargins.setTransform(client.zoomAndTilt.realScale, 0, 0, client.zoomAndTilt.realScale, (-(client.zoomAndTilt.realScale - 1) * canvasMargins.width) / 2 + client.zoomAndTilt.offsetX, (-(client.zoomAndTilt.realScale - 1) * canvasMargins.height) / 2 + client.zoomAndTilt.offsetY);
+    contextMargins.save();
+    if (konamiState < 0) {
+        contextMargins.fillStyle = getKonamiGradient();
     }
+    else if (client.zoomAndTilt.realScale == 1) {
+        var width = pic.height / pic.width - canvasMargins.height / canvasMargins.width < 0 ? canvasMargins.height * (pic.width / pic.height) : canvasMargins.width;
+        var height = pic.height / pic.width - canvasMargins.height / canvasMargins.width < 0 ? canvasMargins.height : canvasMargins.width * (pic.height / pic.width);
+        var posX = 0;
+        var posY = 0;
+        var picPosX = (((width - canvasMargins.width) / 2) * pic.width) / width;
+        var picPosY = (((height - canvasMargins.height) / 2) * pic.height) / height;
+        var fillWidth = canvasMargins.width;
+        var fillHeight = background.y;
+        var picWidth = (fillWidth * pic.width) / width;
+        var picHeight = (fillHeight * pic.height) / height;
+        drawImage(pic, posX, posY, fillWidth, fillHeight, contextMargins, picPosX, picPosY, picWidth, picHeight);
+        posY += background.y + background.height + menus.outerContainer.height * client.devicePixelRatio;
+        picPosY += ((background.y + background.height + menus.outerContainer.height * client.devicePixelRatio) * pic.height) / height;
+        drawImage(pic, posX, posY, fillWidth, fillHeight, contextMargins, picPosX, picPosY, picWidth, picHeight);
+        posX = 0;
+        posY = 0;
+        picPosX = (((width - canvasMargins.width) / 2) * pic.width) / width;
+        picPosY = (((height - canvasMargins.height) / 2) * pic.height) / height;
+        fillWidth = background.x;
+        fillHeight = canvasMargins.height;
+        picWidth = (fillWidth * pic.width) / width;
+        picHeight = (fillHeight * pic.height) / height;
+        drawImage(pic, posX, posY, fillWidth, fillHeight, contextMargins, picPosX, picPosY, picWidth, picHeight);
+        posX += background.x + background.width;
+        picPosX += ((background.x + background.width) * pic.width) / width;
+        drawImage(pic, posX, posY, fillWidth, fillHeight, contextMargins, picPosX, picPosY, picWidth, picHeight);
+        var bgGradient = contextMargins.createLinearGradient(0, 0, canvasMargins.width, canvasMargins.height / 2);
+        bgGradient.addColorStop(0, "rgba(0,0,0,1)");
+        bgGradient.addColorStop(0.2, "rgba(0,0,0,0.95)");
+        bgGradient.addColorStop(0.4, "rgba(0,0,0,0.85)");
+        bgGradient.addColorStop(0.6, "rgba(0,0,0,0.85)");
+        bgGradient.addColorStop(0.8, "rgba(0,0,0,0.95)");
+        bgGradient.addColorStop(1, "rgba(0,0,0,0.9)");
+        contextMargins.fillStyle = bgGradient;
+    }
+    else {
+        contextMargins.fillStyle = "black";
+    }
+    contextMargins.fillRect(0, 0, background.x, canvasMargins.height);
+    contextMargins.fillRect(0, 0, canvasMargins.width, background.y);
+    contextMargins.fillRect(background.x + background.width, 0, background.x, canvasMargins.height);
+    contextMargins.fillRect(0, background.y + background.height + menus.outerContainer.height * client.devicePixelRatio, canvasMargins.width, background.y);
+    contextMargins.restore();
     /////DRAW/BACKGROUND/Konami/////
     if (konamiState < 0) {
         /////DRAW/BACKGROUND/Layer-1/////
@@ -428,35 +448,35 @@ function drawMenu(state) {
         }
         menus.infoOverlay.scaleFac = 1;
         menus.infoOverlay.scaleFacGrow = true;
-        menus.infoOverlay.items = [1, 2];
+        const infoNumbers = [1, 2];
         if (getSetting("burnTheTaxOffice")) {
-            menus.infoOverlay.items[menus.infoOverlay.items.length] = 3;
+            infoNumbers[infoNumbers.length] = 3;
         }
         if (getSetting("classicUI") && !gui.controlCenter) {
-            menus.infoOverlay.items[menus.infoOverlay.items.length] = 4;
+            infoNumbers[infoNumbers.length] = 4;
             if (classicUI.trainSwitch.selectedTrainDisplay.visible) {
-                menus.infoOverlay.items[menus.infoOverlay.items.length] = 5;
+                infoNumbers[infoNumbers.length] = 5;
             }
-            menus.infoOverlay.items[menus.infoOverlay.items.length] = 6;
+            infoNumbers[infoNumbers.length] = 6;
             if (classicUI.transformer.directionInput.visible) {
-                menus.infoOverlay.items[menus.infoOverlay.items.length] = 7;
+                infoNumbers[infoNumbers.length] = 7;
             }
         }
-        menus.infoOverlay.items[menus.infoOverlay.items.length] = 8;
+        infoNumbers[infoNumbers.length] = 8;
         if (gui.controlCenter && !controlCenter.showCarCenter) {
-            menus.infoOverlay.items[menus.infoOverlay.items.length] = 9;
-            menus.infoOverlay.items[menus.infoOverlay.items.length] = 10;
-            menus.infoOverlay.items[menus.infoOverlay.items.length] = 11;
+            infoNumbers[infoNumbers.length] = 9;
+            infoNumbers[infoNumbers.length] = 10;
+            infoNumbers[infoNumbers.length] = 11;
         }
         var infoExit = document.querySelector("#canvas-info-exit");
         if (menus.infoOverlay.container.elementInner != null) {
             menus.infoOverlay.container.elementInner.innerHTML = "";
         }
-        for (var i = 0; i < menus.infoOverlay.items.length; i++) {
+        for (var i = 0; i < infoNumbers.length; i++) {
             var element = document.createElement("button");
             element.className = "canvas-info-button";
-            element.textContent = menus.infoOverlay.items[i];
-            element.dataset.tooltip = getString(["appScreenGraphicalInfoList", menus.infoOverlay.items[i] - 1]);
+            element.textContent = String(infoNumbers[i]);
+            element.dataset.tooltip = getString(["appScreenGraphicalInfoList", infoNumbers[i] - 1]);
             initTooltip(element);
             element.onclick = function (event) {
                 const target = event.target;
@@ -469,11 +489,11 @@ function drawMenu(state) {
                 menus.infoOverlay.scaleFac = 1;
                 menus.infoOverlay.scaleFacGrow = true;
                 menus.infoOverlay.overlayText.style.display = menus.infoOverlay.overlayText.style.fontSize = menus.infoOverlay.overlayText.style.height = "";
-                if (menus.infoOverlay.focus == target.textContent) {
+                if (menus.infoOverlay.focus == Number(target.textContent)) {
                     delete menus.infoOverlay.focus;
                 }
                 else {
-                    menus.infoOverlay.focus = target.textContent;
+                    menus.infoOverlay.focus = Number(target.textContent);
                     menus.infoOverlay.overlayText.textContent = getString(["appScreenGraphicalInfoList", parseInt(target.textContent, 10) - 1]);
                     menus.infoOverlay.overlayText.style.display = "flex";
                     while (menus.infoOverlay.overlayText.offsetWidth < menus.infoOverlay.overlayText.scrollWidth) {
@@ -574,7 +594,6 @@ function calcMenusAndBackground(state) {
             background.y = canvasBackground.height - background.height;
             background.width /= 2;
             background.height /= 2;
-            canvasSemiForeground.style.display = "none";
         }
         client.x = background.x / client.devicePixelRatio;
         client.y = background.y / client.devicePixelRatio;
@@ -609,26 +628,6 @@ function calcMenusAndBackground(state) {
             menus.options.elements.view3DCameraSwitcherBackwards.classList.add("gui-hidden");
             menus.options.elements.view3DCameraSwitcherForwards.classList.add("gui-hidden");
         }
-    }
-    if (!Object.hasOwn(menus, "options")) {
-        menus.options = {};
-    }
-    if (!Object.hasOwn(menus.options, "elements")) {
-        menus.options.elements = {};
-        menus.options.elements.modeSingleplayer = document.querySelector("#canvas-single");
-        menus.options.elements.modeMultiplayer = document.querySelector("#canvas-team");
-        menus.options.elements.modeDemo = document.querySelector("#canvas-demo-mode");
-        menus.options.elements.help = document.querySelector("#canvas-help");
-        menus.options.elements.settings = document.querySelector("#canvas-settings");
-        menus.options.elements.controlCenterTrains = document.querySelector("#canvas-control-center");
-        menus.options.elements.controlCenterCars = document.querySelector("#canvas-car-control-center");
-        menus.options.elements.infoToggle = document.querySelector("#canvas-info-toggle");
-        menus.options.elements.soundToggle = document.querySelector("#canvas-sound-toggle");
-        menus.options.elements.view3DToggle = document.querySelector("#canvas-3d-view-toggle");
-        menus.options.elements.view3DNightToggle = document.querySelector("#canvas-3d-view-day-night");
-        menus.options.elements.view3DCameraSwitcherBackwards = document.querySelector("#canvas-3d-view-camera-switcher-backwards");
-        menus.options.elements.view3DCameraSwitcherForwards = document.querySelector("#canvas-3d-view-camera-switcher-forwards");
-        menus.options.elements.multiplayerChat = document.querySelector("#canvas-chat-open");
     }
     if (getSetting("reduceOptMenuHideGraphicalInfoToggle")) {
         menus.options.elements.infoToggle.classList.add("settings-hidden");
@@ -689,17 +688,9 @@ function calcMenusAndBackground(state) {
         menus.options.elements.view3DCameraSwitcherForwards.classList.remove("settings-hidden");
     }
     if (state == "load") {
-        menus.outerContainer = {};
-        menus.outerContainer.element = document.querySelector("#canvas-menus");
         menus.outerContainer.element.onwheel = function (event) {
             event.preventDefault();
         };
-        menus.options.container = {};
-        menus.options.container.elementInner = document.querySelector("#canvas-options-inner");
-        menus.infoOverlay = {};
-        menus.infoOverlay.container = {};
-        menus.infoOverlay.container.elementInner = document.querySelector("#canvas-info-inner");
-        menus.infoOverlay.overlayText = document.querySelector("#info-overlay-text");
         menus.options.elements.modeDemo.onclick = function () {
             beforeOptionsMenuChange();
             showConfirmDialogEnterDemoMode();
@@ -773,8 +764,7 @@ function calcMenusAndBackground(state) {
             beforeOptionsMenuChange();
             gui.three = !gui.three;
             setGuiState("3d", gui.three);
-            resetScale();
-            resetTilt();
+            resetAll();
             set3DItems();
             calcMenusAndBackground("items-change");
             if (getSetting("classicUI") && !classicUI.trainSwitch.selectedTrainDisplay.visible && !gui.three) {
@@ -939,10 +929,10 @@ function getGesture(gesture) {
                 client.zoomAndTilt.pinchHypot = gesture.pinchOHypot;
                 break;
             case "pinchoffset":
-                client.zoomAndTilt.offsetX += canvas.width / 2 - gesture.deltaX;
-                client.zoomAndTilt.offsetY += canvas.height / 2 - gesture.deltaY;
-                client.zoomAndTilt.pinchX = canvas.width / 2 - client.zoomAndTilt.offsetX / client.zoomAndTilt.realScale;
-                client.zoomAndTilt.pinchY = canvas.height / 2 - client.zoomAndTilt.offsetY / client.zoomAndTilt.realScale;
+                client.zoomAndTilt.offsetX += canvasGesture.width / 2 - gesture.deltaX;
+                client.zoomAndTilt.offsetY += canvasGesture.height / 2 - gesture.deltaY;
+                client.zoomAndTilt.pinchX = canvasGesture.width / 2 - client.zoomAndTilt.offsetX / client.zoomAndTilt.realScale;
+                client.zoomAndTilt.pinchY = canvasGesture.height / 2 - client.zoomAndTilt.offsetY / client.zoomAndTilt.realScale;
                 client.zoomAndTilt.pinchHypot = gesture.pinchOHypot;
                 break;
             case "pinchend":
@@ -960,12 +950,17 @@ function getGesture(gesture) {
                 client.zoomAndTilt.tiltX -= gesture.deltaX;
                 client.zoomAndTilt.tiltY -= gesture.deltaY;
                 break;
+            case "rotate":
+                if (gui.three) {
+                    client.zoomAndTilt.rotation += gesture.angle;
+                }
+                break;
         }
-        client.zoomAndTilt.offsetX = (canvas.width / 2 - client.zoomAndTilt.pinchX) * client.zoomAndTilt.realScale;
-        client.zoomAndTilt.offsetY = (canvas.height / 2 - client.zoomAndTilt.pinchY) * client.zoomAndTilt.realScale;
+        client.zoomAndTilt.offsetX = (canvasGesture.width / 2 - client.zoomAndTilt.pinchX) * client.zoomAndTilt.realScale;
+        client.zoomAndTilt.offsetY = (canvasGesture.height / 2 - client.zoomAndTilt.pinchY) * client.zoomAndTilt.realScale;
     }
-    var xMaxOffset = (client.zoomAndTilt.realScale - 1) * (canvas.width / 2 - background.x);
-    var yMaxOffset = (client.zoomAndTilt.realScale - 1) * (canvas.height / 2 - background.y);
+    var xMaxOffset = (client.zoomAndTilt.realScale - 1) * (canvasGesture.width / 2 - background.x);
+    var yMaxOffset = (client.zoomAndTilt.realScale - 1) * (canvasGesture.height / 2 - background.y);
     if (client.zoomAndTilt.offsetX > xMaxOffset) {
         client.zoomAndTilt.offsetX = xMaxOffset;
     }
@@ -978,10 +973,20 @@ function getGesture(gesture) {
     if (client.zoomAndTilt.offsetY < -yMaxOffset) {
         client.zoomAndTilt.offsetY = -yMaxOffset;
     }
-    var xMinPinch = background.x;
-    var xMaxPinch = canvas.width - background.x;
-    var yMinPinch = background.y;
-    var yMaxPinch = canvas.height - background.y;
+    // In 3D the rotated board is scaled to fit the area the background is fitted into; the zoom
+    // centre stays within the board, so its limits change by the board's size difference to the
+    // background
+    const [cos, sin] = [Math.abs(Math.cos(client.zoomAndTilt.rotation)), Math.abs(Math.sin(client.zoomAndTilt.rotation))];
+    const availableHeight = canvasBackground.height - menus.outerContainer.height * client.devicePixelRatio;
+    const rotatedWidth = background.width * cos + background.height * sin;
+    const rotatedHeight = background.width * sin + background.height * cos;
+    const fit = Math.min(1, canvasBackground.width / rotatedWidth, availableHeight / rotatedHeight);
+    const extraX = (fit * rotatedWidth - background.width) / 2;
+    const extraY = (fit * rotatedHeight - background.height) / 2;
+    var xMinPinch = background.x - extraX;
+    var xMaxPinch = canvasGesture.width - background.x + extraX;
+    var yMinPinch = background.y - extraY;
+    var yMaxPinch = canvasGesture.height - background.y + extraY;
     if (client.zoomAndTilt.pinchX > xMaxPinch) {
         client.zoomAndTilt.pinchX = xMaxPinch;
     }
@@ -994,26 +999,38 @@ function getGesture(gesture) {
     if (client.zoomAndTilt.pinchY < yMinPinch) {
         client.zoomAndTilt.pinchY = yMinPinch;
     }
-    var xMinTilt = -client.width / 2;
-    var xMaxTilt = client.width * 1.5;
-    var yMinTilt = -client.height / 2;
-    var yMaxTilt = client.height * 1.5;
-    if (client.zoomAndTilt.tiltX > xMaxTilt) {
-        client.zoomAndTilt.tiltX = xMaxTilt;
-    }
-    if (client.zoomAndTilt.tiltX < xMinTilt) {
-        client.zoomAndTilt.tiltX = xMinTilt;
-    }
-    if (client.zoomAndTilt.tiltY > yMaxTilt) {
-        client.zoomAndTilt.tiltY = yMaxTilt;
-    }
-    if (client.zoomAndTilt.tiltY < yMinTilt) {
-        client.zoomAndTilt.tiltY = yMinTilt;
+    // The konami mode lets the board tilt over without limits
+    if (konamiState >= 0) {
+        var xMinTilt = -client.width / 2;
+        var xMaxTilt = client.width * 1.5;
+        var yMinTilt = -client.height / 2;
+        var yMaxTilt = client.height * 1.5;
+        if (client.zoomAndTilt.tiltX > xMaxTilt) {
+            client.zoomAndTilt.tiltX = xMaxTilt;
+        }
+        if (client.zoomAndTilt.tiltX < xMinTilt) {
+            client.zoomAndTilt.tiltX = xMinTilt;
+        }
+        if (client.zoomAndTilt.tiltY > yMaxTilt) {
+            client.zoomAndTilt.tiltY = yMaxTilt;
+        }
+        if (client.zoomAndTilt.tiltY < yMinTilt) {
+            client.zoomAndTilt.tiltY = yMinTilt;
+        }
     }
     const scale = three.calcScale();
     three.camera.position.set(scale * ((client.zoomAndTilt.pinchX / client.devicePixelRatio - client.width / 2) / client.width), scale * (-(client.zoomAndTilt.pinchY / client.devicePixelRatio - client.height / 2) / client.width), 1);
     three.scene.rotation.x = (client.zoomAndTilt.tiltY - client.height / 2) / client.height;
     three.scene.rotation.y = (client.zoomAndTilt.tiltX - client.width / 2) / client.width;
+    three.scene.rotation.z = client.zoomAndTilt.rotation;
+    // The board is scaled to fit and turned around its own centre instead of the window centre
+    const shift = fit * three.calcPositionY();
+    const pivotX = shift * Math.sin(client.zoomAndTilt.rotation);
+    const pivotY = three.calcPositionY() - shift * Math.cos(client.zoomAndTilt.rotation);
+    const pivot = new THREE.Vector3(pivotX, pivotY, 0);
+    const tilt = new THREE.Euler(three.scene.rotation.x, three.scene.rotation.y, 0);
+    three.scene.scale.setScalar(fit);
+    three.scene.position.copy(pivot.applyEuler(tilt));
     three.camera.zoom = three.zoom + (client.zoomAndTilt.realScale - 1);
     three.camera.updateProjectionMatrix();
     if (client.zoomAndTilt.realScale < client.zoomAndTilt.minScale) {
@@ -1032,11 +1049,16 @@ function onMouseMove(event) {
     if (client.zoomAndTilt.realScale > 1 && ((!classicUI.pointInTransformerInput(event.clientX * client.devicePixelRatio, event.clientY * client.devicePixelRatio) && hardware.mouse.isHold) || hardware.mouse.isDrag)) {
         var deltaX = -5 * (hardware.mouse.moveX - event.clientX * client.devicePixelRatio);
         var deltaY = -5 * (hardware.mouse.moveY - event.clientY * client.devicePixelRatio);
-        if (Math.max(Math.abs(deltaX), Math.abs(deltaY)) > Math.min(canvas.width, canvas.height) / 30) {
+        if (Math.max(Math.abs(deltaX), Math.abs(deltaY)) > Math.min(canvasGesture.width, canvasGesture.height) / 30) {
             getGesture({ type: "swipe", deltaX: deltaX / 4, deltaY: deltaY / 4 });
             hardware.mouse.isDrag = true;
             hardware.mouse.isHold = false;
         }
+    }
+    else if (gui.three && hardware.mouse.isWheelHold && event.shiftKey) {
+        // A drag across the whole width turns by a full turn, to the right clockwise
+        var deltaX = hardware.mouse.moveX - event.clientX * client.devicePixelRatio;
+        getGesture({ type: "rotate", angle: (deltaX / canvasGesture.width) * 2 * Math.PI });
     }
     else if (gui.three && hardware.mouse.isWheelHold) {
         var deltaX = 5 * (hardware.mouse.moveX - event.clientX * client.devicePixelRatio);
@@ -1134,13 +1156,26 @@ function onMouseRight(event) {
 function preventEvent(event) {
     event.preventDefault();
 }
+function getFingersDistance(touches) {
+    return Math.hypot(touches[0].clientX - touches[1].clientX, touches[0].clientY - touches[1].clientY);
+}
+function getFingersAngle(touches) {
+    return Math.atan2(touches[1].clientY - touches[0].clientY, touches[1].clientX - touches[0].clientX);
+}
+function getFingersCentre(touches) {
+    return { x: (touches[0].clientX + touches[1].clientX) / 2, y: (touches[0].clientY + touches[1].clientY) / 2 };
+}
+function getAngleDifference(from, to) {
+    // within ±π, as atan2 jumps from π to -π
+    return Math.atan2(Math.sin(to - from), Math.cos(to - from));
+}
 function getTouchMove(event) {
     event.preventDefault();
     client.chosenInputMethod = "touch";
-    if (event.touches.length == 1 && typeof client.zoomAndTilt.pinchHypot == "undefined" && !client.zoomAndTilt.pinchGestureIsTilt) {
+    if (event.touches.length == 1 && client.zoomAndTilt.twoFingerGesture == undefined) {
         var deltaX = -5 * (hardware.mouse.moveX - event.touches[0].clientX * client.devicePixelRatio);
         var deltaY = -5 * (hardware.mouse.moveY - event.touches[0].clientY * client.devicePixelRatio);
-        if (client.zoomAndTilt.realScale > 1 && Math.max(Math.abs(deltaX), Math.abs(deltaY)) > Math.min(canvas.width, canvas.height) / 30 && !classicUI.pointInTransformerInput(event.touches[0].clientX * client.devicePixelRatio, event.touches[0].clientY * client.devicePixelRatio)) {
+        if (client.zoomAndTilt.realScale > 1 && Math.max(Math.abs(deltaX), Math.abs(deltaY)) > Math.min(canvasGesture.width, canvasGesture.height) / 30 && !classicUI.pointInTransformerInput(event.touches[0].clientX * client.devicePixelRatio, event.touches[0].clientY * client.devicePixelRatio)) {
             resetGestures();
             getGesture({ type: "swipe", deltaX: deltaX / 4, deltaY: deltaY / 4 });
             if (clickTimeOut !== undefined && clickTimeOut !== null) {
@@ -1158,40 +1193,62 @@ function getTouchMove(event) {
             clearTimeout(clickTimeOut);
             clickTimeOut = null;
         }
-        var deltaX = -(hardware.mouse.moveX - event.touches[1].clientX * client.devicePixelRatio);
-        var deltaY = -(hardware.mouse.moveY - event.touches[1].clientY * client.devicePixelRatio);
-        var hypot = Math.hypot(event.touches[0].clientX - event.touches[1].clientX, event.touches[0].clientY - event.touches[1].clientY);
-        if (Math.abs(deltaX) > background.width / 20 || Math.abs(deltaY) > background.width / 20 || Math.abs(hypot - client.zoomAndTilt.pinchHypotDown) > background.width / 20 || typeof client.zoomAndTilt.pinchHypot != "undefined" || client.zoomAndTilt.pinchGestureIsTilt) {
-            if (typeof client.zoomAndTilt.pinchHypot == "undefined" && !client.zoomAndTilt.pinchGestureIsTilt) {
-                if (Math.abs(hypot - client.zoomAndTilt.pinchHypotDown) < background.width / 50) {
-                    client.zoomAndTilt.tiltXOld = ((event.touches[0].clientX + event.touches[1].clientX) / 2) * client.devicePixelRatio;
-                    client.zoomAndTilt.tiltYOld = ((event.touches[0].clientY + event.touches[1].clientY) / 2) * client.devicePixelRatio;
-                    client.zoomAndTilt.pinchGestureIsTilt = true;
-                    hardware.mouse.isDrag = true;
+        var hypot = getFingersDistance(event.touches);
+        const fingersAngle = getFingersAngle(event.touches);
+        const fingersTurn = getAngleDifference(client.zoomAndTilt.fingersAngleDown, fingersAngle);
+        // In 3D, turning the fingers by more than 10° rotates the board (along with pinching)
+        const twisted = gui.three && Math.abs(fingersTurn) > Math.PI / 18;
+        const centre = getFingersCentre(event.touches);
+        const centreShift = Math.hypot(centre.x - client.zoomAndTilt.fingersCentreDown.x, centre.y - client.zoomAndTilt.fingersCentreDown.y);
+        // Two-finger gestures: "tilt" tilts the view and excludes the others until the fingers are
+        // lifted; "pinch" zooms and is also started by a twist, because zoom and rotation work
+        // together like in map apps: the rotation (twoFingerRotation) joins the pinch once the
+        // fingers turn far enough, even if it started as a plain pinch
+        if (client.zoomAndTilt.twoFingerGesture == undefined) {
+            // The first of the gestures to pass its own threshold decides: a twist, a pinch (finger
+            // distance) or a two-finger move (tilt), which hardly turns the fingers, unlike a twist
+            // around one finger that moves their centre as far as it turns them
+            const pinched = Math.abs(hypot - client.zoomAndTilt.fingersDistanceDown) * client.devicePixelRatio > background.width / 30;
+            const turning = gui.three && hypot * Math.abs(fingersTurn) > centreShift;
+            const moved = centreShift * client.devicePixelRatio > background.width / 20 && !turning;
+            if (twisted || pinched) {
+                if (client.zoomAndTilt.realScale == 1) {
+                    getGesture({ type: "pinchinit", deltaX: centre.x * client.devicePixelRatio, deltaY: centre.y * client.devicePixelRatio, pinchOHypot: hypot });
                 }
                 else {
-                    var deltaX = ((event.touches[0].clientX + event.touches[1].clientX) / 2) * client.devicePixelRatio;
-                    var deltaY = ((event.touches[0].clientY + event.touches[1].clientY) / 2) * client.devicePixelRatio;
-                    if (client.zoomAndTilt.realScale == 1) {
-                        getGesture({ type: "pinchinit", deltaX: deltaX, deltaY: deltaY, pinchOHypot: hypot });
-                    }
-                    else {
-                        getGesture({ type: "pinchoffset", deltaX: deltaX, deltaY: deltaY, pinchOHypot: hypot });
-                    }
-                    hardware.mouse.isDrag = false;
+                    getGesture({ type: "pinchoffset", deltaX: centre.x * client.devicePixelRatio, deltaY: centre.y * client.devicePixelRatio, pinchOHypot: hypot });
                 }
+                hardware.mouse.isDrag = false;
+                client.zoomAndTilt.twoFingerGesture = "pinch";
             }
-            if (client.zoomAndTilt.pinchGestureIsTilt) {
-                var tiltXNew = ((event.touches[0].clientX + event.touches[1].clientX) / 2) * client.devicePixelRatio;
-                var tiltYNew = ((event.touches[0].clientY + event.touches[1].clientY) / 2) * client.devicePixelRatio;
-                var deltaX = 3 * (client.zoomAndTilt.tiltXOld - tiltXNew);
-                var deltaY = 3 * (client.zoomAndTilt.tiltYOld - tiltYNew);
-                getGesture({ type: "tilt", deltaX: deltaX, deltaY: deltaY });
-                client.zoomAndTilt.tiltXOld = tiltXNew;
-                client.zoomAndTilt.tiltYOld = tiltYNew;
+            else if (moved) {
+                client.zoomAndTilt.tiltXOld = centre.x * client.devicePixelRatio;
+                client.zoomAndTilt.tiltYOld = centre.y * client.devicePixelRatio;
+                client.zoomAndTilt.twoFingerGesture = "tilt";
+                hardware.mouse.isDrag = true;
             }
-            else {
-                getGesture({ type: "pinch", scale: hypot / client.zoomAndTilt.pinchHypot, deltaX: client.zoomAndTilt.pinchX, deltaY: client.zoomAndTilt.pinchY });
+        }
+        if (client.zoomAndTilt.twoFingerGesture == "tilt") {
+            var tiltXNew = centre.x * client.devicePixelRatio;
+            var tiltYNew = centre.y * client.devicePixelRatio;
+            var deltaX = 3 * (client.zoomAndTilt.tiltXOld - tiltXNew);
+            var deltaY = 3 * (client.zoomAndTilt.tiltYOld - tiltYNew);
+            getGesture({ type: "tilt", deltaX: deltaX, deltaY: deltaY });
+            client.zoomAndTilt.tiltXOld = tiltXNew;
+            client.zoomAndTilt.tiltYOld = tiltYNew;
+        }
+        else if (client.zoomAndTilt.twoFingerGesture == "pinch") {
+            getGesture({ type: "pinch", scale: hypot / client.zoomAndTilt.pinchHypot, deltaX: client.zoomAndTilt.pinchX, deltaY: client.zoomAndTilt.pinchY });
+            if (twisted && !client.zoomAndTilt.twoFingerRotation) {
+                // The rotation starts from here, so the board does not jump by the threshold
+                client.zoomAndTilt.twoFingerRotation = true;
+                client.zoomAndTilt.fingersAngleOld = fingersAngle;
+            }
+            if (client.zoomAndTilt.twoFingerRotation) {
+                // Screen y points down, so turning the fingers clockwise lowers the angle
+                const turn = getAngleDifference(fingersAngle, client.zoomAndTilt.fingersAngleOld);
+                getGesture({ type: "rotate", angle: turn });
+                client.zoomAndTilt.fingersAngleOld = fingersAngle;
             }
         }
     }
@@ -1231,7 +1288,10 @@ function getTouchStart(event) {
             clickTimeOut = null;
         }
         if (event.touches.length == 2) {
-            client.zoomAndTilt.pinchHypotDown = Math.hypot(event.touches[0].clientX - event.touches[1].clientX, event.touches[0].clientY - event.touches[1].clientY);
+            client.zoomAndTilt.fingersDistanceDown = getFingersDistance(event.touches);
+            client.zoomAndTilt.fingersAngleDown = getFingersAngle(event.touches);
+            client.zoomAndTilt.fingersCentreDown = getFingersCentre(event.touches);
+            client.zoomAndTilt.twoFingerRotation = false;
         }
         hardware.lastInputTouch = hardware.mouse.downTime = Date.now();
         hardware.mouse.moveX = hardware.mouse.downX = xTS;
@@ -1248,7 +1308,8 @@ function getTouchEnd(event) {
         getGesture({ type: "pinchend" });
     }
     else if (event.touches.length == 0) {
-        client.zoomAndTilt.pinchGestureIsTilt = false;
+        client.zoomAndTilt.twoFingerGesture = undefined;
+        client.zoomAndTilt.twoFingerRotation = false;
         getGesture({ type: "pinchreset" });
     }
     hardware.mouse.upX = event.changedTouches[0].clientX * client.devicePixelRatio;
@@ -1285,6 +1346,7 @@ function onKeyDown(event) {
         }
         hardware.keyboard.keysHold[event.key].active = true;
         hardware.keyboard.keysHold[event.key].ctrlKey = event.ctrlKey;
+        hardware.keyboard.keysHold[event.key].shiftKey = event.shiftKey;
     }
     if (event.key == "Tab" || event.key == "Enter") {
         event.preventDefault();
@@ -1371,6 +1433,7 @@ function onKeyDown(event) {
             if (konamiState == 0) {
                 drawBackground();
                 background3D.animateBehind(true);
+                resetTilt();
             }
         }
         else if (konamiState > 0) {
@@ -1391,6 +1454,7 @@ function onKeyUp(event) {
     }
     hardware.keyboard.keysHold[event.key].active = false;
     hardware.keyboard.keysHold[event.key].ctrlKey = false;
+    hardware.keyboard.keysHold[event.key].shiftKey = false;
 }
 function preventKeyZoomDuringLoad(event) {
     if (event.key == "Escape" || (event.ctrlKey && (event.key == "+" || event.key == "-" || event.key == "0"))) {
@@ -1596,8 +1660,7 @@ function requestResize() {
             }
             onlineConnection.resized = true;
         }
-        resetScale();
-        resetTilt();
+        resetAll();
         oldBackground = copyJSObject(background);
         measureViewSpace();
         calcMenusAndBackground("resize");
@@ -1607,6 +1670,8 @@ function requestResize() {
         three.renderer.domElement.style.top = "0px";
         three.camera.aspect = client.width / client.height;
         three.camera.updateProjectionMatrix();
+        three.soundCamera.aspect = client.width / client.height;
+        three.soundCamera.updateProjectionMatrix();
         three.followCamera.aspect = client.width / client.height;
         three.followCamera.fov = Math.min(45, 45 / (client.width / client.height / 2));
         three.followCamera.updateProjectionMatrix();
@@ -1654,6 +1719,8 @@ function requestResize() {
         three.followCamControls.recalc();
         if (background3D.flat?.resize)
             background3D.flat.resize();
+        if (background3D.flatBehind?.resize)
+            background3D.flatBehind.resize();
         if (background3D.three?.resize)
             background3D.three.resize();
         if (background3D.aquarium?.resize)
@@ -1735,6 +1802,23 @@ function carCollisionCourse(input1, sendNotification, fixFac = undefined) {
     context.restore();
     return collision;
 }
+function setTaxOfficeParticles(i) {
+    function randomAlphaColor(color) {
+        return "rgba(" + color.red + "," + color.green + "," + color.blue + "," + color.alpha * Math.random() + ")";
+    }
+    taxOffice.fire[i] = {
+        color: randomAlphaColor(Math.random() >= taxOffice.params.fire.color.probability ? taxOffice.params.fire.color.yellow : taxOffice.params.fire.color.red),
+        x: Math.random() * taxOffice.params.fire.x,
+        y: Math.random() * taxOffice.params.fire.y,
+        size: Math.random() * taxOffice.params.fire.size
+    };
+    taxOffice.smoke[i] = {
+        color: randomAlphaColor(taxOffice.params.smoke.color),
+        x: Math.random() * taxOffice.params.smoke.x,
+        y: Math.random() * taxOffice.params.smoke.y,
+        size: Math.random() * taxOffice.params.smoke.size
+    };
+}
 function drawObjects() {
     function setMaterialTransparent(mesh, opacity) {
         if (mesh.material && opacity && opacity >= 0 && opacity <= 1) {
@@ -1755,143 +1839,144 @@ function drawObjects() {
     function drawTrains(input1) {
         function drawTrain(i) {
             const currentObject = i < 0 ? trains[input1] : trains[input1].cars[i];
+            const currentContext = currentObject.front.z > 0 && currentObject.back.z > 0 ? context2 : context;
             const flickerDuration = 3;
             const flickerZoom = 1.01;
             if (frameNo <= trains[input1].lastDirectionChange + flickerDuration * 6 && !trains[input1].move && Math.random() > 0.7 && (i < 0 || i == trains[input1].cars.length - 1)) {
-                context.save();
-                context.translate(currentObject.x, currentObject.y);
-                context.rotate(currentObject.displayAngle);
-                context.strokeStyle = "rgba(255,255,224," + (client.isSmall ? 1 : 0.5) + ")";
-                context.lineWidth = client.isTiny ? 1 : 3;
+                currentContext.save();
+                currentContext.translate(currentObject.x, currentObject.y);
+                currentContext.rotate(currentObject.displayAngle);
+                currentContext.strokeStyle = "rgba(255,255,224," + (client.isSmall ? 1 : 0.5) + ")";
+                currentContext.lineWidth = client.isTiny ? 1 : 3;
                 if (i == -1 && trains[input1].standardDirection) {
                     if (trains[input1].flickerFacFront == undefined) {
-                        trains[input1].flickerFacFront = 2;
+                        trains[input1].flickerFacFront = trainParams.flickerFac;
                     }
                     if (trains[input1].flickerFacFrontOffset == undefined) {
-                        trains[input1].flickerFacFrontOffset = 3.5;
+                        trains[input1].flickerFacFrontOffset = trainParams.flickerFacOffset;
                     }
-                    context.beginPath();
-                    context.moveTo(currentObject.width / trains[input1].flickerFacFront + background.width / 500, -currentObject.height / trains[input1].flickerFacFrontOffset);
-                    context.lineTo(currentObject.width / trains[input1].flickerFacFront, -currentObject.height / 4);
-                    context.moveTo(currentObject.width / trains[input1].flickerFacFront + background.width / 500, currentObject.height / trains[input1].flickerFacFrontOffset);
-                    context.lineTo(currentObject.width / trains[input1].flickerFacFront, currentObject.height / 4);
-                    context.stroke();
-                    context.closePath();
+                    currentContext.beginPath();
+                    currentContext.moveTo(currentObject.width / trains[input1].flickerFacFront + background.width / 500, -currentObject.height / trains[input1].flickerFacFrontOffset);
+                    currentContext.lineTo(currentObject.width / trains[input1].flickerFacFront, -currentObject.height / 4);
+                    currentContext.moveTo(currentObject.width / trains[input1].flickerFacFront + background.width / 500, currentObject.height / trains[input1].flickerFacFrontOffset);
+                    currentContext.lineTo(currentObject.width / trains[input1].flickerFacFront, currentObject.height / 4);
+                    currentContext.stroke();
+                    currentContext.closePath();
                 }
                 if (i == trains[input1].cars.length - 1 && !trains[input1].standardDirection) {
                     if (trains[input1].flickerFacBack == undefined) {
-                        trains[input1].flickerFacBack = 2;
+                        trains[input1].flickerFacBack = trainParams.flickerFac;
                     }
                     if (trains[input1].flickerFacBackOffset == undefined) {
-                        trains[input1].flickerFacBackOffset = 3.5;
+                        trains[input1].flickerFacBackOffset = trainParams.flickerFacOffset;
                     }
-                    context.beginPath();
-                    context.moveTo(-currentObject.width / trains[input1].flickerFacBack - background.width / 500, -currentObject.height / trains[input1].flickerFacBackOffset);
-                    context.lineTo(-currentObject.width / trains[input1].flickerFacBack, -currentObject.height / 4);
-                    context.moveTo(-currentObject.width / trains[input1].flickerFacBack - background.width / 500, currentObject.height / trains[input1].flickerFacBackOffset);
-                    context.lineTo(-currentObject.width / trains[input1].flickerFacBack, currentObject.height / 4);
-                    context.stroke();
-                    context.closePath();
+                    currentContext.beginPath();
+                    currentContext.moveTo(-currentObject.width / trains[input1].flickerFacBack - background.width / 500, -currentObject.height / trains[input1].flickerFacBackOffset);
+                    currentContext.lineTo(-currentObject.width / trains[input1].flickerFacBack, -currentObject.height / 4);
+                    currentContext.moveTo(-currentObject.width / trains[input1].flickerFacBack - background.width / 500, currentObject.height / trains[input1].flickerFacBackOffset);
+                    currentContext.lineTo(-currentObject.width / trains[input1].flickerFacBack, currentObject.height / 4);
+                    currentContext.stroke();
+                    currentContext.closePath();
                 }
-                context.restore();
+                currentContext.restore();
             }
             if (currentObject.wheels?.front?.src2d && konamiState >= 0) {
                 const wheelWidthFront = currentObject.width * (pics[currentObject.wheels.front.src2d].width / pics[currentObject.src].width);
                 const wheelHeightFront = currentObject.height * (pics[currentObject.wheels.front.src2d].height / pics[currentObject.src].height);
-                context.save();
-                context.translate(currentObject.wheels.front.leftX, currentObject.wheels.front.leftY);
+                currentContext.save();
+                currentContext.translate(currentObject.wheels.front.leftX, currentObject.wheels.front.leftY);
                 if (frameNo <= trains[input1].lastDirectionChange + flickerDuration * 3 && (frameNo <= trains[input1].lastDirectionChange + flickerDuration || frameNo > trains[input1].lastDirectionChange + flickerDuration * 2)) {
                     var xMove = currentObject.wheels.moveX * (flickerZoom - 1);
                     var yMove = currentObject.wheels.moveY * (flickerZoom - 1);
-                    context.translate(xMove * Math.sin(Math.PI / 2 - currentObject.displayAngle) - yMove * Math.cos(-Math.PI / 2 - currentObject.displayAngle), xMove * Math.cos(Math.PI / 2 - currentObject.displayAngle) + yMove * Math.sin(-Math.PI / 2 - currentObject.displayAngle));
+                    currentContext.translate(xMove * Math.sin(Math.PI / 2 - currentObject.displayAngle) - yMove * Math.cos(-Math.PI / 2 - currentObject.displayAngle), xMove * Math.cos(Math.PI / 2 - currentObject.displayAngle) + yMove * Math.sin(-Math.PI / 2 - currentObject.displayAngle));
                 }
-                context.rotate(currentObject.front.angle);
+                currentContext.rotate(currentObject.front.angle);
                 if (currentObject.assetFlip) {
-                    context.scale(-1, 1);
+                    currentContext.scale(-1, 1);
                 }
                 if (frameNo <= trains[input1].lastDirectionChange + flickerDuration * 3 && (frameNo <= trains[input1].lastDirectionChange + flickerDuration || frameNo > trains[input1].lastDirectionChange + flickerDuration * 2)) {
-                    context.scale(flickerZoom, flickerZoom);
+                    currentContext.scale(flickerZoom, flickerZoom);
                 }
-                drawImage(pics[currentObject.wheels.front.src2d], -wheelWidthFront / 2, -wheelHeightFront / 2, wheelWidthFront, wheelHeightFront);
-                context.restore();
-                context.save();
-                context.translate(currentObject.wheels.front.rightX, currentObject.wheels.front.rightY);
+                drawImage(pics[currentObject.wheels.front.src2d], -wheelWidthFront / 2, -wheelHeightFront / 2, wheelWidthFront, wheelHeightFront, currentContext);
+                currentContext.restore();
+                currentContext.save();
+                currentContext.translate(currentObject.wheels.front.rightX, currentObject.wheels.front.rightY);
                 if (frameNo <= trains[input1].lastDirectionChange + flickerDuration * 3 && (frameNo <= trains[input1].lastDirectionChange + flickerDuration || frameNo > trains[input1].lastDirectionChange + flickerDuration * 2)) {
                     var xMove = currentObject.wheels.moveX * (flickerZoom - 1);
                     var yMove = -currentObject.wheels.moveY * (flickerZoom - 1);
-                    context.translate(xMove * Math.sin(Math.PI / 2 - currentObject.displayAngle) - yMove * Math.cos(-Math.PI / 2 - currentObject.displayAngle), xMove * Math.cos(Math.PI / 2 - currentObject.displayAngle) + yMove * Math.sin(-Math.PI / 2 - currentObject.displayAngle));
+                    currentContext.translate(xMove * Math.sin(Math.PI / 2 - currentObject.displayAngle) - yMove * Math.cos(-Math.PI / 2 - currentObject.displayAngle), xMove * Math.cos(Math.PI / 2 - currentObject.displayAngle) + yMove * Math.sin(-Math.PI / 2 - currentObject.displayAngle));
                 }
-                context.rotate(currentObject.front.angle);
+                currentContext.rotate(currentObject.front.angle);
                 if (currentObject.assetFlip) {
-                    context.scale(-1, 1);
+                    currentContext.scale(-1, 1);
                 }
-                context.scale(1, -1);
+                currentContext.scale(1, -1);
                 if (frameNo <= trains[input1].lastDirectionChange + flickerDuration * 3 && (frameNo <= trains[input1].lastDirectionChange + flickerDuration || frameNo > trains[input1].lastDirectionChange + flickerDuration * 2)) {
-                    context.scale(flickerZoom, flickerZoom);
+                    currentContext.scale(flickerZoom, flickerZoom);
                 }
-                drawImage(pics[currentObject.wheels.front.src2d], -wheelWidthFront / 2, 0, wheelWidthFront, wheelHeightFront);
-                context.restore();
+                drawImage(pics[currentObject.wheels.front.src2d], -wheelWidthFront / 2, 0, wheelWidthFront, wheelHeightFront, currentContext);
+                currentContext.restore();
             }
             if (currentObject.wheels?.back?.src2d && konamiState >= 0) {
                 const wheelWidthBack = currentObject.width * (pics[currentObject.wheels.back.src2d].width / pics[currentObject.src].width);
                 const wheelHeightBack = currentObject.height * (pics[currentObject.wheels.back.src2d].height / pics[currentObject.src].height);
-                context.save();
-                context.translate(currentObject.wheels.back.leftX, currentObject.wheels.back.leftY);
+                currentContext.save();
+                currentContext.translate(currentObject.wheels.back.leftX, currentObject.wheels.back.leftY);
                 if (frameNo <= trains[input1].lastDirectionChange + flickerDuration * 3 && (frameNo <= trains[input1].lastDirectionChange + flickerDuration || frameNo > trains[input1].lastDirectionChange + flickerDuration * 2)) {
                     var xMove = -currentObject.wheels.moveX * (flickerZoom - 1);
                     var yMove = currentObject.wheels.moveY * (flickerZoom - 1);
-                    context.translate(xMove * Math.sin(Math.PI / 2 - currentObject.displayAngle) - yMove * Math.cos(-Math.PI / 2 - currentObject.displayAngle), xMove * Math.cos(Math.PI / 2 - currentObject.displayAngle) + yMove * Math.sin(-Math.PI / 2 - currentObject.displayAngle));
+                    currentContext.translate(xMove * Math.sin(Math.PI / 2 - currentObject.displayAngle) - yMove * Math.cos(-Math.PI / 2 - currentObject.displayAngle), xMove * Math.cos(Math.PI / 2 - currentObject.displayAngle) + yMove * Math.sin(-Math.PI / 2 - currentObject.displayAngle));
                 }
-                context.rotate(currentObject.back.angle);
+                currentContext.rotate(currentObject.back.angle);
                 if (currentObject.assetFlip) {
-                    context.scale(-1, 1);
+                    currentContext.scale(-1, 1);
                 }
                 if (frameNo <= trains[input1].lastDirectionChange + flickerDuration * 3 && (frameNo <= trains[input1].lastDirectionChange + flickerDuration || frameNo > trains[input1].lastDirectionChange + flickerDuration * 2)) {
-                    context.scale(flickerZoom, flickerZoom);
+                    currentContext.scale(flickerZoom, flickerZoom);
                 }
-                drawImage(pics[currentObject.wheels.back.src2d], -wheelWidthBack / 2, -wheelHeightBack / 2, wheelWidthBack, wheelHeightBack);
-                context.restore();
-                context.save();
-                context.translate(currentObject.wheels.back.rightX, currentObject.wheels.back.rightY);
+                drawImage(pics[currentObject.wheels.back.src2d], -wheelWidthBack / 2, -wheelHeightBack / 2, wheelWidthBack, wheelHeightBack, currentContext);
+                currentContext.restore();
+                currentContext.save();
+                currentContext.translate(currentObject.wheels.back.rightX, currentObject.wheels.back.rightY);
                 if (frameNo <= trains[input1].lastDirectionChange + flickerDuration * 3 && (frameNo <= trains[input1].lastDirectionChange + flickerDuration || frameNo > trains[input1].lastDirectionChange + flickerDuration * 2)) {
                     var xMove = -currentObject.wheels.moveX * (flickerZoom - 1);
                     var yMove = -currentObject.wheels.moveY * (flickerZoom - 1);
-                    context.translate(xMove * Math.sin(Math.PI / 2 - currentObject.displayAngle) - yMove * Math.cos(-Math.PI / 2 - currentObject.displayAngle), xMove * Math.cos(Math.PI / 2 - currentObject.displayAngle) + yMove * Math.sin(-Math.PI / 2 - currentObject.displayAngle));
+                    currentContext.translate(xMove * Math.sin(Math.PI / 2 - currentObject.displayAngle) - yMove * Math.cos(-Math.PI / 2 - currentObject.displayAngle), xMove * Math.cos(Math.PI / 2 - currentObject.displayAngle) + yMove * Math.sin(-Math.PI / 2 - currentObject.displayAngle));
                 }
-                context.rotate(currentObject.back.angle);
+                currentContext.rotate(currentObject.back.angle);
                 if (currentObject.assetFlip) {
-                    context.scale(-1, 1);
+                    currentContext.scale(-1, 1);
                 }
-                context.scale(1, -1);
+                currentContext.scale(1, -1);
                 if (frameNo <= trains[input1].lastDirectionChange + flickerDuration * 3 && (frameNo <= trains[input1].lastDirectionChange + flickerDuration || frameNo > trains[input1].lastDirectionChange + flickerDuration * 2)) {
-                    context.scale(flickerZoom, flickerZoom);
+                    currentContext.scale(flickerZoom, flickerZoom);
                 }
-                drawImage(pics[currentObject.wheels.back.src2d], -wheelWidthBack / 2, 0, wheelWidthBack, wheelHeightBack);
-                context.restore();
+                drawImage(pics[currentObject.wheels.back.src2d], -wheelWidthBack / 2, 0, wheelWidthBack, wheelHeightBack, currentContext);
+                currentContext.restore();
             }
-            context.save();
-            context.translate(currentObject.x, currentObject.y);
-            context.rotate(currentObject.displayAngle);
-            context.save();
+            currentContext.save();
+            currentContext.translate(currentObject.x, currentObject.y);
+            currentContext.rotate(currentObject.displayAngle);
+            currentContext.save();
             if (currentObject.assetFlip) {
-                context.scale(-1, 1);
+                currentContext.scale(-1, 1);
             }
             if (konamiState < 0) {
-                context.scale(-1, 1);
-                context.textAlign = "center";
+                currentContext.scale(-1, 1);
+                currentContext.textAlign = "center";
                 var icon = i == -1 || ("konamiUseTrainIcon" in currentObject && currentObject.konamiUseTrainIcon) ? getString(["appScreenTrainIcons", input1]) : getString("appScreenTrainCarIcon");
-                context.font = measureFontSize(icon, "sans-serif", 100, currentObject.width, 5, currentObject.width / 100);
-                context.fillStyle = "white";
-                context.scale(1, currentObject.height / getFontSize(context.font, "px"));
-                context.fillText(icon, 0, 0);
+                currentContext.font = measureFontSize(icon, "sans-serif", 100, currentObject.width, 5, currentObject.width / 100);
+                currentContext.fillStyle = "white";
+                currentContext.scale(1, currentObject.height / getFontSize(currentContext.font, "px"));
+                currentContext.fillText(icon, 0, 0);
             }
             else {
                 if (frameNo <= trains[input1].lastDirectionChange + flickerDuration * 3 && (frameNo <= trains[input1].lastDirectionChange + flickerDuration || frameNo > trains[input1].lastDirectionChange + flickerDuration * 2)) {
-                    context.scale(flickerZoom, flickerZoom);
+                    currentContext.scale(flickerZoom, flickerZoom);
                 }
-                drawImage(pics[currentObject.src], -currentObject.width / 2, -currentObject.height / 2, currentObject.width, currentObject.height);
+                drawImage(pics[currentObject.src], -currentObject.width / 2, -currentObject.height / 2, currentObject.width, currentObject.height, currentContext);
             }
-            context.restore();
+            currentContext.restore();
             if (gui.infoOverlay && i == -1 && (menus.infoOverlay.focus == undefined || menus.infoOverlay.focus == 1)) {
                 contextForeground.save();
                 contextForeground.translate(currentObject.x, currentObject.y);
@@ -1915,17 +2000,17 @@ function drawObjects() {
                 }
                 contextForeground.restore();
             }
-            context.beginPath();
-            context.rect(-currentObject.width / 2, -currentObject.height / 2, currentObject.width, currentObject.height);
-            if (context.isPointInPath(hardware.mouse.moveX, hardware.mouse.moveY) && !hardware.mouse.isDrag) {
+            currentContext.beginPath();
+            currentContext.rect(-currentObject.width / 2, -currentObject.height / 2, currentObject.width, currentObject.height);
+            if (currentContext.isPointInPath(hardware.mouse.moveX, hardware.mouse.moveY) && !hardware.mouse.isDrag) {
                 hardware.mouse.cursor = "pointer";
             }
-            if (context.isPointInPath(hardware.mouse.moveX, hardware.mouse.moveY) && hardware.mouse.isHold) {
+            if (currentContext.isPointInPath(hardware.mouse.moveX, hardware.mouse.moveY) && hardware.mouse.isHold) {
                 inTrain = true;
                 if (hardware.lastInputTouch < hardware.lastInputMouse) {
                     hardware.mouse.isHold = false;
                 }
-                if ((hardware.lastInputTouch < hardware.lastInputMouse && hardware.mouse.downTime - hardware.mouse.upTime > 0 && context.isPointInPath(hardware.mouse.upX, hardware.mouse.upY) && context.isPointInPath(hardware.mouse.downX, hardware.mouse.downY) && hardware.mouse.downTime - hardware.mouse.upTime < doubleClickTime && !hardware.mouse.lastClickDoubleClick) || (hardware.lastInputTouch > hardware.lastInputMouse && context.isPointInPath(hardware.mouse.downX, hardware.mouse.downY) && Date.now() - hardware.mouse.downTime > longTouchTime)) {
+                if ((hardware.lastInputTouch < hardware.lastInputMouse && hardware.mouse.downTime - hardware.mouse.upTime > 0 && currentContext.isPointInPath(hardware.mouse.upX, hardware.mouse.upY) && currentContext.isPointInPath(hardware.mouse.downX, hardware.mouse.downY) && hardware.mouse.downTime - hardware.mouse.upTime < doubleClickTime && !hardware.mouse.lastClickDoubleClick) || (hardware.lastInputTouch > hardware.lastInputMouse && currentContext.isPointInPath(hardware.mouse.downX, hardware.mouse.downY) && Date.now() - hardware.mouse.downTime > longTouchTime)) {
                     if (clickTimeOut !== undefined && clickTimeOut !== null) {
                         clearTimeout(clickTimeOut);
                         clickTimeOut = null;
@@ -1961,48 +2046,61 @@ function drawObjects() {
                     }, hardware.lastInputTouch > hardware.lastInputMouse ? longTouchWaitTime : doubleClickWaitTime);
                 }
             }
-            context.restore();
+            currentContext.restore();
         }
         for (var i = -1; i < trains[input1].cars.length; i++) {
             drawTrain(i);
         }
     }
-    function trainInTrackElement(state) {
+    function trainInTrackElement(state, isOnPart = (_bogie) => true) {
+        // A track element (or the part of it isOnPart accepts) is shown while a train on it is partly hidden
         for (let i = 0; i < trains.length; i++) {
-            if ((trains[i].front.state == state || trains[i].back.state == state) && trains[i].opacity < 1) {
+            const objects = [trains[i], ...trains[i].cars];
+            if (objects.some((object) => [object.front, object.back].some((bogie) => bogie.state == state && isOnPart(bogie))) && objects.some((object) => object.opacity < 1)) {
                 return true;
-            }
-            for (let j = 0; j < trains[i].cars.length; j++) {
-                if ((trains[i].cars[j].front.state == state || trains[i].cars[j].back.state == state) && trains[i].cars[j].opacity < 1) {
-                    return true;
-                }
             }
         }
         return false;
     }
-    function drawContinueTrackElement(group, geometry, corrFac) {
-        const material = new THREE.LineBasicMaterial({ color: three.night ? 0x541e03 : 0x963c0e });
-        const objectA = new THREE.Line(geometry, material);
-        objectA.translateX((-corrFac * background.width) / 990000);
-        objectA.translateY(-background.width / 990000);
-        objectA.translateZ(-background.width / 1000000);
-        group.add(objectA);
-        const objectB = new THREE.Line(geometry, material);
-        objectB.translateX((corrFac * background.width) / 990000);
-        objectB.translateY(background.width / 990000);
-        objectB.translateZ(-background.width / 1000000);
-        group.add(objectB);
+    function drawContinueTrackElement(group, points) {
+        // Two rails along the track's points (background px, height z), each offset by half the track width perpendicular to the track:
+        // a narrow strip, and a 1 px line along its middle that keeps the rail continuous where the strip is narrower than a pixel (far away or tilted)
+        const halfTrackWidth = (trainParams.trackWidth / 2) * background.width;
+        const halfRailWidth = (0.0009 * background.width) / 2;
+        const normals = points.map(function (_point, k) {
+            const before = points[Math.max(k - 1, 0)];
+            const after = points[Math.min(k + 1, points.length - 1)];
+            const length = Math.hypot(after.x - before.x, after.y - before.y);
+            return { x: -(after.y - before.y) / length, y: (after.x - before.x) / length };
+        });
+        function toScene(point, k, offset) {
+            const x = point.x + offset * normals[k].x;
+            const y = point.y + offset * normals[k].y;
+            return new THREE.Vector3(three.calcScale() * ((x - background.width / 2) / background.width), three.calcScale() * (-(y - background.height / 2) / background.width) + three.calcPositionY(), (three.calcScale() * point.z) / background.width - background.width / 1000000);
+        }
+        for (const side of [-1, 1]) {
+            const stripVertices = [];
+            const lineVertices = [];
+            points.forEach(function (point, k) {
+                stripVertices.push(toScene(point, k, side * halfTrackWidth - halfRailWidth), toScene(point, k, side * halfTrackWidth + halfRailWidth));
+                lineVertices.push(toScene(point, k, side * halfTrackWidth));
+            });
+            const indices = [];
+            for (let k = 0; k < points.length - 1; k++) {
+                indices.push(2 * k, 2 * k + 1, 2 * k + 2, 2 * k + 1, 2 * k + 3, 2 * k + 2);
+            }
+            const stripGeometry = new THREE.BufferGeometry().setFromPoints(stripVertices);
+            stripGeometry.setIndex(indices);
+            group.add(new THREE.Mesh(stripGeometry, continueTrack3D.stripMaterial));
+            group.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(lineVertices), continueTrack3D.lineMaterial));
+        }
     }
-    function drawContinueTrackLine(group, lineName, corrFac = 1) {
-        const points = [];
-        points.push(new THREE.Vector3(three.calcScale() * ((rotationPoints.outer.rightSiding[lineName].x[0] - background.width / 2) / background.width), three.calcScale() * (-(rotationPoints.outer.rightSiding[lineName].y[0] - background.height / 2) / background.width) + three.calcPositionY(), -0));
-        points.push(new THREE.Vector3(three.calcScale() * ((rotationPoints.outer.rightSiding[lineName].x[1] - background.width / 2) / background.width), three.calcScale() * (-(rotationPoints.outer.rightSiding[lineName].y[1] - background.height / 2) / background.width) + three.calcPositionY(), -0));
-        drawContinueTrackElement(group, new THREE.BufferGeometry().setFromPoints(points), corrFac);
+    function drawContinueTrackLine(group, line) {
+        drawContinueTrackElement(group, [new THREE.Vector3(line.x[0], line.y[0], line.z ? line.z[0] : 0), new THREE.Vector3(line.x[1], line.y[1], line.z ? line.z[1] : 0)]);
     }
-    function drawContinueTrackCurve(group, curveName, corrFac = 1) {
-        const curve = new THREE.CubicBezierCurve3(new THREE.Vector3(three.calcScale() * ((rotationPoints.outer.rightSiding[curveName].x[0] - background.width / 2) / background.width), three.calcScale() * (-(rotationPoints.outer.rightSiding[curveName].y[0] - background.height / 2) / background.width) + three.calcPositionY(), -0), new THREE.Vector3(three.calcScale() * ((rotationPoints.outer.rightSiding[curveName].x[1] - background.width / 2) / background.width), three.calcScale() * (-(rotationPoints.outer.rightSiding[curveName].y[1] - background.height / 2) / background.width) + three.calcPositionY(), -0), new THREE.Vector3(three.calcScale() * ((rotationPoints.outer.rightSiding[curveName].x[2] - background.width / 2) / background.width), three.calcScale() * (-(rotationPoints.outer.rightSiding[curveName].y[2] - background.height / 2) / background.width) + three.calcPositionY(), -0), new THREE.Vector3(three.calcScale() * ((rotationPoints.outer.rightSiding[curveName].x[3] - background.width / 2) / background.width), three.calcScale() * (-(rotationPoints.outer.rightSiding[curveName].y[3] - background.height / 2) / background.width) + three.calcPositionY(), -0));
-        const points = curve.getPoints(30);
-        drawContinueTrackElement(group, new THREE.BufferGeometry().setFromPoints(points), corrFac);
+    function drawContinueTrackCurve(group, curve) {
+        const bezier = new THREE.CubicBezierCurve3(new THREE.Vector3(curve.x[0], curve.y[0], curve.z ? curve.z[0] : 0), new THREE.Vector3(curve.x[1], curve.y[1], curve.z ? curve.z[1] : 0), new THREE.Vector3(curve.x[2], curve.y[2], curve.z ? curve.z[2] : 0), new THREE.Vector3(curve.x[3], curve.y[3], curve.z ? curve.z[3] : 0));
+        drawContinueTrackElement(group, bezier.getPoints(20));
     }
     function calcCars() {
         function calcCarsAutoMode() {
@@ -2449,13 +2547,11 @@ function drawObjects() {
                             if (tFish.x > oFish.x) {
                                 newMove = oFish.width + (Math.random() * tFish.width) / 200;
                                 tFish.x += newMove;
-                                tFish.moveX += newMove;
                                 tFish.speed += (newMove - tFish.speed) / 16;
                             }
                             else {
                                 newMove = tFish.width + (Math.random() * oFish.width) / 200;
                                 oFish.x += newMove;
-                                oFish.moveX += newMove;
                                 oFish.speed += (newMove - oFish.speed) / 16;
                             }
                         }
@@ -2472,7 +2568,7 @@ function drawObjects() {
             drawImage(pics[aquarium3D.backSrc], (canvasAquarium.width - canvasAquarium.height * (pics[aquarium3D.backSrc].width / pics[aquarium3D.backSrc].height)) / 2, 0, canvasAquarium.height * (pics[aquarium3D.backSrc].width / pics[aquarium3D.backSrc].height), canvasAquarium.height, contextAquarium);
         }
         for (var i = 0; i < aquarium3D.fish.length; i++) {
-            if (!aquarium3D.fish[i].width) {
+            if (aquarium3D.fish[i].width == 0) {
                 aquarium3D.fish[i].speed = canvasAquarium.width / 400 + (canvasAquarium.width * Math.random()) / 200;
                 aquarium3D.fish[i].width = canvasAquarium.width * 0.06 + canvasAquarium.width * 0.02 * Math.random();
                 aquarium3D.fish[i].height = aquarium3D.fish[i].width * (pics[aquarium3D.fish[i].src].height / pics[aquarium3D.fish[i].src].width);
@@ -2480,7 +2576,7 @@ function drawObjects() {
                 aquarium3D.fish[i].y = (canvasAquarium.height - aquarium3D.fish[i].height) * Math.random();
             }
             else if (aquarium3D.fish[i].x >= canvasAquarium.width) {
-                delete aquarium3D.fish[i].width;
+                aquarium3D.fish[i].width = 0;
             }
             else {
                 aquarium3D.fish[i].x += aquarium3D.fish[i].speed + (canvasAquarium.width * Math.random()) / 400;
@@ -2494,27 +2590,27 @@ function drawObjects() {
     }
     function drawBurningBuilding3D() {
         var update = false;
-        contextBurningBuildung.clearRect(0, 0, canvasBurningBuildung.width, canvasBurningBuildung.height);
-        contextBurningBuildung.save();
+        contextBurningBuilding.clearRect(0, 0, canvasBurningBuilding.width, canvasBurningBuilding.height);
+        contextBurningBuilding.save();
         if (!burningBuilding3D.colorRedPosition || frameNo % 10 === 0) {
             update = true;
             burningBuilding3D.colorRedPosition = Math.random();
-            contextBurningBuildung.rotate(Math.random() * Math.PI);
+            contextBurningBuilding.rotate(Math.random() * Math.PI);
         }
-        const gradient = contextBurningBuildung.createLinearGradient(0, 0, canvasBurningBuildung.width, canvasBurningBuildung.height);
+        const gradient = contextBurningBuilding.createLinearGradient(0, 0, canvasBurningBuilding.width, canvasBurningBuilding.height);
         gradient.addColorStop(0, "black");
         gradient.addColorStop(burningBuilding3D.colorRedPosition, "darkRed");
         gradient.addColorStop(1, "black");
-        contextBurningBuildung.fillStyle = gradient;
-        contextBurningBuildung.fillRect(0, 0, canvasBurningBuildung.width, canvasBurningBuildung.height);
-        contextBurningBuildung.restore();
+        contextBurningBuilding.fillStyle = gradient;
+        contextBurningBuilding.fillRect(0, 0, canvasBurningBuilding.width, canvasBurningBuilding.height);
+        contextBurningBuilding.restore();
         return update;
     }
     function adjustScaleX(x) {
-        return ((canvas.width * client.zoomAndTilt.realScale) / 2 - canvas.width / 2) / client.zoomAndTilt.realScale + x / client.zoomAndTilt.realScale - client.zoomAndTilt.offsetX / client.zoomAndTilt.realScale;
+        return ((canvasGesture.width * client.zoomAndTilt.realScale) / 2 - canvasGesture.width / 2) / client.zoomAndTilt.realScale + x / client.zoomAndTilt.realScale - client.zoomAndTilt.offsetX / client.zoomAndTilt.realScale;
     }
     function adjustScaleY(y) {
-        return ((canvas.height * client.zoomAndTilt.realScale) / 2 - canvas.height / 2) / client.zoomAndTilt.realScale + y / client.zoomAndTilt.realScale - client.zoomAndTilt.offsetY / client.zoomAndTilt.realScale;
+        return ((canvasGesture.height * client.zoomAndTilt.realScale) / 2 - canvasGesture.height / 2) / client.zoomAndTilt.realScale + y / client.zoomAndTilt.realScale - client.zoomAndTilt.offsetY / client.zoomAndTilt.realScale;
     }
     /////GENERAL/////
     if (modeSwitching) {
@@ -2542,13 +2638,15 @@ function drawObjects() {
     }
     hardware.mouse.cursor = hardware.mouse.isDrag ? "move" : "default";
     canvasAquarium.style.display = "none";
-    canvasBurningBuildung.style.display = "none";
+    canvasBurningBuilding.style.display = "none";
     if (gui.three) {
         /////THREE.JS/////
         canvasGesture.style.display = "none";
         canvasBackground.style.display = "none";
         canvas.style.display = "none";
+        canvas2.style.display = "none";
         canvasSemiForeground.style.display = "none";
+        canvasMargins.style.display = "none";
         background3D.behind.style.display = "block";
         if (background3D.behindClone) {
             background3D.behindClone.style.display = "block";
@@ -2581,7 +2679,9 @@ function drawObjects() {
         canvasGesture.style.display = "";
         canvasBackground.style.display = "";
         canvas.style.display = "";
+        canvas2.style.display = "";
         canvasSemiForeground.style.display = "";
+        canvasMargins.style.display = APP_DATA.debug && debug.showHidden ? "none" : "";
         background3D.behind.style.display = "none";
         if (background3D.behindClone) {
             background3D.behindClone.style.display = "none";
@@ -2591,22 +2691,24 @@ function drawObjects() {
         contextForeground.setTransform(client.zoomAndTilt.realScale, 0, 0, client.zoomAndTilt.realScale, (-(client.zoomAndTilt.realScale - 1) * canvasForeground.width) / 2 + client.zoomAndTilt.offsetX, (-(client.zoomAndTilt.realScale - 1) * canvasForeground.height) / 2 + client.zoomAndTilt.offsetY);
         context.clearRect(0, 0, canvas.width, canvas.height);
         context.setTransform(client.zoomAndTilt.realScale, 0, 0, client.zoomAndTilt.realScale, (-(client.zoomAndTilt.realScale - 1) * canvas.width) / 2 + client.zoomAndTilt.offsetX, (-(client.zoomAndTilt.realScale - 1) * canvas.height) / 2 + client.zoomAndTilt.offsetY);
+        context2.clearRect(0, 0, canvas2.width, canvas2.height);
+        context2.setTransform(client.zoomAndTilt.realScale, 0, 0, client.zoomAndTilt.realScale, (-(client.zoomAndTilt.realScale - 1) * canvas2.width) / 2 + client.zoomAndTilt.offsetX, (-(client.zoomAndTilt.realScale - 1) * canvas2.height) / 2 + client.zoomAndTilt.offsetY);
     }
     var deltaDiv = 80;
     if (client.zoomAndTilt.realScale > 1) {
         var deltaX = 0;
         var deltaY = 0;
-        if (hardware.keyboard.keysHold["ArrowLeft"] && hardware.keyboard.keysHold["ArrowLeft"].active && !hardware.keyboard.keysHold["ArrowLeft"].ctrlKey) {
-            deltaX += (canvas.width * client.zoomAndTilt.realScale) / deltaDiv;
+        if (hardware.keyboard.keysHold["ArrowLeft"] && hardware.keyboard.keysHold["ArrowLeft"].active && !hardware.keyboard.keysHold["ArrowLeft"].ctrlKey && !hardware.keyboard.keysHold["ArrowLeft"].shiftKey) {
+            deltaX += (canvasGesture.width * client.zoomAndTilt.realScale) / deltaDiv;
         }
-        if (hardware.keyboard.keysHold["ArrowUp"] && hardware.keyboard.keysHold["ArrowUp"].active && !hardware.keyboard.keysHold["ArrowUp"].ctrlKey) {
-            deltaY += (canvas.height * client.zoomAndTilt.realScale) / deltaDiv;
+        if (hardware.keyboard.keysHold["ArrowUp"] && hardware.keyboard.keysHold["ArrowUp"].active && !hardware.keyboard.keysHold["ArrowUp"].ctrlKey && !hardware.keyboard.keysHold["ArrowUp"].shiftKey) {
+            deltaY += (canvasGesture.height * client.zoomAndTilt.realScale) / deltaDiv;
         }
-        if (hardware.keyboard.keysHold["ArrowRight"] && hardware.keyboard.keysHold["ArrowRight"].active && !hardware.keyboard.keysHold["ArrowRight"].ctrlKey) {
-            deltaX -= (canvas.width * client.zoomAndTilt.realScale) / deltaDiv;
+        if (hardware.keyboard.keysHold["ArrowRight"] && hardware.keyboard.keysHold["ArrowRight"].active && !hardware.keyboard.keysHold["ArrowRight"].ctrlKey && !hardware.keyboard.keysHold["ArrowRight"].shiftKey) {
+            deltaX -= (canvasGesture.width * client.zoomAndTilt.realScale) / deltaDiv;
         }
-        if (hardware.keyboard.keysHold["ArrowDown"] && hardware.keyboard.keysHold["ArrowDown"].active && !hardware.keyboard.keysHold["ArrowDown"].ctrlKey) {
-            deltaY -= (canvas.height * client.zoomAndTilt.realScale) / deltaDiv;
+        if (hardware.keyboard.keysHold["ArrowDown"] && hardware.keyboard.keysHold["ArrowDown"].active && !hardware.keyboard.keysHold["ArrowDown"].ctrlKey && !hardware.keyboard.keysHold["ArrowDown"].shiftKey) {
+            deltaY -= (canvasGesture.height * client.zoomAndTilt.realScale) / deltaDiv;
         }
         if (deltaX != 0 || deltaY != 0) {
             getGesture({ type: "swipe", deltaX: deltaX, deltaY: deltaY });
@@ -2614,20 +2716,30 @@ function drawObjects() {
     }
     var deltaX = 0;
     var deltaY = 0;
-    if (hardware.keyboard.keysHold["ArrowLeft"] && hardware.keyboard.keysHold["ArrowLeft"].active && hardware.keyboard.keysHold["ArrowLeft"].ctrlKey) {
-        deltaX += canvas.width / deltaDiv;
+    if (hardware.keyboard.keysHold["ArrowLeft"] && hardware.keyboard.keysHold["ArrowLeft"].active && hardware.keyboard.keysHold["ArrowLeft"].ctrlKey && !hardware.keyboard.keysHold["ArrowLeft"].shiftKey) {
+        deltaX += canvasGesture.width / deltaDiv;
     }
-    if (hardware.keyboard.keysHold["ArrowUp"] && hardware.keyboard.keysHold["ArrowUp"].active && hardware.keyboard.keysHold["ArrowUp"].ctrlKey) {
-        deltaY += canvas.height / deltaDiv;
+    if (hardware.keyboard.keysHold["ArrowUp"] && hardware.keyboard.keysHold["ArrowUp"].active && hardware.keyboard.keysHold["ArrowUp"].ctrlKey && !hardware.keyboard.keysHold["ArrowUp"].shiftKey) {
+        deltaY += canvasGesture.height / deltaDiv;
     }
-    if (hardware.keyboard.keysHold["ArrowRight"] && hardware.keyboard.keysHold["ArrowRight"].active && hardware.keyboard.keysHold["ArrowRight"].ctrlKey) {
-        deltaX -= canvas.width / deltaDiv;
+    if (hardware.keyboard.keysHold["ArrowRight"] && hardware.keyboard.keysHold["ArrowRight"].active && hardware.keyboard.keysHold["ArrowRight"].ctrlKey && !hardware.keyboard.keysHold["ArrowRight"].shiftKey) {
+        deltaX -= canvasGesture.width / deltaDiv;
     }
-    if (hardware.keyboard.keysHold["ArrowDown"] && hardware.keyboard.keysHold["ArrowDown"].active && hardware.keyboard.keysHold["ArrowDown"].ctrlKey) {
-        deltaY -= canvas.height / deltaDiv;
+    if (hardware.keyboard.keysHold["ArrowDown"] && hardware.keyboard.keysHold["ArrowDown"].active && hardware.keyboard.keysHold["ArrowDown"].ctrlKey && !hardware.keyboard.keysHold["ArrowDown"].shiftKey) {
+        deltaY -= canvasGesture.height / deltaDiv;
     }
     if (deltaX != 0 || deltaY != 0) {
         getGesture({ type: "tilt", deltaX: deltaX, deltaY: deltaY });
+    }
+    var deltaAngle = 0;
+    if (hardware.keyboard.keysHold["ArrowLeft"] && hardware.keyboard.keysHold["ArrowLeft"].active && hardware.keyboard.keysHold["ArrowLeft"].shiftKey) {
+        deltaAngle += 1 / deltaDiv;
+    }
+    if (hardware.keyboard.keysHold["ArrowRight"] && hardware.keyboard.keysHold["ArrowRight"].active && hardware.keyboard.keysHold["ArrowRight"].shiftKey) {
+        deltaAngle -= 1 / deltaDiv;
+    }
+    if (deltaAngle != 0) {
+        getGesture({ type: "rotate", angle: deltaAngle });
     }
     /////CARS/////
     if (!onlineConnection.stop) {
@@ -2639,14 +2751,16 @@ function drawObjects() {
         trains.forEach(function (train, i) {
             const flickerDuration = 3;
             if (trains3D[i] && trains3D[i].mesh) {
-                trains3D[i].mesh.position.set((three.calcScale() * (train.x - background.x - background.width / 2)) / background.width, three.calcScale() * (-(train.y - background.y - background.height / 2) / background.width) + three.calcPositionY(), trains3D[i].positionZ);
+                const trainFrontHeight = (three.calcScale() * train.front.z) / background.width;
+                const trainBackHeight = (three.calcScale() * train.back.z) / background.width;
+                trains3D[i].mesh.position.set((three.calcScale() * (train.x - background.x - background.width / 2)) / background.width, three.calcScale() * (-(train.y - background.y - background.height / 2) / background.width) + three.calcPositionY(), trains3D[i].positionZ + (trainFrontHeight + trainBackHeight) / 2);
                 if (trains3D[i].meshFront) {
-                    trains3D[i].meshFront.left.position.set((three.calcScale() * (train.wheels.front.leftX - background.x - background.width / 2)) / background.width, three.calcScale() * (-(train.wheels.front.leftY - background.y - background.height / 2) / background.width) + three.calcPositionY(), trains3D[i].positionZ);
-                    trains3D[i].meshFront.right.position.set((three.calcScale() * (train.wheels.front.rightX - background.x - background.width / 2)) / background.width, three.calcScale() * (-(train.wheels.front.rightY - background.y - background.height / 2) / background.width) + three.calcPositionY(), trains3D[i].positionZ);
+                    trains3D[i].meshFront.left.position.set((three.calcScale() * (train.wheels.front.leftX - background.x - background.width / 2)) / background.width, three.calcScale() * (-(train.wheels.front.leftY - background.y - background.height / 2) / background.width) + three.calcPositionY(), trains3D[i].positionZ + trainFrontHeight);
+                    trains3D[i].meshFront.right.position.set((three.calcScale() * (train.wheels.front.rightX - background.x - background.width / 2)) / background.width, three.calcScale() * (-(train.wheels.front.rightY - background.y - background.height / 2) / background.width) + three.calcPositionY(), trains3D[i].positionZ + trainFrontHeight);
                 }
                 if (trains3D[i].meshBack) {
-                    trains3D[i].meshBack.left.position.set((three.calcScale() * (train.wheels.back.leftX - background.x - background.width / 2)) / background.width, three.calcScale() * (-(train.wheels.back.leftY - background.y - background.height / 2) / background.width) + three.calcPositionY(), trains3D[i].positionZ);
-                    trains3D[i].meshBack.right.position.set((three.calcScale() * (train.wheels.back.rightX - background.x - background.width / 2)) / background.width, three.calcScale() * (-(train.wheels.back.rightY - background.y - background.height / 2) / background.width) + three.calcPositionY(), trains3D[i].positionZ);
+                    trains3D[i].meshBack.left.position.set((three.calcScale() * (train.wheels.back.leftX - background.x - background.width / 2)) / background.width, three.calcScale() * (-(train.wheels.back.leftY - background.y - background.height / 2) / background.width) + three.calcPositionY(), trains3D[i].positionZ + trainBackHeight);
+                    trains3D[i].meshBack.right.position.set((three.calcScale() * (train.wheels.back.rightX - background.x - background.width / 2)) / background.width, three.calcScale() * (-(train.wheels.back.rightY - background.y - background.height / 2) / background.width) + three.calcPositionY(), trains3D[i].positionZ + trainBackHeight);
                 }
                 if (frameNo <= train.lastDirectionChange + flickerDuration * 3) {
                     const flickerRandom = (trains3D[i].positionZ / 5) * Math.random();
@@ -2678,6 +2792,9 @@ function drawObjects() {
                 /* END UPDATE: v9.1.5 */
                 setMaterialTransparent(trains3D[i].mesh, train.opacity);
                 trains3D[i].mesh.rotation.z = -train.displayAngle;
+                // Tilt on gradients: rotate about the object's transverse axis after its direction
+                trains3D[i].mesh.rotation.order = "ZYX";
+                trains3D[i].mesh.rotation.y = -Math.atan2((train.front.z - train.back.z) / background.width, Math.hypot(train.front.x - train.back.x, train.front.y - train.back.y) / background.width);
                 if (trains3D[i].meshFront) {
                     setMaterialTransparent(trains3D[i].meshFront.left, train.opacity);
                     setMaterialTransparent(trains3D[i].meshFront.right, train.opacity);
@@ -2693,17 +2810,19 @@ function drawObjects() {
             }
             train.cars.forEach(function (car, j) {
                 if (trains3D[i].cars[j] && trains3D[i].cars[j].mesh) {
-                    trains3D[i].cars[j].mesh.position.set(three.calcScale() * ((car.x - background.x - background.width / 2) / background.width), three.calcScale() * (-(car.y - background.y - background.height / 2) / background.width) + three.calcPositionY(), trains3D[i].cars[j].positionZ);
+                    const carFrontHeight = (three.calcScale() * car.front.z) / background.width;
+                    const carBackHeight = (three.calcScale() * car.back.z) / background.width;
+                    trains3D[i].cars[j].mesh.position.set(three.calcScale() * ((car.x - background.x - background.width / 2) / background.width), three.calcScale() * (-(car.y - background.y - background.height / 2) / background.width) + three.calcPositionY(), trains3D[i].cars[j].positionZ + (carFrontHeight + carBackHeight) / 2);
                     if (trains3D[i].cars[j].meshFront) {
-                        trains3D[i].cars[j].meshFront.left.position.set((three.calcScale() * (car.wheels.front.leftX - background.x - background.width / 2)) / background.width, three.calcScale() * (-(car.wheels.front.leftY - background.y - background.height / 2) / background.width) + three.calcPositionY(), trains3D[i].cars[j].positionZ);
-                        trains3D[i].cars[j].meshFront.right.position.set((three.calcScale() * (car.wheels.front.rightX - background.x - background.width / 2)) / background.width, three.calcScale() * (-(car.wheels.front.rightY - background.y - background.height / 2) / background.width) + three.calcPositionY(), trains3D[i].cars[j].positionZ);
+                        trains3D[i].cars[j].meshFront.left.position.set((three.calcScale() * (car.wheels.front.leftX - background.x - background.width / 2)) / background.width, three.calcScale() * (-(car.wheels.front.leftY - background.y - background.height / 2) / background.width) + three.calcPositionY(), trains3D[i].cars[j].positionZ + carFrontHeight);
+                        trains3D[i].cars[j].meshFront.right.position.set((three.calcScale() * (car.wheels.front.rightX - background.x - background.width / 2)) / background.width, three.calcScale() * (-(car.wheels.front.rightY - background.y - background.height / 2) / background.width) + three.calcPositionY(), trains3D[i].cars[j].positionZ + carFrontHeight);
                     }
                     if (trains3D[i].cars[j].meshBack) {
-                        trains3D[i].cars[j].meshBack.left.position.set((three.calcScale() * (car.wheels.back.leftX - background.x - background.width / 2)) / background.width, three.calcScale() * (-(car.wheels.back.leftY - background.y - background.height / 2) / background.width) + three.calcPositionY(), trains3D[i].cars[j].positionZ);
-                        trains3D[i].cars[j].meshBack.right.position.set((three.calcScale() * (car.wheels.back.rightX - background.x - background.width / 2)) / background.width, three.calcScale() * (-(car.wheels.back.rightY - background.y - background.height / 2) / background.width) + three.calcPositionY(), trains3D[i].cars[j].positionZ);
+                        trains3D[i].cars[j].meshBack.left.position.set((three.calcScale() * (car.wheels.back.leftX - background.x - background.width / 2)) / background.width, three.calcScale() * (-(car.wheels.back.leftY - background.y - background.height / 2) / background.width) + three.calcPositionY(), trains3D[i].cars[j].positionZ + carBackHeight);
+                        trains3D[i].cars[j].meshBack.right.position.set((three.calcScale() * (car.wheels.back.rightX - background.x - background.width / 2)) / background.width, three.calcScale() * (-(car.wheels.back.rightY - background.y - background.height / 2) / background.width) + three.calcPositionY(), trains3D[i].cars[j].positionZ + carBackHeight);
                     }
                     if (frameNo <= train.lastDirectionChange + flickerDuration * 3) {
-                        const flickerRandom = (trains3D[i].cars[j].mesh.position.z / 5) * Math.random();
+                        const flickerRandom = (trains3D[i].cars[j].positionZ / 5) * Math.random();
                         if (frameNo <= train.lastDirectionChange + flickerDuration || frameNo > train.lastDirectionChange + flickerDuration * 2) {
                             trains3D[i].cars[j].mesh.position.z += flickerRandom;
                             if (trains3D[i].cars[j].meshFront) {
@@ -2732,6 +2851,8 @@ function drawObjects() {
                     /* END UPDATE: v9.1.5 */
                     setMaterialTransparent(trains3D[i].cars[j].mesh, car.opacity);
                     trains3D[i].cars[j].mesh.rotation.z = -car.displayAngle;
+                    trains3D[i].cars[j].mesh.rotation.order = "ZYX";
+                    trains3D[i].cars[j].mesh.rotation.y = -Math.atan2((car.front.z - car.back.z) / background.width, Math.hypot(car.front.x - car.back.x, car.front.y - car.back.y) / background.width);
                     if (trains3D[i].cars[j].meshFront) {
                         setMaterialTransparent(trains3D[i].cars[j].meshFront.left, car.opacity);
                         setMaterialTransparent(trains3D[i].cars[j].meshFront.right, car.opacity);
@@ -2878,7 +2999,11 @@ function drawObjects() {
             const object = trains[three.followObject].standardDirection || trains[three.followObject].cars.length == 0 ? trains[three.followObject] : trains[three.followObject].cars[trains[three.followObject].cars.length - 1];
             const object3D = trains[three.followObject].standardDirection || trains3D[three.followObject].cars.length == 0 ? trains3D[three.followObject] : trains3D[three.followObject].cars[trains3D[three.followObject].cars.length - 1];
             background3D.animateBehind(false, (trains[three.followObject].standardDirection ? object.displayAngle : object.displayAngle - Math.PI) / (2 * Math.PI));
-            three.followCamera.position.set((three.calcScale() * (trains[three.followObject].outerX - background.x - background.width / 2)) / background.width, three.calcScale() * (-(trains[three.followObject].outerY - background.y - background.height / 2) / background.width) + three.calcPositionY(), object3D.positionZ == undefined ? 0 : object3D.positionZ);
+            // The camera sits at the train's outer end; on gradients its height follows the slope from the middle of the object to there
+            const gradientSign = trains[three.followObject].standardDirection ? 1 : -1;
+            const gradient = (object.front.z - object.back.z) / Math.hypot(object.front.x - object.back.x, object.front.y - object.back.y);
+            const cameraZ = (object.front.z + object.back.z) / 2 + gradientSign * gradient * Math.hypot(trains[three.followObject].outerX - object.x, trains[three.followObject].outerY - object.y);
+            three.followCamera.position.set((three.calcScale() * (trains[three.followObject].outerX - background.x - background.width / 2)) / background.width, three.calcScale() * (-(trains[three.followObject].outerY - background.y - background.height / 2) / background.width) + three.calcPositionY(), (object3D.positionZ == undefined ? 0 : object3D.positionZ) + (three.calcScale() * cameraZ) / background.width);
             three.followCamera.rotation.set(0, 0, 0);
             three.followCamera.rotation.z = -object.displayAngle;
             if (!trains[three.followObject].standardDirection) {
@@ -2889,6 +3014,10 @@ function drawObjects() {
             three.followCamera.rotateOnAxis(axis, rad);
             var axis = new THREE.Vector3(1, 0, 0);
             var rad = Math.PI / 2;
+            three.followCamera.rotateOnAxis(axis, rad);
+            // Tilt with the train on gradients, looking up when the viewing direction climbs
+            var axis = new THREE.Vector3(1, 0, 0);
+            var rad = gradientSign * Math.atan(gradient);
             three.followCamera.rotateOnAxis(axis, rad);
             if (currentMode != Modes.DEMO && !gui.controlCenter && !gui.konamiOverlay && !multiplayerMode.waitingClock.visible) {
                 contextForeground.save();
@@ -3073,40 +3202,51 @@ function drawObjects() {
                         hardware.mouse.lastClickDoubleClick = true;
                     }
                     resetTilt();
+                    resetRotation();
                 }
             }
         }
-        const continueTrackGroupName = "continue_track_group";
-        const continueTrackOldObject = three.scene.getObjectByName(continueTrackGroupName);
-        if (continueTrackOldObject) {
-            three.scene.remove(continueTrackOldObject);
+        // The hidden tracks' rails, each shown while a train on it is partly hidden; built once per
+        // scene and again after a resize
+        if (continueTrack3D.group?.parent != three.scene) {
+            const passing = rotationPoints.outer.rightSidingPassing;
+            continueTrack3D.elements = [
+                // rightSiding's left leg and bottom straight are shown whole while a train is on them
+                // beyond the passing track's junction
+                { state: 212, line: rotationPoints.outer.rightSiding.end, isOnPart: (bogie) => bogie.y - background.y < passing.diverge.y[0] },
+                { state: 213, curve: rotationPoints.outer.rightSiding.continueCurve0 },
+                { state: 214, line: rotationPoints.outer.rightSiding.continueLine0 },
+                { state: 215, curve: rotationPoints.outer.rightSiding.continueCurve1 },
+                { state: 216, line: rotationPoints.outer.rightSiding.continueLine1 },
+                { state: 217, curve: rotationPoints.outer.rightSiding.continueCurve2 },
+                { state: 218, line: rotationPoints.outer.rightSiding.rejoin, isOnPart: (bogie) => bogie.x - background.x > passing.merge.x[3] },
+                { state: 220, curve: passing.diverge },
+                { state: 221, curve: passing.curve0 },
+                { state: 222, line: passing.line0 },
+                { state: 223, curve: passing.curve1 },
+                { state: 224, line: passing.line1 },
+                { state: 225, curve: passing.curve2 },
+                { state: 226, line: passing.line2 },
+                { state: 227, curve: passing.merge }
+            ];
+            continueTrack3D.group = new THREE.Group();
+            continueTrack3D.elements.forEach(function (element) {
+                const elementGroup = new THREE.Group();
+                if (element.line) {
+                    drawContinueTrackLine(elementGroup, element.line);
+                }
+                else {
+                    drawContinueTrackCurve(elementGroup, element.curve);
+                }
+                continueTrack3D.group.add(elementGroup);
+            });
+            three.scene.add(continueTrack3D.group);
         }
-        const continueTrackNewObject = new THREE.Group();
-        continueTrackNewObject.name = continueTrackGroupName;
-        if (trainInTrackElement(212)) {
-            drawContinueTrackLine(continueTrackNewObject, "end", -1);
-        }
-        if (trainInTrackElement(213)) {
-            drawContinueTrackCurve(continueTrackNewObject, "continueCurve0", -1);
-        }
-        if (trainInTrackElement(214)) {
-            drawContinueTrackLine(continueTrackNewObject, "continueLine0", -1);
-            drawContinueTrackLine(continueTrackNewObject, "continueLine0");
-        }
-        if (trainInTrackElement(215)) {
-            drawContinueTrackCurve(continueTrackNewObject, "continueCurve1");
-        }
-        if (trainInTrackElement(216)) {
-            drawContinueTrackLine(continueTrackNewObject, "continueLine1");
-            drawContinueTrackLine(continueTrackNewObject, "continueLine1", -1);
-        }
-        if (trainInTrackElement(217)) {
-            drawContinueTrackCurve(continueTrackNewObject, "continueCurve2", -1);
-        }
-        if (trainInTrackElement(218)) {
-            drawContinueTrackLine(continueTrackNewObject, "rejoin", -1);
-        }
-        three.scene.add(continueTrackNewObject);
+        continueTrack3D.elements.forEach(function (element, k) {
+            continueTrack3D.group.children[k].visible = trainInTrackElement(element.state, element.isOnPart);
+        });
+        continueTrack3D.stripMaterial.color.setHex(three.night ? 0x541e03 : 0x963c0e);
+        continueTrack3D.lineMaterial.color.copy(continueTrack3D.stripMaterial.color);
         three.animateLights();
         three.renderer.render(three.scene, three.activeCamera);
     }
@@ -3116,12 +3256,13 @@ function drawObjects() {
         var classicUISavedMouseDrag;
         var classicUISavedWheelScroll;
         if (classicUI.ready()) {
-            context.save();
-            context.beginPath();
-            context.rect(background.x, background.y, background.width, background.height);
-            var moveInPath = context.isPointInPath(hardware.mouse.moveX, hardware.mouse.moveY);
-            var wheelInPath = context.isPointInPath(hardware.mouse.wheelX, hardware.mouse.wheelY);
-            context.restore();
+            contextGesture.save();
+            contextGesture.setTransform(client.zoomAndTilt.realScale, 0, 0, client.zoomAndTilt.realScale, (-(client.zoomAndTilt.realScale - 1) * canvasGesture.width) / 2 + client.zoomAndTilt.offsetX, (-(client.zoomAndTilt.realScale - 1) * canvasGesture.height) / 2 + client.zoomAndTilt.offsetY);
+            contextGesture.beginPath();
+            contextGesture.rect(background.x, background.y, background.width, background.height);
+            var moveInPath = contextGesture.isPointInPath(hardware.mouse.moveX, hardware.mouse.moveY);
+            var wheelInPath = contextGesture.isPointInPath(hardware.mouse.wheelX, hardware.mouse.wheelY);
+            contextGesture.restore();
             if (!moveInPath || classicUI.pointInTransformerImage(hardware.mouse.moveX, hardware.mouse.moveY)) {
                 classicUISavedMouseHold = hardware.mouse.isHold;
                 classicUISavedMouseDrag = hardware.mouse.isDrag;
@@ -3198,19 +3339,7 @@ function drawObjects() {
             for (var i = 0; i < taxOffice.params.number; i++) {
                 if (frameNo % taxOffice.params.frameNo === 0) {
                     if (Math.random() > taxOffice.params.frameProbability) {
-                        if (Math.random() >= taxOffice.params.fire.color.probability) {
-                            taxOffice.fire[i].color = "rgba(" + taxOffice.params.fire.color.yellow.red + "," + taxOffice.params.fire.color.yellow.green + "," + taxOffice.params.fire.color.yellow.blue + "," + taxOffice.params.fire.color.yellow.alpha * Math.random() + ")";
-                        }
-                        else {
-                            taxOffice.fire[i].color = "rgba(" + taxOffice.params.fire.color.red.red + "," + taxOffice.params.fire.color.red.green + "," + taxOffice.params.fire.color.red.blue + "," + taxOffice.params.fire.color.red.alpha * Math.random() + ")";
-                        }
-                        taxOffice.fire[i].x = Math.random() * taxOffice.params.fire.x;
-                        taxOffice.fire[i].y = Math.random() * taxOffice.params.fire.y;
-                        taxOffice.fire[i].size = Math.random() * taxOffice.params.fire.size;
-                        taxOffice.smoke[i].color = "rgba(" + taxOffice.params.smoke.color.red + "," + taxOffice.params.smoke.color.green + "," + taxOffice.params.smoke.color.blue + "," + taxOffice.params.smoke.color.alpha * Math.random() + ")";
-                        taxOffice.smoke[i].x = Math.random() * taxOffice.params.smoke.x;
-                        taxOffice.smoke[i].y = Math.random() * taxOffice.params.smoke.y;
-                        taxOffice.smoke[i].size = Math.random() * taxOffice.params.smoke.size;
+                        setTaxOfficeParticles(i);
                     }
                 }
                 contextForeground.fillStyle = taxOffice.fire[i].color;
@@ -3535,7 +3664,7 @@ function drawObjects() {
                             }
                         }
                     }
-                    else if ((hardware.mouse.wheelScrollY !== 0 && hardware.mouse.wheelScrolls && !(adjustScaleY(hardware.mouse.wheelY > y) && adjustScaleX(hardware.mouse.wheelX < x))) || !(adjustScaleY(hardware.mouse.moveY) > y && adjustScaleX(hardware.mouse.moveX) < x)) {
+                    else if ((hardware.mouse.wheelScrollY !== 0 && hardware.mouse.wheelScrolls && !(adjustScaleY(hardware.mouse.wheelY) > y && adjustScaleX(hardware.mouse.wheelX) < x)) || !(adjustScaleY(hardware.mouse.moveY) > y && adjustScaleX(hardware.mouse.moveX) < x)) {
                         var angle;
                         if (hardware.mouse.wheelScrollY !== 0 && hardware.mouse.wheelScrolls && !(adjustScaleY(hardware.mouse.wheelY) > y && adjustScaleX(hardware.mouse.wheelX) < x)) {
                             angle = classicUI.transformer.wheelInput.angle * (hardware.mouse.wheelScrollY < 0 ? 1.1 : 0.9);
@@ -3812,7 +3941,7 @@ function drawObjects() {
             context.bezierCurveTo(rotationPoints.outer.rightSiding.curve.x[1] + background.x, rotationPoints.outer.rightSiding.curve.y[1] + background.y, rotationPoints.outer.rightSiding.curve.x[2] + background.x, rotationPoints.outer.rightSiding.curve.y[2] + background.y, rotationPoints.outer.rightSiding.curve.x[3] + background.x, rotationPoints.outer.rightSiding.curve.y[3] + background.y);
             context.stroke();
             context.beginPath();
-            context.arc(rotationPoints.outer.rightSiding.curve.x[0] + background.x, rotationPoints.outer.rightSiding.curve.x[0] + background.y, background.width / 100, 0, 2 * Math.PI);
+            context.arc(rotationPoints.outer.rightSiding.curve.x[0] + background.x, rotationPoints.outer.rightSiding.curve.y[0] + background.y, background.width / 100, 0, 2 * Math.PI);
             context.arc(rotationPoints.outer.rightSiding.curve.x[1] + background.x, rotationPoints.outer.rightSiding.curve.y[1] + background.y, background.width / 100, 0, 2 * Math.PI);
             context.fill();
             context.beginPath();
@@ -3842,6 +3971,78 @@ function drawObjects() {
             context.beginPath();
             context.moveTo(rotationPoints.outer.rightSiding.rejoin.x[0] + background.x, rotationPoints.outer.rightSiding.rejoin.y[0] + background.y);
             context.lineTo(rotationPoints.outer.rightSiding.rejoin.x[1] + background.x, rotationPoints.outer.rightSiding.rejoin.y[1] + background.y);
+            context.stroke();
+            context.beginPath();
+            context.moveTo(rotationPoints.outer.rightSidingPassing.diverge.x[0] + background.x, rotationPoints.outer.rightSidingPassing.diverge.y[0] + background.y);
+            context.bezierCurveTo(rotationPoints.outer.rightSidingPassing.diverge.x[1] + background.x, rotationPoints.outer.rightSidingPassing.diverge.y[1] + background.y, rotationPoints.outer.rightSidingPassing.diverge.x[2] + background.x, rotationPoints.outer.rightSidingPassing.diverge.y[2] + background.y, rotationPoints.outer.rightSidingPassing.diverge.x[3] + background.x, rotationPoints.outer.rightSidingPassing.diverge.y[3] + background.y);
+            context.stroke();
+            context.beginPath();
+            context.moveTo(rotationPoints.outer.rightSidingPassing.curve0.x[0] + background.x, rotationPoints.outer.rightSidingPassing.curve0.y[0] + background.y);
+            context.bezierCurveTo(rotationPoints.outer.rightSidingPassing.curve0.x[1] + background.x, rotationPoints.outer.rightSidingPassing.curve0.y[1] + background.y, rotationPoints.outer.rightSidingPassing.curve0.x[2] + background.x, rotationPoints.outer.rightSidingPassing.curve0.y[2] + background.y, rotationPoints.outer.rightSidingPassing.curve0.x[3] + background.x, rotationPoints.outer.rightSidingPassing.curve0.y[3] + background.y);
+            context.stroke();
+            context.beginPath();
+            context.moveTo(rotationPoints.outer.rightSidingPassing.line0.x[0] + background.x, rotationPoints.outer.rightSidingPassing.line0.y[0] + background.y);
+            context.lineTo(rotationPoints.outer.rightSidingPassing.line0.x[1] + background.x, rotationPoints.outer.rightSidingPassing.line0.y[1] + background.y);
+            context.stroke();
+            context.beginPath();
+            context.moveTo(rotationPoints.outer.rightSidingPassing.curve1.x[0] + background.x, rotationPoints.outer.rightSidingPassing.curve1.y[0] + background.y);
+            context.bezierCurveTo(rotationPoints.outer.rightSidingPassing.curve1.x[1] + background.x, rotationPoints.outer.rightSidingPassing.curve1.y[1] + background.y, rotationPoints.outer.rightSidingPassing.curve1.x[2] + background.x, rotationPoints.outer.rightSidingPassing.curve1.y[2] + background.y, rotationPoints.outer.rightSidingPassing.curve1.x[3] + background.x, rotationPoints.outer.rightSidingPassing.curve1.y[3] + background.y);
+            context.stroke();
+            context.beginPath();
+            context.moveTo(rotationPoints.outer.rightSidingPassing.line1.x[0] + background.x, rotationPoints.outer.rightSidingPassing.line1.y[0] + background.y);
+            context.lineTo(rotationPoints.outer.rightSidingPassing.line1.x[1] + background.x, rotationPoints.outer.rightSidingPassing.line1.y[1] + background.y);
+            context.stroke();
+            context.beginPath();
+            context.moveTo(rotationPoints.outer.rightSidingPassing.curve2.x[0] + background.x, rotationPoints.outer.rightSidingPassing.curve2.y[0] + background.y);
+            context.bezierCurveTo(rotationPoints.outer.rightSidingPassing.curve2.x[1] + background.x, rotationPoints.outer.rightSidingPassing.curve2.y[1] + background.y, rotationPoints.outer.rightSidingPassing.curve2.x[2] + background.x, rotationPoints.outer.rightSidingPassing.curve2.y[2] + background.y, rotationPoints.outer.rightSidingPassing.curve2.x[3] + background.x, rotationPoints.outer.rightSidingPassing.curve2.y[3] + background.y);
+            context.stroke();
+            context.beginPath();
+            context.moveTo(rotationPoints.outer.rightSidingPassing.line2.x[0] + background.x, rotationPoints.outer.rightSidingPassing.line2.y[0] + background.y);
+            context.lineTo(rotationPoints.outer.rightSidingPassing.line2.x[1] + background.x, rotationPoints.outer.rightSidingPassing.line2.y[1] + background.y);
+            context.stroke();
+            context.beginPath();
+            context.moveTo(rotationPoints.outer.rightSidingPassing.merge.x[0] + background.x, rotationPoints.outer.rightSidingPassing.merge.y[0] + background.y);
+            context.bezierCurveTo(rotationPoints.outer.rightSidingPassing.merge.x[1] + background.x, rotationPoints.outer.rightSidingPassing.merge.y[1] + background.y, rotationPoints.outer.rightSidingPassing.merge.x[2] + background.x, rotationPoints.outer.rightSidingPassing.merge.y[2] + background.y, rotationPoints.outer.rightSidingPassing.merge.x[3] + background.x, rotationPoints.outer.rightSidingPassing.merge.y[3] + background.y);
+            context.stroke();
+            context.beginPath();
+            context.moveTo(rotationPoints.outer.upperSiding.sCurve0.x[0] + background.x, rotationPoints.outer.upperSiding.sCurve0.y[0] + background.y);
+            context.bezierCurveTo(rotationPoints.outer.upperSiding.sCurve0.x[1] + background.x, rotationPoints.outer.upperSiding.sCurve0.y[1] + background.y, rotationPoints.outer.upperSiding.sCurve0.x[2] + background.x, rotationPoints.outer.upperSiding.sCurve0.y[2] + background.y, rotationPoints.outer.upperSiding.sCurve0.x[3] + background.x, rotationPoints.outer.upperSiding.sCurve0.y[3] + background.y);
+            context.stroke();
+            context.beginPath();
+            context.moveTo(rotationPoints.outer.upperSiding.sCurve1.x[0] + background.x, rotationPoints.outer.upperSiding.sCurve1.y[0] + background.y);
+            context.bezierCurveTo(rotationPoints.outer.upperSiding.sCurve1.x[1] + background.x, rotationPoints.outer.upperSiding.sCurve1.y[1] + background.y, rotationPoints.outer.upperSiding.sCurve1.x[2] + background.x, rotationPoints.outer.upperSiding.sCurve1.y[2] + background.y, rotationPoints.outer.upperSiding.sCurve1.x[3] + background.x, rotationPoints.outer.upperSiding.sCurve1.y[3] + background.y);
+            context.stroke();
+            context.beginPath();
+            context.moveTo(rotationPoints.outer.upperSiding.parallel.x[0] + background.x, rotationPoints.outer.upperSiding.parallel.y[0] + background.y);
+            context.lineTo(rotationPoints.outer.upperSiding.parallel.x[1] + background.x, rotationPoints.outer.upperSiding.parallel.y[1] + background.y);
+            context.stroke();
+            context.beginPath();
+            context.moveTo(rotationPoints.outer.upperSiding.loopCurve0.x[0] + background.x, rotationPoints.outer.upperSiding.loopCurve0.y[0] + background.y);
+            context.bezierCurveTo(rotationPoints.outer.upperSiding.loopCurve0.x[1] + background.x, rotationPoints.outer.upperSiding.loopCurve0.y[1] + background.y, rotationPoints.outer.upperSiding.loopCurve0.x[2] + background.x, rotationPoints.outer.upperSiding.loopCurve0.y[2] + background.y, rotationPoints.outer.upperSiding.loopCurve0.x[3] + background.x, rotationPoints.outer.upperSiding.loopCurve0.y[3] + background.y);
+            context.stroke();
+            context.beginPath();
+            context.moveTo(rotationPoints.outer.upperSiding.pillar.x[0] + background.x, rotationPoints.outer.upperSiding.pillar.y[0] + background.y);
+            context.bezierCurveTo(rotationPoints.outer.upperSiding.pillar.x[1] + background.x, rotationPoints.outer.upperSiding.pillar.y[1] + background.y, rotationPoints.outer.upperSiding.pillar.x[2] + background.x, rotationPoints.outer.upperSiding.pillar.y[2] + background.y, rotationPoints.outer.upperSiding.pillar.x[3] + background.x, rotationPoints.outer.upperSiding.pillar.y[3] + background.y);
+            context.stroke();
+            context.beginPath();
+            context.moveTo(rotationPoints.outer.upperSiding.loopCurve1.x[0] + background.x, rotationPoints.outer.upperSiding.loopCurve1.y[0] + background.y);
+            context.bezierCurveTo(rotationPoints.outer.upperSiding.loopCurve1.x[1] + background.x, rotationPoints.outer.upperSiding.loopCurve1.y[1] + background.y, rotationPoints.outer.upperSiding.loopCurve1.x[2] + background.x, rotationPoints.outer.upperSiding.loopCurve1.y[2] + background.y, rotationPoints.outer.upperSiding.loopCurve1.x[3] + background.x, rotationPoints.outer.upperSiding.loopCurve1.y[3] + background.y);
+            context.stroke();
+            context.beginPath();
+            context.moveTo(rotationPoints.outer.upperSiding.loopCurve2.x[0] + background.x, rotationPoints.outer.upperSiding.loopCurve2.y[0] + background.y);
+            context.bezierCurveTo(rotationPoints.outer.upperSiding.loopCurve2.x[1] + background.x, rotationPoints.outer.upperSiding.loopCurve2.y[1] + background.y, rotationPoints.outer.upperSiding.loopCurve2.x[2] + background.x, rotationPoints.outer.upperSiding.loopCurve2.y[2] + background.y, rotationPoints.outer.upperSiding.loopCurve2.x[3] + background.x, rotationPoints.outer.upperSiding.loopCurve2.y[3] + background.y);
+            context.stroke();
+            context.beginPath();
+            context.moveTo(rotationPoints.outer.upperSiding.loopLine0.x[0] + background.x, rotationPoints.outer.upperSiding.loopLine0.y[0] + background.y);
+            context.lineTo(rotationPoints.outer.upperSiding.loopLine0.x[1] + background.x, rotationPoints.outer.upperSiding.loopLine0.y[1] + background.y);
+            context.stroke();
+            context.beginPath();
+            context.moveTo(rotationPoints.outer.upperSiding.loopCurve3.x[0] + background.x, rotationPoints.outer.upperSiding.loopCurve3.y[0] + background.y);
+            context.bezierCurveTo(rotationPoints.outer.upperSiding.loopCurve3.x[1] + background.x, rotationPoints.outer.upperSiding.loopCurve3.y[1] + background.y, rotationPoints.outer.upperSiding.loopCurve3.x[2] + background.x, rotationPoints.outer.upperSiding.loopCurve3.y[2] + background.y, rotationPoints.outer.upperSiding.loopCurve3.x[3] + background.x, rotationPoints.outer.upperSiding.loopCurve3.y[3] + background.y);
+            context.stroke();
+            context.beginPath();
+            context.moveTo(rotationPoints.outer.upperSiding.loopLine1.x[0] + background.x, rotationPoints.outer.upperSiding.loopLine1.y[0] + background.y);
+            context.lineTo(rotationPoints.outer.upperSiding.loopLine1.x[1] + background.x, rotationPoints.outer.upperSiding.loopLine1.y[1] + background.y);
             context.stroke();
             context.strokeStyle = "rgba(175,0,0," + (switches.sidings1.left.turned && switches.sidings2.left.turned ? "1" : "0.3") + ")";
             context.beginPath();
@@ -4060,7 +4261,7 @@ function drawObjects() {
         var colorLight = "floralwhite";
         var colorDark = "rgb(120,120,120)";
         var colorBorder = "rgba(255,255,255,0.7)";
-        var contextClick = controlCenter.mouse.clickEvent && Math.abs(hardware.mouse.downX - hardware.mouse.upX) < canvas.width / 100 && Math.abs(hardware.mouse.downY - hardware.mouse.upY) < canvas.width / 100;
+        var contextClick = controlCenter.mouse.clickEvent && Math.abs(hardware.mouse.downX - hardware.mouse.upX) < canvasGesture.width / 100 && Math.abs(hardware.mouse.downY - hardware.mouse.upY) < canvasGesture.width / 100;
         controlCenter.mouse.clickEvent = false;
         hardware.mouse.cursor = "default";
         contextForeground.save();
@@ -4458,38 +4659,20 @@ function drawObjects() {
         hardware.mouse.cursor = "default";
         multiplayerMode.waitingClock.draw();
     }
-    /////BACKGROUND/Margins-2////
-    if (konamiState < 0) {
-        var bgGradient = contextForeground.createRadialGradient(0, canvasForeground.height / 2, canvasForeground.height / 2, canvasForeground.width + canvasForeground.height / 2, canvasForeground.height / 2, canvasForeground.height / 2);
-        bgGradient.addColorStop(0, "red");
-        bgGradient.addColorStop(0.2, "orange");
-        bgGradient.addColorStop(0.4, "yellow");
-        bgGradient.addColorStop(0.6, "lightgreen");
-        bgGradient.addColorStop(0.8, "blue");
-        bgGradient.addColorStop(1, "violet");
-        if (gui.konamiOverlay) {
-            hardware.mouse.cursor = "default";
-            contextForeground.save();
-            contextForeground.fillStyle = "black";
-            contextForeground.fillRect(background.x, background.y, background.width, background.height);
-            contextForeground.textAlign = "center";
-            contextForeground.fillStyle = bgGradient;
-            var konamiText = getString("appScreenKonami", "!");
-            contextForeground.font = measureFontSize(konamiText, "monospace", 100, background.width / 1.1, 5, background.width / 300);
-            contextForeground.fillText(konamiText, background.x + background.width / 2, background.y + background.height / 2);
-            contextForeground.fillText(getString("appScreenKonamiIconRow"), background.x + background.width / 2, background.y + background.height / 4);
-            contextForeground.fillText(getString("appScreenKonamiIconRow"), background.x + background.width / 2, background.y + background.height / 2 + background.height / 4);
-            contextForeground.restore();
-        }
-        if (!gui.three) {
-            context.save();
-            context.fillStyle = bgGradient;
-            context.fillRect(0, 0, background.x, canvas.height);
-            context.fillRect(0, 0, canvas.width, background.y);
-            context.fillRect(background.x + background.width, 0, background.x, canvas.height);
-            context.fillRect(0, background.y + background.height + menus.outerContainer.height * client.devicePixelRatio, canvas.width, background.y);
-            context.restore();
-        }
+    /////Konami overlay////
+    if (konamiState < 0 && gui.konamiOverlay) {
+        hardware.mouse.cursor = "default";
+        contextForeground.save();
+        contextForeground.fillStyle = "black";
+        contextForeground.fillRect(background.x, background.y, background.width, background.height);
+        contextForeground.textAlign = "center";
+        contextForeground.fillStyle = getKonamiGradient();
+        var konamiText = getString("appScreenKonami", "!");
+        contextForeground.font = measureFontSize(konamiText, "monospace", 100, background.width / 1.1, 5, background.width / 300);
+        contextForeground.fillText(konamiText, background.x + background.width / 2, background.y + background.height / 2);
+        contextForeground.fillText(getString("appScreenKonamiIconRow"), background.x + background.width / 2, background.y + background.height / 4);
+        contextForeground.fillText(getString("appScreenKonamiIconRow"), background.x + background.width / 2, background.y + background.height / 2 + background.height / 4);
+        contextForeground.restore();
     }
     /////CURSOR/////
     if (gui.three) {
@@ -4552,9 +4735,9 @@ function actionSync(objectName, index = undefined, params = undefined, notificat
                 if (notification && !notificationOnlyForOthers) {
                     var notifyArr = [];
                     notification.forEach(function (elem) {
-                        notifyArr.push(getString.apply(null, elem.getString));
+                        notifyArr.push(getString(...elem.getString));
                     });
-                    var notifyStr = formatJSString.apply(null, notifyArr);
+                    var notifyStr = formatJSString(notifyArr[0], ...notifyArr.slice(1));
                     notify("#canvas-notifier", notifyStr, NotificationPriority.Default, 1000, null, null, client.y + menus.outerContainer.height);
                 }
                 break;
@@ -4575,8 +4758,21 @@ const doubleClickTime = 200;
 const doubleClickWaitTime = doubleClickTime + 50;
 //Background
 const background = { src: 9, secondLayer: 10 };
-const background3D = { flat: { src: "background-flat" }, three: { src: "background-3d" }, aquarium: {}, burningBuilding: {} };
-const aquarium3D = { backSrc: 40, fish: [{ src: 41 }, { src: 41 }, { src: 41 }, { src: 42 }, { src: 42 }, { src: 43 }] };
+const background3D = { flat: { src: "background-flat" }, flatBehind: { src: "background-flat-behind" }, three: { src: "background-3d" }, aquarium: {}, burningBuilding: {} };
+const continueTrack3D = {
+    elements: [],
+    stripMaterial: new THREE.MeshBasicMaterial({ side: THREE.DoubleSide }),
+    lineMaterial: new THREE.LineBasicMaterial(),
+    resize() {
+        // The rails are built again in the next frame, from the new rotation points and background
+        if (continueTrack3D.group) {
+            continueTrack3D.group.traverse((node) => node.geometry?.dispose());
+            continueTrack3D.group.removeFromParent();
+            delete continueTrack3D.group;
+        }
+    }
+};
+const aquarium3D = { backSrc: 40, fish: [41, 41, 41, 42, 42, 43].map((src) => ({ src: src, x: 0, y: 0, width: 0, height: 0, speed: 0 })) };
 const burningBuilding3D = {};
 //Loading animation
 const loadingAnimation = {
@@ -4749,11 +4945,11 @@ const textControl = {
                     usage: "{number}"
                 },
                 stop: {
-                    args: { min: 1, max: 1, patterns: [/^[0-9]+|all$/] },
+                    args: { min: 1, max: 1, patterns: [/^([0-9]+|all)$/] },
                     execute(args) {
                         if (args[1] == "all") {
                             for (var i = 0; i < trains.length; i++) {
-                                this.execute([args[0], i]);
+                                this.execute([args[0], String(i)]);
                             }
                             return getString("appScreenTextCommandsGeneralSuccess", "!", "upper");
                         }
@@ -4784,23 +4980,23 @@ const textControl = {
                             return getString("appScreenTextCommandsGeneralFailure", "!", "upper");
                         }
                         if (args.length == 3) {
-                            var speed = args[2];
-                            if (speed.match(/^[+][0-9]+$/)) {
+                            var speed;
+                            if (args[2].match(/^[+][0-9]+$/)) {
                                 if (trains[train].accelerationSpeed <= 0) {
-                                    speed = parseInt(speed, 10);
+                                    speed = parseInt(args[2], 10);
                                 }
                                 else {
-                                    speed = trains[train].speedInPercent + parseInt(speed.replace(/[^0-9]/g, ""), 10);
+                                    speed = trains[train].speedInPercent + parseInt(args[2].replace(/[^0-9]/g, ""), 10);
                                 }
                             }
-                            else if (speed.match(/^[-][0-9]+$/)) {
+                            else if (args[2].match(/^[-][0-9]+$/)) {
                                 if (trains[train].accelerationSpeed <= 0) {
                                     return getString("appScreenTextCommandsGeneralFailure", "!", "upper");
                                 }
-                                speed = trains[train].speedInPercent - parseInt(speed.replace(/[^0-9]/g, ""), 10);
+                                speed = trains[train].speedInPercent - parseInt(args[2].replace(/[^0-9]/g, ""), 10);
                             }
-                            else if (speed.match(/^[0-9]+$/)) {
-                                speed = parseInt(speed, 10);
+                            else if (args[2].match(/^[0-9]+$/)) {
+                                speed = parseInt(args[2], 10);
                             }
                             else {
                                 return getString("appScreenTextCommandsGeneralFailure", "!", "upper");
@@ -4849,7 +5045,7 @@ const textControl = {
                     usage: ""
                 },
                 auto: {
-                    args: { min: 1, max: 1, patterns: [/^start|end|pause|resume$/] },
+                    args: { min: 1, max: 1, patterns: [/^(start|end|pause|resume)$/] },
                     execute(args) {
                         if (args[1] == "start" && carActions.auto.start()) {
                             return getString("appScreenTextCommandsGeneralSuccess", "!", "upper");
@@ -4868,7 +5064,7 @@ const textControl = {
                     usage: "start|end|pause|resume"
                 },
                 manual: {
-                    args: { min: 2, max: 2, patterns: [/^start|stop|back|park$/, /^[0-9]+$/] },
+                    args: { min: 2, max: 2, patterns: [/^(start|stop|back|park)$/, /^[0-9]+$/] },
                     execute(args) {
                         var car = parseInt(args[2], 10);
                         if (args[1] == "start" && carActions.manual.start(car)) {
@@ -4891,6 +5087,33 @@ const textControl = {
             nameIdentifier: "appScreenTextCommandsCarsName",
             action(args) {
                 return textControl.execute("cars", args);
+            }
+        },
+        switches: {
+            subcommands: {
+                list: {
+                    args: { min: 0, max: 0 },
+                    execute() {
+                        return Object.entries(switches)
+                            .map(([key, sides]) => key + " (" + Object.keys(sides).join(",") + ")")
+                            .join(", ");
+                    },
+                    usage: ""
+                },
+                turn: {
+                    args: { min: 2, max: 2 },
+                    execute(args) {
+                        if (switchActions.turn(args[1], args[2])) {
+                            return getString("appScreenTextCommandsGeneralSuccess", "!", "upper");
+                        }
+                        return getString("appScreenTextCommandsGeneralFailure", "!", "upper");
+                    },
+                    usage: "{name} {side}"
+                }
+            },
+            nameIdentifier: "appScreenTextCommandsSwitchesName",
+            action(args) {
+                return textControl.execute("switches", args);
             }
         },
         exit: {
@@ -5056,7 +5279,7 @@ const audioControl = {
         return false;
     },
     mayPlay() {
-        return audio.active && !client.hidden && !onlineConnection.paused;
+        return audio.active && !client.hidden && !(client.unfocused && SYSTEM_TOOLS.muteWhenUnfocused()) && !onlineConnection.paused;
     },
     existsObject(destinationName, destinationIndex = undefined) {
         if (typeof audio.context == "object") {
@@ -5258,8 +5481,7 @@ const three = {
         }
         setGuiState("3d-cam-mode", three.cameraMode);
         setGuiState("3d-follow-object", three.followObject);
-        resetScale();
-        resetTilt();
+        resetAll();
         calcMenusAndBackground("resize");
     },
     zoom: 3,
@@ -5376,7 +5598,13 @@ const trainActions = {
     }
 };
 const switchActions = {
+    checkExistence(key, side) {
+        return Object.hasOwn(switches, key) && Object.hasOwn(switches[key], side);
+    },
     turn(key, side) {
+        if (!this.checkExistence(key, side)) {
+            return false;
+        }
         if (currentMode == Modes.MULTIPLAYER) {
             actionSync("switches", [key, side], [{ turned: !switches[key][side].turned }], [{ getString: ["appScreenSwitchTurns", "."] }]);
         }
@@ -5392,6 +5620,7 @@ const switchActions = {
         if (audioControl.mayPlay()) {
             audioControl.startObject("switch", null, false);
         }
+        return true;
     }
 };
 const carActions = {
@@ -5503,19 +5732,23 @@ const carActions = {
  ******************************************/
 //Canvas and drawing
 var canvas;
+var canvas2;
 var canvasGesture;
 var canvasAquarium;
-var canvasBurningBuildung;
+var canvasBurningBuilding;
 var canvasBackground;
 var canvasSemiForeground;
 var canvasForeground;
+var canvasMargins;
 var context;
+var context2;
 var contextGesture;
 var contextAquarium;
-var contextBurningBuildung;
+var contextBurningBuilding;
 var contextBackground;
 var contextSemiForeground;
 var contextForeground;
+var contextMargins;
 var drawInterval;
 var drawTimeout;
 var drawing = false;
@@ -5556,7 +5789,41 @@ var taxOffice;
 var classicUI;
 //GUI configuration
 var gui;
-var menus = {};
+const menus = {
+    small: false,
+    floating: false,
+    itemDefaultSize: 0,
+    innerWidth: 0,
+    innerWidthRelativeToItemLength: false,
+    outerContainer: { element: document.querySelector("#canvas-menus"), height: 0, width: 0 },
+    options: {
+        container: { elementInner: document.querySelector("#canvas-options-inner") },
+        items: [],
+        elements: {
+            modeSingleplayer: document.querySelector("#canvas-single"),
+            modeMultiplayer: document.querySelector("#canvas-team"),
+            modeDemo: document.querySelector("#canvas-demo-mode"),
+            help: document.querySelector("#canvas-help"),
+            settings: document.querySelector("#canvas-settings"),
+            controlCenterTrains: document.querySelector("#canvas-control-center"),
+            controlCenterCars: document.querySelector("#canvas-car-control-center"),
+            infoToggle: document.querySelector("#canvas-info-toggle"),
+            soundToggle: document.querySelector("#canvas-sound-toggle"),
+            view3DToggle: document.querySelector("#canvas-3d-view-toggle"),
+            view3DNightToggle: document.querySelector("#canvas-3d-view-day-night"),
+            view3DCameraSwitcherBackwards: document.querySelector("#canvas-3d-view-camera-switcher-backwards"),
+            view3DCameraSwitcherForwards: document.querySelector("#canvas-3d-view-camera-switcher-forwards"),
+            multiplayerChat: document.querySelector("#canvas-chat-open")
+        }
+    },
+    infoOverlay: {
+        container: { elementInner: document.querySelector("#canvas-info-inner") },
+        items: [],
+        overlayText: document.querySelector("#info-overlay-text"),
+        scaleFac: 1,
+        scaleFacGrow: true
+    }
+};
 var konamiState = 0;
 var konamiTimeOut;
 //Multiplayer mode
@@ -5852,20 +6119,17 @@ function init(state = "reload") {
             else {
                 currentObject = currentObjectInput;
             }
-            obj[j] = {};
-            obj[j].x = currentObject.x;
-            obj[j].y = currentObject.y;
-            if (currentObject.shortcutToParking) {
-                obj[j].shortcutToParking = true;
-                currentObject.shortcutToParking = false;
-            }
             while (currentObject.displayAngle < 0) {
                 currentObject.displayAngle += Math.PI * 2;
             }
             while (currentObject.displayAngle >= Math.PI * 2) {
                 currentObject.displayAngle -= Math.PI * 2;
             }
-            obj[j].angle = currentObject.displayAngle;
+            obj[j] = { x: currentObject.x, y: currentObject.y, angle: currentObject.displayAngle };
+            if (currentObject.shortcutToParking) {
+                obj[j].shortcutToParking = true;
+                currentObject.shortcutToParking = false;
+            }
             switch (carPaths[i][cType][currentObject.state].type) {
                 case "linear":
                     currentObject.angle = currentObject.angle < Math.PI / 2 ? 0 : Math.PI;
@@ -6119,9 +6383,10 @@ function init(state = "reload") {
             car.collStopNo = [];
         });
         for (var i = 0; i < cars.length; i++) {
-            var types = Object.keys(carPaths[i]);
-            for (var cTypeNo = 0; cTypeNo < types.length; cTypeNo++) {
-                var cType = types[cTypeNo];
+            for (const cType of ["start", "normal"]) {
+                if (carPaths[i][cType] == undefined) {
+                    continue;
+                }
                 carPaths[i][cType].forEach(function (cPoint) {
                     for (var k = 0; k < cPoint.x.length && k < cPoint.y.length; k++) {
                         cPoint.x[k] *= background.width;
@@ -6205,9 +6470,11 @@ function init(state = "reload") {
         }
         //Reset all canvases
         canvas.style.display = "none";
+        canvas2.style.display = "none";
         canvasGesture.style.display = "none";
         canvasBackground.style.display = "none";
         canvasSemiForeground.style.display = "none";
+        canvasMargins.style.display = "none";
         background3D.behind.style.display = "none";
         if (background3D.behindClone) {
             background3D.behindClone.remove();
@@ -6289,7 +6556,8 @@ function init(state = "reload") {
         sidings2: { left: { turned: false, angles: { normal: 1.65 * Math.PI, turned: 1.72 * Math.PI } } },
         sidings3: { left: { turned: false, angles: { normal: 1.65 * Math.PI, turned: 1.73 * Math.PI } } },
         outerRightSiding: { left: { turned: false, angles: { normal: 1.71 * Math.PI, turned: 1.76 * Math.PI } } },
-        outerRightSidingTurn: { left: { turned: false, angles: { normal: 1.7 * Math.PI, turned: 1.75 * Math.PI } } }
+        outerRightSidingTurn: { left: { turned: false, angles: { normal: 1.7 * Math.PI, turned: 1.75 * Math.PI } } },
+        outerUpperSiding: { left: { turned: false, angles: { normal: 1.75 * Math.PI, turned: 1.71 * Math.PI } } }
     };
     switches = switchesDefault;
     switches3D = {};
@@ -6319,15 +6587,15 @@ function init(state = "reload") {
             if (classicUI.transformer.angle == undefined || classicUI.transformer.x == undefined || classicUI.transformer.y == undefined || classicUI.transformer.width == undefined || classicUI.transformer.height == undefined) {
                 return false;
             }
+            contextGesture.save();
             contextGesture.setTransform(client.zoomAndTilt.realScale, 0, 0, client.zoomAndTilt.realScale, (-(client.zoomAndTilt.realScale - 1) * canvasGesture.width) / 2 + client.zoomAndTilt.offsetX, (-(client.zoomAndTilt.realScale - 1) * canvasGesture.height) / 2 + client.zoomAndTilt.offsetY);
             contextGesture.translate(classicUI.transformer.x + classicUI.transformer.width / 2, classicUI.transformer.y + classicUI.transformer.height / 2);
             contextGesture.rotate(classicUI.transformer.angle);
             contextGesture.beginPath();
             contextGesture.rect(-classicUI.transformer.width / 2, -classicUI.transformer.height / 2, classicUI.transformer.width, classicUI.transformer.height);
-            if (contextGesture.isPointInPath(x, y)) {
-                return true;
-            }
-            return false;
+            const isInPath = contextGesture.isPointInPath(x, y);
+            contextGesture.restore();
+            return isInPath;
         },
         pointInTransformerWheelInput(x, y) {
             if (!classicUI.pointInTransformerImage(x, y)) {
@@ -6336,6 +6604,7 @@ function init(state = "reload") {
             if (classicUI.transformer.wheelInput.diffY == undefined || classicUI.transformer.wheelInput.angle == undefined || classicUI.transformer.wheelInput.width == undefined || classicUI.transformer.wheelInput.height == undefined) {
                 return false;
             }
+            contextGesture.save();
             contextGesture.setTransform(client.zoomAndTilt.realScale, 0, 0, client.zoomAndTilt.realScale, (-(client.zoomAndTilt.realScale - 1) * canvasGesture.width) / 2 + client.zoomAndTilt.offsetX, (-(client.zoomAndTilt.realScale - 1) * canvasGesture.height) / 2 + client.zoomAndTilt.offsetY);
             contextGesture.translate(classicUI.transformer.x + classicUI.transformer.width / 2, classicUI.transformer.y + classicUI.transformer.height / 2);
             contextGesture.rotate(classicUI.transformer.angle);
@@ -6343,10 +6612,9 @@ function init(state = "reload") {
             contextGesture.rotate(classicUI.transformer.wheelInput.angle);
             contextGesture.beginPath();
             contextGesture.rect(-classicUI.transformer.wheelInput.width / 2, -classicUI.transformer.wheelInput.height / 2, classicUI.transformer.wheelInput.width, classicUI.transformer.wheelInput.height);
-            if (contextGesture.isPointInPath(x, y)) {
-                return true;
-            }
-            return false;
+            const isInPath = contextGesture.isPointInPath(x, y);
+            contextGesture.restore();
+            return isInPath;
         },
         pointInTransformerDirectionInput(x, y) {
             if (!classicUI.pointInTransformerImage(x, y)) {
@@ -6355,16 +6623,16 @@ function init(state = "reload") {
             if (classicUI.transformer.directionInput.diffX == undefined || classicUI.transformer.directionInput.diffY == undefined || classicUI.transformer.directionInput.width == undefined || classicUI.transformer.directionInput.height == undefined) {
                 return false;
             }
+            contextGesture.save();
             contextGesture.setTransform(client.zoomAndTilt.realScale, 0, 0, client.zoomAndTilt.realScale, (-(client.zoomAndTilt.realScale - 1) * canvasGesture.width) / 2 + client.zoomAndTilt.offsetX, (-(client.zoomAndTilt.realScale - 1) * canvasGesture.height) / 2 + client.zoomAndTilt.offsetY);
             contextGesture.translate(classicUI.transformer.x + classicUI.transformer.width / 2, classicUI.transformer.y + classicUI.transformer.height / 2);
             contextGesture.rotate(classicUI.transformer.angle);
             contextGesture.translate(classicUI.transformer.directionInput.diffX, classicUI.transformer.directionInput.diffY);
             contextGesture.beginPath();
             contextGesture.rect(-classicUI.transformer.directionInput.width / 2, -classicUI.transformer.directionInput.height / 2, classicUI.transformer.directionInput.width, classicUI.transformer.directionInput.height);
-            if (contextGesture.isPointInPath(x, y)) {
-                return true;
-            }
-            return false;
+            const isInPath = contextGesture.isPointInPath(x, y);
+            contextGesture.restore();
+            return isInPath;
         },
         pointInTransformerInput(x, y) {
             return classicUI.pointInTransformerWheelInput(x, y) || classicUI.pointInTransformerDirectionInput(x, y);
@@ -6376,15 +6644,15 @@ function init(state = "reload") {
             if (classicUI.trainSwitch.angle == undefined || classicUI.trainSwitch.x == undefined || classicUI.trainSwitch.y == undefined || classicUI.trainSwitch.width == undefined || classicUI.trainSwitch.height == undefined) {
                 return false;
             }
+            contextGesture.save();
             contextGesture.setTransform(client.zoomAndTilt.realScale, 0, 0, client.zoomAndTilt.realScale, (-(client.zoomAndTilt.realScale - 1) * canvasGesture.width) / 2 + client.zoomAndTilt.offsetX, (-(client.zoomAndTilt.realScale - 1) * canvasGesture.height) / 2 + client.zoomAndTilt.offsetY);
             contextGesture.translate(classicUI.trainSwitch.x + classicUI.trainSwitch.width / 2, classicUI.trainSwitch.y + classicUI.trainSwitch.height / 2);
             contextGesture.rotate(classicUI.trainSwitch.angle);
             contextGesture.beginPath();
             contextGesture.rect(-classicUI.trainSwitch.width / 2, -classicUI.trainSwitch.height / 2, classicUI.trainSwitch.width, classicUI.trainSwitch.height);
-            if (contextGesture.isPointInPath(x, y)) {
-                return true;
-            }
-            return false;
+            const isInPath = contextGesture.isPointInPath(x, y);
+            contextGesture.restore();
+            return isInPath;
         },
         pointInTrainSwitchInputText(x, y) {
             if (!classicUI.ready()) {
@@ -6396,13 +6664,13 @@ function init(state = "reload") {
             if (classicUI.trainSwitch.selectedTrainDisplay.x == undefined || classicUI.trainSwitch.selectedTrainDisplay.y == undefined || classicUI.trainSwitch.selectedTrainDisplay.width == undefined || classicUI.trainSwitch.selectedTrainDisplay.height == undefined) {
                 return false;
             }
+            contextGesture.save();
             contextGesture.setTransform(client.zoomAndTilt.realScale, 0, 0, client.zoomAndTilt.realScale, (-(client.zoomAndTilt.realScale - 1) * canvasGesture.width) / 2 + client.zoomAndTilt.offsetX, (-(client.zoomAndTilt.realScale - 1) * canvasGesture.height) / 2 + client.zoomAndTilt.offsetY);
             contextGesture.beginPath();
             contextGesture.rect(classicUI.trainSwitch.selectedTrainDisplay.x, classicUI.trainSwitch.selectedTrainDisplay.y, classicUI.trainSwitch.selectedTrainDisplay.width, classicUI.trainSwitch.selectedTrainDisplay.height);
-            if (contextGesture.isPointInPath(x, y)) {
-                return true;
-            }
-            return false;
+            const isInPath = contextGesture.isPointInPath(x, y);
+            contextGesture.restore();
+            return isInPath;
         },
         pointInTrainSwitchInput(x, y) {
             return classicUI.pointInTrainSwitchInputImage(x, y) || classicUI.pointInTrainSwitchInputText(x, y);
@@ -6425,7 +6693,9 @@ function init(state = "reload") {
                     { frameNo: 5, x: [0.0568, 0.0008], y: [0.177, 0.0148], size: 0.001 }
                 ]
             }
-        }
+        },
+        fire: [],
+        smoke: []
     };
     taxOffice = taxOfficeDefault;
     //GUI State
@@ -6501,6 +6771,7 @@ function init(state = "reload") {
     }
     measureViewSpace();
     context.clearRect(0, 0, canvas.width, canvas.height);
+    context2.clearRect(0, 0, canvas2.width, canvas2.height);
     calcMenusAndBackground(state);
     const savedGameBg = localStorage.getItem("morowayAppSavedGame_v-" + getVersionCode() + "_Bg");
     const savedGameTrains = localStorage.getItem("morowayAppSavedGame_v-" + getVersionCode() + "_Trains");
@@ -6566,8 +6837,6 @@ function init(state = "reload") {
         }
     }
     //TAX OFFICE
-    taxOffice.fire = [];
-    taxOffice.smoke = [];
     taxOffice.params.fire.x *= background.width;
     taxOffice.params.fire.y *= background.height;
     taxOffice.params.fire.size *= background.width;
@@ -6575,21 +6844,7 @@ function init(state = "reload") {
     taxOffice.params.smoke.y *= background.height;
     taxOffice.params.smoke.size *= background.width;
     for (var i = 0; i < taxOffice.params.number; i++) {
-        taxOffice.fire[i] = {};
-        taxOffice.smoke[i] = {};
-        if (Math.random() >= taxOffice.params.fire.color.probability) {
-            taxOffice.fire[i].color = "rgba(" + taxOffice.params.fire.color.yellow.red + "," + taxOffice.params.fire.color.yellow.green + "," + taxOffice.params.fire.color.yellow.blue + "," + taxOffice.params.fire.color.yellow.alpha * Math.random() + ")";
-        }
-        else {
-            taxOffice.fire[i].color = "rgba(" + taxOffice.params.fire.color.red.red + "," + taxOffice.params.fire.color.red.green + "," + taxOffice.params.fire.color.red.blue + "," + taxOffice.params.fire.color.red.alpha * Math.random() + ")";
-        }
-        taxOffice.fire[i].x = Math.random() * taxOffice.params.fire.x;
-        taxOffice.fire[i].y = Math.random() * taxOffice.params.fire.y;
-        taxOffice.fire[i].size = Math.random() * taxOffice.params.fire.size;
-        taxOffice.smoke[i].color = "rgba(" + taxOffice.params.smoke.color.red + "," + taxOffice.params.smoke.color.green + "," + taxOffice.params.smoke.color.blue + "," + taxOffice.params.smoke.color.alpha * Math.random() + ")";
-        taxOffice.smoke[i].x = Math.random() * taxOffice.params.smoke.x;
-        taxOffice.smoke[i].y = Math.random() * taxOffice.params.smoke.y;
-        taxOffice.smoke[i].size = Math.random() * taxOffice.params.smoke.size;
+        setTaxOfficeParticles(i);
     }
     for (var i = 0; i < taxOffice.params.blueLights.cars.length; i++) {
         taxOffice.params.blueLights.cars[i].x[0] *= background.width;
@@ -6641,6 +6896,12 @@ function init(state = "reload") {
     three.mainGroup = new THREE.Group();
     three.mainGroup.name = "main_group";
     three.scene.add(three.mainGroup);
+    // A mode switch builds a new renderer: release the old one's GPU context and canvas first
+    if (three.renderer) {
+        three.renderer.dispose();
+        three.renderer.forceContextLoss();
+        three.renderer.domElement.remove();
+    }
     three.renderer = new THREE.WebGLRenderer({ alpha: true });
     THREE.ColorManagement.enabled = false;
     three.renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
@@ -6712,6 +6973,23 @@ function init(state = "reload") {
         background3D.flat.resize();
         three.mainGroup.add(background3D.flat.mesh);
     }
+    // Underside of the board, visible when it tilts over (konami)
+    if (objects3D[background3D.flatBehind.src]) {
+        const material = new THREE.MeshLambertMaterial({
+            map: objects3D[background3D.flatBehind.src].clone(),
+            side: THREE.BackSide
+        });
+        const geometry = new THREE.PlaneGeometry(1, background.height / background.width);
+        background3D.flatBehind.mesh = new THREE.Mesh(geometry, material);
+        background3D.flatBehind.resize = function () {
+            const scale = three.calcScale();
+            background3D.flatBehind.mesh.scale.x = -scale;
+            background3D.flatBehind.mesh.scale.y = -scale;
+            background3D.flatBehind.mesh.position.set(0, three.calcPositionY(), -scale * 0.001);
+        };
+        background3D.flatBehind.resize();
+        three.mainGroup.add(background3D.flatBehind.mesh);
+    }
     if (background3D.three.src) {
         background3D.three.mesh = three.cloneNode(objects3D[background3D.three.src]);
         background3D.three.resize = function () {
@@ -6736,7 +7014,7 @@ function init(state = "reload") {
     };
     background3D.aquarium.resize();
     three.mainGroup.add(background3D.aquarium.mesh);
-    background3D.burningBuilding.canvas = new THREE.CanvasTexture(canvasBurningBuildung);
+    background3D.burningBuilding.canvas = new THREE.CanvasTexture(canvasBurningBuilding);
     background3D.burningBuilding.mesh = new THREE.Mesh(new THREE.BoxGeometry(1.53, 0.8, 0.55), new THREE.MeshPhysicalMaterial({ map: background3D.burningBuilding.canvas }));
     background3D.burningBuilding.resize = function () {
         const scale = three.calcScale();
@@ -6852,6 +7130,9 @@ function init(state = "reload") {
     three.camera.zoom = three.zoom;
     three.camera.aspect = client.width / client.height;
     three.camera.updateProjectionMatrix();
+    // The bird's-eye camera without zoom: the train sounds do not depend on the zoom
+    three.soundCamera = three.camera.clone();
+    three.soundCamera.updateMatrixWorld();
     three.followCamera = new THREE.PerspectiveCamera(45, client.width / client.height, 0.001, 1);
     three.followCamera.zoom = 1;
     three.followCamera.updateProjectionMatrix();
@@ -6873,6 +7154,38 @@ function init(state = "reload") {
 }
 window.addEventListener("load", function () {
     function initAnimateWorker() {
+        // Volume factor of a train's sound in 3D, from the camera instead of the hidden tracks as in 2D;
+        // the locomotive and each car count, the loudest of them decides
+        function getTrainSoundFactor3D(i) {
+            const train3D = trains3D?.[i];
+            if (train3D?.mesh == undefined) {
+                return 1;
+            }
+            const parts = [train3D, ...(train3D.cars ?? [])].filter((part) => part.mesh != undefined);
+            const positions = parts.map((part) => part.mesh.getWorldPosition(new THREE.Vector3()));
+            const followCar = three.cameraMode == ThreeCameraModes.FOLLOW_CAR;
+            if (!followCar && three.cameraMode != ThreeCameraModes.FOLLOW_TRAIN) {
+                // Bird's-eye: full while visible without zoom; outside it falls off with the distance to
+                // the screen edge like real sound (1/d), halved at a tenth of the screen width
+                const factors = positions.map(function (position) {
+                    const projected = position.project(three.soundCamera);
+                    const beyondX = (Math.max(0, Math.abs(projected.x) - 1) * client.width) / 2;
+                    const beyondY = (Math.max(0, Math.abs(projected.y) - 1) * client.height) / 2;
+                    return 1 / (1 + Math.hypot(beyondX, beyondY) / (client.width / 10));
+                });
+                return Math.max(...factors);
+            }
+            // Follow cameras: full up to the distance of the followed object, beyond it falls off like real
+            // sound (1/d), halved a tenth of the board width further
+            const followed = (followCar ? cars3D : trains3D)[three.followObject];
+            if (followed?.mesh == undefined) {
+                return 1;
+            }
+            const camera = three.followCamera.getWorldPosition(new THREE.Vector3());
+            const reference = camera.distanceTo(followed.mesh.getWorldPosition(new THREE.Vector3()));
+            const nearest = Math.min(...positions.map((position) => camera.distanceTo(position)));
+            return 1 / (1 + Math.max(0, nearest - reference) / (three.calcScale() / 10));
+        }
         //Animation worker
         animateWorker = new Worker("./src/jsm/scripting_worker_animate.js", { type: "module" });
         animateWorker.onerror = function () {
@@ -7044,12 +7357,9 @@ window.addEventListener("load", function () {
                 if (currentMode == Modes.MULTIPLAYER) {
                     onlineConnection.connect = function (reconnect = 0) {
                         function resetForElement(parent, elem, to = "") {
-                            var elements = parent.childNodes;
-                            for (var i = 0; i < elements.length; i++) {
-                                if (!elements[i].nodeName.startsWith("#")) {
-                                    elements[i].style.display = elements[i] == elem ? to : "none";
-                                }
-                            }
+                            parent.querySelectorAll(":scope > *").forEach(function (child) {
+                                child.style.display = child == elem ? to : "none";
+                            });
                         }
                         function endLoading() {
                             loadingAnimation.hide();
@@ -7132,8 +7442,8 @@ window.addEventListener("load", function () {
                         function sendSyncData() {
                             var task = {};
                             task.o = "s";
-                            var obj = copyJSObject(switches);
-                            task.d = obj;
+                            const switchesCopy = copyJSObject(switches);
+                            task.d = switchesCopy;
                             if (!onlineConnection.resized) {
                                 onlineConnection.send("sync-task", JSON.stringify(task));
                             }
@@ -7141,39 +7451,24 @@ window.addEventListener("load", function () {
                                 task = {};
                                 task.o = "t";
                                 task.i = i;
-                                obj = copyJSObject(trains[i]);
-                                obj.front.x = (obj.front.x - background.x) / background.width;
-                                obj.back.x = (obj.back.x - background.x) / background.width;
-                                obj.x = (obj.x - background.x) / background.width;
-                                obj.front.y = (obj.front.y - background.y) / background.height;
-                                obj.back.y = (obj.back.y - background.y) / background.height;
-                                obj.y = (obj.y - background.y) / background.height;
-                                obj.width = obj.width / background.width;
-                                obj.height = obj.height / background.height;
+                                const trainCopy = copyJSObject(trains[i]);
+                                trainCopy.front.x = (trainCopy.front.x - background.x) / background.width;
+                                trainCopy.back.x = (trainCopy.back.x - background.x) / background.width;
+                                trainCopy.x = (trainCopy.x - background.x) / background.width;
+                                trainCopy.front.y = (trainCopy.front.y - background.y) / background.height;
+                                trainCopy.back.y = (trainCopy.back.y - background.y) / background.height;
+                                trainCopy.y = (trainCopy.y - background.y) / background.height;
+                                trainCopy.front.z = trainCopy.front.z / background.width;
+                                trainCopy.back.z = trainCopy.back.z / background.width;
+                                trainCopy.width = trainCopy.width / background.width;
+                                trainCopy.height = trainCopy.height / background.height;
                                 multiplayerMode.excludeFromSync[task.o].forEach(function (key) {
-                                    delete obj[key];
+                                    delete trainCopy[key];
                                 });
-                                if (obj.circleFamily != null) {
-                                    Object.keys(rotationPoints).forEach(function (key) {
-                                        if (trains[i].circleFamily == rotationPoints[key]) {
-                                            obj.circleFamily = key;
-                                        }
-                                    });
-                                    if (typeof obj.circleFamily == "string") {
-                                        Object.keys(rotationPoints[obj.circleFamily]).forEach(function (key) {
-                                            if (trains[i].circle == rotationPoints[obj.circleFamily][key]) {
-                                                obj.circle = key;
-                                            }
-                                        });
-                                    }
-                                    else {
-                                        delete obj.circle;
-                                    }
-                                }
-                                else {
-                                    delete obj.circle;
-                                }
-                                task.d = obj;
+                                // The circle family and the circle are sent as their keys in rotationPoints
+                                const familyKey = trains[i].circleFamily == null ? null : Object.keys(rotationPoints).find((key) => rotationPoints[key] == trains[i].circleFamily);
+                                const circleKey = familyKey == null ? undefined : Object.keys(rotationPoints[familyKey]).find((key) => rotationPoints[familyKey][key] == trains[i].circle);
+                                task.d = { ...trainCopy, circleFamily: familyKey, circle: circleKey };
                                 if (!onlineConnection.resized) {
                                     onlineConnection.send("sync-task", JSON.stringify(task));
                                 }
@@ -7181,19 +7476,21 @@ window.addEventListener("load", function () {
                                     task = {};
                                     task.o = "tc";
                                     task.i = [i, j];
-                                    obj = copyJSObject(trains[i].cars[j]);
-                                    obj.front.x = (obj.front.x - background.x) / background.width;
-                                    obj.back.x = (obj.back.x - background.x) / background.width;
-                                    obj.x = (obj.x - background.x) / background.width;
-                                    obj.front.y = (obj.front.y - background.y) / background.height;
-                                    obj.back.y = (obj.back.y - background.y) / background.height;
-                                    obj.y = (obj.y - background.y) / background.height;
-                                    obj.width = obj.width / background.width;
-                                    obj.height = obj.height / background.height;
+                                    const carCopy = copyJSObject(trains[i].cars[j]);
+                                    carCopy.front.x = (carCopy.front.x - background.x) / background.width;
+                                    carCopy.back.x = (carCopy.back.x - background.x) / background.width;
+                                    carCopy.x = (carCopy.x - background.x) / background.width;
+                                    carCopy.front.y = (carCopy.front.y - background.y) / background.height;
+                                    carCopy.back.y = (carCopy.back.y - background.y) / background.height;
+                                    carCopy.y = (carCopy.y - background.y) / background.height;
+                                    carCopy.front.z = carCopy.front.z / background.width;
+                                    carCopy.back.z = carCopy.back.z / background.width;
+                                    carCopy.width = carCopy.width / background.width;
+                                    carCopy.height = carCopy.height / background.height;
                                     multiplayerMode.excludeFromSync[task.o].forEach(function (key) {
-                                        delete obj[key];
+                                        delete carCopy[key];
                                     });
-                                    task.d = obj;
+                                    task.d = carCopy;
                                     if (!onlineConnection.resized) {
                                         onlineConnection.send("sync-task", JSON.stringify(task));
                                     }
@@ -7410,13 +7707,13 @@ window.addEventListener("load", function () {
                                         if (typeof input.notification == "object" && Array.isArray(input.notification)) {
                                             input.notification.forEach(function (elem) {
                                                 if (typeof elem == "object" && Array.isArray(elem.getString)) {
-                                                    notifyArr.push(getString.apply(null, elem.getString));
+                                                    notifyArr.push(getString(...elem.getString));
                                                 }
                                                 else if (typeof elem == "string") {
                                                     notifyArr.push(elem);
                                                 }
                                             });
-                                            var notifyStr = formatJSString.apply(null, notifyArr);
+                                            var notifyStr = formatJSString(notifyArr[0], ...notifyArr.slice(1));
                                             if (onlineConnection.sessionId != json.sessionId) {
                                                 notifyStr = json.sessionName + ": " + notifyStr;
                                             }
@@ -7722,8 +8019,11 @@ window.addEventListener("load", function () {
                                     trains3D[i].meshBack.right.scale.x *= -1;
                                 }
                             }
-                            trains3D[i].mesh.position.set(0, 0, 0);
+                            // Measured level, as the pitch on a ramp would make the box higher
+                            const pitch = trains3D[i].mesh.rotation.y;
+                            trains3D[i].mesh.rotation.y = 0;
                             trains3D[i].positionZ = new THREE.Box3().setFromObject(trains3D[i].mesh).getSize(new THREE.Vector3()).z / 2;
+                            trains3D[i].mesh.rotation.y = pitch;
                         };
                         trains3D[i].resize();
                         trains3D[i].mesh.callback = trainCallback;
@@ -7754,10 +8054,11 @@ window.addEventListener("load", function () {
                         trains3D[i].resize = function () {
                             if (three.mainGroup.getObjectByName("train_" + i)) {
                                 three.mainGroup.remove(trains3D[i].mesh);
+                                trains3D[i].mesh.geometry.dispose();
+                                trains3D[i].mesh.material.dispose();
                             }
                             const scale = three.calcScale();
                             trains3D[i].mesh = new THREE.Mesh(new THREE.BoxGeometry(scale * (trains[i].width / background.width), scale * (trains[i].height / background.height / 2), scale * height3D), new THREE.MeshBasicMaterial({ color: 0x00aa00, transparent: true, opacity: 0.5 }));
-                            trains3D[i].mesh.position.set(0, 0, 0);
                             trains3D[i].positionZ = (scale * height3D) / 2;
                             trains3D[i].mesh.callback = trainCallback;
                             trains3D[i].mesh.name = "train_" + i;
@@ -7792,8 +8093,11 @@ window.addEventListener("load", function () {
                                         trains3D[i].cars[j].meshBack.right.scale.x *= -1;
                                     }
                                 }
-                                trains3D[i].cars[j].mesh.position.set(0, 0, 0);
+                                // Measured level, as the pitch on a ramp would make the box higher
+                                const pitch = trains3D[i].cars[j].mesh.rotation.y;
+                                trains3D[i].cars[j].mesh.rotation.y = 0;
                                 trains3D[i].cars[j].positionZ = new THREE.Box3().setFromObject(trains3D[i].cars[j].mesh).getSize(new THREE.Vector3()).z / 2;
+                                trains3D[i].cars[j].mesh.rotation.y = pitch;
                             };
                             trains3D[i].cars[j].resize();
                             trains3D[i].cars[j].mesh.callback = trainCallback;
@@ -7824,10 +8128,11 @@ window.addEventListener("load", function () {
                             trains3D[i].cars[j].resize = function () {
                                 if (three.mainGroup.getObjectByName("train_" + i + "_car_" + j)) {
                                     three.mainGroup.remove(trains3D[i].cars[j].mesh);
+                                    trains3D[i].cars[j].mesh.geometry.dispose();
+                                    trains3D[i].cars[j].mesh.material.dispose();
                                 }
                                 const scale = three.calcScale();
                                 trains3D[i].cars[j].mesh = new THREE.Mesh(new THREE.BoxGeometry(scale * (trains[i].cars[j].width / background.width), scale * (trains[i].cars[j].height / background.height / 2), scale * height3D), new THREE.MeshBasicMaterial({ color: 0xaa0000, transparent: true, opacity: 0.5 }));
-                                trains3D[i].cars[j].mesh.position.set(0, 0, 0);
                                 trains3D[i].cars[j].positionZ = (scale * height3D) / 2;
                                 trains3D[i].cars[j].mesh.callback = trainCallback;
                                 trains3D[i].cars[j].mesh.name = "train_" + i + "_car_" + j;
@@ -7914,7 +8219,6 @@ window.addEventListener("load", function () {
                         cars3D[i].resize = function () {
                             const scale = three.calcScale();
                             cars3D[i].mesh.scale.set(scale * (cars[i].width / background.width), scale * (cars[i].width / background.width), scale * (cars[i].width / background.width));
-                            cars3D[i].mesh.position.set(0, 0, 0);
                             cars3D[i].positionZ = new THREE.Box3().setFromObject(cars3D[i].mesh).getSize(new THREE.Vector3()).z / 2;
                             cars3D[i].resizeParkingLot();
                         };
@@ -7927,10 +8231,11 @@ window.addEventListener("load", function () {
                         cars3D[i].resize = function () {
                             if (three.mainGroup.getObjectByName("car_" + i)) {
                                 three.mainGroup.remove(cars3D[i].mesh);
+                                cars3D[i].mesh.geometry.dispose();
+                                cars3D[i].mesh.material.dispose();
                             }
                             const scale = three.calcScale();
                             cars3D[i].mesh = new THREE.Mesh(new THREE.BoxGeometry(scale * (cars[i].width / background.width), scale * (cars[i].height / background.height / 2), scale * height3D), new THREE.MeshBasicMaterial({ color: 0xaaaa00, transparent: true, opacity: 0.5 }));
-                            cars3D[i].mesh.position.set(0, 0, 0);
                             cars3D[i].positionZ = (scale * height3D) / 2;
                             cars3D[i].mesh.callback = carCallback;
                             cars3D[i].mesh.name = "car_" + i;
@@ -8115,9 +8420,11 @@ window.addEventListener("load", function () {
                     trains[i].back.state = train.back.state;
                     trains[i].front.x = train.front.x;
                     trains[i].front.y = train.front.y;
+                    trains[i].front.z = train.front.z;
                     trains[i].front.angle = train.front.angle;
                     trains[i].back.x = train.back.x;
                     trains[i].back.y = train.back.y;
+                    trains[i].back.z = train.back.z;
                     trains[i].back.angle = train.back.angle;
                     trains[i].width = train.width;
                     trains[i].height = train.height;
@@ -8134,7 +8441,6 @@ window.addEventListener("load", function () {
                     trains[i].accelerationSpeedCustom = train.accelerationSpeedCustom;
                     trains[i].standardDirection = train.standardDirection;
                     trains[i].crash = train.crash;
-                    trains[i].mute = train.mute;
                     trains[i].volume = train.volume;
                     trains[i].invisible = train.invisible;
                     trains[i].opacity = train.opacity;
@@ -8153,24 +8459,32 @@ window.addEventListener("load", function () {
                         trains[i].cars[j].back.state = car.back.state;
                         trains[i].cars[j].front.x = car.front.x;
                         trains[i].cars[j].front.y = car.front.y;
+                        trains[i].cars[j].front.z = car.front.z;
                         trains[i].cars[j].front.angle = car.front.angle;
                         trains[i].cars[j].back.x = car.back.x;
                         trains[i].cars[j].back.y = car.back.y;
+                        trains[i].cars[j].back.z = car.back.z;
                         trains[i].cars[j].back.angle = car.back.angle;
                         trains[i].cars[j].wheels = car.wheels;
                     });
-                    if (train.move && !train.mute && audioControl.mayPlay()) {
-                        audioControl.startObject("train", trains[i].audioSrc, true);
-                        if (train.currentSpeedInPercent == undefined) {
-                            train.currentSpeedInPercent = 0;
+                    if (train.move && audioControl.mayPlay()) {
+                        // 2D fades and silences trains on hidden track, 3D follows the camera
+                        // instead
+                        const volumeFactor = gui.three ? getTrainSoundFactor3D(i) : train.volumeCustom;
+                        if (volumeFactor > 0) {
+                            audioControl.startObject("train", trains[i].audioSrc, true);
+                            audioControl.setObjectVolume("train", trains[i].audioSrc, train.volume * volumeFactor);
                         }
-                        audioControl.setObjectVolume("train", trains[i].audioSrc, train.volume);
+                        else {
+                            audioControl.stopObject("train", trains[i].audioSrc);
+                        }
                     }
                     else {
                         audioControl.stopObject("train", trains[i].audioSrc);
                     }
                 });
                 if (message.data.resized) {
+                    continueTrack3D.resize();
                     trains3D.forEach(function (train) {
                         if (train.resize) {
                             train.resize();
@@ -8219,27 +8533,33 @@ window.addEventListener("load", function () {
             }
             else if (message.data.k == "save-game") {
                 if (getSetting("saveGame") && currentMode == Modes.SINGLEPLAYER) {
-                    try {
-                        localStorage.setItem("morowayAppSavedGame_v-" + getVersionCode() + "_Trains", JSON.stringify(message.data.saveTrains));
-                        var saveSwitches = {};
-                        Object.keys(switches).forEach(function (key) {
-                            saveSwitches[key] = {};
-                            Object.keys(switches[key]).forEach(function (side) {
-                                saveSwitches[key][side] = switches[key][side].turned;
+                    // The trains are in the worker's coordinates: skip them while a resize is on
+                    // its way to the worker, as they do not fit the current background; it saves
+                    // after it. A worker from an older version (still cached after an update)
+                    // sends no background: skip its trains too
+                    if (message.data.background !== undefined && ["x", "y", "width", "height"].every((key) => message.data.background[key] == background[key])) {
+                        try {
+                            localStorage.setItem("morowayAppSavedGame_v-" + getVersionCode() + "_Trains", JSON.stringify(message.data.saveTrains));
+                            var saveSwitches = {};
+                            Object.keys(switches).forEach(function (key) {
+                                saveSwitches[key] = {};
+                                Object.keys(switches[key]).forEach(function (side) {
+                                    saveSwitches[key][side] = switches[key][side].turned;
+                                });
                             });
-                        });
-                        localStorage.setItem("morowayAppSavedGame_v-" + getVersionCode() + "_Switches", JSON.stringify(saveSwitches));
-                        if (cars.length == carWays.length && cars.length > 0) {
-                            localStorage.setItem("morowayAppSavedGame_v-" + getVersionCode() + "_Cars", JSON.stringify(cars));
-                            localStorage.setItem("morowayAppSavedGame_v-" + getVersionCode() + "_CarParams", JSON.stringify(carParams));
+                            localStorage.setItem("morowayAppSavedGame_v-" + getVersionCode() + "_Switches", JSON.stringify(saveSwitches));
+                            if (cars.length == carWays.length && cars.length > 0) {
+                                localStorage.setItem("morowayAppSavedGame_v-" + getVersionCode() + "_Cars", JSON.stringify(cars));
+                                localStorage.setItem("morowayAppSavedGame_v-" + getVersionCode() + "_CarParams", JSON.stringify(carParams));
+                            }
+                            localStorage.setItem("morowayAppSavedGame_v-" + getVersionCode() + "_Bg", JSON.stringify(background));
                         }
-                        localStorage.setItem("morowayAppSavedGame_v-" + getVersionCode() + "_Bg", JSON.stringify(background));
-                    }
-                    catch (e) {
-                        if (APP_DATA.debug) {
-                            console.error(e.name, e.message);
+                        catch (e) {
+                            if (APP_DATA.debug) {
+                                console.error(e);
+                            }
+                            notify("#canvas-notifier", getString("appScreenSaveGameError", "."), NotificationPriority.High, 1000, null, null, client.y + menus.outerContainer.height);
                         }
-                        notify("#canvas-notifier", getString("appScreenSaveGameError", "."), NotificationPriority.High, 1000, null, null, client.y + menus.outerContainer.height);
                     }
                     animateWorker.postMessage({ k: "game-saved" });
                 }
@@ -8260,6 +8580,10 @@ window.addEventListener("load", function () {
             }
         };
         animateWorker.postMessage({ k: "ready", state: "load", online: currentMode == Modes.MULTIPLAYER, onlineInterval: multiplayerMode.animateInterval, demo: currentMode == Modes.DEMO });
+    }
+    function onWindowFocusChange(event) {
+        client.unfocused = event.type == "blur";
+        audioControl.playAndPauseAll();
     }
     function onVisibilityChange() {
         client.hidden = document.visibilityState == "hidden";
@@ -8296,27 +8620,36 @@ window.addEventListener("load", function () {
     //Visibility handling
     document.addEventListener("visibilitychange", onVisibilityChange);
     onVisibilityChange();
+    //Focus handling
+    window.addEventListener("blur", onWindowFocusChange);
+    window.addEventListener("focus", onWindowFocusChange);
+    client.unfocused = !document.hasFocus();
     //Initialize canvases and contexts
     canvas = document.querySelector("canvas#game-gameplay-main");
+    canvas2 = document.querySelector("canvas#game-gameplay-main2");
     canvasGesture = document.querySelector("canvas#game-gameplay-gesture");
     canvasAquarium = document.querySelector("canvas#game-gameplay-aquarium");
-    canvasBurningBuildung = document.querySelector("canvas#game-gameplay-burning-building");
+    canvasBurningBuilding = document.querySelector("canvas#game-gameplay-burning-building");
     canvasBackground = document.querySelector("canvas#game-gameplay-bg");
     canvasSemiForeground = document.querySelector("canvas#game-gameplay-sfg");
     canvasForeground = document.querySelector("canvas#game-gameplay-fg");
+    canvasMargins = document.querySelector("canvas#game-gameplay-margins");
     context = canvas.getContext("2d");
+    context2 = canvas2.getContext("2d");
     contextGesture = canvasGesture.getContext("2d");
     contextAquarium = canvasAquarium.getContext("2d");
-    contextBurningBuildung = canvasBurningBuildung.getContext("2d");
+    contextBurningBuilding = canvasBurningBuilding.getContext("2d");
     contextBackground = canvasBackground.getContext("2d");
     contextSemiForeground = canvasSemiForeground.getContext("2d");
     contextForeground = canvasForeground.getContext("2d");
+    contextMargins = canvasMargins.getContext("2d");
     //Load media
     var finalLoadNo = 0;
     var currentLoadNo = 0;
     //Load 3d objects
     const defaultObjects3D = [
         { object: "background-flat.jpg", path: "assets/3d/", id: "background-flat", type: "texture" },
+        { object: "background-flat-behind.jpg", path: "assets/3d/", id: "background-flat-behind", type: "texture" },
         { object: "background-3d.gltf", path: "assets/3d/background-3d/", id: "background-3d", type: "mesh" },
         { object: "asset0.glb", path: "assets/3d/", id: "0", type: "mesh" },
         { object: "asset1.glb", path: "assets/3d/", id: "1", type: "mesh" },
@@ -8339,6 +8672,7 @@ window.addEventListener("load", function () {
         { object: "asset35.glb", path: "assets/3d/", id: "35", type: "mesh" },
         { object: "asset36.glb", path: "assets/3d/", id: "36", type: "mesh" },
         { object: "asset37.glb", path: "assets/3d/", id: "37", type: "mesh" },
+        { object: "asset44.glb", path: "assets/3d/", id: "44", type: "mesh" },
         { object: "asset2_front.glb", path: "assets/3d/", id: "2_front", type: "mesh" },
         { object: "asset3_front.glb", path: "assets/3d/", id: "3_front", type: "mesh" },
         { object: "asset4_front.glb", path: "assets/3d/", id: "4_front", type: "mesh" },
@@ -8355,6 +8689,7 @@ window.addEventListener("load", function () {
         { object: "asset35_front.glb", path: "assets/3d/", id: "35_front", type: "mesh" },
         { object: "asset36_front.glb", path: "assets/3d/", id: "36_front", type: "mesh" },
         { object: "asset37_front.glb", path: "assets/3d/", id: "37_front", type: "mesh" },
+        { object: "asset44_front.glb", path: "assets/3d/", id: "44_front", type: "mesh" },
         { object: "asset2_back.glb", path: "assets/3d/", id: "2_back", type: "mesh" },
         { object: "asset3_back.glb", path: "assets/3d/", id: "3_back", type: "mesh" },
         { object: "asset4_back.glb", path: "assets/3d/", id: "4_back", type: "mesh" },
@@ -8370,7 +8705,8 @@ window.addEventListener("load", function () {
         { object: "asset34_back.glb", path: "assets/3d/", id: "34_back", type: "mesh" },
         { object: "asset35_back.glb", path: "assets/3d/", id: "35_back", type: "mesh" },
         { object: "asset36_back.glb", path: "assets/3d/", id: "36_back", type: "mesh" },
-        { object: "asset37_back.glb", path: "assets/3d/", id: "37_back", type: "mesh" }
+        { object: "asset37_back.glb", path: "assets/3d/", id: "37_back", type: "mesh" },
+        { object: "asset44_back.glb", path: "assets/3d/", id: "44_back", type: "mesh" }
     ];
     objects3D = [];
     finalLoadNo += defaultObjects3D.length;
@@ -8465,7 +8801,9 @@ window.addEventListener("load", function () {
         { id: 40, extension: "jpg" },
         { id: 41, extension: "png" },
         { id: 42, extension: "png" },
-        { id: 43, extension: "png" }
+        { id: 43, extension: "png" },
+        { id: 44, extension: "png" },
+        { id: 45, extension: "png" }
     ];
     pics = [];
     defaultObjects3D.length;

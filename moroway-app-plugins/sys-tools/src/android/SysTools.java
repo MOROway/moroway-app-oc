@@ -62,7 +62,8 @@ public class SysTools extends CordovaPlugin {
     }
 
     // Rounded screen corners hide the outer corner of a control along an edge and make it hard to
-    // reach: keep it clear by half the radius, on each side the larger radius of its two corners
+    // reach: keep it clear sideways by half the larger radius of the side's two corners (at the top
+    // and bottom that would only lift it off the edge)
     private Insets getRoundedCornerUnsafeArea(WindowInsetsCompat insets) {
         WindowInsets windowInsets = insets.toWindowInsets();
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || windowInsets == null) {
@@ -75,8 +76,8 @@ public class SysTools extends CordovaPlugin {
             RoundedCorner corner = windowInsets.getRoundedCorner(positions[i]);
             radii[i] = (corner == null ? 0 : corner.getRadius()) * 0.5;
         }
-        return Insets.of((int) Math.max(radii[0], radii[3]), (int) Math.max(radii[0], radii[1]),
-                (int) Math.max(radii[1], radii[2]), (int) Math.max(radii[2], radii[3]));
+        return Insets.of((int) Math.max(radii[0], radii[3]), 0,
+                (int) Math.max(radii[1], radii[2]), 0);
     }
 
     // Pass the hidden edges in CSS pixels to the game, which reads them like its safe-area insets;

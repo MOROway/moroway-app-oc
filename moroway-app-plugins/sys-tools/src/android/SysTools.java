@@ -3,6 +3,7 @@ package de.moroway.oc;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
+import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.os.Build;
 import android.view.RoundedCorner;
@@ -23,6 +24,7 @@ import org.json.JSONObject;
 public class SysTools extends CordovaPlugin {
     private Insets unsafeArea = Insets.NONE;
     private Insets boardUnsafeArea = Insets.NONE;
+    private boolean orientationLandscapeLocked = false;
 
     @Override
     protected void pluginInitialize() {
@@ -51,6 +53,7 @@ public class SysTools extends CordovaPlugin {
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         injectUnsafeArea();
+        applyOrientation();
     }
 
     @Override
@@ -106,7 +109,24 @@ public class SysTools extends CordovaPlugin {
             this.exitApp(action, callbackContext);
             return true;
         }
+        if (action.equals("lockOrientationLandscape")) {
+            orientationLandscapeLocked = args.getBoolean(0);
+            applyOrientation();
+            callbackContext.success();
+            return true;
+        }
         return false;
+    }
+
+    // Landscape only if the user locked it in the settings, otherwise the user's orientations (no
+    // upside down); both respect the system's rotation lock. The landscape lock does not apply in
+    // split-screen: there the user sets the window's shape, and a fixed orientation would only
+    // letterbox the app
+    private void applyOrientation() {
+        cordova.getActivity().runOnUiThread(() -> cordova.getActivity().setRequestedOrientation(
+                orientationLandscapeLocked && !cordova.getActivity().isInMultiWindowMode()
+                        ? ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE
+                        : ActivityInfo.SCREEN_ORIENTATION_USER));
     }
 
     private void exitApp(String action, CallbackContext callbackContext) {

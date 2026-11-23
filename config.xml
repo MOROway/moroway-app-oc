@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="de.moroway.oc" version="11.0.2" xmlns="http://www.w3.org/ns/widgets"
+<widget id="de.moroway.oc" version="11.0.3" xmlns="http://www.w3.org/ns/widgets"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>MOROway</name>
@@ -45,7 +45,7 @@
             monochrome="res/icon/android/xxxhdpi_monochrome.png" src="res/icon/android/xxxhdpi.png" />
         <edit-config file="app/src/main/AndroidManifest.xml" mode="merge"
             target="/manifest/application/activity[@android:name='MainActivity']">
-            <activity android:screenOrientation="sensorLandscape" />
+            <activity android:screenOrientation="user" />
         </edit-config>
         <config-file parent="application/activity" target="AndroidManifest.xml">
             <intent-filter android:autoVerify="true" android:label="MOROway OC">
